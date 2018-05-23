@@ -19,7 +19,7 @@ def blast_all_vs_all(program, query_seq, reference_DB, output_path):
             blast DB file
     output: query_vs_reference blast results file
     '''
-    cmd = ('{prog} -query {query} -db {reference} -out {output} -outfmt 6'.format(prog = program, query = query_seq, reference = reference_DB, output = output_path))
+    cmd = ('{prog} -query {query} -db {reference} -out {output} -max_target_seqs 2 -outfmt 6'.format(prog = program, query = query_seq, reference = reference_DB, output = output_path))
     subprocess.call(cmd.split(), shell = True)
 
 def filter_blast(query_vs_reference, precent_identity_cutoff, e_value_cutoff, bit_score_cutoff, output_path):
