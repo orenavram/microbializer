@@ -7,7 +7,7 @@ Created on Wed May 23 15:53:14 2018
 This module creates input files for mcl & runs mcl.
 
 Input:
-    **blast dir - dir to blast result files
+    **blast dir - directory containg tabular blast result files
     **OGs csv file- two dimentional tab delimited file with OGs as rows and bacteria as columns. 
     Each cell will contain the accession_start_end coordinates of the gene (we might want to change it to geneID in the future, but then, I'm not sure how we will represent unannotated genes).
     
