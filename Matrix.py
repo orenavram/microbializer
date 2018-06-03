@@ -79,3 +79,15 @@ def addGenesToMat(OMA_df, gene, ortho_gene, org_1, org_2):
         OMA_df.at[-1, org_2] = ortho_gene
         OMA_df.at[-1, org_1] = gene
         OMA_df.index += 1
+
+
+
+if __name__ == '__main__':
+        import logging
+        logger = logging.getLogger('main')
+        from sys import argv
+        if len(argv) < 3:  #
+            logger.error('Usage: python ' + argv[0] + ' <arg1> <arg2>')
+            exit()
+        else:
+            generateOrthologousMatrix(*argv[1:])
