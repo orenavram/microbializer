@@ -16,7 +16,7 @@ Input: (1) a path for a i_vs_j_blast.tsv file (2) an output path (with a suffix 
 Output: the same format of the input file containing only pairs that passed the filtration. For each row in the input file (pair of genes), apply the following filters:
 1. at least X% similarity
 2. at least X% of the length
-3.
+3. ?
 write each pair to the output file if it passed all the above filters.
 
 4.	find_reciprocal_hits.py
