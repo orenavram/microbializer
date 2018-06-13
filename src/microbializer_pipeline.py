@@ -2,12 +2,16 @@ import os
 import logging
 import argparse
 import sys
+from time import time
 from pipeline_auxiliaries import *
 
+start = time()
 logger = logging.getLogger('main')  # use logger instead of printing
 
 parser = argparse.ArgumentParser()
 parser.parse_args()
+
+#TODO: get arguments from the user
 
 contigs_dir = ''
 output_dir = ''
@@ -158,33 +162,33 @@ wait_for_results(pipeline_step_tmp_dir, script_name, num_of_expected_results)
 # Input: (1) a path for directory with all the verified OGs (2) an output path to a final OGs table.
 # Output: aggregates all the well-clustered OGs to the final table.
 previous_pipeline_step_output_dir = pipeline_step_output_dir
-putative_orthologs_table_path = os.path.join(output_dir, 'final_orthologs_table.tsv')
+final_orthologs_table_path = os.path.join(output_dir, 'final_orthologs_table.tsv')
 script_name = 'construct_final_table.py'
-for putative_orthologs_set_file in os.listdir(previous_pipeline_step_output_dir):
-    os.system(f'{script_name} {os.path.join(previous_pipeline_step_output_dir, reciprocal_hits_file)} {putative_orthologs_table_path}')
-
-
-
-# 9.	join_final_orthologs_table.py
-# Input: (1) a path for a putative orthologs table (each row in this table is a putative orthologous set) (2) an output_path to a directory.
-# Output: each line is written to a separate file in the output directory.
-# Can be parallelized on cluster (better as a subprocess)
-dir_name = 'splitted_putative_orthologs_table'
-script_name = 'split_putative_orthologs_table.py'
-num_of_expected_results = 0
-pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(output_dir, tmp_dir, dir_name)
 with open(putative_orthologs_table_path) as f:
-    for line in f:
-        out_file = os.path.join(pipeline_step_output_dir, line.split('\t')[0]+'.orthologsGroup')
-        subprocess.call(['python', 'file_writer.py', out_file, line])
-    num_of_expected_results += 1
+    orthologs_table_header = f.readline().rstrip()
+with open(final_orthologs_table_path, 'w') as f:
+    f.write(orthologs_table_header + '\n')
+    for final_orthologs_set_file_file in os.listdir(previous_pipeline_step_output_dir):
+        os.system(f'cat {os.path.join(previous_pipeline_step_output_dir, final_orthologs_set_file_file)} >> {final_orthologs_table_path}')
 
-wait_for_results(pipeline_step_output_dir, 'splitting_putative_orthologs_table', num_of_expected_results)
-
-
+# No need to wait...
 
 
 # 9.	extract_sequences.py
 # Input: (1) a row from the final orthologs table (2) a path for a directory where the genes files are at (3) a path for an output file.
 # Output: write the sequences of the orthologs group to the output file.
+dir_name = 'orthologs_sets_sequences'
+script_name = 'extract_sequences.py'
+num_of_expected_results = 0
+pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(output_dir, tmp_dir, dir_name)
+for final_orthologs_set_file_file in os.listdir(previous_pipeline_step_output_dir):
+    fasta_file_prefix = final_orthologs_set_file_file.split('.')[0]
+    output_file_name = fasta_file_prefix + '.' + dir_name
+    params = [os.path.join(previous_pipeline_step_output_dir, final_orthologs_set_file_file), pipeline_step_output_dir]
+    submit_pipeline_step(script_name, params, pipeline_step_tmp_dir, job_name=output_file_name)
+    num_of_expected_results += 1
 
+wait_for_results(pipeline_step_tmp_dir, script_name, num_of_expected_results)
+
+end = time()
+logger.info(f'Microbializer pipeline is done. Results can be found at {output_dir}. Took {measure_time(start, end)}')
