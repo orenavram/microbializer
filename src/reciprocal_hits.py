@@ -1,5 +1,6 @@
 import regex as re
 import pandas as pd
+import csv
 
 
 def reciprocalHits(blast_out1, blast_out2, output_path):
