@@ -4,16 +4,16 @@ import logging
 from time import time, sleep
 logger = logging.getLogger('main')  # use logger instead of printing
 
-def measure_time(start, end):
-    hours = int(end - start) // 3600
-    minutes = (int(end - start) % 3600) // 60
-    seconds = int(end - start) % 60
+def measure_time(total):
+    hours = total // 3600
+    minutes = (total% 3600) // 60
+    seconds = total % 60
     if hours != 0:
-        return '%d:%d:%d hours.' % (hours, minutes, seconds)
+        return f'{hours}:{minutes}:{seconds} hours'
     elif minutes != 0:
-        return '%d:%d minutes.' % (minutes, seconds)
+        return f'{minutes}:{seconds} minutes'
     else:
-        return '%d seconds.' % (seconds)
+        return f'{seconds} seconds'
 
 
 def execute(process, raw=False):
@@ -37,7 +37,7 @@ def wait_for_results(script_name, path, num_of_expected_results, suffix='done', 
     if remove:
         execute(['python', '-u', '/groups/pupko/orenavr2/src/RemoveDoneFiles.py', path, suffix])
     end = time()
-    logger.info(f'Done waiting for:\n{script_name}\n(took {measure_time(start, end)}).\n')
+    logger.info(f'Done waiting for:\n{script_name}\n(took {measure_time(int(end-start))}).\n')
 
 
 def remove_files_with_suffix(path, suffix='done'):
@@ -79,13 +79,13 @@ def prepare_directories(outputs_dir_prefix, tmp_dir_prefix, dir_name):
     return outputs_dir, tmp_dir
 
 
-def submit_pipeline_step(script_name, params, tmp_dir, job_name, new_line_delimiter='!@#', q_submitter_script_path='/bioseq/bioSequence_scripts_and_constants/q_submitter.py', done_files_script_path='file_writer.py', src_dir='./'):
+def submit_pipeline_step(script_path, params, tmp_dir, job_name, queue_name, new_line_delimiter='!@#', q_submitter_script_path='/bioseq/bioSequence_scripts_and_constants/q_submitter.py', done_files_script_path='file_writer.py'):
 
     #TODO: cmds += module load?
     #cmds += new_line_delimiter
 
     # ACTUAL COMMAND
-    cmds = ' '.join(['python', '-u', os.path.join(src_dir, script_name), *params, ';'])
+    cmds = ' '.join(['python', '-u', script_path, *params, ';'])
     cmds += new_line_delimiter # the queue does not like very long commands so I use a dummy delimiter (!@#) to break the rows in q_submitter
 
     # GENERATE DONE FILE
