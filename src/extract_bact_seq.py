@@ -20,6 +20,7 @@ Input:
 Output:
     directory containing fasta files for each ortholog group.
 """
+
 #Imports
 import sys
 import os
@@ -27,6 +28,7 @@ from src.constract_final_table import list_of_lists_to_flaten_list
 from Bio import SeqIO
 from Bio.SeqRecord import SeqRecord
 import pandas as pd
+
 #Functions
 #******************************************************************************************************        
 def read_sequence_file_to_dict(file_path, file_format = "fasta"):

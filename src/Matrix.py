@@ -45,7 +45,7 @@ def getOrganismsName(reciprocal_hits):
     :param reciprocal_hits: data frame of reciprocal hits.
     :return (organism_1, organism_2): names of two organisms compared in the data frame
     """
-    orgs_list = list(reciprocal_hits.columns.values);
+    orgs_list = list(reciprocal_hits.columns.values)
     return (orgs_list[0], orgs_list[1])
 
 def getGenePair(row, organism_1, organism_2):

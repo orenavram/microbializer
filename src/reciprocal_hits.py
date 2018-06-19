@@ -13,8 +13,7 @@ def reciprocalHits(blast_out1, blast_out2, output_path):
     index = 0
     lines_counter = 0
     source_file2 = open(blast_out2, "r")
-    lines = source_file2.readlines()
-    for line in lines:
+    for line in source_file2:
         if lines_counter == 1: #getting organisms name from first line in the BLAST file
             org_1, org_2 = getOrganismsName(line)
             df = pd.DataFrame(columns=[org_1, org_2, 'bitscore']) #creating data frame containing coulmn for each organism.
@@ -27,7 +26,7 @@ def reciprocalHits(blast_out1, blast_out2, output_path):
                     index += 1
         lines_counter += 1
     source_file2.close()
-    df.to_csv(output_path + "/reciprocal_hits_ " + org_1 + " _vs_" +org_2 + ".csv", index=False) #pushing data frame to csv file
+    df.to_csv(output_path + "/reciprocal_hits_" + org_1 + "_vs_" +org_2 + ".csv", index=False) #pushing data frame to csv file
 
 
 def getOrganismsName(blast_out_line):
@@ -72,7 +71,7 @@ def generatePairingDict(blast_out):
     for line in lines:
         if lines_counter > 0: #ignore first line
             gene, ortho_gene = getGenesPair(line)
-            gene_pairs_dict[gene] = ortho_gene;
+            gene_pairs_dict[gene] = ortho_gene
         lines_counter += 1
     source_file.close()
     return gene_pairs_dict
