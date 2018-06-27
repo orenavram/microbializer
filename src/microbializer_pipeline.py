@@ -2,6 +2,7 @@ from pipeline_auxiliaries import *
 from time import ctime
 import argparse
 import sys
+import subprocess
 
 start = time()
 logger = logging.getLogger('main')  # use logger instead of printing
@@ -131,7 +132,7 @@ try:
     putative_orthologs_table_path = os.path.join(args.output_dir, 'putative_orthologs_table.tsv')
     script_path = os.path.join(args.src_dir, 'construct_putative_orthologs_table.py')
     for reciprocal_hits_file in os.listdir(previous_pipeline_step_output_dir):
-        os.system(f'{script_path} {os.path.join(previous_pipeline_step_output_dir, reciprocal_hits_file)} {putative_orthologs_table_path}')
+        subprocess.check_output(['python', '-u', script_path, os.path.join(previous_pipeline_step_output_dir, reciprocal_hits_file), putative_orthologs_table_path])
 
     # No need to wait...
 
@@ -186,7 +187,7 @@ try:
     with open(final_orthologs_table_path, 'w') as f:
         f.write(orthologs_table_header + '\n')
         for final_orthologs_set_file_file in os.listdir(previous_pipeline_step_output_dir):
-            os.system(f'cat {os.path.join(previous_pipeline_step_output_dir, final_orthologs_set_file_file)} >> {final_orthologs_table_path}')
+            subprocess.check_output(['cat', os.path.join(previous_pipeline_step_output_dir, final_orthologs_set_file_file), '>>', final_orthologs_table_path])
 
     # No need to wait...
 

@@ -26,6 +26,8 @@ def wait_for_results(script_name, path, num_of_expected_results, suffix='done', 
     '''waits until path contains num_of_expected_results $suffix files'''
     start = time()
     logger.info(f'Waiting for {script_name}... (continues when {num_of_expected_results} results will be in {path})')
+    if num_of_expected_results==0:
+        raise ValueError(f'\n{"#"*50}\nnum_of_expected_results is {num_of_expected_results}! Something went wrong in the previous step...\n{"#"*50}')
     i = 0
     current_num_of_results = 0
     while num_of_expected_results > current_num_of_results:
