@@ -99,7 +99,7 @@ def submit_pipeline_step(script_path, params, tmp_dir, job_name, queue_name, new
     cmds_path = os.path.join(tmp_dir, job_name + '.cmds')
     with open(cmds_path, 'w') as f:
         f.write(cmds)
-    execute([q_submitter_script_path, cmds_path, tmp_dir, f'-q {queue_name}'])
+    execute([q_submitter_script_path, cmds_path, tmp_dir, '-q', queue_name])
 
 # def done_if_exist(done_file, file_to_check = './'):
 #     if os.path.exists(file_to_check):
