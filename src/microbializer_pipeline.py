@@ -222,4 +222,4 @@ except:
 end = time()
 msg = f'Microbializer pipeline {status}. Results can be found at {args.output_dir}. Took {measure_time(int(end-start))}'
 logger.info(msg)
-send_email('mxout.tau.ac.il', 'TAU BioSequence <bioSequence@tauex.tau.ac.il>', 'orenavram@gmail.com', subject=f'Microbialzer {status}.', content=msg)
+send_email('mxout.tau.ac.il', 'TAU BioSequence <bioSequence@tauex.tau.ac.il>', args.email, subject=f'Microbialzer {status}.', content=msg)
