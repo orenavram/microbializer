@@ -1,6 +1,7 @@
 import subprocess
 import os
 import logging
+from auxiliaries.directory_creator import create_dir
 from time import time, sleep
 logger = logging.getLogger('main')  # use logger instead of printing
 
@@ -37,40 +38,20 @@ def wait_for_results(script_name, path, num_of_expected_results, suffix='done', 
         i += time_to_wait
         logger.info(f'{i} seconds have passed since started waiting ({num_of_expected_results} - {current_num_of_results} = {jobs_left} more files are still missing)')
     if remove:
-        execute(['python', '-u', '/groups/pupko/orenavr2/src/RemoveDoneFiles.py', path, suffix])
+        execute(['python', '-u', '/groups/pupko/orenavr2/pipeline/RemoveDoneFiles.py', path, suffix])
     end = time()
     logger.info(f'Done waiting for:\n{script_name}\n(took {measure_time(int(end-start))}).\n')
 
 
-def remove_files_with_suffix(path, suffix='done'):
-    '''remove all files from path that end with suffix'''
-    logger.info(f'Removing {suffix} files from {path}')
-    for file_name in os.listdir(path):
-        if file_name.endswith(suffix):
-            file_path = os.path.join(path,file_name)
-            logger.debug(f'Removing {file_path}')
-            os.remove(file_path)
-    logger.info('Done removing.')
-
-
-def create_dir(path):
-    if not os.path.exists(path):
-        logger.info(f'Creating directory: {path}')
-        os.makedirs(path)
-    else:
-        logger.info(f'Directory already exists: {path}')
-
-
-def send_email(smtp_server, sender, receiver, subject='', content=''):
-    from email.mime.text import MIMEText
-    from smtplib import SMTP
-    msg = MIMEText(content)
-    msg['Subject'] = subject
-    msg['From'] = sender
-    msg['To'] = receiver
-    s = SMTP(smtp_server)
-    s.send_message(msg)
-    s.quit()
+# def remove_files_with_suffix(path, suffix='done'):
+#     '''remove all files from path that end with suffix'''
+#     logger.info(f'Removing {suffix} files from {path}')
+#     for file_name in os.listdir(path):
+#         if file_name.endswith(suffix):
+#             file_path = os.path.join(path,file_name)
+#             logger.debug(f'Removing {file_path}')
+#             os.remove(file_path)
+#     logger.info('Done removing.')
 
 
 def prepare_directories(outputs_dir_prefix, tmp_dir_prefix, dir_name):

@@ -24,7 +24,7 @@ Output:
 #Imports
 import sys
 import os
-from src.constract_final_table import list_of_lists_to_flaten_list
+from pipeline.constract_final_table import list_of_lists_to_flaten_list
 from Bio import SeqIO
 from Bio.SeqRecord import SeqRecord
 import pandas as pd

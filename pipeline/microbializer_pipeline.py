@@ -1,8 +1,9 @@
-from pipeline_auxiliaries import *
-from time import ctime
 import argparse
-import sys
 import subprocess
+import sys
+from time import ctime
+
+from auxiliaries.pipeline_auxiliaries import *
 
 start = time()
 logger = logging.getLogger('main')  # use logger instead of printing
@@ -20,7 +21,7 @@ parser.add_argument('--dummy_delimiter',
                     help='The queue does not "like" very long commands. A dummy delimiter is used to break each row into different commands of a single job',
                     default='!@#')
 parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
-parser.add_argument('--src_dir', help='source code directory', type=lambda s: s.rstrip('/'), default='/groups/pupko/orenavr2/microbializer/src')
+parser.add_argument('--src_dir', help='source code directory', type=lambda s: s.rstrip('/'), default='/groups/pupko/orenavr2/microbializer/pipeline')
 
 args = parser.parse_args()
 
@@ -215,11 +216,11 @@ except:
     exc_type, exc_obj, exc_tb = sys.exc_info()
     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
     logger.error('\n\n' + '$' * 60 + '\n\n')
-    logger.error(f'{ctime()}: Microbializer failed :(\n\n')
+    logger.error(f'{ctime()}: microbializer failed :(\n\n')
     logger.error(f'{fname}: {exc_type}, at line: {exc_tb.tb_lineno}\n\n')
     logger.error('$' * 60)
 
 end = time()
-msg = f'Microbializer pipeline {status}. Results can be found at {args.output_dir}. Took {measure_time(int(end-start))}'
+msg = f'microbializer pipeline {status}. Results can be found at {args.output_dir}. Took {measure_time(int(end-start))}'
 logger.info(msg)
 send_email('mxout.tau.ac.il', 'TAU BioSequence <bioSequence@tauex.tau.ac.il>', args.email, subject=f'Microbialzer {status}.', content=msg)

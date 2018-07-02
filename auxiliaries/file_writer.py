@@ -9,7 +9,7 @@ if __name__ == '__main__':
     import logging, argparse
     logger = logging.getLogger('main') # use logger instead of printing
     parser = argparse.ArgumentParser()
-    parser.add_argument('file_path', help='path to a file to write to')
-    parser.add_argument('--content', help='content that will be written to the file', default='')
+    parser.add_argument('file_path', help='A path to a file to write to')
+    parser.add_argument('--content', help='The content that will be written to the file', default='')
     args = parser.parse_args()
     write_to_file(args.file_path, args.content)
