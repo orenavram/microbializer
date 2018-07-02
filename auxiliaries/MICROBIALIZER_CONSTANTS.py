@@ -36,4 +36,4 @@ MAIN_SCRIPT = os.path.join(MICROBIALIZER_EXEC, 'microbializer_pipeline.py')
 # EXAMPLE_FILE_RUN2_R2 = os.path.join(MICROBIALIZER_HTML_DIR, 'example', 'run2', '242_R2.fastq')
 
 #path to IMGT reference library
-MICROBIALIZER_JUMBOTRON = '&nbsp;&nbsp;&nbsp;&nbsp;<span id="asap-title">MICROBIALIZER</span>&nbsp;&nbsp;&nbsp;&nbsp;<span id="sub-title"><b>A</b> web server for analyzing bacterial genomics data</span>'
+MICROBIALIZER_JUMBOTRON = '&nbsp;&nbsp;&nbsp;&nbsp;<span id="server-title">MICROBIALIZER</span>&nbsp;&nbsp;&nbsp;&nbsp;<span id="sub-title">A web server for analyzing bacterial genomics data</span>'
