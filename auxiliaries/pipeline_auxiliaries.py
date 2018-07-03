@@ -1,9 +1,13 @@
+import logging
+logger = logging.getLogger('main') # use logger instead of printing
+
+
 import subprocess
 import os
-import logging
 from auxiliaries.directory_creator import create_dir
+from auxiliaries.email_sender import send_email
 from time import time, sleep
-logger = logging.getLogger('main')  # use logger instead of printing
+
 
 def measure_time(total):
     hours = total // 3600
@@ -62,13 +66,14 @@ def prepare_directories(outputs_dir_prefix, tmp_dir_prefix, dir_name):
     return outputs_dir, tmp_dir
 
 
-def submit_pipeline_step(script_path, params, tmp_dir, job_name, queue_name, new_line_delimiter='!@#', q_submitter_script_path='/bioseq/bioSequence_scripts_and_constants/q_submitter.py', done_files_script_path='file_writer.py'):
+def submit_pipeline_step(script_path, params, tmp_dir, job_name, queue_name, new_line_delimiter='!@#', q_submitter_script_path='/bioseq/bioSequence_scripts_and_constants/q_submitter.py', done_files_script_path='file_writer.py', required_modules = []):
 
-    #TODO: cmds += module load?
-    #cmds += new_line_delimiter
+    required_modules_as_str = ' '.join(['python/anaconda_python-3.6.4'] + required_modules)
+    cmds = f'module load {required_modules_as_str}'
+    cmds += new_line_delimiter
 
     # ACTUAL COMMAND
-    cmds = ' '.join(['python', '-u', script_path, *params, ';'])
+    cmds += ' '.join(['python', '-u', script_path, *params, ';'])
     cmds += new_line_delimiter # the queue does not like very long commands so I use a dummy delimiter (!@#) to break the rows in q_submitter
 
     # GENERATE DONE FILE
