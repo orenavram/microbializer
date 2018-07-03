@@ -49,7 +49,7 @@ try:
         fasta_file_prefix = fasta_file.split('.')[0]
         output_file_name = f'{fasta_file_prefix}.{dir_name}'
         params = [os.path.join(args.contigs_dir, fasta_file), os.path.join(pipeline_step_output_dir, output_file_name)]
-        submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=output_file_name, queue_name=args.queue_name)
+        submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=output_file_name, queue_name=args.queue_name, required_modules=['prodigal/prodigal-2.6.3'])
         num_of_expected_results += 1
 
     wait_for_results(pipeline_step_tmp_dir, os.path.split(script_path)[-1], num_of_expected_results)
@@ -75,7 +75,7 @@ try:
             file2_name_prefix = fasta_file2.split('.')[0]
             output_file_name = '_'.join([fasta_file1_prefix, 'vs', f'{file2_name_prefix}.blast'])
             params = [file1_path, file2_path, output_file_name]
-            submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=output_file_name, queue_name=args.queue_name)
+            submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=output_file_name, queue_name=args.queue_name, required_modules=['blast/blast-2.2.30'])
             num_of_expected_results += 1
 
     wait_for_results(pipeline_step_tmp_dir, os.path.split(script_path)[-1], num_of_expected_results)
@@ -170,7 +170,7 @@ try:
         putative_orthologs_set_prefix = putative_orthologs_set.split('.')[0]
         output_file_name = f'{putative_orthologs_set_prefix}.{dir_name}'
         params = [os.path.join(previous_pipeline_step_output_dir, putative_orthologs_set), os.path.join(pipeline_step_output_dir, output_file_name)]
-        submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=output_file_name, queue_name=args.queue_name)
+        submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=output_file_name, queue_name=args.queue_name, required_modules=['MCL-edge/mcl-14-137'])
         num_of_expected_results += 1
 
     wait_for_results(pipeline_step_tmp_dir, os.path.split(script_path)[-1], num_of_expected_results)
