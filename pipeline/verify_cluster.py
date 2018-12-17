@@ -74,7 +74,7 @@ def extract_similarity_btw_two_genes(x, reciphits_df):
     g1, g2 = x['gene1'], x['gene2'] 
     
     #Get score from blast results - get column with g1 and g2
-    mask = ((reciphits_df['gene1'] == g1) & (reciphits_df['gene2'] == g2)) | ((reciphits_df['gene2'] == g1) & (reciphits_df['gene2'] == g1))
+    mask = ((reciphits_df['gene1'] == g1) & (reciphits_df['gene2'] == g2)) | ((reciphits_df['gene2'] == g1) & (reciphits_df['gene1'] == g2))
     r = reciphits_df[mask] #Get the row
     assert(len(r) == 1) #Make sure the returned df has only a single row
     return r['similarity'].values[0] #Return score
@@ -84,7 +84,7 @@ def create_mcl_input_file(x, mcl_input_d):
     This function gets a df with raws representing all gene combination of specific OG and creates an input
     file for mcl for this OG.
     '''
-    og = str(x['OG'].values[0]) #Get og
+    og = str(x['OG'].values[0]).split("|")[1] #Get og
     og_mcl_p = os.path.join(mcl_input_d, "og" + og + ".mcl_input") #path to mcl file of this og
     out_df = x.drop('OG', axis = 1)
     out_df.to_csv(og_mcl_p, sep = "\t", header = False, index = False)
@@ -115,10 +115,13 @@ def bool_is_file_contain_i_lines(x, i):
         return False
 #******************************************************************************************************      
 if __name__ == '__main__':
-    try:
-        recip_hits_path, og_path, tmp_dir, out_og_path = sys.argv[1:]
-    except (ValueError,IndexError):
-        print("The following arguments should be given:\n1)reciprocal hits file\n2)putative OG file (bacteria as columns, OGs as rows)\n3)tmp dir for mcl input and output files\n4)output path for final orhoglogs table ")
+    import logging
+    logger = logging.getLogger('main')
+    logger.info(sys.argv)
+    print(sys.argv)
+    recip_hits_path, og_path, tmp_dir, out_og_path = sys.argv[1:]
+    #except (ValueError,IndexError):
+    #    logger.error("The following arguments should be given:\n1)reciprocal hits file\n2)putative OG file (bacteria as columns, OGs as rows)\n3)tmp dir for mcl input and output files\n4)output path for final orhoglogs table ")
 
     #Create tmp dir if doesn't exists - and subdirectories fro mcl input and output files
     os.makedirs(tmp_dir, exist_ok=True) #Create dir
@@ -140,7 +143,8 @@ if __name__ == '__main__':
     combos_l = list_of_lists_to_flaten_list(combos_s.values) #Extract series values into list of lists 
     combos_df = pd.DataFrame(combos_l) #Create df - new row for each genes combination
     combos_df.columns = ['OG','gene1','gene2']
-    
+    combos_df.dropna(inplace = True)
+	
     #Get the score of each combination
     combos_df['score'] = combos_df.apply(extract_similarity_btw_two_genes, args = (reciphits_df,), axis = 1)
     
@@ -156,7 +160,7 @@ if __name__ == '__main__':
     mcl_ps['single_cluster_flag'] = mcl_ps["output_path"].apply(bool_is_file_contain_i_lines, args = (1,))
     
     #Create final orthologs table 
-    full_df = pd.concat([df, mcl_ps['single_cluster_flag']], axis = 1)
+    full_df = pd.concat([df.set_index('OG'), mcl_ps['single_cluster_flag']], axis = 1)
     df = full_df[full_df['single_cluster_flag']] 
     df = df.drop('single_cluster_flag', axis = 1)
     df.to_csv(out_og_path, sep = "\t", header = None, index = False)

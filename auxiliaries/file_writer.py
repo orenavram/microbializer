@@ -1,7 +1,10 @@
 import logging
 logger = logging.getLogger('main') # use logger instead of printing
 
-def write_to_file(file_path, content): #with a name that is related to the file's name
+def write_to_file(file_path, content=''): #with a name that is related to the file's name
+    if not content:
+        import traceback
+        content = ''.join(traceback.format_stack())
     with open(file_path, 'w') as f:
         f.write(content)
     logger.debug(f'{file_path} was generated.')

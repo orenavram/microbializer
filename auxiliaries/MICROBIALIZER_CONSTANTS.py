@@ -25,12 +25,12 @@ MICROBIALIZER_RESULTS_DIR = os.path.join(SERVERS_RESULTS_DIR, 'microbializer')
 MICROBIALIZER_LOGS_DIR = os.path.join(SERVERS_LOGS_DIR, 'microbializer')
 MICROBIALIZER_RESULTS_URL = os.path.join(MICROBIALIZER_URL, 'results')
 MICROBIALIZER_HTML_DIR = '/data/www/html/microbializer'
-MICROBIALIZER_EXEC = '/bioseq/microbializer/microbializer'
+MICROBIALIZER_EXEC = '/bioseq/microbializer/pipeline'
 
 MAIN_SCRIPT = os.path.join(MICROBIALIZER_EXEC, 'microbializer_pipeline.py')
 
-#path to example runs
-# EXAMPLE_FILE_RUN1_R1 = os.path.join(MICROBIALIZER_HTML_DIR, 'example', 'run1', '242_R1.fastq')
+#path to example data
+EXAMPLE_DATA = os.path.join(MICROBIALIZER_HTML_DIR, 'example_data.tar.gz')
 # EXAMPLE_FILE_RUN1_R2 = os.path.join(MICROBIALIZER_HTML_DIR, 'example', 'run1', '242_R2.fastq')
 # EXAMPLE_FILE_RUN2_R1 = os.path.join(MICROBIALIZER_HTML_DIR, 'example', 'run2', '242_R1.fastq')
 # EXAMPLE_FILE_RUN2_R2 = os.path.join(MICROBIALIZER_HTML_DIR, 'example', 'run2', '242_R2.fastq')

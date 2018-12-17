@@ -1,22 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue May 29 20:27:58 2018
-
-@author: student
-"""
-
-# -*- coding: utf-8 -*-
-"""
 Created on Tue May 22 14:52:18 2018
 
 @author: shirportugez
 
-This script is a module that extract sequences of ortholog groups. 
-Input: 
+This script is a module that extract sequences of ortholog groups.
+Input:
     (1) a path to ortholkogs table.
     (2) directory for sequence files (each bacteria in the og table should have one sequence file with the name of the bacteria that should contain all genes of that bacteria).
     (3) a directory for output sequence files - if the folder doesn't exists, the script will create it.
-    (4) input and output sequence file foramt (fasta or genebank)
+    (4) input and output sequence file format (fasta or genebank)
 Output:
     directory containing fasta files for each ortholog group.
 """
@@ -24,14 +17,14 @@ Output:
 #Imports
 import sys
 import os
-from pipeline.verify_cluster import list_of_lists_to_flaten_list
+from verify_cluster import list_of_lists_to_flaten_list
 from Bio import SeqIO
 from Bio.SeqRecord import SeqRecord
 import pandas as pd
 
 #Functions
 #******************************************************************************************************        
-def read_sequence_file_to_dict(file_path, file_format = "fasta"):
+def read_sequence_file_to_dict(file_path, file_format):
     '''
     This function takes a path to sequence file as an input and reads the file into a dictionary using the Bio.SeqIO.to_dict()
     '''
@@ -88,38 +81,38 @@ def extract_seq(accession, start, end, seqs_dict):
     
     return trimed_rec   
 #******************************************************************************************************        
-def read_bact_genes_file(genes_file_path, seqs_file, output_seqs_path, seqs_file_format = "fasta"):
-    '''
-    This function gets a path to specific bacterial genes file (see explanation below), sequences file 
-    (should be genbank or fasta), sequences file format (genbank or fasta) and to an output file. 
-    The function creates new fasta output file with all the gene sequences from the input 
-    file (i.e. sequence for each raw from the input file). 
-    
-    The input genes file should be a tab delimited file of the following form:
-        -------------------------------------------------------
-        |gene1_accesion_number    gene1_start    gene1_end    |
-        |gene2_accesion_number    gene2_start    gene2_end    |
-        |gene3_accesion_number    gene3_start    gene3_end    |
-        -------------------------------------------------------
-        
-    '''
-    
-    #Read sequence input file into a dictionary
-    seqs_dict = read_sequence_file_to_dict(seqs_file, seqs_file_format)
-    
-    #Read input genes file
-    df = pd.read_csv(genes_file_path, sep = "\t", header = None)
-    assert(len(df.columns) == 3) #maske sure there are three columns in the genes input file
-    df.columns = ["accesion_number", "start", "end"]
-    
-    #Extract sequence of each row
-    df_recs = df.apply(lambda x: extract_seq(x["accesion_number"], x["start"], x["end"], seqs_dict), axis = 1)
-
-    #Create output fasta file
-    try:
-        SeqIO.write(list(df_recs), output_seqs_path, "fasta") #Convert records series to list (for output purposes)
-    except:
-        print("Problem with output sequence file writing!")
+# def read_bact_genes_file(genes_file_path, seqs_file, output_seqs_path, seqs_file_format = "fasta"):
+#     '''
+#     This function gets a path to specific bacterial genes file (see explanation below), sequences file
+#     (should be genbank or fasta), sequences file format (genbank or fasta) and to an output file.
+#     The function creates new fasta output file with all the gene sequences from the input
+#     file (i.e. sequence for each raw from the input file).
+#
+#     The input genes file should be a tab delimited file of the following form:
+#         -------------------------------------------------------
+#         |gene1_accesion_number    gene1_start    gene1_end    |
+#         |gene2_accesion_number    gene2_start    gene2_end    |
+#         |gene3_accesion_number    gene3_start    gene3_end    |
+#         -------------------------------------------------------
+#
+#     '''
+#
+#     #Read sequence input file into a dictionary
+#     seqs_dict = read_sequence_file_to_dict(seqs_file, seqs_file_format)
+#
+#     #Read input genes file
+#     df = pd.read_csv(genes_file_path, sep = "\t", header = None)
+#     assert(len(df.columns) == 3) #maske sure there are three columns in the genes input file
+#     df.columns = ["accesion_number", "start", "end"]
+#
+#     #Extract sequence of each row
+#     df_recs = df.apply(lambda x: extract_seq(x["accesion_number"], x["start"], x["end"], seqs_dict), axis = 1)
+#
+#     #Create output fasta file
+#     try:
+#         SeqIO.write(list(df_recs), output_seqs_path, "fasta") #Convert records series to list (for output purposes)
+#     except:
+#         print("Problem with output sequence file writing!")
 #******************************************************************************************************              
 def get_og_genes(row):
     '''
@@ -160,10 +153,16 @@ def write_seqfile(x, file_format):
 #******************************************************************************************************              
 if __name__ == '__main__':
     try:
-        og_path, seqs_dir, output_seqs_d, seqs_file_format = sys.argv[1:]
-    except (ValueError,IndexError):
-        print("The following arguments should be given:\n1) a path to final orthologs table\n2)a path to directory that contains all bacteria sequence files (fasta file for each bacteria species)\n3)path to output directory for fasta files of each OG\n")
-    
+        og_path, seqs_dir, output_seqs_d = sys.argv[1:]
+    except (ValueError,IndexError) as e:
+        print("The following arguments should be given:\n1) a path to final orthologs table\n2) a path to directory that contains all bacteria sequence files (fasta file for each bacteria species)\n3) path to output directory for fasta files of each OG\n")
+        raise e
+
+    if len(sys.argv)>4:
+        seqs_file_format = sys.argv[4]
+    else:
+        seqs_file_format = "fasta"
+
     #Create output directory if doesn't exists - will include all OGs fasta files
     os.makedirs(output_seqs_d, exist_ok=True) #Create dir
     
