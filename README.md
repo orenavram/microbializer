@@ -42,7 +42,7 @@ Input: (1) a path for directory with all the verified OGs (2) an output path to 
 Output: aggregates all the well-clustered OGs to the final table.
 
 
-9.	extract_sequences.py 
+9.	extract_orthologs_sequences.py
 Input: (1) a row from the final orthologs table (2) a path for a directory where the genes files are at (3) a path for an output file.
 Output: write the sequences of the orthologs group to the output file.
 
