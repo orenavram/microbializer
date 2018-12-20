@@ -5,7 +5,6 @@ logger = logging.getLogger('main') # use logger instead of printing
 import subprocess
 import os
 from auxiliaries.directory_creator import create_dir
-from auxiliaries.email_sender import send_email
 from time import time, sleep
 
 
@@ -14,17 +13,17 @@ def measure_time(total):
     minutes = (total% 3600) // 60
     seconds = total % 60
     if hours != 0:
-        return f'{hours}:{minutes}:{seconds} hours'
+        return f'{hours:02}:{minutes:02}:{seconds:02} hours'
     elif minutes != 0:
-        return f'{minutes}:{seconds} minutes'
+        return f'{minutes:02}:{seconds:02} minutes'
     else:
-        return f'{seconds} seconds'
+        return f'{seconds:02} seconds'
 
 
 def execute(process, raw=False):
     process_str = process if raw else ' '.join(str(token) for token in process)
-    logger.warning(f'Calling: {process_str} (raw == {raw})')
-    subprocess.call(process, shell=raw)
+    logger.warning(f'Calling (raw == {raw}):\n{process_str}')
+    subprocess.run(process, shell=raw)
 
 
 def wait_for_results(script_name, path, num_of_expected_results, suffix='done', remove=False, time_to_wait=100):
@@ -66,19 +65,22 @@ def prepare_directories(outputs_dir_prefix, tmp_dir_prefix, dir_name):
     return outputs_dir, tmp_dir
 
 
-def submit_pipeline_step(script_path, params, tmp_dir, job_name, queue_name, new_line_delimiter='!@#', q_submitter_script_path='/bioseq/bioSequence_scripts_and_constants/q_submitter.py', done_files_script_path='/groups/pupko/orenavr2/microbializer/auxiliaries/file_writer.py', required_modules = []):
+def submit_pipeline_step(script_path, params, tmp_dir, job_name, queue_name, new_line_delimiter='!@#', q_submitter_script_path='/bioseq/bioSequence_scripts_and_constants/q_submitter.py', done_files_script_path='/groups/pupko/orenavr2/microbializer/auxiliaries/file_writer.py', required_modules_as_list=None):
 
-    required_modules_as_str = ' '.join(['python/anaconda_python-3.6.4'] + required_modules)
+    required_modules_as_str = 'python/anaconda_python-3.6.4'
+    if required_modules_as_list:
+        # don't forget a space after the python module!!
+        required_modules_as_str += ' ' + ' '.join(required_modules_as_list)
     cmds = f'module load {required_modules_as_str}'
     cmds += new_line_delimiter
 
     # ACTUAL COMMAND
-    cmds += ' '.join(['python', '-u', script_path, *params, ';'])
+    cmds += ' '.join(['python', script_path, *params, ';'])
     cmds += new_line_delimiter # the queue does not like very long commands so I use a dummy delimiter (!@#) to break the rows in q_submitter
 
     # GENERATE DONE FILE
     params = [os.path.join(tmp_dir, job_name + '.done'), ''] # write an empty string (like "touch" command)
-    cmds += ' '.join(['python', '-u', done_files_script_path, *params, ';'])
+    cmds += ' '.join(['python', done_files_script_path, *params, ';'])
     cmds += new_line_delimiter
 
     cmds += '\t' + job_name

@@ -14,16 +14,20 @@ def filter_blast(query_vs_reference, output_path, precent_identity_cutoff, e_val
 
 
 if __name__ == '__main__':
-        import logging
-        import argparse
-        logger = logging.getLogger('main')
-        
-        parser = argparse.ArgumentParser()
-        parser.add_argument('blast_result', help='path to fasta genome file')
-        parser.add_argument('output_path', help='path to output file')
-        parser.add_argument('-identity_cutoff', help='path to translated sequences', default = 80)
-        parser.add_argument('-evaule_cutoff', help='path to translated sequences', default = 0.01)
-        args = parser.parse_args()
+    import logging
+    logger = logging.getLogger('main')
+    from sys import argv
+    logger.info(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
 
-        filter_blast(args.blast_result, args.output_path, args.identity_cutoff, args.evaule_cutoff)
+    import argparse
+    logger = logging.getLogger('main')
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('blast_result', help='path to fasta genome file')
+    parser.add_argument('output_path', help='path to output file')
+    parser.add_argument('--identity_cutoff', help='path to translated sequences', default = 80)
+    parser.add_argument('--evaule_cutoff', help='path to translated sequences', default = 0.01)
+    args = parser.parse_args()
+
+    filter_blast(args.blast_result, args.output_path, args.identity_cutoff, args.evaule_cutoff)
 

@@ -1,7 +1,6 @@
 import regex as re
 import pandas as pd
 import os
-import csv
 
 
 def reciprocalHits(blast_out1, blast_out2, output_path, output_name):
@@ -81,15 +80,18 @@ def generatePairingDict(blast_out):
 
 
 if __name__ == '__main__':
-        import logging
-        import argparse
-        logger = logging.getLogger('main')
-        parser = argparse.ArgumentParser()
+    import logging
+    logger = logging.getLogger('main')
+    from sys import argv
+    logger.info(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
 
-        parser.add_argument('blast_result1', help='path to blast result file of seq1 vs seq2')
-        parser.add_argument('blast_result2', help='path to blast result file of seq2 vs seq1')
-        parser.add_argument('output_path', help='path to output file')
-        parser.add_argument('output_name', help='name of output file')
-        args = parser.parse_args()
+    import argparse
+    parser = argparse.ArgumentParser()
 
-        reciprocalHits(args.blast_result1, args.blast_result2, args.output_path, args.output_name)
+    parser.add_argument('blast_result1', help='path to blast result file of seq1 vs seq2')
+    parser.add_argument('blast_result2', help='path to blast result file of seq2 vs seq1')
+    parser.add_argument('output_path', help='path to output file')
+    parser.add_argument('output_name', help='name of output file')
+    args = parser.parse_args()
+
+    reciprocalHits(args.blast_result1, args.blast_result2, args.output_path, args.output_name)

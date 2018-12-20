@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Microbializer.iml" filepath="$PROJECT_DIR$/.idea/Microbializer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/microbializer.iml" filepath="$PROJECT_DIR$/.idea/microbializer.iml" />
     </modules>
   </component>
 </project>

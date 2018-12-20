@@ -1,13 +1,11 @@
 # try:
 import argparse
-import subprocess
 import sys
-import filecmp
-from time import ctime
 
 sys.path.insert(0,"/groups/pupko/orenavr2/microbializer/") #ADD auxiliaries path
 sys.path.insert(0,"/groups/pupko/orenavr2/microbializer/auxiliaries/") #ADD file_writer
 from auxiliaries import file_writer #ADD file_writer
+from auxiliaries.email_sender import send_email
 from auxiliaries.pipeline_auxiliaries import *
 
 start = time()
@@ -51,6 +49,7 @@ logger.info(data_path)
 # Input: (1) an input path for a fasta file with contigs/full genome (2) an output file path (with a suffix as follows: i_genes.fasta. especially relevant for the wrapper).
 # Output: a fasta file where under each header, there’s a single gene.
 # Can be parallelized on cluster
+# Prodigal ignores newlines in the middle of a sequence, namely, >bac1\nAAA\nAA\nTTT >bac1\nAAAAATTT will be analyzed identically.
 logger.warning(f'1: {"_"*80}')
 dir_name = 'ORFs'
 script_path = os.path.join(args.src_dir, 'extract_orfs.py')
@@ -65,7 +64,7 @@ if not os.path.exists(done_file_path):
         output_coord_name = f'{fasta_file_prefix}.gene_coordinates'
         params = [os.path.join(args.contigs_dir, fasta_file), os.path.join(pipeline_step_output_dir, output_file_name),
                   os.path.join(pipeline_step_output_dir, output_coord_name)] #Shir - path to translated sequences file
-        submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=output_file_name, queue_name=args.queue_name, required_modules=['prodigal/prodigal-2.6.3'])
+        submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=output_file_name, queue_name=args.queue_name, required_modules_as_list=['prodigal/prodigal-2.6.3'])
         num_of_expected_results += 1
     wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir, num_of_expected_results)
     file_writer.write_to_file(done_file_path)
@@ -91,7 +90,7 @@ if not os.path.exists(done_file_path):
         fasta_file_prefix = fasta_file.split('.')[0]
         output_file_name = f'{fasta_file_prefix}.{dir_name}'
         params = [file_path, os.path.join(pipeline_step_output_dir,output_file_name)]
-        submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=fasta_file_prefix,queue_name=args.queue_name, required_modules=['blast/blast-2.2.30'])
+        submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=fasta_file_prefix,queue_name=args.queue_name, required_modules_as_list=['blast/blast-2.2.30'])
         num_of_expected_results += 1
     wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir, num_of_expected_results)
     file_writer.write_to_file(done_file_path)
@@ -127,7 +126,7 @@ if not os.path.exists(done_file_path):
                 db_prefix = os.path.splitext(os.path.join(previous_pipeline_step_output_dir, db_file))[0]
                 output_file_name = f'{strain1_name}_vs_{strain2_name}.blast'
                 params = [fasta_file_path, db_prefix, os.path.join(pipeline_step_output_dir, output_file_name)]
-                submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=output_file_name, queue_name=args.queue_name, required_modules=['blast/blast-2.2.30'])
+                submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=output_file_name, queue_name=args.queue_name, required_modules_as_list=['blast/blast-2.2.30'])
                 num_of_expected_results += 1
     wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir, num_of_expected_results)
     file_writer.write_to_file(done_file_path)
@@ -170,10 +169,10 @@ else:
 logger.warning(f'4: {"_"*80}')
 previous_pipeline_step_output_dir = pipeline_step_output_dir
 dir_name = 'reciprocal_hits'
-script_path = os.path.join(args.src_dir, 'reciprocal_hits.py')
+script_path = os.path.join(args.src_dir, 'find_reciprocal_hits.py')
 num_of_expected_results = 0
 pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
-done_file_path = os.path.join(done_files_dir, '4_reciprocal_hits.txt')
+done_file_path = os.path.join(done_files_dir, '4_find_reciprocal_hits.txt')
 if not os.path.exists(done_file_path):
     logger.warning('Extracting reciprocal hits...')
     for blast_filtered_results_file in os.listdir(previous_pipeline_step_output_dir):
@@ -202,7 +201,7 @@ logger.warning(f'4.5: {"_"*80}')
 done_file_path = os.path.join(done_files_dir, '4.5_concatenate_reciprocal_hits.txt')
 if not os.path.exists(done_file_path):
     logger.warning('Concatenating reciprocal hits...')
-    cmd = f'cat {pipeline_step_output_dir}/*.{dir_name} > {args.output_dir}/all_recip_hits.csv'
+    cmd = f'cat {pipeline_step_output_dir}/*.{dir_name} > {args.output_dir}/concatenated_all_reciprocal_hits.csv'
     subprocess.call(cmd, shell = True)
     # No need to wait...
     file_writer.write_to_file(done_file_path)
@@ -215,15 +214,19 @@ else:
 # Output: updates the table with the info from the reciprocal hit file.
 # CANNOT be parallelized on cluster
 logger.warning(f'5: {"_"*80}')
-previous_pipeline_step_output_dir = pipeline_step_output_dir
 putative_orthologs_table_path = os.path.join(args.output_dir, 'putative_orthologs_table.tsv')
 script_path = os.path.join(args.src_dir, 'construct_putative_orthologs_table.py')
+num_of_expected_results = 0
 done_file_path = os.path.join(done_files_dir, '5_construct_putative_orthologs_table.txt')
 if not os.path.exists(done_file_path):
     logger.warning('Constructing putative orthologs table...')
-    for reciprocal_hits_file in os.listdir(previous_pipeline_step_output_dir):
-        subprocess.check_output(['python', '-u', script_path, os.path.join(previous_pipeline_step_output_dir, reciprocal_hits_file), putative_orthologs_table_path])
-    # No need to wait...
+    output_file_name = putative_orthologs_table_path
+    params = [os.path.join(args.output_dir, 'concatenated_all_reciprocal_hits.csv'),
+              os.path.join(pipeline_step_output_dir, output_file_name)]
+    submit_pipeline_step(script_path, params, tmp_dir, job_name=output_file_name,
+                         queue_name=args.queue_name)
+    num_of_expected_results = 1
+    wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir, num_of_expected_results)
     file_writer.write_to_file(done_file_path)
 else:
     logger.warning(f'done file {done_file_path} already exists. Skipping step...')
@@ -236,28 +239,29 @@ else:
 # logger.warning('Splitting putative orthologs table...')
 logger.warning(f'6: {"_"*80}')
 dir_name = 'splitted_putative_orthologs_table'
-script_path = os.path.join(args.src_dir, '..', 'auxiliaries', 'file_writer.py')
-num_of_expected_results = 0
+# script_path = os.path.join(args.src_dir, '..', 'auxiliaries', 'file_writer.py')
+# num_of_expected_results = 0
 pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
 done_file_path = os.path.join(done_files_dir, '6_split_putative_orthologs_table.txt')
 if not os.path.exists(done_file_path):
     logger.warning('Splitting putative orthologs table...')
     with open(putative_orthologs_table_path) as f:
-        f.readline()  # skip header
+        header = f.readline()
         lines = ''
-        i = 1
+        i = 0
         for line in f:
-            out_file = os.path.join(pipeline_step_output_dir, (line.split(',')[0]).split('|')[1] + '.' + dir_name)
-            lines+=line
-            #subprocess.call(['python', script_path, out_file,'--content' ,line])
-            if (i % 100 == 0):
-                file_writer.write_to_file(out_file, lines)
-                lines = ''
-            #num_of_expected_results += 1
+            lines += line
             i += 1
-    if lines:
-        file_writer.write_to_file(out_file, lines)
-    # wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir, num_of_expected_results)
+            if i % 100 == 0:
+                out_file = os.path.join(pipeline_step_output_dir, (line.split(',')[0]) + '.' + dir_name)
+                # subprocess.call(['python', script_path, out_file,'--content' ,line])
+                file_writer.write_to_file(out_file, header+lines)
+                lines = ''
+        if lines: # write last rows (maybe we didn't reach 100...)
+            out_file = os.path.join(pipeline_step_output_dir, (line.split(',')[0]) + '.' + dir_name)
+            file_writer.write_to_file(out_file, lines)
+        # wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir, num_of_expected_results)
+
     file_writer.write_to_file(done_file_path)
 else:
     logger.warning(f'done file {done_file_path} already exists. Skipping step...')
@@ -269,7 +273,7 @@ else:
 # Can be parallelized on cluster
 logger.warning(f'7: {"_"*80}')
 previous_pipeline_step_output_dir = pipeline_step_output_dir
-dir_name = 'splitted_final_orthologs_table'
+dir_name = 'verified_clusters'
 script_path = os.path.join(args.src_dir, 'verify_cluster.py')
 num_of_expected_results = 0
 pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
@@ -279,10 +283,10 @@ if not os.path.exists(done_file_path):
     for putative_orthologs_set in os.listdir(previous_pipeline_step_output_dir):
         putative_orthologs_set_prefix = os.path.splitext(putative_orthologs_set)[0]
         output_file_name = f'{putative_orthologs_set_prefix}.{dir_name}'
-        params = [os.path.join(args.output_dir, 'all_recip_hits.csv'),
+        params = [os.path.join(args.output_dir, 'concatenated_all_reciprocal_hits.csv'),
                   os.path.join(previous_pipeline_step_output_dir, putative_orthologs_set), pipeline_step_tmp_dir,
                   os.path.join(pipeline_step_output_dir, output_file_name)]
-        submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=output_file_name, queue_name=args.queue_name, required_modules=['MCL-edge/mcl-14-137'])
+        submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=output_file_name, queue_name=args.queue_name, required_modules_as_list=['MCL-edge/mcl-14-137'])
         num_of_expected_results += 1
     wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir, num_of_expected_results, time_to_wait=5)
     file_writer.write_to_file(done_file_path)
@@ -296,12 +300,13 @@ else:
 logger.warning(f'8: {"_"*80}')
 previous_pipeline_step_output_dir = pipeline_step_output_dir
 final_orthologs_table_path = os.path.join(args.output_dir, 'final_orthologs_table.tsv')
-script_path = os.path.join(args.src_dir, 'construct_final_table.py')
 done_file_path = os.path.join(done_files_dir, '8_construct_final_table.txt')
 if not os.path.exists(done_file_path):
-    logger.warning('Joining clusters to final orthologs table...')
+    logger.warning('Joining verified clusters to final orthologs table...')
     with open(putative_orthologs_table_path) as f:
-        orthologs_table_header = f.readline().rstrip()
+        #header example:
+        #OG_name,GCF_000008105,GCF_000006945,GCF_000195995,GCF_000007545,GCF_000009505
+        orthologs_table_header = f.readline().rstrip()[8:] #[8:] to remove "OG_name," from header
     with open(final_orthologs_table_path, 'w') as f:
         f.write(orthologs_table_header + '\n')
     for final_orthologs_set_file in os.listdir(previous_pipeline_step_output_dir):
@@ -324,10 +329,12 @@ pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.outpu
 done_file_path = os.path.join(done_files_dir, '9_extract_orthologs_sequences.txt')
 if not os.path.exists(done_file_path):
     logger.warning('Extracting orthologs set sequences according to final orthologs table...')
+    logger.warning(f'The verified clusters in {previous_pipeline_step_output_dir} are the following:')
+    logger.warning(os.listdir(previous_pipeline_step_output_dir))
     for final_orthologs_set_file in os.listdir(previous_pipeline_step_output_dir):
         fasta_file_prefix = os.path.splitext(final_orthologs_set_file)[0]
         output_file_name = f'{fasta_file_prefix}.{dir_name}'
-        params = [os.path.join(previous_pipeline_step_output_dir, final_orthologs_set_file), os.path.join(previous_pipeline_step_output_dir, 'ORFs'), pipeline_step_output_dir]
+        params = [os.path.join(previous_pipeline_step_output_dir, final_orthologs_set_file), ORFs_dir, pipeline_step_output_dir]
         print(f'params for orthologs_sets_sequences: {params}')
         submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=output_file_name, queue_name=args.queue_name)
         num_of_expected_results += 1
@@ -339,6 +346,7 @@ else:
 status = 'is done'
 
 # except:
+#     from time import ctime
 #     import logging
 #     logger = logging.getLogger('main')  # use logger instead of printing
 #
