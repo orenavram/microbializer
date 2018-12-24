@@ -1,5 +1,5 @@
 # Microbializer
-A pipeline for annotating and analyzing bacterial data
+A pipeline for analyzing bacterial genomic sequences. Easily.
 
 The Microbializer pipeline aims to process bacterial genomes and analyze them. The first part finds orthologous sets across all given species. The flow for finding orthologous sets will be handled by a wrapper that will run different modules one by one. The input for the pipeline is a path to a directory that contains genome fasta files.
 1.	extract_orfs.py
