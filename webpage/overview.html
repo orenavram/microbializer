@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Microbializer Overview</title>
+	<!--<meta charset="utf-8">-->
+	<!--<meta name="viewport" content="width=device-width, initial-scale=1">-->
+
+    <link rel="shortcut icon" type="image/x-icon" href="pics/logo.gif" />
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<link rel="stylesheet" href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css">
+
+	<!--files for the select tag-->
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/css/bootstrap-select.min.css">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/js/bootstrap-select.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/js/i18n/defaults-*.min.js"></script>
+
+	<!--files for the checkbox tag (toggle)-->
+	<script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+
+
+	<link rel="stylesheet" href="css/general.css">
+	<link rel="stylesheet" href="css/nav.css">
+
+	<!--<link href='https://fonts.googleapis.com/css?family=Kalam' rel='stylesheet'>-->
+
+	<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+	<!--<script> $(function(){-->
+		<!--$("head").load("header.html");-->
+		<!--$('#loadingMask').fadeOut();});-->
+	<!--</script>-->
+</head>
+<body>
+<nav role="navigation" class="navbar navbar-inverse navbar-fixed-top" id="nav">
+    <div class="jumbotron" id="jumbo">
+        <div class="container">
+            <div class="row" id="title-row">
+                <div class="col-md-1">
+                </div>
+                <div class="col-md-10" align="center">
+                    <span id="server-title">M1CR0B1AL1Z3R</span>
+                    <img src="pics/logo.gif" id="nav_bar_image" class="img-rounded">
+                    <br><span id="sub-title">Analyze bacterial genomic sequences. Easily.</span>
+					<!--<span id="sub-title">A web server for analyzing bacterial genomics data</span><br>-->
+                </div>
+                <!--<div class="col-md-1">-->
+                    <!---->
+                <!--</div>-->
+            </div>
+        </div>
+    </div>
+		<div class="container" id="nav_container">
+			<div class="row">
+				<div class="col-md-1">
+				</div>
+				<div class="col-md-10">
+					<ul class="nav navbar-nav" id="menu-nav">
+						<li>
+							<a href="index.html">Home</a>
+						</li>
+						<li class="active">
+							<a href="overview.html">Overview</a>
+						</li>
+						<li>
+							<a href="gallery.html">Gallery</a>
+						</li>
+						<li>
+							<a href="terms.html">Terms of Use</a>
+						</li>
+						<li>
+							<a href="credits.html">Credits</a>
+						</li>
+						<li>
+							<a href="https://english.tau.ac.il/" id="tau-link" target="_blank">
+								<img src=pics/TAU_LOGO.png id="tau-logo">
+							</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</nav>
+	<div id="behind-nav-bar">
+	</div>
+	<div class="container" id="overview_container">
+		<div class="row">
+			<div class="col-md-1">
+			</div>
+			<div class="col-md-10" align="justify">
+				<h2>Introduction</h2>
+				The technological advances in the last decade brought with them opportunities for large-scale mining and
+				analysis of bacterial species data. These analyses posses many challenges including data-mining steps, such
+				as gene annotation and orthologs detection, sequence alignment, accurate phylogenetic tree reconstruction
+				and genome wide association studies. These steps as well as additional analysis-specific computations
+				require the execution of multiple bioinformatics tools, making this process cumbersome, tedious and prone to
+				errors due to manual handling.
+				<br><br>
+
+				<h2>What is M1CR0B1AL1Z3R?</h2>
+				The M1CR0BIALIZ3R webserver is a "one-stop shop" for conducting such microbial genomics data analyses via a simple graphical user interface (GUI) without any installations, making this processes efficient and easy and allows scientists to analyze hundreds of bacterial genomes, with a click of a button. An example of features which are implemented in M1CR0BIALIZ3R include:
+				<li>
+					Extracting all open reading frames (ORFs) [<a href="#ref1">1</a>];
+				</li>
+				<li>
+					Analyzing presence-absence patterns of genes;
+				</li>
+				<li>
+					Detecting and extracting orthologous sets sequences from ORFs [<a href="#ref2">2</a>, <a href="#ref3">3</a>];
+				</li>
+				<li>
+					Align orthologous sets sequences [<a href="#ref4">4</a>];
+				</li>
+				<li>
+					Reconstructing a phylogenetic tree [<a href="#ref5">5</a>];
+				</li>
+				<!--<li>-->
+					<!--Identifying selective sweeps events (Avram et al., in preparation);-->
+				<!--</li>-->
+				<!--<li>-->
+					<!--Inferring GC content variation among species lineages;-->
+				<!--</li>-->
+				<br>
+
+				<h2>Input</h2>
+				The input for the webserver is a <a href="https://linhost.info/2012/08/gzip-files-in-windows/" target="_blank">tar gzipped folder</a> in which each file is a <a href="https://en.wikipedia.org/wiki/FASTA_format#FASTA_file" target="_blank">fasta nucleic acid (.fna) file</a> containing genomic sequences of a different species (whether fully sequenced or as contigs)
+				<br><br>
+
+				<!--<br><br>-->
+				<!--<img src="pics/flow.jpg" id="flow">-->
+				<!--<br><br>-->
+
+				<h2>Output and methodology<br></h2>
+				The output of the webserver contains the following:
+				<li>
+					A reliable species phylogeny tree (both in a Newick format and as a ready-to-publish figure);
+				</li>
+				<li>
+					A curated table of orthologous sets;
+				</li>
+				<li>
+					A fasta file for each orthologous set containing the UNALIGNED sequences of the set members;
+				</li>
+				<li>
+					A fasta file for each orthologous set containing the ALIGNED sequences of the set members;
+				</li>
+
+				<!--In addition, further analyses can be made upon a simple user request (i.e., click on a checkbox) such as:-->
+				<!--TODO-->
+				<br><br>
+
+				All these analyses are presented graphically, as can be demonstrated in our
+				<a href="gallery.html">gallery section</a>.
+
+
+				<br><br>
+
+				<h2>References</h2>
+
+				<li><a href="https://doi.org/10.1186/1471-2105-11-119" target="_blank" id="ref1">Hyatt D., et al., <i>BMC Bioinformatics</i> 11, 119 (2010).</a></li>
+				<br>
+				<li><a href="https://doi.org/10.1016/S0022-2836(05)80360-2" target="_blank" id="ref2">Altschul SF., et al., <i>J Mol Biol</i> 215, 403-410 (1990).</a></li>
+				<br>
+				<!--<li><a href="https://doi.org/10.1093/bioinformatics/btl158" target="_blank" id="ref2">Li W. & Godzik A., <i>Bioinformatics</i> 22, 1658-1659 (2006).</a></li>-->
+				<!--<br>-->
+				<li><a href="https://dspace.library.uu.nl/bitstream/handle/1874/848/full.pdf?sequence=1&isAllowed=y" target="_blank" id="ref3">Van Dongen SM., <i>Thesis</i> (2000).</a></li>
+				<br>
+				<li><a href="https://doi.org/10.1093/molbev/mst010" target="_blank" id="ref4">Katoh K. & Standley DM., <i>Mol Biol Evol</i> 30, 772-780 (2013)</a></li>
+				<br>
+				<li><a href="https://doi.org/10.1093/bioinformatics/btu033" target="_blank" id="ref5">Stamatakis A., <i>Bioinformatics</i> 30, 1312-1313 (2014)</a></li>
+				<br><br>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
+
+
+
+
+
+
+

@@ -32,19 +32,23 @@ def find_genes(genome, output_path, log_path):
 
 
 if __name__ == '__main__':
-    import logging
-    logger = logging.getLogger('main')
     from sys import argv
-    logger.info(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
+    print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
 
     import argparse
-    logger = logging.getLogger('main')
-
     parser = argparse.ArgumentParser()
     parser.add_argument('genome_path', help='path to fasta genome file')
     parser.add_argument('output_path', help='path to output file')
     parser.add_argument('log_path', help='path to translated sequences')
+    parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     args = parser.parse_args()
+
+    import logging
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger('main')
 
     find_genes(args.genome_path, args.output_path, args.log_path)
 

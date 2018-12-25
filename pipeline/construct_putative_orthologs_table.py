@@ -98,18 +98,23 @@ def construct_table(all_reciprocal_hits_path, putative_orthologs_path, delimiter
 
 
 if __name__ == '__main__':
-    import logging
-    logger = logging.getLogger('main')
     from sys import argv
-    logger.info(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
     print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
 
     import argparse
     parser = argparse.ArgumentParser()
 
     parser.add_argument('all_reciprocal_hits_path', help='path to a file with all the reciprocal hits files concatenated')
-    parser.add_argument('putative_orthologs_path', help='path to an output file in which the putative othologs table will be written')
+    parser.add_argument('putative_orthologs_path', help='path to an output file in which the putative orthologs table will be written')
     parser.add_argument('--delimiter', help='delimiter for the input and output files', default=',')
+    parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     args = parser.parse_args()
+
+    import logging
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger('main')
 
     construct_table(args.all_reciprocal_hits_path, args.putative_orthologs_path, args.delimiter)

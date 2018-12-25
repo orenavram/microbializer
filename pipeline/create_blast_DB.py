@@ -13,17 +13,22 @@ def create_blast_DB(reference_seq, dbtype, output_path):
 
 
 if __name__ == '__main__':
-    import logging
-    logger = logging.getLogger('main')
     from sys import argv
-    logger.info(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
+    print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
 
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('subject_fasta', help='path to subject fasta file')
     parser.add_argument('subject_db', help='path to subject blast DB file that will be created')
     parser.add_argument('--dbtype', help='database type for creating blast DB', default='nucl')
-
+    parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     args = parser.parse_args()
+
+    import logging
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger('main')
 
     create_blast_DB(args.subject_fasta, args.dbtype, args.subject_db)
