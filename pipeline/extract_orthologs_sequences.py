@@ -1,49 +1,102 @@
-# -*- coding: utf-8 -*-
 """
-Created on Tue May 22 14:52:18 2018
-
-@author: shirportugez
-
-This script is a module that extract sequences of given ortholog groups.
-Input:
-    (1) a path to orthologs table.
-    (2) directory for sequence files (each bacteria in the og table should have one sequence file with the name of the bacteria that should contain all genes of that bacteria).
-    (3) a directory for output sequence files - if the folder doesn't exists, the script will create it.
-    (4) optional [fasta by default]: input and output sequence file format (fasta or genebank)
-Output:
-    directory containing fasta files for each ortholog group.
+script_name.py /Users/Oren/Dropbox/Projects/microbializer/mock_output/01_ORFs "GCF_000006945.2_ASM694v2_cds_from_genomic,GCF_000007545.1_ASM754v1_cds_from_genomic,GCF_000008105.1_ASM810v1_cds_from_genomic,GCF_000009505.1_ASM950v1_cds_from_genomic,GCF_000195995.1_ASM19599v1_cds_from_genomic" "lcl_NC_003197.2_cds_NP_459006.1_1_2,lcl_NC_004631.1_cds_WP_001575544.1_1_2,lcl_NC_006905.1_cds_WP_001575544.1_1_2,lcl_NC_011294.1_cds_WP_001575544.1_1_2,lcl_NC_003198.1_cds_NP_454611.1_1_2" /Users/Oren/Dropbox/Projects/microbializer/mock_output/12_orthologs_sets_sequences/og_0.12_orthologs_sets_sequences
 """
 
 import os
 
-def get_orthologs_group_sequences(orthologs_group, sequences_dir):
-    pass
 
-
-def extract_orthologs_sequences(orthologs_table_path, sequences_dir, output_path, number_of_first_group, delimiter):
-    i = number_of_first_group
-    with open(orthologs_table_path) as f:
+def load_fasta_to_dict(fasta_path):
+    header_to_sequence_dict = {}
+    with open(fasta_path) as f:
+        header = f.readline().rstrip()
+        sequence = ''
         for line in f:
-            orthologs_group = line.rstrip().split(delimiter)
-            orthologs_sequences = get_orthologs_group_sequences(orthologs_group, sequences_dir)
-            with open(os.path.join(output_path, i+'_orthologs_group.fasta'), 'w'):
-                f.write(orthologs_sequences)
-            i += 1
+            if line.startswith('>'):
+                header_to_sequence_dict[header] = sequence
+                header = line.rstrip()[1:] # [1:] to ignore '>'
+                sequence = ''
+            else:
+                sequence += line.rstrip()
+    return header_to_sequence_dict
+
+
+def get_sequence_by_ortholog_name(fasta_path, ortholog_name):
+    with open(fasta_path) as f:
+        sequence = ''
+        flag = False
+        for line in f:
+            if line.startswith('>'):
+                if sequence != '':
+                    # finished aggregating relevant sequence
+                    return sequence
+                header = line.rstrip()[1:] # [1:] to ignore '>'
+                if header.startswith(ortholog_name):
+                    # gene name was found! start aggregating sequence
+                    flag = True
+            elif flag:
+                # previous header is $ortholog_name! so we are now aggregating its sequence
+                sequence += line.rstrip()
+        if sequence != '':
+            # LAST record was the relevant sequence
+            return sequence
+    raise ValueError(f'{ortholog_name} does not exist in {fasta_path}!')
+
+
+def get_orthologs_group_sequences(orfs_dir, strain_name_to_ortholog_name, strains):
+    result = ''
+
+    strain_to_strain_orfs_path_dict = {}
+    for orfs_file in os.listdir(orfs_dir):
+        strain = os.path.splitext(orfs_file)[0]
+        strain_to_strain_orfs_path_dict[strain] = os.path.join(orfs_dir, orfs_file)
+    for strain in strains:
+        ortholog_name = strain_name_to_ortholog_name[strain]
+        if ortholog_name != '':
+            # current strain has a member in this cluster
+            orfs_path = strain_to_strain_orfs_path_dict[strain]
+            ortholog_sequence = get_sequence_by_ortholog_name(orfs_path, ortholog_name)
+            result += f'>{strain}\n{ortholog_sequence}\n'
+
+    return result
+
+
+
+def extract_orthologs_sequences(sequences_dir, final_table_header_line, cluster_members_line, output_path, delimiter):
+    strains = final_table_header_line.rstrip().split(delimiter)
+    cluster_members = cluster_members_line.rstrip().split(delimiter)
+    strain_name_to_ortholog_name = dict(zip(strains, cluster_members))
+    orthologs_sequences = get_orthologs_group_sequences(sequences_dir, strain_name_to_ortholog_name, strains)
+    with open(os.path.join(output_path), 'w') as f:
+        f.write(orthologs_sequences)
 
 
 if __name__ == '__main__':
+
     import logging
     logger = logging.getLogger('main')
     from sys import argv
-    logger.info(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
+    print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('orthologs_table_path', help='path to an orthologs table (aka verified clusters)')
     parser.add_argument('sequences_dir', help='path to a directory with the bacterial gene sequences (aka ORFs)')
+    parser.add_argument('final_table_header', help='string that is the header of the final table')
+    parser.add_argument('cluster_members', help='string that is the cluster members that is handled'
+                                                 '(a row from the final orthologs table)')
     parser.add_argument('output_path', help='path to an output directory (aka orthologs sets sequences)')
-    parser.add_argument('--number_of_first_group', help='number that represents the "arbirary" name that the first '
-                        'orthologs group will get (the second will get number_of_first_group + 1, etc...)', default = '0')
+    # parser.add_argument('--number_of_first_group', help='number that represents the "arbirary" name that the first '
+    #                     'orthologs group will get (the second will get number_of_first_group + 1, etc...)', type=int,
+    #                     default = 0)
     parser.add_argument('--delimiter', help='orthologs table delimiter', default=',')
+    parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     args = parser.parse_args()
 
-    extract_orthologs_sequences(args.orthologs_table_path, args.sequences_dir, args.output_path, args.number_of_first_group, args.delimiter)
+    import logging
+
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger('main')
+
+    extract_orthologs_sequences(args.sequences_dir, args.final_table_header, args.cluster_members,
+                                args.output_path, args.delimiter)

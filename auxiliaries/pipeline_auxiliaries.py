@@ -1,23 +1,21 @@
-import logging
-logger = logging.getLogger('main') # use logger instead of printing
-
-
 import subprocess
 import os
 from auxiliaries.directory_creator import create_dir
 from time import time, sleep
-
+import logging
+logger = logging.getLogger('main') # use logger instead of printing
+logging.basicConfig(level=logging.DEBUG)
 
 def measure_time(total):
     hours = total // 3600
     minutes = (total% 3600) // 60
     seconds = total % 60
     if hours != 0:
-        return f'{hours:02}:{minutes:02}:{seconds:02} hours'
+        return f'{hours}:{minutes:02}:{seconds:02} hours'
     elif minutes != 0:
-        return f'{minutes:02}:{seconds:02} minutes'
+        return f'{minutes}:{seconds:02} minutes'
     else:
-        return f'{seconds:02} seconds'
+        return f'{seconds} seconds'
 
 
 def execute(process, raw=False):
@@ -26,7 +24,8 @@ def execute(process, raw=False):
     subprocess.run(process, shell=raw)
 
 
-def wait_for_results(script_name, path, num_of_expected_results, suffix='done', remove=False, time_to_wait=100):
+def wait_for_results(script_name, path, num_of_expected_results, error_file_path, suffix='done',
+                     remove=False, time_to_wait=30):
     '''waits until path contains num_of_expected_results $suffix files'''
     start = time()
     logger.warning(f'Waiting for {script_name}... (continues when {num_of_expected_results} results will be in {path})')
@@ -44,6 +43,7 @@ def wait_for_results(script_name, path, num_of_expected_results, suffix='done', 
         execute(['python', '-u', '/groups/pupko/orenavr2/pipeline/RemoveDoneFiles.py', path, suffix])
     end = time()
     logger.warning(f'Done waiting for:\n{script_name}\n(took {measure_time(int(end-start))}).\n')
+    assert not os.path.exists(error_file_path)
 
 
 # def remove_files_with_suffix(path, suffix='done'):
@@ -65,7 +65,10 @@ def prepare_directories(outputs_dir_prefix, tmp_dir_prefix, dir_name):
     return outputs_dir, tmp_dir
 
 
-def submit_pipeline_step(script_path, params, tmp_dir, job_name, queue_name, new_line_delimiter='!@#', q_submitter_script_path='/bioseq/bioSequence_scripts_and_constants/q_submitter.py', done_files_script_path='/groups/pupko/orenavr2/microbializer/auxiliaries/file_writer.py', required_modules_as_list=None):
+def submit_pipeline_step(script_path, params, tmp_dir, job_name, queue_name, new_line_delimiter='!@#',
+                         q_submitter_script_path='/bioseq/bioSequence_scripts_and_constants/q_submitter.py',
+                         done_files_script_path='/groups/pupko/orenavr2/microbializer/auxiliaries/file_writer.py',
+                         required_modules_as_list=None):
 
     required_modules_as_str = 'python/anaconda_python-3.6.4'
     if required_modules_as_list:
@@ -75,15 +78,16 @@ def submit_pipeline_step(script_path, params, tmp_dir, job_name, queue_name, new
     cmds += new_line_delimiter
 
     # ACTUAL COMMAND
-    cmds += ' '.join(['python', script_path, *params, ';'])
+    cmds += ' '.join(['python', '-u', script_path, *params])+';'
     cmds += new_line_delimiter # the queue does not like very long commands so I use a dummy delimiter (!@#) to break the rows in q_submitter
 
     # GENERATE DONE FILE
     params = [os.path.join(tmp_dir, job_name + '.done'), ''] # write an empty string (like "touch" command)
-    cmds += ' '.join(['python', done_files_script_path, *params, ';'])
+    cmds += ' '.join(['python', done_files_script_path, *params])+';'
     cmds += new_line_delimiter
 
-    cmds += '\t' + job_name
+    cmds += '\t' + job_name + '\n'
+    print(cmds)
     cmds_path = os.path.join(tmp_dir, job_name + '.cmds')
     with open(cmds_path, 'w') as f:
         f.write(cmds)
