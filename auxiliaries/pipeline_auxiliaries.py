@@ -4,7 +4,6 @@ from auxiliaries.directory_creator import create_dir
 from time import time, sleep
 import logging
 logger = logging.getLogger('main') # use logger instead of printing
-logging.basicConfig(level=logging.DEBUG)
 
 def measure_time(total):
     hours = total // 3600
@@ -20,7 +19,7 @@ def measure_time(total):
 
 def execute(process, raw=False):
     process_str = process if raw else ' '.join(str(token) for token in process)
-    logger.warning(f'Calling (raw == {raw}):\n{process_str}')
+    logger.info(f'Calling (raw == {raw}):\n{process_str}')
     subprocess.run(process, shell=raw)
 
 
@@ -28,9 +27,9 @@ def wait_for_results(script_name, path, num_of_expected_results, error_file_path
                      remove=False, time_to_wait=30):
     '''waits until path contains num_of_expected_results $suffix files'''
     start = time()
-    logger.warning(f'Waiting for {script_name}... (continues when {num_of_expected_results} results will be in {path})')
+    logger.info(f'Waiting for {script_name}... (continues when {num_of_expected_results} results will be in {path})')
     if num_of_expected_results==0:
-        raise ValueError(f'\n{"#"*50}\nnum_of_expected_results is {num_of_expected_results}! Something went wrong in the previous step...\n{"#"*50}')
+        raise ValueError(f'\n{"#"*100}\nnum_of_expected_results is {num_of_expected_results}! Something went wrong in the previous step...\n{"#"*100}')
     i = 0
     current_num_of_results = 0
     while num_of_expected_results > current_num_of_results:
@@ -38,23 +37,23 @@ def wait_for_results(script_name, path, num_of_expected_results, error_file_path
         jobs_left = num_of_expected_results - current_num_of_results
         sleep(time_to_wait)
         i += time_to_wait
-        logger.warning(f'{i} seconds have passed since started waiting ({num_of_expected_results} - {current_num_of_results} = {jobs_left} more files are still missing)')
+        logger.info(f'{i} seconds have passed since started waiting ({num_of_expected_results} - {current_num_of_results} = {jobs_left} more files are still missing)')
     if remove:
         execute(['python', '-u', '/groups/pupko/orenavr2/pipeline/RemoveDoneFiles.py', path, suffix])
     end = time()
-    logger.warning(f'Done waiting for:\n{script_name}\n(took {measure_time(int(end-start))}).\n')
+    logger.info(f'Done waiting for:\n{script_name}\n(took {measure_time(int(end-start))}).\n')
     assert not os.path.exists(error_file_path)
 
 
 # def remove_files_with_suffix(path, suffix='done'):
 #     '''remove all files from path that end with suffix'''
-#     logger.warning(f'Removing {suffix} files from {path}')
+#     logger.info(f'Removing {suffix} files from {path}')
 #     for file_name in os.listdir(path):
 #         if file_name.endswith(suffix):
 #             file_path = os.path.join(path,file_name)
 #             logger.debug(f'Removing {file_path}')
 #             os.remove(file_path)
-#     logger.warning('Done removing.')
+#     logger.info('Done removing.')
 
 
 def prepare_directories(outputs_dir_prefix, tmp_dir_prefix, dir_name):
@@ -92,6 +91,9 @@ def submit_pipeline_step(script_path, params, tmp_dir, job_name, queue_name, new
     with open(cmds_path, 'w') as f:
         f.write(cmds)
     execute([q_submitter_script_path, cmds_path, tmp_dir, '-q', queue_name])
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG)
 
 # def done_if_exist(done_file, file_to_check = './'):
 #     if os.path.exists(file_to_check):
