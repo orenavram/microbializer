@@ -1,11 +1,22 @@
 try:
     import argparse
     import sys
+    import os
     import tarfile
     from sh import gunzip
 
-    sys.path.insert(0, "/groups/pupko/orenavr2/microbializer/") #ADD auxiliaries path
-    sys.path.insert(0, "/groups/pupko/orenavr2/microbializer/auxiliaries/") #ADD file_writer
+    print(os.getcwd())
+    print(f'sys.path is\n{sys.path}')
+
+    if os.path.exists('/bioseq/microbializer'):  # remote run
+        sys.path.append('/bioseq/microbializer/') #ADD auxiliaries path
+        sys.path.append('/bioseq/bioSequence_scripts_and_constants/') #ADD file_writer
+    else:
+        # local run
+        sys.path.append('../')
+
+    print(f'sys.path is\n{sys.path}')
+
     from auxiliaries import file_writer #ADD file_writer
     from auxiliaries.email_sender import send_email
     from auxiliaries.pipeline_auxiliaries import *
@@ -45,13 +56,14 @@ try:
     done_files_dir = os.path.join(args.output_dir, 'done')
     create_dir(done_files_dir)
 
-    data_path = args .contigs_dir
-    logger.info(data_path)
+    data_path = args.contigs_dir
+    logger.info(f'data_path is: {data_path}')
 
     # extract tar folder
     if not os.path.isdir(data_path) and tarfile.is_tarfile(data_path):
+        path_to_extract_the_data = os.path.join(args.output_dir, '..')
         with tarfile.open(data_path, 'r:gz') as f:
-            f.extractall() #unzip tar folder
+            f.extractall(path=path_to_extract_the_data) # unzip tar folder to parent dir
         data_path = data_path.split('.tar')[0] # e.g., /groups/pupko/orenavr2/microbializer/example_data.tar.gz
         logger.info(f'Updated data_path is:\n{data_path}')
 
@@ -71,14 +83,14 @@ try:
     # Can be parallelized on cluster
     # Prodigal ignores newlines in the middle of a sequence, namely, >bac1\nAAA\nAA\nTTT >bac1\nAAAAATTT will be analyzed identically.
     step = '01'
-    logger.warning(f'Step {step}: {"_"*100}')
+    logger.info(f'Step {step}: {"_"*100}')
     dir_name = f'{step}_ORFs'
     script_path = os.path.join(args.src_dir, 'extract_orfs.py')
     num_of_expected_results = 0
     pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
     done_file_path = os.path.join(done_files_dir, f'{step}_extract_orfs.txt')
     if not os.path.exists(done_file_path):
-        logger.warning('Extracting ORFs...')
+        logger.info('Extracting ORFs...')
         for fasta_file in os.listdir(data_path):
             fasta_file_prefix = os.path.splitext(fasta_file)[0]
             output_file_name = f'{fasta_file_prefix}.{dir_name}'
@@ -90,7 +102,7 @@ try:
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir, num_of_expected_results, error_file_path)
         file_writer.write_to_file(done_file_path)
     else:
-        logger.warning(f'done file {done_file_path} already exists. Skipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
 
     # 2.  create_blast_DB.py
@@ -98,7 +110,7 @@ try:
     # Output: Blast DB of the input file
     # Can be parallelized on cluster
     step = '02'
-    logger.warning(f'Step {step}: {"_"*100}')
+    logger.info(f'Step {step}: {"_"*100}')
     ORFs_dir = previous_pipeline_step_output_dir = pipeline_step_output_dir
     dir_name = f'{step}_blast_db'
     script_path = os.path.join(args.src_dir, 'create_blast_DB.py')
@@ -106,7 +118,7 @@ try:
     pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
     done_file_path = os.path.join(done_files_dir, f'{step}_create_blast_DB.txt')
     if not os.path.exists(done_file_path):
-        logger.warning('Creating Blast DB...')
+        logger.info('Creating Blast DB...')
         for fasta_file in os.listdir(previous_pipeline_step_output_dir):
             file_path = os.path.join(previous_pipeline_step_output_dir, fasta_file)
             fasta_file_prefix = os.path.splitext(fasta_file)[0]
@@ -117,7 +129,7 @@ try:
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir, num_of_expected_results, error_file_path)
         file_writer.write_to_file(done_file_path)
     else:
-        logger.warning(f'done file {done_file_path} already exists. Skipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
 
     # 3.	blast_all_vs_all.py
@@ -126,7 +138,7 @@ try:
     # Precisely, for each gene x in g1, blast x among all the genes of g2. Let y be the gene in g2 that is the most similar to x among all g2 genes. Append a row to the output file with: ‘{x}\t{y}’.
     # Can be parallelized on cluster
     step = '03'
-    logger.warning(f'Step {step}: {"_"*100}')
+    logger.info(f'Step {step}: {"_"*100}')
     previous_pipeline_step_output_dir = pipeline_step_output_dir
     dir_name = f'{step}_blast_analysis'
     script_path = os.path.join(args.src_dir, 'blast_all_vs_all.py')
@@ -134,7 +146,7 @@ try:
     pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
     done_file_path = os.path.join(done_files_dir, f'{step}_blast_all_vs_all.txt')
     if not os.path.exists(done_file_path):
-        logger.warning('Blasting...')
+        logger.info('Blasting...')
         blasted_pairs = set()
         for fasta_file_name in os.listdir(ORFs_dir):
             fasta_file_path = os.path.join(ORFs_dir, fasta_file_name)
@@ -155,7 +167,7 @@ try:
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir, num_of_expected_results, error_file_path)
         file_writer.write_to_file(done_file_path)
     else:
-        logger.warning(f'done file {done_file_path} already exists. Skipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
 
     # 4.	filter_blast.py
@@ -166,7 +178,7 @@ try:
     # 3.# write each pair to the output file if it passed all the above filters.
     # Can be parallelized on cluster
     step = '04'
-    logger.warning(f'Step {step}: {"_"*100}')
+    logger.info(f'Step {step}: {"_"*100}')
     previous_pipeline_step_output_dir = pipeline_step_output_dir
     dir_name = f'{step}_blast_filtered'
     script_path = os.path.join(args.src_dir, 'filter_blast_results.py')
@@ -174,7 +186,7 @@ try:
     pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
     done_file_path = os.path.join(done_files_dir, f'{step}_filter_blast_results.txt')
     if not os.path.exists(done_file_path):
-        logger.warning('Filtering...')
+        logger.info('Filtering...')
         for blast_results_file in os.listdir(previous_pipeline_step_output_dir):
             fasta_file_prefix = os.path.splitext(blast_results_file)[0]
             output_file_name = f'{fasta_file_prefix}.{dir_name}'
@@ -184,7 +196,7 @@ try:
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir, num_of_expected_results, error_file_path)
         file_writer.write_to_file(done_file_path)
     else:
-        logger.warning(f'done file {done_file_path} already exists. Skipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
 
     # 5.	find_reciprocal_hits.py
@@ -192,7 +204,7 @@ try:
     # Output: a tab delimited file containing only reciprocal best-hit pairs and their bit score from blast, i.e., if x’s best hit was y in the first file with bit score z, x\ty\tz will appear in the output file only if y’s best hit in the other file will be x.
     # Can be parallelized on cluster
     step = '05'
-    logger.warning(f'Step {step}: {"_"*100}')
+    logger.info(f'Step {step}: {"_"*100}')
     previous_pipeline_step_output_dir = pipeline_step_output_dir
     dir_name = f'{step}_reciprocal_hits'
     script_path = os.path.join(args.src_dir, 'find_reciprocal_hits.py')
@@ -200,7 +212,7 @@ try:
     pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
     done_file_path = os.path.join(done_files_dir, f'{step}_find_reciprocal_hits.txt')
     if not os.path.exists(done_file_path):
-        logger.warning('Extracting reciprocal hits...')
+        logger.info('Extracting reciprocal hits...')
         for blast_filtered_results_file in os.listdir(previous_pipeline_step_output_dir):
             file_name_prefix = os.path.splitext(blast_filtered_results_file)[0]
             strain1, strain2 = file_name_prefix.split('_vs_')[:2]
@@ -219,7 +231,7 @@ try:
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir, num_of_expected_results, error_file_path)
         file_writer.write_to_file(done_file_path)
     else:
-        logger.warning(f'done file {done_file_path} already exists. Skipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
 
     # 6. concatenate_reciprocal_hits
@@ -227,17 +239,17 @@ try:
     # Output: concatenated file of all reciprocal hits files
     # CANNOT be parallelized on cluster
     step = '06'
-    logger.warning(f'Step {step}: {"_"*100}')
+    logger.info(f'Step {step}: {"_"*100}')
     all_reciprocal_hits_file = os.path.join(args.output_dir, 'concatenated_all_reciprocal_hits.txt')
     done_file_path = os.path.join(done_files_dir, f'{step}_concatenate_reciprocal_hits.txt')
     if not os.path.exists(done_file_path):
-        logger.warning('Concatenating reciprocal hits...')
+        logger.info('Concatenating reciprocal hits...')
         cmd = f'cat {pipeline_step_output_dir}/*.{dir_name} > {all_reciprocal_hits_file}'
         subprocess.run(cmd, shell = True)
         # No need to wait...
         file_writer.write_to_file(done_file_path)
     else:
-        logger.warning(f'done file {done_file_path} already exists. Skipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
 
     # 7.	construct_putative_orthologs_table.py
@@ -245,7 +257,7 @@ try:
     # Output: updates the table with the info from the reciprocal hit file.
     # CANNOT be parallelized on cluster
     step = '07'
-    logger.warning(f'Step {step}: {"_"*100}')
+    logger.info(f'Step {step}: {"_"*100}')
     dir_name = f'{step}_putative_table'
     script_path = os.path.join(args.src_dir, 'construct_putative_orthologs_table.py')
     num_of_expected_results = 0
@@ -253,7 +265,7 @@ try:
     putative_orthologs_table_path = os.path.join(pipeline_step_output_dir, 'putative_orthologs_table.txt')
     done_file_path = os.path.join(done_files_dir, f'{step}_construct_putative_orthologs_table.txt')
     if not os.path.exists(done_file_path):
-        logger.warning('Constructing putative orthologs table...')
+        logger.info('Constructing putative orthologs table...')
         job_name = os.path.split(script_path)[-1]
         params = [all_reciprocal_hits_file, putative_orthologs_table_path]
         submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=job_name,
@@ -262,21 +274,21 @@ try:
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir, num_of_expected_results, error_file_path)
         file_writer.write_to_file(done_file_path)
     else:
-        logger.warning(f'done file {done_file_path} already exists. Skipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
 
     # # 6.	split_putative_orthologs_table
     # # Input: (1) a path for a putative orthologs table (each row in this table is a putative orthologous set) (2) an output_path to a directory.
     # # Output: each line is written to a separate file in the output directory.
     # # Can be parallelized on cluster (better as a subprocess)
-    # logger.warning(f'Step 6: {"_"*100}')
+    # logger.info(f'Step 6: {"_"*100}')
     # dir_name = 'splitted_putative_orthologs_table'
     # # script_path = os.path.join(args.src_dir, '..', 'auxiliaries', 'file_writer.py')
     # # num_of_expected_results = 0
     # pipeline_step_output_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)[0]  # pipeline_step_tmp_dir is not needed
     # done_file_path = os.path.join(done_files_dir, '6_split_putative_orthologs_table.txt')
     # if not os.path.exists(done_file_path):
-    #     logger.warning('Splitting putative orthologs table...')
+    #     logger.info('Splitting putative orthologs table...')
     #     with open(putative_orthologs_table_path) as f:
     #         header = f.readline()
     #         lines = ''
@@ -296,7 +308,7 @@ try:
     #
     #     file_writer.write_to_file(done_file_path)
     # else:
-    #     logger.warning(f'done file {done_file_path} already exists. Skipping step...')
+    #     logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
 
     # 8   prepare_files_for_mcl.py
@@ -304,21 +316,21 @@ try:
     # Output: an input file for MCL for each putative orthologs group
     # CANNOT be parallelized on cluster (if running on the concatenated file)
     step = '08'
-    logger.warning(f'Step {step}: {"_"*100}')
+    logger.info(f'Step {step}: {"_"*100}')
     dir_name = f'{step}_mcl_input_files'
     script_path = os.path.join(args.src_dir, 'prepare_files_for_mcl.py')
     num_of_expected_results = 1 # a single job that prepares all the files
     pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
     done_file_path = os.path.join(done_files_dir, f'{step}_prepare_files_for_mcl.txt')
     if not os.path.exists(done_file_path):
-        logger.warning('Preparing files for MCL...')
+        logger.info('Preparing files for MCL...')
         job_name = os.path.split(script_path)[-1]
         params = [all_reciprocal_hits_file, putative_orthologs_table_path, pipeline_step_output_dir]
         submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=job_name, queue_name=args.queue_name)
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir, num_of_expected_results, error_file_path)
         file_writer.write_to_file(done_file_path)
     else:
-        logger.warning(f'done file {done_file_path} already exists. Skipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
 
     # 9.	run_mcl.py
@@ -326,7 +338,7 @@ try:
     # Output: MCL analysis.
     # Can be parallelized on cluster
     step = '09'
-    logger.warning(f'Step {step}: {"_"*100}')
+    logger.info(f'Step {step}: {"_"*100}')
     previous_pipeline_step_output_dir = pipeline_step_output_dir
     dir_name = f'{step}_mcl_analysis'
     script_path = os.path.join(args.src_dir, 'run_mcl.py')
@@ -334,7 +346,7 @@ try:
     pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
     done_file_path = os.path.join(done_files_dir, f'{step}_run_mcl.txt')
     if not os.path.exists(done_file_path):
-        logger.warning('Executing MCL...')
+        logger.info('Executing MCL...')
         for putative_orthologs_set in os.listdir(previous_pipeline_step_output_dir):
             putative_orthologs_set_prefix = os.path.splitext(putative_orthologs_set)[0]
             output_file_name = f'{putative_orthologs_set_prefix}.{dir_name}'
@@ -345,7 +357,7 @@ try:
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir, num_of_expected_results, error_file_path)
         file_writer.write_to_file(done_file_path)
     else:
-        logger.warning(f'done file {done_file_path} already exists. Skipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
 
     # 10.	verify_cluster.py
@@ -353,7 +365,7 @@ try:
     # Output: filter irrelevant clusters by moving the relevant to an output directory
     # Can be parallelized on cluster
     step = '10'
-    logger.warning(f'Step {step}: {"_"*100}')
+    logger.info(f'Step {step}: {"_"*100}')
     previous_pipeline_step_output_dir = pipeline_step_output_dir
     dir_name = f'{step}_verified_clusters'
     script_path = os.path.join(args.src_dir, 'verify_cluster.py')
@@ -361,7 +373,7 @@ try:
     pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
     done_file_path = os.path.join(done_files_dir, f'{step}_verify_cluster.txt')
     if not os.path.exists(done_file_path):
-        logger.warning('Verifying clusters...')
+        logger.info('Verifying clusters...')
         for putative_orthologs_set in os.listdir(previous_pipeline_step_output_dir):
             putative_orthologs_set_prefix = os.path.splitext(putative_orthologs_set)[0]
             job_name = os.path.split(putative_orthologs_set_prefix)[-1]
@@ -372,14 +384,14 @@ try:
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir, num_of_expected_results, error_file_path)
         file_writer.write_to_file(done_file_path)
     else:
-        logger.warning(f'done file {done_file_path} already exists. Skipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
 
     # 11.	construct_final_orthologs_table.py
     # Input: (1) a path for directory with all the verified OGs (2) an output path to a final OGs table.
     # Output: aggregates all the well-clustered OGs to the final table.
     step = '11'
-    logger.warning(f'Step {step}: {"_"*100}')
+    logger.info(f'Step {step}: {"_"*100}')
     previous_pipeline_step_output_dir = pipeline_step_output_dir
     dir_name = f'{step}_final_table'
     script_path = os.path.join(args.src_dir, 'construct_final_orthologs_table.py')
@@ -389,7 +401,7 @@ try:
     final_table_header_path = os.path.join(pipeline_step_output_dir, 'final_table_header.txt')
     done_file_path = os.path.join(done_files_dir, f'{step}_construct_final_orthologs_table.txt')
     if not os.path.exists(done_file_path):
-        logger.warning('Constructing final orthologs table...')
+        logger.info('Constructing final orthologs table...')
         job_name = os.path.split(final_orthologs_table_path)[-1]
         params = [putative_orthologs_table_path,
                   previous_pipeline_step_output_dir,
@@ -399,23 +411,23 @@ try:
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir, num_of_expected_results, error_file_path)
         file_writer.write_to_file(done_file_path)
     else:
-        logger.warning(f'done file {done_file_path} already exists. Skipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
 
     # 12.	extract_orthologs_sequences.py
     # Input: (1) a row from the final orthologs table (2) a path for a directory where the genes files are at (3) a path for an output file.
     # Output: write the sequences of the orthologs group to the output file.
     step = '12'
-    logger.warning(f'Step {step}: {"_"*100}')
+    logger.info(f'Step {step}: {"_"*100}')
     dir_name = f'{step}_orthologs_sets_sequences'
     script_path = os.path.join(args.src_dir, 'extract_orthologs_sequences.py')
     num_of_expected_results = 0
     pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
     done_file_path = os.path.join(done_files_dir, f'{step}_extract_orthologs_sequences.txt')
     if not os.path.exists(done_file_path):
-        logger.warning('Extracting orthologs set sequences according to final orthologs table...')
-        logger.warning(f'The verified clusters in {previous_pipeline_step_output_dir} are the following:')
-        logger.warning(os.listdir(previous_pipeline_step_output_dir))
+        logger.info('Extracting orthologs set sequences according to final orthologs table...')
+        logger.info(f'The verified clusters in {previous_pipeline_step_output_dir} are the following:')
+        logger.info(os.listdir(previous_pipeline_step_output_dir))
         # with open(final_table_header_path) as f:
         #     final_table_header = f.readline().rstrip()
 
@@ -436,12 +448,13 @@ try:
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir, num_of_expected_results, error_file_path)
         file_writer.write_to_file(done_file_path)
     else:
-        logger.warning(f'done file {done_file_path} already exists. Skipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
     status = 'is done'
 
 except Exception as e:
     from time import ctime
+    import os
     import logging
     logger = logging.getLogger('main')  # use logger instead of printing
 
@@ -460,6 +473,6 @@ except Exception as e:
 
 end = time()
 msg = f'microbializer pipeline {status}. Results can be found at {args.output_dir}. Took {measure_time(int(end-start))}'
-logger.warning(msg)
+logger.info(msg)
 send_email('mxout.tau.ac.il', 'TAU BioSequence <bioSequence@tauex.tau.ac.il>', args.email, subject=f'Microbialzer {status}.', content=msg)
 

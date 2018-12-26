@@ -37,7 +37,7 @@ def find_reciprocal_hits(blast_out1, blast_out2, output_path, delimiter):
             # sanity check that reciprocal bitscores are identical
             bitscore2 = query2_val[1]
             if eval(bitscore1) != eval(bitscore2):
-                logger.warning(f'bitscores of {query1} and {query2} are different!!\n{bitscore1} in {blast_out1}\n{bitscore2} in {blast_out2}')
+                logger.info(f'bitscores of {query1} and {query2} are different!!\n{bitscore1} in {blast_out1}\n{bitscore2} in {blast_out2}')
 
             #TODO: remove if causes crash!
             assert eval(bitscore1) == eval(bitscore2), f'bitscores of {query1} and {query2} are different!!\n{bitscore1} in {blast_out1}\n{bitscore2} in {blast_out2}'

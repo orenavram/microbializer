@@ -6,7 +6,7 @@ def blast_all_vs_all(program, query_seq, reference_DB, output_path):
     output: query_vs_reference blast results file
     '''
     cmd = f'{program} -query {query_seq} -db {reference_DB} -out {output_path} -max_target_seqs 1 -max_hsps 1 -outfmt 6'
-    logger.warning(f'Calling:\n{cmd}')
+    logger.info(f'Calling:\n{cmd}')
     import subprocess
     subprocess.run(cmd, shell=True)
 
