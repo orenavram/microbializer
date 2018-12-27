@@ -1,8 +1,9 @@
 import subprocess
 import os
-from auxiliaries.directory_creator import create_dir
+from directory_creator import create_dir
 from time import time, sleep
 import logging
+
 logger = logging.getLogger('main') # use logger instead of printing
 
 def measure_time(total):

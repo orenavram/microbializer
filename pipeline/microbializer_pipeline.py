@@ -1,34 +1,69 @@
+"""
+script_name.py /Users/Oren/Dropbox/Projects/microbializer/data_for_test_cds/ /Users/Oren/Dropbox/Projects/microbializer/mock_output/ orenavram@gmail.com -q pupko
+"""
+
+
+def notify_admin(meta_output_dir, meta_output_url, run_number, CONSTS):
+    email = 'NO_EMAIL'
+    user_email_path = os.path.join(meta_output_dir, 'user_email.txt')
+    if os.path.exists(user_email_path):
+        with open(user_email_path) as f:
+            email = f.read().rstrip()
+    error_log_path = 'NO_ERROR_LOG'
+    tmp = [file for file in os.listdir(meta_output_dir) if file.endswith('.err')]
+    if len(tmp) > 0:
+        error_log_path = tmp[0]
+    # Send me a notification email every time there's a failure
+    send_email(smtp_server=CONSTS.SMTP_SERVER,
+               sender=CONSTS.ADMIN_EMAIL,
+               receiver=CONSTS.OWNER_EMAIL,
+               subject=f'{CONSTS.WEBSERVER_NAME} job {run_number} by {email} has been failed: ',
+               content=f"{email}\n\n{os.path.join(meta_output_url, 'output.html')}\n\n"
+               f"{os.path.join(meta_output_url, 'cgi_debug.txt')}\n\n"
+               f"{os.path.join(meta_output_url, error_log_path)}\n\n"
+               f"{os.path.join(meta_output_dir, error_log_path)}")
+
+
 try:
     import argparse
     import sys
     import os
     import tarfile
-    from sh import gunzip
+    import shutil
 
     print(os.getcwd())
     print(f'sys.path is\n{sys.path}')
 
-    if os.path.exists('/bioseq/microbializer'):  # remote run
-        sys.path.append('/bioseq/microbializer/') #ADD auxiliaries path
+    if os.path.exists('/bioseq'):  # remote run
+        remote_run = True
+        sys.path.append('/bioseq/microbializer/auxiliaries')
+        sys.path.append('/bioseq/microbializer/cgi')
         sys.path.append('/bioseq/bioSequence_scripts_and_constants/') #ADD file_writer
     else:
         # local run
-        sys.path.append('../')
+        remote_run = False
+        sys.path.append('../auxiliaries')
+        sys.path.append('../cgi')
 
     print(f'sys.path is\n{sys.path}')
 
-    from auxiliaries import file_writer #ADD file_writer
-    from auxiliaries.email_sender import send_email
-    from auxiliaries.pipeline_auxiliaries import *
+    import file_writer #ADD file_writer
+    from email_sender import send_email
+    from pipeline_auxiliaries import *
+
+    import WEBSERVER_CONSTANTS as CONSTS
+
+    from html_editor import edit_success_html, edit_failure_html
 
     start = time()
 
     parser = argparse.ArgumentParser()
     parser.add_argument('contigs_dir', help='path to a folder with the genomic sequences. This folder may be zipped, as well the files in it.',
-                        type=lambda file_path: str(file_path) if os.path.exists(file_path) else parser.error(f'{file_path} does not exist!'))
-    parser.add_argument('output_dir', help='directory where the output files will be written to')
+                        type=lambda path: path.rstrip('/') if os.path.exists(path) else parser.error(f'{path} does not exist!'))
+    parser.add_argument('output_dir', help='directory where the output files will be written to',
+                        type=lambda path: path.rstrip('/'))
     parser.add_argument('email', help='A notification will be sent once the pipeline is done',
-                        default='orenavram@gmail.com')
+                        default=CONSTS.OWNER_EMAIL)
     parser.add_argument('-q', '--queue_name', help='The cluster to which the job(s) will be submitted to',
                         choices=['pupko', 'itaym', 'lilach', 'bioseq', 'bental'], default='pupko')
     parser.add_argument('--dummy_delimiter',
@@ -48,6 +83,20 @@ try:
     logger.info(args)
 
     create_dir(args.output_dir)
+
+    run_number = args.output_dir.split('/')[-2]
+
+    meta_output_dir = os.path.join(args.output_dir, '..')
+    meta_output_url = os.path.join(CONSTS.WEBSERVER_RESULTS_URL, run_number)
+
+    output_html_path = os.path.join(meta_output_dir, 'output.html')
+    logger.info(f'output_html_path is {output_html_path}')
+
+    logger.info(f'run_number is {run_number}')
+
+    output_url = os.path.join(CONSTS.WEBSERVER_RESULTS_URL, run_number, 'output.html')
+    logger.info(f'output_url is {output_url}')
+
     error_file_path = os.path.join(args.output_dir, 'error.txt')
 
     tmp_dir = os.path.join(args.output_dir, 'tmp_dir')
@@ -59,13 +108,18 @@ try:
     data_path = args.contigs_dir
     logger.info(f'data_path is: {data_path}')
 
+
     # extract tar folder
-    if not os.path.isdir(data_path) and tarfile.is_tarfile(data_path):
-        path_to_extract_the_data = os.path.join(args.output_dir, '..')
-        with tarfile.open(data_path, 'r:gz') as f:
-            f.extractall(path=path_to_extract_the_data) # unzip tar folder to parent dir
-        data_path = data_path.split('.tar')[0] # e.g., /groups/pupko/orenavr2/microbializer/example_data.tar.gz
-        logger.info(f'Updated data_path is:\n{data_path}')
+    if not os.path.isdir(data_path):
+        if tarfile.is_tarfile(data_path):
+            with tarfile.open(data_path, 'r:gz') as f:
+                f.extractall(path=meta_output_dir) # unzip tar folder to parent dir
+            data_path = data_path.split('.tar')[0] # e.g., /groups/pupko/orenavr2/microbializer/example_data.tar.gz
+            logger.info(f'Updated data_path is:\n{data_path}')
+        else: #TODO: check if the else works!
+            shutil.unpack_archive(data_path, extract_dir=meta_output_dir) # unzip tar folder to parent dir
+            data_path = os.path.splitext(data_path)[0] # e.g., /groups/pupko/orenavr2/microbializer/example_data.tar.gz
+            logger.info(f'Updated data_path is:\n{data_path}')
 
     assert os.path.isdir(data_path)
 
@@ -422,15 +476,12 @@ try:
     dir_name = f'{step}_orthologs_sets_sequences'
     script_path = os.path.join(args.src_dir, 'extract_orthologs_sequences.py')
     num_of_expected_results = 0
-    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
+    orthologs_sequences_dir_path, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
     done_file_path = os.path.join(done_files_dir, f'{step}_extract_orthologs_sequences.txt')
     if not os.path.exists(done_file_path):
         logger.info('Extracting orthologs set sequences according to final orthologs table...')
         logger.info(f'The verified clusters in {previous_pipeline_step_output_dir} are the following:')
         logger.info(os.listdir(previous_pipeline_step_output_dir))
-        # with open(final_table_header_path) as f:
-        #     final_table_header = f.readline().rstrip()
-
         i = 0
         with open(final_orthologs_table_path) as f:
             final_table_header = f.readline().rstrip()
@@ -440,7 +491,7 @@ try:
                 params = [ORFs_dir,
                           f'"{final_table_header}"',  # should be flanked by quotes because it might contain spaces...
                           f'"{cluster_members}"',  # should be flanked by quotes because it might contain spaces...
-                          os.path.join(pipeline_step_output_dir, output_file_name)]
+                          os.path.join(orthologs_sequences_dir_path, output_file_name)]
                 print(f'params for orthologs_sets_sequences: {params}')
                 submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=output_file_name, queue_name=args.queue_name)
                 num_of_expected_results += 1
@@ -450,29 +501,72 @@ try:
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
+
+
+    # Final step: gather relevant results, zip them together and update html file
+    logger.info(f'FINAL STEP: {"_"*100}')
+    dir_name = f'{CONSTS.WEBSERVER_NAME}_outputs'
+    final_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
+    done_file_path = os.path.join(done_files_dir, dir_name)
+    if not os.path.exists(done_file_path):
+        logger.info('Gathering results to final output dir...')
+
+        # move orthologs table
+        final_orthologs_table_path_dest = os.path.join(final_output_dir, os.path.split(final_orthologs_table_path)[1])
+        logger.info(f'Moving {final_orthologs_table_path} TO {final_orthologs_table_path_dest}')
+        shutil.move(final_orthologs_table_path, final_orthologs_table_path_dest)
+
+        # move unaligned sequences
+        logger.info(f'Moving {orthologs_sequences_dir_path} TO {final_output_dir}')
+        shutil.move(orthologs_sequences_dir_path, final_output_dir)
+
+        shutil.make_archive(final_output_dir, 'zip', final_output_dir)
+
+        shutil.move(final_output_dir+'.zip', meta_output_dir)
+        shutil.move(final_output_dir, meta_output_dir)
+
+        #TODO: remove HERE rest of intermediate outputs
+
+        edit_success_html(output_html_path, run_number, remote_run, CONSTS)
+        file_writer.write_to_file(done_file_path)
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
     status = 'is done'
 
+
 except Exception as e:
+    status = 'was failed'
     from time import ctime
     import os
     import logging
     logger = logging.getLogger('main')  # use logger instead of printing
 
-    status = 'was failed'
+    msg = 'M1CROB1AL1Z3R failed :('
+
     exc_type, exc_obj, exc_tb = sys.exc_info()
     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-    logger.error('\n\n' + '$' * 60 + '\n\n')
-    logger.error(f'{ctime()}: microbializer failed :(\n\n')
-    logger.error(f'{fname}: {exc_type}, at line: {exc_tb.tb_lineno}\n\n')
-    logger.error('$' * 60)
+    logger.error(f'\n\n{"$" * 100}\n\n{msg}\n\n{fname}: {exc_type}, at line: {exc_tb.tb_lineno}\n\ne.args[0]: {e.args[0]}\n\n{"$" * 100}')
 
-    raise e
-    # TODO: print message from error_file_path
-    # with open(error_file_path, 'w') as f:
-    #     f.write(e.args[0])
+    edit_failure_html(output_html_path, run_number, msg, remote_run, CONSTS)
+
+    notify_admin(meta_output_dir, meta_output_url, run_number, CONSTS)
 
 end = time()
-msg = f'microbializer pipeline {status}. Results can be found at {args.output_dir}. Took {measure_time(int(end-start))}'
+
+results_location = output_url if remote_run else args.output_dir
+msg = f'M1CROB1AL1Z3R pipeline {status}.\n'
+if status == 'is done':
+    if remote_run and False: #TODO: remove the "and False" once ready.
+        # remove raw data from the server
+        try:
+            shutil.rmtree(data_path)
+        except:
+            pass
+
+    msg += f'Results can be found at {results_location}. Took {measure_time(int(end-start))}'
+else:
+    msg += f'For further information please visit: {results_location}'
 logger.info(msg)
 send_email('mxout.tau.ac.il', 'TAU BioSequence <bioSequence@tauex.tau.ac.il>', args.email, subject=f'Microbialzer {status}.', content=msg)
 

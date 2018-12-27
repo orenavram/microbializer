@@ -81,7 +81,7 @@ def write_html_prefix(output_path_f, run_number):
     </nav>
     <div id="behind-nav-bar-results">
     </div>
-    <br><div class="container" style="font-size: 20px;"  align="justify"> 
+    <br><br><div class="container" style="font-size: 17px; {CONSTS.CONTAINER_STYLE}"  align="justify"> 
     <H1 align=center>Job Status - <FONT color='red'>RUNNING</FONT></h1>
     <br>{CONSTS.WEBSERVER_NAME} is now processing your request. This page will be automatically updated every {CONSTS.RELOAD_INTERVAL} seconds (until the job is done). You can also reload it manually. Once the job has finished, the output will appear below. A link to this page was sent to your email in case you wish to view these results at a later time without recalculating them. Please note that the results will be kept in the server for 3 months.
     <br><br></div>''')
@@ -89,7 +89,7 @@ def write_html_prefix(output_path_f, run_number):
 
 
 def write_running_parameters_to_html(output_path_f, job_title, file_name=''):
-    output_path_f.write('<div class="container">')
+    output_path_f.write(f'<div class="container" style="{CONSTS.CONTAINER_STYLE}">')
 
     # regular params rows
     output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-6">')
@@ -148,9 +148,12 @@ def run_cgi():
     sys.stdout.flush()  # must be flushed immediately!!!
 
     # Send me a notification email every time there's a new request
-    send_email(smtp_server=CONSTS.SMTP_SERVER, sender=CONSTS.ADMIN_EMAIL,
-               receiver=f'{CONSTS.OWNER_EMAIL}', subject=f'{CONSTS.WEBSERVER_NAME} - A new job has been submitted: {run_number}',
-               content=f"{os.path.join(CONSTS.WEBSERVER_URL, 'results', run_number, 'cgi_debug.txt')}\n{os.path.join(CONSTS.WEBSERVER_URL, 'results', run_number, 'output.html')}")
+    send_email(smtp_server=CONSTS.SMTP_SERVER,
+               sender=CONSTS.ADMIN_EMAIL,
+               receiver=f'{CONSTS.OWNER_EMAIL}',
+               subject=f'{CONSTS.WEBSERVER_NAME} - A new job has been submitted: {run_number}',
+               content=f"{os.path.join(CONSTS.WEBSERVER_URL, 'results', run_number, 'cgi_debug.txt')}\n"
+                        f"{os.path.join(CONSTS.WEBSERVER_URL, 'results', run_number, 'output.html')}")
 
     try:
         cgi_debug_path_f = open(cgi_debug_path,'w')
@@ -247,17 +250,19 @@ def run_cgi():
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
         with open(cgi_debug_path, 'w') as cgi_debug_path_f:
-            write_to_debug_file(cgi_debug_path_f, f'\n{"$"*50}\n\n{msg}\n\n{fname}: {exc_type}, at line: {exc_tb.tb_lineno}\n\ne.args[0]: {e.args[0]}\n\n{"$"*60}')
+            write_to_debug_file(cgi_debug_path_f, f'\n{"$"*100}\n\n{msg}\n\n{fname}: {exc_type}, at line: {exc_tb.tb_lineno}\n\ne.args[0]: {e.args[0]}\n\n{"$"*100}')
 
         # Send me a notification email every time there's a failure
         try:
             email = form['email'].value.strip() if form['email'].value.strip() else 'NO_EMAIL'
         except:
             email = 'NO_EMAIL'
-        send_email(smtp_server=CONSTS.SMTP_SERVER, sender=CONSTS.ADMIN_EMAIL,
-                   receiver=f'{CONSTS.OWNER_EMAIL}', subject=f'{CONSTS.WEBSERVER_NAME} job {run_number} by {email} has been failed!',
+        send_email(smtp_server=CONSTS.SMTP_SERVER,
+                   sender=CONSTS.ADMIN_EMAIL,
+                   receiver=f'{CONSTS.OWNER_EMAIL}',
+                   subject=f'{CONSTS.WEBSERVER_NAME} job {run_number} by {email} has been failed!',
                    content=f"{email}\n\n{os.path.join(CONSTS.WEBSERVER_URL, 'results', run_number, 'output.html')}\n"
-                   f"\n{os.path.join(CONSTS.WEBSERVER_URL, 'results', run_number, 'cgi_debug.txt')}")
+                            f"\n{os.path.join(CONSTS.WEBSERVER_URL, 'results', run_number, 'cgi_debug.txt')}")
 
         # logger.info(f'Waiting {2*CONSTS.RELOAD_INTERVAL} seconds to remove html refreshing headers...')
         # Must be after flushing all previous data. Otherwise it might refresh during the writing.. :(
