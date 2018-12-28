@@ -17,18 +17,7 @@ function validate_lib_file(){
     return true;
 }
 function validate_read_files() {
-    var R1s = [document.getElementsByName("run1_R1")[0].value,
-        document.getElementsByName("run2_R1")[0].value,
-        document.getElementsByName("run3_R1")[0].value,
-        document.getElementsByName("run4_R1")[0].value,
-        document.getElementsByName("run5_R1")[0].value,
-        document.getElementsByName("run6_R1")[0].value];
-    var R2s = [document.getElementsByName("run1_R2")[0].value,
-        document.getElementsByName("run2_R2")[0].value,
-        document.getElementsByName("run3_R2")[0].value,
-        document.getElementsByName("run4_R2")[0].value,
-        document.getElementsByName("run5_R2")[0].value,
-        document.getElementsByName("run6_R2")[0].value];
+    var data = document.getElementById("data").value;
 
     for (i = 0; i < R1s.length; i++) {
         if (R1s[i] == '' && R2s[i] == ''){
