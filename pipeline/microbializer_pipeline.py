@@ -451,7 +451,7 @@ try:
     script_path = os.path.join(args.src_dir, 'construct_final_orthologs_table.py')
     num_of_expected_results = 1 # a single job that prepares all the files
     pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
-    final_orthologs_table_path = os.path.join(pipeline_step_output_dir, 'final_orthologs_table.txt')
+    final_orthologs_table_path = os.path.join(pipeline_step_output_dir, 'final_orthologs_table.csv')
     final_table_header_path = os.path.join(pipeline_step_output_dir, 'final_table_header.txt')
     done_file_path = os.path.join(done_files_dir, f'{step}_construct_final_orthologs_table.txt')
     if not os.path.exists(done_file_path):
@@ -502,6 +502,134 @@ try:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
 
+    # 13.	extract_groups_sizes_frequency
+    # Input: TODO
+    # Output: TODO
+    step = '13'
+    logger.info(f'Step {step}: {"_"*100}')
+    dir_name = f'{step}_extract_groups_sizes_frequency'
+    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
+    groups_sizes_frequency_file_path = os.path.join(pipeline_step_output_dir, 'groups_sizes_frequency.csv')
+    done_file_path = os.path.join(done_files_dir, f'{step}_extract_groups_sizes_frequency.txt')
+    if not os.path.exists(done_file_path):
+        logger.info('Collecting sizes...')
+
+        group_size_to_counts_dict = {}
+        with open(final_orthologs_table_path) as f:
+            final_table_header = f.readline().rstrip()
+            for line in f:
+                cluster_members = line.rstrip()
+                size = sum(bool(item) for item in cluster_members.split(','))  # count non empty entries
+                group_size_to_counts_dict[size] = group_size_to_counts_dict.get(size, 0) + 1
+
+        with open(groups_sizes_frequency_file_path, 'w') as f:
+            f.write('group_size,count\n')
+            f.write('\n'.join([f'{size},{group_size_to_counts_dict[size]}' for size in group_size_to_counts_dict]))
+
+        file_writer.write_to_file(done_file_path)
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+
+    # 14.	extract_orfs_statistics
+    # Input: TODO
+    # Output: TODO
+    step = '14'
+    logger.info(f'Step {step}: {"_"*100}')
+    dir_name = f'{step}_extract_orfs_statistics'
+    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
+    orfs_counts_frequency_file_path = os.path.join(pipeline_step_output_dir, 'orfs_counts_frequency.csv')
+    orfs_gc_content_file_path = os.path.join(pipeline_step_output_dir, 'orfs_gc_content.csv')
+    done_file_path = os.path.join(done_files_dir, f'{step}_extract_orfs_counts_frequency.txt')
+    if not os.path.exists(done_file_path):
+        logger.info('Collecting orfs counts...')
+
+        orfs_counts_to_counts_dict = {}
+        gc_content = []
+        for file in os.listdir(ORFs_dir):
+            with open(os.path.join(ORFs_dir, file)) as f:
+                num_of_nucleotides = 0
+                num_of_GC = 0
+                orfs_count = 0
+                sequence = ''
+                for line in f:
+                    if line.startswith('>'):
+                        orfs_count += 1
+                        num_of_nucleotides += len(sequence)
+                        num_of_GC += sequence.count('G') + sequence.count('C')
+                    else:
+                        sequence += line.rstrip().upper()
+                # handle last record:
+                orfs_count += 1
+                num_of_nucleotides += len(sequence)
+                num_of_GC += sequence.count('G') + sequence.count('C')
+
+                gc_content.append(str(num_of_GC/num_of_nucleotides))
+                orfs_counts_to_counts_dict[orfs_count] = orfs_counts_to_counts_dict.get(orfs_count, 0) + 1
+
+        with open(orfs_counts_frequency_file_path, 'w') as f:
+            f.write('orfs_count,count\n')
+            f.write('\n'.join([f'{count},{orfs_counts_to_counts_dict[count]}' for count in orfs_counts_to_counts_dict]))
+
+        with open(orfs_gc_content_file_path, 'w') as f:
+            f.write('\n'.join(gc_content))
+
+        file_writer.write_to_file(done_file_path)
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+
+    # 15.	align_ogs
+    # Input: TODO
+    # Output: TODO
+    step = '14'
+    logger.info(f'Step {step}: {"_"*100}')
+    dir_name = f'{step}_extract_orfs_statistics'
+    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
+    orfs_counts_frequency_file_path = os.path.join(pipeline_step_output_dir, 'orfs_counts_frequency.csv')
+    orfs_gc_content_file_path = os.path.join(pipeline_step_output_dir, 'orfs_gc_content.csv')
+    done_file_path = os.path.join(done_files_dir, f'{step}_extract_orfs_counts_frequency.txt')
+    if not os.path.exists(done_file_path):
+        logger.info('Collecting orfs counts...')
+
+        orfs_counts_to_counts_dict = {}
+        gc_content = []
+        for file in os.listdir(ORFs_dir):
+            with open(os.path.join(ORFs_dir, file)) as f:
+                num_of_nucleotides = 0
+                num_of_GC = 0
+                orfs_count = 0
+                sequence = ''
+                for line in f:
+                    if line.startswith('>'):
+                        orfs_count += 1
+                        num_of_nucleotides += len(sequence)
+                        num_of_GC += sequence.count('G') + sequence.count('C')
+                    else:
+                        sequence += line.rstrip().upper()
+                # handle last record:
+                orfs_count += 1
+                num_of_nucleotides += len(sequence)
+                num_of_GC += sequence.count('G') + sequence.count('C')
+
+                gc_content.append(str(num_of_GC/num_of_nucleotides))
+                orfs_counts_to_counts_dict[orfs_count] = orfs_counts_to_counts_dict.get(orfs_count, 0) + 1
+
+        with open(orfs_counts_frequency_file_path, 'w') as f:
+            f.write('orfs_count,count\n')
+            f.write('\n'.join([f'{count},{orfs_counts_to_counts_dict[count]}' for count in orfs_counts_to_counts_dict]))
+
+        with open(orfs_gc_content_file_path, 'w') as f:
+            f.write('\n'.join(gc_content))
+
+        file_writer.write_to_file(done_file_path)
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+
+    #TODO:  16.	extract core genome
+
+    #TODO:  17.	generate tree
 
     # Final step: gather relevant results, zip them together and update html file
     logger.info(f'FINAL STEP: {"_"*100}')
