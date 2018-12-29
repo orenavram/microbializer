@@ -23,7 +23,7 @@ import sys
 
 #sys.path.append('/bioseq/bioSequence_scripts_and_constants')
 sys.path.append('/bioseq/MICROBIALIZER/auxiliaries')
-import MICROBIALIZER_CONSTANTS as CONSTS
+import WEBSERVER_CONSTANTS as CONSTS
 from auxiliaries import create_dir
 
 

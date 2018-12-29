@@ -5,37 +5,23 @@ script_name.py /Users/Oren/Dropbox/Projects/microbializer/mock_output/01_ORFs "G
 import os
 
 
-def load_fasta_to_dict(fasta_path):
-    header_to_sequence_dict = {}
-    with open(fasta_path) as f:
-        header = f.readline().rstrip()
-        sequence = ''
-        for line in f:
-            if line.startswith('>'):
-                header_to_sequence_dict[header] = sequence
-                header = line.rstrip()[1:] # [1:] to ignore '>'
-                sequence = ''
-            else:
-                sequence += line.rstrip()
-    return header_to_sequence_dict
-
-
 def get_sequence_by_ortholog_name(fasta_path, ortholog_name):
     with open(fasta_path) as f:
         sequence = ''
         flag = False
         for line in f:
+            line = line.rstrip()
             if line.startswith('>'):
                 if sequence != '':
                     # finished aggregating relevant sequence
                     return sequence
-                header = line.rstrip()[1:] # [1:] to ignore '>'
+                header = line.lstrip('>')
                 if header.startswith(ortholog_name):
                     # gene name was found! start aggregating sequence
                     flag = True
             elif flag:
                 # previous header is $ortholog_name! so we are now aggregating its sequence
-                sequence += line.rstrip()
+                sequence += line
         if sequence != '':
             # LAST record was the relevant sequence
             return sequence
@@ -71,11 +57,9 @@ def extract_orthologs_sequences(sequences_dir, final_table_header_line, cluster_
 
 
 if __name__ == '__main__':
-
-    import logging
-    logger = logging.getLogger('main')
     from sys import argv
     print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
+
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('sequences_dir', help='path to a directory with the bacterial gene sequences (aka ORFs)')
@@ -91,7 +75,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     import logging
-
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
     else:

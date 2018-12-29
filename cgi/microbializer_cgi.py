@@ -82,7 +82,7 @@ def write_html_prefix(output_path_f, run_number):
     <div id="behind-nav-bar-results">
     </div>
     <br><br><div class="container" style="font-size: 17px; {CONSTS.CONTAINER_STYLE}"  align="justify"> 
-    <H1 align=center>Job Status - <FONT color='red'>RUNNING</FONT></h1>
+    <H1 align=center>Job Status: <FONT color='red'>RUNNING</FONT></h1>
     <br>{CONSTS.WEBSERVER_NAME} is now processing your request. This page will be automatically updated every {CONSTS.RELOAD_INTERVAL} seconds (until the job is done). You can also reload it manually. Once the job has finished, the output will appear below. A link to this page was sent to your email in case you wish to view these results at a later time without recalculating them. Please note that the results will be kept in the server for 3 months.
     <br><br></div>''')
     output_path_f.flush()
@@ -114,7 +114,7 @@ def write_cmds_file(cmds_file, parameters, run_number):
     with open(cmds_file, 'w') as f:
         f.write(f'module load {required_modules};')
         f.write(new_line_delimiter)
-        f.write(f'{" ".join(["python", CONSTS.MAIN_SCRIPT, parameters])}\tmic{run_number}') # mic stands for M1CROB1AL1Z3R
+        f.write(f'{" ".join(["python", CONSTS.MAIN_SCRIPT, parameters])}\tM1CRO{run_number}') # mic stands for M1CROB1AL1Z3R
 
 def run_cgi():
 

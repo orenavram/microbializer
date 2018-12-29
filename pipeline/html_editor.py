@@ -15,10 +15,16 @@ def add_closing_html_tags(html_path, CONSTS, run_number):
 
 def edit_success_html(html_path, run_number, remote_run, CONSTS):
     html_text = ''
-    if remote_run:  # run on ibis. The initial file exists (generate by the cgi) so we can read it.
+    try:
         with open(html_path) as f:
             html_text = f.read()
-    html_text = html_text.replace('RUNNING', 'FINISHED').replace(f'{CONSTS.WEBSERVER_NAME} is now processing your request. This page will be automatically updated every {CONSTS.RELOAD_INTERVAL} seconds (until the job is done). You can also reload it manually. Once the job has finished, several links to the output files will appear below. ', '')
+        # The initial file exists (generate by the cgi) so we can read and parse it.
+        html_text = html_text.replace('RUNNING', 'FINISHED').replace(f'{CONSTS.WEBSERVER_NAME} is now processing your request. This page will be automatically updated every {CONSTS.RELOAD_INTERVAL} seconds (until the job is done). You can also reload it manually. Once the job has finished, several links to the output files will appear below. ', '')
+    except FileNotFoundError:
+        import logging
+        logger = logging.getLogger('main')
+        logger.warning(f"Couldn't find html prefix at: {html_path}")
+
     html_text += f'<div class="container" align="center" style="{CONSTS.CONTAINER_STYLE}">\n' \
         f'<br><br><center><h2>RESULTS:<h2>'\
         f'<a href=\'{CONSTS.WEBSERVER_NAME}_outputs.zip\' target=\'_blank\'><h3><b>Download zipped full results</b></h3></a>' \
@@ -41,10 +47,16 @@ def edit_success_html(html_path, run_number, remote_run, CONSTS):
 
 def edit_failure_html(html_path, run_number, msg, remote_run, CONSTS):
     html_text = ''
-    if remote_run: # run on ibis. The initial file exists (generate by the cgi) so we can read it.
+    try:
         with open(html_path) as f:
             html_text = f.read()
-    html_text = html_text.replace('RUNNING', 'FAILED').replace(f'{CONSTS.WEBSERVER_NAME} is now processing your request. This page will be automatically updated every {CONSTS.RELOAD_INTERVAL} seconds (until the job is done). You can also reload it manually. Once the job has finished, several links to the output files will appear below. ', '')
+        # The initial file exists (generate by the cgi) so we can read and parse it.
+        html_text = html_text.replace('RUNNING', 'FAILED').replace(f'{CONSTS.WEBSERVER_NAME} is now processing your request. This page will be automatically updated every {CONSTS.RELOAD_INTERVAL} seconds (until the job is done). You can also reload it manually. Once the job has finished, several links to the output files will appear below. ', '')
+    except FileNotFoundError:
+        import logging
+        logger = logging.getLogger('main')
+        logger.warning(f"Couldn't find html prefix at: {html_path}")
+
     html_text +=f'<br><br><br>\n' \
                 f'<center><h2>\n' \
                 f'<font color="red">{msg}</font><br><br>' \

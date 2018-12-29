@@ -3,6 +3,7 @@ import os
 from directory_creator import create_dir
 from time import time, sleep
 import logging
+import WEBSERVER_CONSTANTS as CONSTS
 
 logger = logging.getLogger('main') # use logger instead of printing
 
@@ -28,7 +29,7 @@ def wait_for_results(script_name, path, num_of_expected_results, error_file_path
                      remove=False, time_to_wait=30):
     '''waits until path contains num_of_expected_results $suffix files'''
     start = time()
-    logger.info(f'Waiting for {script_name}... (continues when {num_of_expected_results} results will be in {path})')
+    logger.info(f'Waiting for {script_name}...\nContinues when {num_of_expected_results} results will be in:\n{path}')
     if num_of_expected_results==0:
         raise ValueError(f'\n{"#"*100}\nnum_of_expected_results is {num_of_expected_results}! Something went wrong in the previous step...\n{"#"*100}')
     i = 0
@@ -39,8 +40,8 @@ def wait_for_results(script_name, path, num_of_expected_results, error_file_path
         sleep(time_to_wait)
         i += time_to_wait
         logger.info(f'{i} seconds have passed since started waiting ({num_of_expected_results} - {current_num_of_results} = {jobs_left} more files are still missing)')
-    if remove:
-        execute(['python', '-u', '/groups/pupko/orenavr2/pipeline/RemoveDoneFiles.py', path, suffix])
+    # if remove:
+    #     execute(['python', '-u', '/groups/pupko/orenavr2/pipeline/RemoveDoneFiles.py', path, suffix])
     end = time()
     logger.info(f'Done waiting for:\n{script_name}\n(took {measure_time(int(end-start))}).\n')
     assert not os.path.exists(error_file_path)
@@ -67,7 +68,7 @@ def prepare_directories(outputs_dir_prefix, tmp_dir_prefix, dir_name):
 
 def submit_pipeline_step(script_path, params, tmp_dir, job_name, queue_name, new_line_delimiter='!@#',
                          q_submitter_script_path='/bioseq/bioSequence_scripts_and_constants/q_submitter.py',
-                         done_files_script_path='/groups/pupko/orenavr2/microbializer/auxiliaries/file_writer.py',
+                         done_files_script_path='/bioseq/microbializer/auxiliaries/file_writer.py',
                          required_modules_as_list=None):
 
     required_modules_as_str = 'python/anaconda_python-3.6.4'

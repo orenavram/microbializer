@@ -47,7 +47,6 @@ if __name__ == '__main__':
         args = parser.parse_args()
 
         import logging
-
         if args.verbose:
             logging.basicConfig(level=logging.DEBUG)
         else:
