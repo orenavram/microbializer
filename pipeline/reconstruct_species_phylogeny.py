@@ -1,8 +1,6 @@
-import matplotlib
-matplotlib.use('Agg')
-from Bio import Phylo
-import pylab as pb
+"""
 
+"""
 
 def generatePhylogeneticTree(msa_path, phylogenetic_tree_path, seed, model):
     import os
@@ -56,24 +54,3 @@ if __name__ == '__main__':
         generatePhylogeneticTree(args.msa_path, args.phylogenetic_tree_path,
                             args.seed, args.model)
 
-
-
-
-def generateTreeFigure(tree_file_directory, output_file_path='tree_figure'):
-    """Generating figure based on phylogenetic tree file.
-
-    Parameters
-    ----------
-    tree_file_directory : string
-       Path of file containing newick format tree.
-    output_file_path: string
-        Path of figure output file.
-
-    Returns
-    -------
-    None
-        generating tree figure.
-    """
-    tree = Phylo.read(tree_file_directory, 'newick')
-    Phylo.draw(tree, do_show=False)
-    pb.savefig(output_file_path)
