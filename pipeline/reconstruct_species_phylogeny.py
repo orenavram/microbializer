@@ -2,7 +2,7 @@
 
 """
 
-def generatePhylogeneticTree(msa_path, phylogenetic_tree_path, seed, model):
+def generate_phylogenetic_tree(msa_path, phylogenetic_tree_path, seed, model):
     import os
     wd, phylogenetic_tree_name = os.path.split(phylogenetic_tree_path)
 
@@ -34,7 +34,7 @@ if __name__ == '__main__':
         import argparse
         parser = argparse.ArgumentParser()
         parser.add_argument('msa_path', help='path to a multiple sequence alignment file')
-        parser.add_argument('phylogenetic_tree_path', help='path to an output file in which the phylogenetic tree will be written')
+        parser.add_argument('phylogenetic_raw_tree_path', help='path to an output file in which the phylogenetic tree will be written')
         parser.add_argument('--seed',
                             help='RaxML seed parameter',
                             default=12345)
@@ -51,6 +51,6 @@ if __name__ == '__main__':
             logging.basicConfig(level=logging.INFO)
         logger = logging.getLogger('main')
 
-        generatePhylogeneticTree(args.msa_path, args.phylogenetic_tree_path,
-                            args.seed, args.model)
+        generate_phylogenetic_tree(args.msa_path, args.phylogenetic_raw_tree_path,
+                                   args.seed, args.model)
 

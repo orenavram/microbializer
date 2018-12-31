@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Running example:
-script_name.py /Users/Oren/Dropbox/Projects/microbializer/mock_output/all_recip_hits.csv /Users/Oren/Dropbox/Projects/microbializer/mock_output/putative_orthologs_table.tsv /Users/Oren/Dropbox/Projects/microbializer/mock_output/tmp_dir/verified_clusters
+script_name.py /Users/Oren/Dropbox/Projects/microbializer/output_examples/mock_output/concatenated_all_reciprocal_hits.txt /Users/Oren/Dropbox/Projects/microbializer/output_examples/mock_output/07_putative_table/putative_orthologs_table.txt /Users/Oren/Dropbox/Projects/microbializer/output_examples/mock_output/08_mcl_input_files
 
 Input:
     ** path to reciptocal hits file
@@ -49,11 +49,14 @@ def generate_text_to_mcl_input_file(gene_pair_to_score_dict, gene_pairs):
         score = gene_pair_to_score_dict.get(pair)
         if not score:
             # get gene2,gene1 score if gene1,gene2 is not in the dictionary
-            score = gene_pair_to_score_dict.get(pair[::-1])  # raise exception
+            score = gene_pair_to_score_dict.get(pair[::-1])
         if not score:
+            # TODO: raise an exception
             # both pairs are not in the dictionary!! probably a bug...
-            raise ValueError(f'Pair {pair} does not exist in gene_pair_to_score_dict:\n{gene_pair_to_score_dict}')
-        text_to_mcl_file += pair[0] + '\t' + pair[1] + '\t' + score + '\n'
+            # raise ValueError(f'Pair {pair} does not exist in gene_pair_to_score_dict:\n{gene_pair_to_score_dict}')
+            score = '1'
+
+        text_to_mcl_file += f'{pair[0]}\t{pair[1]}\t{score}\n'
     return text_to_mcl_file
 
 

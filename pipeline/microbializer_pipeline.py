@@ -1,5 +1,5 @@
 """
-script_name.py /Users/Oren/Dropbox/Projects/microbializer/data_for_test_cds/ /Users/Oren/Dropbox/Projects/microbializer/mock_output/ orenavram@gmail.com -q pupko
+script_name.py /Users/Oren/Dropbox/Projects/microbializer/data_for_test_cds/ /Users/Oren/Dropbox/Projects/microbializer/output_examples/mock_output/ orenavram@gmail.com -q pupko
 """
 
 
@@ -22,6 +22,17 @@ def notify_admin(meta_output_dir, meta_output_url, run_number, CONSTS):
                f"{os.path.join(meta_output_url, 'cgi_debug.txt')}\n\n"
                f"{os.path.join(meta_output_url, error_log_path)}\n\n"
                f"{os.path.join(meta_output_dir, error_log_path)}")
+
+
+def add_results_to_final_dir(source, final_output_dir):
+    dest = os.path.join(final_output_dir, os.path.split(source)[1])
+    logger.info(f'Moving {source} TO {dest}')
+    # shutil.move(source, dest)
+    try:
+        shutil.copytree(source, dest)
+    except FileExistsError:
+        pass
+    return dest
 
 
 try:
@@ -50,6 +61,7 @@ try:
     import file_writer #ADD file_writer
     from email_sender import send_email
     from pipeline_auxiliaries import *
+    from plots_generator import *
 
     import WEBSERVER_CONSTANTS as CONSTS
 
@@ -457,16 +469,16 @@ try:
     dir_name = f'{step}_final_table'
     script_path = os.path.join(args.src_dir, 'construct_final_orthologs_table.py')
     num_of_expected_results = 1 # a single job that prepares all the files
-    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
-    final_orthologs_table_path = os.path.join(pipeline_step_output_dir, 'final_orthologs_table.csv')
-    final_table_header_path = os.path.join(pipeline_step_output_dir, 'final_table_header.txt')
+    final_orthologs_table_path, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
+    final_orthologs_table_file_path = os.path.join(final_orthologs_table_path, 'final_orthologs_table.csv')
+    final_table_header_path = os.path.join(final_orthologs_table_path, 'final_table_header.txt')
     done_file_path = os.path.join(done_files_dir, f'{step}_construct_final_orthologs_table.txt')
     if not os.path.exists(done_file_path):
         logger.info('Constructing final orthologs table...')
-        job_name = os.path.split(final_orthologs_table_path)[-1]
+        job_name = os.path.split(final_orthologs_table_file_path)[-1]
         params = [putative_orthologs_table_path,
                   previous_pipeline_step_output_dir,
-                  final_orthologs_table_path,
+                  final_orthologs_table_file_path,
                   final_table_header_path]
         submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=job_name, queue_name=args.queue_name)
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir, num_of_expected_results, error_file_path)
@@ -480,19 +492,19 @@ try:
     # Output: write the sequences of the orthologs group to the output file.
     step = '12'
     logger.info(f'Step {step}: {"_"*100}')
-    previous_pipeline_step_output_dir = pipeline_step_output_dir
     dir_name = f'{step}_orthologs_groups_sequences'
     script_path = os.path.join(args.src_dir, 'extract_orthologs_sequences.py')
     num_of_expected_results = 0
     orthologs_sequences_dir_path, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
-    num_of_strains_path = os.path.join(pipeline_step_output_dir, 'num_of_strains.txt')
+    num_of_strains_path = os.path.join(final_orthologs_table_path, 'num_of_strains.txt')
     done_file_path = os.path.join(done_files_dir, f'{step}_extract_orthologs_sequences.txt')
     if not os.path.exists(done_file_path):
+        logger.info(f'There are {len(os.listdir(previous_pipeline_step_output_dir))} verified clusters in {previous_pipeline_step_output_dir}.')
         logger.info('Extracting orthologs groups sequences according to final orthologs table...')
-        logger.info(f'The verified clusters in {previous_pipeline_step_output_dir} are the following:')
-        logger.info(os.listdir(previous_pipeline_step_output_dir))
+        logger.debug(f'The verified clusters in {previous_pipeline_step_output_dir} are the following:')
+        logger.debug(os.listdir(previous_pipeline_step_output_dir))
         i = 0
-        with open(final_orthologs_table_path) as f:
+        with open(final_orthologs_table_file_path) as f:
             final_table_header = f.readline().rstrip()
             for line in f:
                 cluster_members = line.rstrip()
@@ -521,24 +533,28 @@ try:
     # Output: TODO
     step = '13'
     logger.info(f'Step {step}: {"_"*100}')
-    dir_name = f'{step}_extract_groups_sizes_frequency'
-    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
-    groups_sizes_frequency_file_path = os.path.join(pipeline_step_output_dir, 'groups_sizes_frequency.csv')
+    dir_name = f'{step}_groups_sizes_frequency'
+    group_sizes_path, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
+    groups_sizes_frequency_file_prefix = os.path.join(group_sizes_path, 'groups_sizes_frequency')
     done_file_path = os.path.join(done_files_dir, f'{step}_extract_groups_sizes_frequency.txt')
     if not os.path.exists(done_file_path):
         logger.info('Collecting sizes...')
 
-        group_size_to_counts_dict = {}
-        with open(final_orthologs_table_path) as f:
+        group_sizes = []
+        with open(final_orthologs_table_file_path) as f:
             final_table_header = f.readline().rstrip()
             for line in f:
                 cluster_members = line.rstrip()
                 size = sum(bool(item) for item in cluster_members.split(','))  # count non empty entries
-                group_size_to_counts_dict[size] = group_size_to_counts_dict.get(size, 0) + 1
+                group_sizes.append(str(size))
 
-        with open(groups_sizes_frequency_file_path, 'w') as f:
-            f.write('group_size,count\n')
-            f.write('\n'.join([f'{size},{group_size_to_counts_dict[size]}' for size in group_size_to_counts_dict]))
+        groups_sizes_frequency_raw_file_path = groups_sizes_frequency_file_prefix + '.txt'
+        with open(groups_sizes_frequency_raw_file_path, 'w') as f:
+            f.write('\n'.join(group_sizes)) #f.write('\n'.join([f'{size},{group_size_to_counts_dict[size]}' for size in group_size_to_counts_dict]))
+
+        groups_sizes_frequency_png_file_path = groups_sizes_frequency_file_prefix + '.png'
+        generate_bar_plot(groups_sizes_frequency_raw_file_path, groups_sizes_frequency_png_file_path,
+            xlabel='\nOrthologs group size', ylabel='Counts\n', dpi=100) #todo: remove dpi
 
         file_writer.write_to_file(done_file_path)
     else:
@@ -550,16 +566,16 @@ try:
     # Output: TODO
     step = '14'
     logger.info(f'Step {step}: {"_"*100}')
-    dir_name = f'{step}_extract_orfs_statistics'
-    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
-    orfs_counts_frequency_file_path = os.path.join(pipeline_step_output_dir, 'orfs_counts_frequency.csv')
-    orfs_gc_content_file_path = os.path.join(pipeline_step_output_dir, 'orfs_gc_content.csv')
+    dir_name = f'{step}_orfs_statistics'
+    orfs_statistics_path, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
+    orfs_counts_frequency_file_prefix = os.path.join(orfs_statistics_path, 'orfs_counts')
+    orfs_gc_content_file_prefix = os.path.join(orfs_statistics_path, 'orfs_gc_contents')
     done_file_path = os.path.join(done_files_dir, f'{step}_extract_orfs_statistics.txt')
     if not os.path.exists(done_file_path):
         logger.info('Collecting orfs counts...')
 
-        orfs_counts_to_counts_dict = {}
-        gc_content = []
+        orfs_counts = []
+        gc_contents = []
         for file in os.listdir(ORFs_dir):
             orf_path = os.path.join(ORFs_dir, file)
             with open(orf_path) as f:
@@ -580,15 +596,24 @@ try:
                 num_of_nucleotides += len(sequence)
                 num_of_GC += sequence.count('G') + sequence.count('C')
 
-                gc_content.append(str(num_of_GC/num_of_nucleotides))
-                orfs_counts_to_counts_dict[orfs_count] = orfs_counts_to_counts_dict.get(orfs_count, 0) + 1
+                orfs_counts.append(str(orfs_count))
+                gc_contents.append(str(num_of_GC / num_of_nucleotides))
 
-        with open(orfs_counts_frequency_file_path, 'w') as f:
-            f.write('orfs_count,count\n')
-            f.write('\n'.join([f'{count},{orfs_counts_to_counts_dict[count]}' for count in orfs_counts_to_counts_dict]))
+        orfs_counts_frequency_raw_file_path = orfs_counts_frequency_file_prefix + '.txt'
+        with open(orfs_counts_frequency_raw_file_path, 'w') as f:
+            f.write('\n'.join(orfs_counts))#[f'{count},{orfs_counts[count]}' for count in orfs_counts]))
 
-        with open(orfs_gc_content_file_path, 'w') as f:
-            f.write('\n'.join(gc_content))
+        orfs_counts_frequency_png_file_path = orfs_counts_frequency_file_prefix + '.png'
+        generate_boxplot(orfs_counts_frequency_raw_file_path, orfs_counts_frequency_png_file_path,
+                        xlabel='\nGC content per genome', dpi=100)
+
+        orfs_gc_content_raw_file_path = orfs_gc_content_file_prefix + '.txt'
+        with open(orfs_gc_content_raw_file_path, 'w') as f:
+            f.write('\n'.join(gc_contents))
+
+        orfs_gc_content_png_file_path = orfs_gc_content_file_prefix + '.png'
+        generate_boxplot(orfs_gc_content_raw_file_path, orfs_gc_content_png_file_path,
+                        xlabel='\nORFs count per genome', dpi=100)
 
         file_writer.write_to_file(done_file_path)
     else:
@@ -661,15 +686,19 @@ try:
     if not os.path.exists(done_file_path):
         logger.info('Reconstructing species phylogeny...')
 
-        output_file_name = 'species_tree.txt'
-        phylogenetic_tree_path = os.path.join(phylogeny_path, output_file_name)
+        output_file_prefix = 'species_tree'
+        phylogenetic_raw_tree_path = os.path.join(phylogeny_path, output_file_prefix + '.txt')
         params = [aligned_core_genome_file_path,
-                  phylogenetic_tree_path]
-        submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=output_file_name,
+                  phylogenetic_raw_tree_path]
+        submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=output_file_prefix,
                              queue_name=args.queue_name, required_modules_as_list=['RAxML/RAxML-8.1.3'])
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir, num_of_expected_results,
                          error_file_path)
+
+        phylogenetic_png_tree_path = os.path.join(phylogeny_path, output_file_prefix + '.png')
+        generate_tree_plot(phylogenetic_raw_tree_path, phylogenetic_png_tree_path)
+
         file_writer.write_to_file(done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
@@ -677,45 +706,34 @@ try:
 
     # Final step: gather relevant results, zip them together and update html file
     logger.info(f'FINAL STEP: {"_"*100}')
-    dir_name = f'{CONSTS.WEBSERVER_NAME}_outputs'
-    final_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
-    done_file_path = os.path.join(done_files_dir, dir_name)
+    final_output_dir_name = f'{CONSTS.WEBSERVER_NAME}_outputs'
+    final_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, final_output_dir_name)
+    done_file_path = os.path.join(done_files_dir, final_output_dir_name + '.txt')
     if not os.path.exists(done_file_path):
         logger.info('Gathering results to final output dir...')
 
         # move orthologs table
-        dest = os.path.join(final_output_dir, os.path.split(final_orthologs_table_path)[1])
-        logger.info(f'Moving {final_orthologs_table_path} TO {dest}')
-        # shutil.move(final_orthologs_table_path, final_orthologs_table_path_dest)
-        shutil.copy(final_orthologs_table_path, dest)
+        add_results_to_final_dir(final_orthologs_table_path, final_output_dir)
 
         # move unaligned sequences
-        dest = os.path.join(final_output_dir, os.path.split(orthologs_sequences_dir_path)[1])
-        logger.info(f'Moving {orthologs_sequences_dir_path} TO {dest}')
-        # shutil.move(orthologs_sequences_dir_path, final_output_dir)
-        shutil.copytree(orthologs_sequences_dir_path, dest)
+        add_results_to_final_dir(orthologs_sequences_dir_path, final_output_dir)
+
+        # move groups sizes
+        add_results_to_final_dir(group_sizes_path, final_output_dir)
+
+        # move orfs statistics
+        add_results_to_final_dir(orfs_statistics_path, final_output_dir)
 
         # move aligned sequences
-        dest = os.path.join(final_output_dir, os.path.split(alignments_path)[1])
-        logger.info(f'Moving {alignments_path} TO {dest}')
-        # shutil.move(alignments_path, final_output_dir)
-        shutil.copytree(alignments_path, dest)
+        add_results_to_final_dir(alignments_path, final_output_dir)
 
         # move core genome dir
-        dest = os.path.join(final_output_dir, os.path.split(aligned_core_genome_path)[1])
-        logger.info(f'Moving {aligned_core_genome_path} TO {dest}')
-        # shutil.move(alignments_path, final_output_dir)
-        shutil.copytree(aligned_core_genome_path, dest)
+        add_results_to_final_dir(aligned_core_genome_path, final_output_dir)
 
         # move species tree dir
-        dest = os.path.join(final_output_dir, os.path.split(phylogeny_path)[1])
-        logger.info(f'Moving {phylogeny_path} TO {dest}')
-        # shutil.move(alignments_path, final_output_dir)
-        shutil.copytree(phylogeny_path, dest)
-
+        add_results_to_final_dir(phylogeny_path, final_output_dir)
 
         shutil.make_archive(final_output_dir, 'zip', final_output_dir)
-
         try:
             shutil.move(final_output_dir+'.zip', meta_output_dir)
         except shutil.Error as e:
@@ -727,7 +745,8 @@ try:
 
         #TODO: remove HERE rest of intermediate outputs
 
-        edit_success_html(output_html_path, run_number, remote_run, CONSTS)
+        edit_success_html(output_html_path, meta_output_dir, final_output_dir_name, run_number, CONSTS)
+
         file_writer.write_to_file(done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
@@ -748,17 +767,17 @@ except Exception as e:
     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
     logger.error(f'\n\n{"$" * 100}\n\n{msg}\n\n{fname}: {exc_type}, at line: {exc_tb.tb_lineno}\n\ne.args[0]: {e.args[0]}\n\n{"$" * 100}')
 
-    edit_failure_html(output_html_path, run_number, msg, remote_run, CONSTS)
+    edit_failure_html(output_html_path, run_number, msg, CONSTS)
 
     notify_admin(meta_output_dir, meta_output_url, run_number, CONSTS)
 
 end = time()
 
 results_location = output_url if remote_run else args.output_dir
-msg = f'M1CROB1AL1Z3R pipeline {status}.\n'
+msg = f'M1CROB1AL1Z3R pipeline {status}'
 if status == 'is done':
-    msg += f'Results can be found at {results_location}. Took {measure_time(int(end-start))}'
-    if remote_run and False: #TODO: remove the "and False" once ready.
+    msg += f' (Took {measure_time(int(end-start))}).\nResults can be found at {results_location}.'
+    if remote_run and run_number.lower() != 'example' and False: #TODO: remove the "and False" once ready.
         # remove raw data from the server
         try:
             shutil.rmtree(data_path)
@@ -770,7 +789,7 @@ if status == 'is done':
         except:
             pass
 else:
-    msg += f'For further information please visit: {results_location}'
+    msg += f'.\nFor further information please visit: {results_location}'
 logger.info(msg)
 send_email('mxout.tau.ac.il', 'TAU BioSequence <bioSequence@tauex.tau.ac.il>', args.email, subject=f'Microbialzer {status}.', content=msg)
 

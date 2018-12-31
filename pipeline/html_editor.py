@@ -1,3 +1,6 @@
+import os
+
+
 def add_closing_html_tags(html_path, CONSTS, run_number):
     with open(html_path, 'a') as f:
         f.write(
@@ -13,7 +16,21 @@ def add_closing_html_tags(html_path, CONSTS, run_number):
         f.flush()
 
 
-def edit_success_html(html_path, run_number, remote_run, CONSTS):
+def get_html_string_of_restult(final_output_dir_name, meta_output_dir, end_of_str, figure_str_to_show_on_html='', raw_str_to_show_on_html='raw data'):
+    result = '<tr><td>'
+    raw_file_suffix = os.path.join(final_output_dir_name, end_of_str)
+    if os.path.exists(os.path.join(meta_output_dir, raw_file_suffix)):
+        if figure_str_to_show_on_html:
+            result += f'<a href="{raw_file_suffix.replace("txt", "png")}" target="_blank">{figure_str_to_show_on_html}</a> ; ('
+        result += f'<a href="{raw_file_suffix}" target="_blank">{raw_str_to_show_on_html}</a>'
+        if figure_str_to_show_on_html:
+            result += ')\n'
+        result += f'<br></td></tr>'
+
+    return result
+
+
+def edit_success_html(html_path, meta_output_dir, final_output_dir_name, run_number, CONSTS):
     html_text = ''
     try:
         with open(html_path) as f:
@@ -33,8 +50,34 @@ def edit_success_html(html_path, run_number, remote_run, CONSTS):
         f'<thead>\n' \
         f'<tr><th class="text-center">Analysis Plots</th></tr>\n' \
         f'</thead>\n' \
-        f'<tr><td><a href=""></a></td></tr>\n' \
-        f'</table>\n' \
+        f'<tbody>'
+
+    html_text += get_html_string_of_restult(final_output_dir_name,
+                                            meta_output_dir,
+                                            '11_final_table/final_orthologs_table.csv',
+                                            raw_str_to_show_on_html='Orthologs groups table')
+
+    html_text += get_html_string_of_restult(final_output_dir_name,
+                                            meta_output_dir,
+                                            '13_groups_sizes_frequency/groups_sizes_frequency.txt',
+                                            figure_str_to_show_on_html='Orthologs groups size dispersion')
+
+    html_text += get_html_string_of_restult(final_output_dir_name,
+                                            meta_output_dir,
+                                            '14_orfs_statistics/orfs_counts.txt',
+                                            figure_str_to_show_on_html='ORFs per genome dispersion')
+
+    html_text += get_html_string_of_restult(final_output_dir_name,
+                                            meta_output_dir,
+                                            '14_orfs_statistics/orfs_gc_contents.txt',
+                                            figure_str_to_show_on_html='GC content per genome dispersion')
+
+    html_text += get_html_string_of_restult(final_output_dir_name,
+                                            meta_output_dir,
+                                            '17_species_phylogeny/species_tree.txt',
+                                            figure_str_to_show_on_html='Species tree')
+
+    html_text += f'</tbody></table>\n' \
         f'</div>\n'
 
     with open(html_path, 'w') as f:
@@ -45,7 +88,7 @@ def edit_success_html(html_path, run_number, remote_run, CONSTS):
 
 
 
-def edit_failure_html(html_path, run_number, msg, remote_run, CONSTS):
+def edit_failure_html(html_path, run_number, msg, CONSTS):
     html_text = ''
     try:
         with open(html_path) as f:

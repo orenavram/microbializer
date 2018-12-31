@@ -44,7 +44,7 @@
                         <div class="col-md-10">
                             <span id="server-title">M1CR0B1AL1Z3R</span>
                             <img src="pics/logo.gif" id="nav_bar_image" class="img-rounded">
-                            <br><span id="sub-title">Analyze bacterial genomic sequences. Easily.</span>
+                            <br><span id="sub-title">A web server for analyzing bacterial genomics data. Easily.</span>
                             <!--<span id="sub-title">A web server for analyzing bacterial genomics data</span><br>-->
                         </div>
                         <!--<div class="col-md-1">-->
@@ -93,7 +93,7 @@
         <div class="col-md-10" id="basic">
             <form id="microbializer_form" action="https://microbializer.tau.ac.il/cgi-bin/microbializer_cgi.py" method="post" ENCTYPE="multipart/form-data" target="_blank" onsubmit="return validate_read_files() && validate_lib_file();">
                     <input type="hidden" name="example_page" value="no">
-                    <center><img src=pics/under_construction.png id="under-construction"></center><br>
+                    <!--<center><img src=pics/under_construction.png id="under-construction"></center><br>-->
                     <!--<h2><center><span>UNDER CONSTRUCTION!</span></center></h2>-->
                     <div id="please-note" align="justify">Please notice that files larger than 100MB may require up to 30 minutes to be uploaded, depending on your network speed (preferably not over Wi-Fi).</div>
 
@@ -126,19 +126,10 @@
                                 </label>
                             </div>
                     </div>
-                    <!--<div class="form-group">-->
-                        <!--<b>Replicate 2:</b>-->
-                        <!--<label class="btn btn-default btn-file">-->
-                            <!--<div name="file_button"></div> <input type="file" name="run2_R1">-->
-                        <!--</label>-->
-                        <!--<label class="btn btn-default btn-file">-->
-                            <!--<div name="file_button"></div> <input type="file" name="run2_R2">-->
-                        <!--</label>-->
-                    <!--</div>-->
                     <div class="form-group row">
                         <div class="col-md-4">
                             <label for="email">Email</label>
-                            <input type="email" class="form-control" id="email" name="email" placeholder="We'll send you a link to the results">
+                            <input type="email" class="form-control" id="email" name="email" placeholder="We'll send you a link to the results" required>
                             <input class="form-control" name="confirm_email" type="hidden">
                         </div>
                         <div class="col-md-4">
