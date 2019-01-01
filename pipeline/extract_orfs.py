@@ -5,7 +5,7 @@ import subprocess
 # module load prodigal/prodigal-2.6.3
 def find_genes(genome, output_path, log_path):
     '''
-    input:path to fasta file with prokaryotic genome to be analized
+    input:path to fasta file with prokaryotic genome to be analyzed
     output: protein-coding gene prediction for input genome
     '''
     segments = list(SeqIO.parse(genome, 'fasta'))

@@ -4,7 +4,7 @@ import os
 def add_closing_html_tags(html_path, CONSTS, run_number):
     with open(html_path, 'a') as f:
         f.write(
-            f'<br><br><br>\n<hr>\n<h4 class=footer><p align=\'center\'>Questions and comments are welcome! Please ' \
+            f'<hr>\n<h4 class=footer><p align=\'center\'>Questions and comments are welcome! Please ' \
             f'<span class="admin_link">' \
             f'<a href="mailto:{CONSTS.ADMIN_EMAIL}?subject=ASAP%20Run%20Number%20{run_number}">contact us</a>' \
             f'</span></p></h4>\n' \
@@ -14,6 +14,15 @@ def add_closing_html_tags(html_path, CONSTS, run_number):
             f'</span>\n' \
             f'<br><br><br>\n</body>\n</html>\n')
         f.flush()
+
+    # Must be after flushing all previous data. Otherwise it might refresh during the writing.. :(
+    from time import sleep
+    sleep(2 * CONSTS.RELOAD_INTERVAL)
+    with open(html_path) as f:
+        html_content = f.read()
+    html_content = html_content.replace(CONSTS.RELOAD_TAGS, '')
+    with open(html_path, 'w') as f:
+        f.write(html_content)
 
 
 def get_html_string_of_restult(final_output_dir_name, meta_output_dir, end_of_str, figure_str_to_show_on_html='', raw_str_to_show_on_html='raw data'):
@@ -42,13 +51,12 @@ def edit_success_html(html_path, meta_output_dir, final_output_dir_name, run_num
         logger = logging.getLogger('main')
         logger.warning(f"Couldn't find html prefix at: {html_path}")
 
-    html_text += f'<div class="container" align="center" style="{CONSTS.CONTAINER_STYLE}">\n' \
-        f'<br><br><center><h2>RESULTS:<h2>'\
-        f'<a href=\'{CONSTS.WEBSERVER_NAME}_outputs.zip\' target=\'_blank\'><h3><b>Download zipped full results</b></h3></a>' \
-        f'</center><br>\n' \
+    html_text += f'<div class="container" style="{CONSTS.CONTAINER_STYLE}">\n' \
+        f'<h2>RESULTS:<h2>'\
+        f'<h3><b><a href=\'{CONSTS.WEBSERVER_NAME}_outputs.zip\' target=\'_blank\'>Download zipped full results (textual & visual)</a></b></h3>' \
         f'<table class="table">\n' \
         f'<thead>\n' \
-        f'<tr><th class="text-center">Analysis Plots</th></tr>\n' \
+        f'<tr><th><h3>Quick access to selected results:</h3></th></tr>\n' \
         f'</thead>\n' \
         f'<tbody>'
 

@@ -605,7 +605,7 @@ try:
 
         orfs_counts_frequency_png_file_path = orfs_counts_frequency_file_prefix + '.png'
         generate_boxplot(orfs_counts_frequency_raw_file_path, orfs_counts_frequency_png_file_path,
-                        xlabel='\nGC content per genome', dpi=100)
+                        xlabel='\nORFs count per genome', dpi=100)
 
         orfs_gc_content_raw_file_path = orfs_gc_content_file_prefix + '.txt'
         with open(orfs_gc_content_raw_file_path, 'w') as f:
@@ -613,7 +613,7 @@ try:
 
         orfs_gc_content_png_file_path = orfs_gc_content_file_prefix + '.png'
         generate_boxplot(orfs_gc_content_raw_file_path, orfs_gc_content_png_file_path,
-                        xlabel='\nORFs count per genome', dpi=100)
+                        xlabel='\nGC content per genome', dpi=100)
 
         file_writer.write_to_file(done_file_path)
     else:
@@ -733,7 +733,10 @@ try:
         # move species tree dir
         add_results_to_final_dir(phylogeny_path, final_output_dir)
 
+        logger.info('Zipping results folder...')
         shutil.make_archive(final_output_dir, 'zip', final_output_dir)
+
+        logger.info(f'Moving results to parent dir... ({meta_output_dir})')
         try:
             shutil.move(final_output_dir+'.zip', meta_output_dir)
         except shutil.Error as e:
@@ -745,11 +748,12 @@ try:
 
         #TODO: remove HERE rest of intermediate outputs
 
-        edit_success_html(output_html_path, meta_output_dir, final_output_dir_name, run_number, CONSTS)
-
         file_writer.write_to_file(done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
+
+    logger.info('Editing results html...')
+    edit_success_html(output_html_path, meta_output_dir, final_output_dir_name, run_number, CONSTS)
 
     status = 'is done'
 
@@ -761,7 +765,7 @@ except Exception as e:
     import logging
     logger = logging.getLogger('main')  # use logger instead of printing
 
-    msg = 'M1CROB1AL1Z3R failed :('
+    msg = 'M1CR0B1AL1Z3R failed :('
 
     exc_type, exc_obj, exc_tb = sys.exc_info()
     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
@@ -774,7 +778,7 @@ except Exception as e:
 end = time()
 
 results_location = output_url if remote_run else args.output_dir
-msg = f'M1CROB1AL1Z3R pipeline {status}'
+msg = f'M1CR0B1AL1Z3R pipeline {status}'
 if status == 'is done':
     msg += f' (Took {measure_time(int(end-start))}).\nResults can be found at {results_location}.'
     if remote_run and run_number.lower() != 'example' and False: #TODO: remove the "and False" once ready.

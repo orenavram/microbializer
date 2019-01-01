@@ -19,9 +19,9 @@ RELOAD_TAGS = f'<META HTTP-EQUIV="REFRESH" CONTENT="{RELOAD_INTERVAL}"/>'
 MAFFT_v7_222 = '/bioseq/Programs/MAFFT_7.222/installation/bin/mafft' # v7.222
 
 
-WEBSERVER_NAME = 'M1CROB1AL1Z3R'
+WEBSERVER_NAME = 'M1CR0B1AL1Z3R'
 WEBSERVER_URL = 'https://microbializer.tau.ac.il'
-WEBSERVER_TITLE = 'A web server for analyzing bacterial genomics data. Easily.'
+WEBSERVER_TITLE = 'A webserver for analyzing bacterial genomics data. Easily.'
 
 WEBSERVER_RESULTS_DIR = os.path.join(SERVERS_RESULTS_DIR, 'microbializer')
 WEBSERVER_LOGS_DIR = os.path.join(SERVERS_LOGS_DIR, 'microbializer')
