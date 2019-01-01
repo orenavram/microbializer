@@ -41,8 +41,8 @@
                 <div class="col-md-10" align="center">
                     <span id="server-title">M1CR0B1AL1Z3R</span>
                     <img src="pics/logo.gif" id="nav_bar_image" class="img-rounded">
-                    <br><span id="sub-title">Analyze bacterial genomic sequences. Easily.</span>
-					<!--<span id="sub-title">A web server for analyzing bacterial genomics data</span><br>-->
+                    <br><span id="sub-title">A webserver for analyzing bacterial genomics data. Easily.</span>
+					<!--<span id="sub-title">A webserver for analyzing bacterial genomics data</span><br>-->
                 </div>
                 <!--<div class="col-md-1">-->
                     <!---->
@@ -103,16 +103,22 @@
 					Extracting all open reading frames (ORFs) [<a href="#ref1">1</a>];
 				</li>
 				<li>
-					Analyzing presence-absence patterns of genes;
+					Detecting and extracting orthologous sets sequences from ORFs [<a href="#ref2">2</a>, <a href="#ref3">3</a>];
 				</li>
 				<li>
-					Detecting and extracting orthologous sets sequences from ORFs [<a href="#ref2">2</a>, <a href="#ref3">3</a>];
+					Analyzing presence-absence patterns of genes;
 				</li>
 				<li>
 					Align orthologous sets sequences [<a href="#ref4">4</a>];
 				</li>
 				<li>
-					Reconstructing a phylogenetic tree [<a href="#ref5">5</a>];
+					Inferring the core-genome of the species in the dataset;
+				</li>
+				<li>
+					Reconstructing a maximum-likelihood phylogenetic tree based on the inferred core-genome [<a href="#ref5">5</a>];
+				</li>
+				<li>
+					Providing plots of different statistics of the data;
 				</li>
 				<!--<li>-->
 					<!--Identifying selective sweeps events (Avram et al., in preparation);-->
@@ -123,7 +129,7 @@
 				<br>
 
 				<h2>Input</h2>
-				The input for the webserver is a <a href="https://linhost.info/2012/08/gzip-files-in-windows/" target="_blank">tar gzipped folder</a> in which each file is a <a href="https://en.wikipedia.org/wiki/FASTA_format#FASTA_file" target="_blank">fasta nucleic acid (.fna) file</a> containing genomic sequences of a different species (whether fully sequenced or as contigs)
+				The input for the webserver is a zipped folder (either <a href="https://support.microsoft.com/en-us/help/14200/windows-compress-uncompress-zip-files" target="_blank">.zip</a> or <a href="https://linhost.info/2012/08/gzip-files-in-windows/" target="_blank">.tar.gz</a>) in which each file is a fasta nucleic acid (<a href="https://en.wikipedia.org/wiki/FASTA_format#FASTA_file" target="_blank">.fna</a>) file containing genomic sequences of a different species (whether fully sequenced or as contigs)
 				<br><br>
 
 				<!--<br><br>-->
