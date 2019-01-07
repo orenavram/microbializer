@@ -77,7 +77,7 @@ try:
     parser.add_argument('email', help='A notification will be sent once the pipeline is done',
                         default=CONSTS.OWNER_EMAIL)
     parser.add_argument('-q', '--queue_name', help='The cluster to which the job(s) will be submitted to',
-                        choices=['pupko', 'itaym', 'lilach', 'bioseq', 'bental'], default='pupko')
+                        choices=['pupko', 'itaym', 'lilach', 'bioseq', 'bental', 'oren.q', 'bioseq20.q'], default='pupko')
     parser.add_argument('--dummy_delimiter',
                         help='The queue does not "like" very long commands. A dummy delimiter is used to break each row into different commands of a single job',
                         default='!@#')

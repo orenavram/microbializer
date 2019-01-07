@@ -1,7 +1,7 @@
 import subprocess
 import os
 from directory_creator import create_dir
-from time import time, sleep
+from time import time, sleep, ctime
 import logging
 import WEBSERVER_CONSTANTS as CONSTS
 
@@ -39,7 +39,7 @@ def wait_for_results(script_name, path, num_of_expected_results, error_file_path
         jobs_left = num_of_expected_results - current_num_of_results
         sleep(time_to_wait)
         i += time_to_wait
-        logger.info(f'{i} seconds have passed since started waiting ({num_of_expected_results} - {current_num_of_results} = {jobs_left} more files are still missing)')
+        logger.info(f'{measure_time(i)} have passed since started waiting ({num_of_expected_results} - {current_num_of_results} = {jobs_left} more files are still missing)')
     # if remove:
     #     execute(['python', '-u', '/groups/pupko/orenavr2/pipeline/RemoveDoneFiles.py', path, suffix])
     end = time()
@@ -59,6 +59,7 @@ def wait_for_results(script_name, path, num_of_expected_results, error_file_path
 
 
 def prepare_directories(outputs_dir_prefix, tmp_dir_prefix, dir_name):
+    logger.info(ctime())
     outputs_dir = os.path.join(outputs_dir_prefix, dir_name)
     create_dir(outputs_dir)
     tmp_dir = os.path.join(tmp_dir_prefix, dir_name)
