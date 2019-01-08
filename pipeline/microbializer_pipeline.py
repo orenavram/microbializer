@@ -706,7 +706,7 @@ try:
 
     # Final step: gather relevant results, zip them together and update html file
     logger.info(f'FINAL STEP: {"_"*100}')
-    final_output_dir_name = f'{CONSTS.WEBSERVER_NAME}_outputs'
+    final_output_dir_name = f'{CONSTS.WEBSERVER_NAME}_{run_number}_outputs'
     final_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, final_output_dir_name)
     done_file_path = os.path.join(done_files_dir, final_output_dir_name + '.txt')
     if not os.path.exists(done_file_path):
@@ -738,7 +738,7 @@ try:
 
         logger.info(f'Moving results to parent dir... ({meta_output_dir})')
         try:
-            shutil.move(final_output_dir+'.zip', meta_output_dir)
+            shutil.move(f'{final_output_dir}.zip', meta_output_dir)
         except shutil.Error as e:
             logger.error(e.args[0])
         try:
