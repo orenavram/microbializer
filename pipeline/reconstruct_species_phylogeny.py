@@ -40,7 +40,7 @@ if __name__ == '__main__':
                             default=12345)
         parser.add_argument('--model',
                             help='RaxML reconstruction model parameter',
-                            default='GTRGAMMAI')
+                            default='GTRGAMMAI') # TODO: change to GAMMA + LG
         parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
         args = parser.parse_args()
 
