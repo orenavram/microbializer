@@ -10,7 +10,7 @@ def filter_blast(query_vs_reference, output_path, precent_identity_cutoff, e_val
     header = 'qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore'
     df = pd.read_csv(query_vs_reference, header=None, sep=delimiter, names=header.split())
     result = df[(df.pident >= precent_identity_cutoff) & (df.evalue <= e_value_cutoff)]
-    result.to_csv(output_path, sep=delimiter, index=False) #TODO: remove header?
+    result.to_csv(output_path, sep=delimiter, index=False)
 
 
 if __name__ == '__main__':
@@ -21,8 +21,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('blast_result', help='path to fasta genome file')
     parser.add_argument('output_path', help='path to output file')
-    parser.add_argument('--identity_cutoff', help='path to translated sequences', default = 80)
-    parser.add_argument('--evaule_cutoff', help='path to translated sequences', default = 0.01)
+    parser.add_argument('--identity_cutoff', help='path to translated sequences', type=float)
+    parser.add_argument('--evaule_cutoff', help='path to translated sequences', type=float)
     parser.add_argument('--delimiter', help='orthologs table delimiter', default='\t')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
 

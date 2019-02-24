@@ -6,8 +6,9 @@ def generate_phylogenetic_tree(msa_path, phylogenetic_tree_path, seed, model):
     import os
     wd, phylogenetic_tree_name = os.path.split(phylogenetic_tree_path)
 
-    cmd = f'raxmlHPC -s {msa_path} -w {wd} -n {phylogenetic_tree_name} -p {seed} -m {model}'
     import subprocess
+    cmd = f'raxmlHPC -s {msa_path} -w {wd} -n {phylogenetic_tree_name} -p {seed} -m {model}'
+    logger.info(f'Reconstructing species phylogeny with RAxML. Executed command is:\n{cmd}')
     subprocess.run(cmd, shell=True)
 
     raxml_best_tree_output_path = os.path.join(wd, f'RAxML_bestTree.{phylogenetic_tree_name}')
@@ -39,8 +40,7 @@ if __name__ == '__main__':
                             help='RaxML seed parameter',
                             default=12345)
         parser.add_argument('--model',
-                            help='RaxML reconstruction model parameter',
-                            default='GTRGAMMAI') # TODO: change to GAMMA + LG
+                            help='RAxML reconstruction model parameter')
         parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
         args = parser.parse_args()
 

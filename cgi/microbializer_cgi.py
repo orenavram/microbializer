@@ -117,7 +117,7 @@ def write_cmds_file(cmds_file, parameters, run_number):
     with open(cmds_file, 'w') as f:
         f.write(f'module load {required_modules};')
         f.write(new_line_delimiter)
-        f.write(f'{" ".join(["python", CONSTS.MAIN_SCRIPT, parameters])}\tM1CR0{run_number}') # mic stands for M1CROB1AL1Z3R
+        f.write(f'{" ".join(["python", CONSTS.MAIN_SCRIPT, parameters])}\tmicrobializer_{run_number}')
 
 def run_cgi():
 
@@ -183,7 +183,7 @@ def run_cgi():
         # This is hidden field that only spammer bots might fill in...
         confirm_email_add = form['confirm_email'].value  # if it is contain a value it is a spammer.
 
-        if form['example_page'] == 'no':
+        if form['example_page'].value == 'no':
             write_to_debug_file(cgi_debug_path_f, f'\n{"#"*80}\nuploading data\n')
 
             file_name = form['data'].filename
@@ -224,6 +224,8 @@ def run_cgi():
 
         # simple command when using shebang header
         submission_cmd = f'ssh bioseq@lecs2login /bioseq/bioSequence_scripts_and_constants/q_submitter.py {cmds_file} {wd} -q bioseq --verbose > {log_file}'
+        # TODO: consider sending the main jobs only for a specific machine (or two) other wise you can get a dead lock
+        # TODO: (cluster might be full with main jobs waiting for sub jobs but they are in qw mode...)
 
         write_to_debug_file(cgi_debug_path_f, f'\nSSHing and SUBMITting the JOB to the QUEUE:\n{submission_cmd}\n')
 

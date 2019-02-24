@@ -67,20 +67,20 @@ def edit_success_html(html_path, meta_output_dir, final_output_dir_name, run_num
 
     html_text += get_html_string_of_restult(final_output_dir_name,
                                             meta_output_dir,
-                                            '13_groups_sizes_frequency/groups_sizes_frequency.txt',
+                                            '17_groups_sizes_frequency/groups_sizes_frequency.txt',
                                             figure_str_to_show_on_html='Orthologs groups size dispersion')
 
     html_text += get_html_string_of_restult(final_output_dir_name,
                                             meta_output_dir,
-                                            '14_orfs_statistics/orfs_counts.txt',
+                                            '19_orfs_plots/orfs_counts.txt',
                                             figure_str_to_show_on_html='ORFs per genome dispersion')
 
     html_text += get_html_string_of_restult(final_output_dir_name,
                                             meta_output_dir,
-                                            '14_orfs_statistics/orfs_gc_contents.txt',
+                                            '19_orfs_plots/orfs_gc_contents.txt',
                                             figure_str_to_show_on_html='GC content per genome dispersion')
 
-    raw_file_suffix = os.path.join(final_output_dir_name, '17_species_phylogeny/species_tree.txt')
+    raw_file_suffix = os.path.join(final_output_dir_name, '16_species_phylogeny/species_tree.txt')
     if os.path.exists(os.path.join(meta_output_dir, raw_file_suffix)):
         html_text += f'<tr><td><a href="{CONSTS.WEBSERVER_URL}/PhyD3/view_tree.php?id={run_number}&f=newick" target="_blank">Interactive species tree</a> ;' \
             f' (<a href="{raw_file_suffix}" target="_blank">raw data</a>)\n<br></td></tr>'

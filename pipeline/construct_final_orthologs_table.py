@@ -8,19 +8,21 @@ def finalize_table(putative_orthologs_path, verified_clusters_path, finalized_ta
     logger.info(f'verified_clusters_set:\n{verified_clusters_set}')
     with open(putative_orthologs_path) as f:
         # OG_name,GCF_000008105,GCF_000006945,GCF_000195995,GCF_000007545,GCF_000009505
-        putative_orthologs_table_header = f.readline().rstrip()
+        final_orthologs_table_header = f.readline().rstrip()
         # remove "OG_name," from header
-        index_of_first_delimiter = putative_orthologs_table_header.index(delimiter)
-        final_orthologs_table_header = putative_orthologs_table_header[index_of_first_delimiter + 1:]
+        #index_of_first_delimiter = putative_orthologs_table_header.index(delimiter)
+        #final_orthologs_table_header = putative_orthologs_table_header[index_of_first_delimiter + 1:]
         finalized_table_str = final_orthologs_table_header + '\n'
+        og_number = 0
         for line in f:
             first_delimiter_index = line.index(delimiter)
             OG_name = line[:first_delimiter_index]
-            group = line.rstrip()[first_delimiter_index+1:]
+            group = line.rstrip()[first_delimiter_index+1:] # remove temporary name (one of the group members)
             if OG_name in verified_clusters_set:
                 logger.debug(f'Adding {OG_name} to the final table')
                 verified_clusters_set.discard(OG_name)
-                finalized_table_str += group + '\n'
+                finalized_table_str += f'og_{og_number}{delimiter}{group}\n'
+                og_number += 1
 
     with open(table_header_path, 'w') as f:
         f.write(final_orthologs_table_header)
