@@ -26,7 +26,7 @@ def load_orthologs_group_to_dict(fasta_path):
 
 
 def is_core_gene(strain_to_gene_dict, num_of_strains, core_minimal_percentage):
-    return len(strain_to_gene_dict) >= num_of_strains*core_minimal_percentage/100
+    return len(strain_to_gene_dict)/num_of_strains >= core_minimal_percentage/100
 
 
 def update_core_genome(core_genome_dict, strain_to_gene_dict):
@@ -39,10 +39,10 @@ def extract_core_genome(alignments_path, num_of_strains, core_genome_path, core_
     for og_file in os.listdir(alignments_path):
         strain_to_gene_dict = load_orthologs_group_to_dict(os.path.join(alignments_path, og_file))
         if is_core_gene(strain_to_gene_dict, num_of_strains, core_minimal_percentage):
-            logger.info(f'Adding to core genome: {og_file}')
+            logger.info(f'Adding to core genome: {og_file} ({len(strain_to_gene_dict)}/{num_of_strains} >= {core_minimal_percentage}%)')
             update_core_genome(core_genome_dict, strain_to_gene_dict)
         else:
-            logger.info(f'Not a core gene: {og_file}')
+            logger.info(f'Not a core gene: {og_file} ({len(strain_to_gene_dict)}/{num_of_strains} < {core_minimal_percentage}%)')
 
 
     with open(core_genome_path, 'w') as f:
@@ -56,12 +56,11 @@ if __name__ == '__main__':
 
         import argparse
         parser = argparse.ArgumentParser()
-        parser.add_argument('alignments_path', help='path to a folder where each file is a multiple sequences fasta file')
+        parser.add_argument('aa_alignments_path', help='path to a folder where each file is a multiple sequences fasta file')
         parser.add_argument('num_of_strains', help='number of strains in the data', type=int)
         parser.add_argument('core_genome_path', help='path to an output file in which the core genome will be written')
-        parser.add_argument('--core_minimal_percentage',
-                            help='number that represents the required percent that is needed to be considered a core gene. For example: (1) 100 means that for a gene to be considered core, all strains should have a member in the group.\n(2) 50 means that for a gene to be considered core, at least half of the strains should have a member in the group.\n(3) 0 means that every gene should be considered as a core gene.',
-                            default=100)
+        parser.add_argument('--core_minimal_percentage', type=float,
+                            help='number that represents the required percent that is needed to be considered a core gene. For example: (1) 100 means that for a gene to be considered core, all strains should have a member in the group.\n(2) 50 means that for a gene to be considered core, at least half of the strains should have a member in the group.\n(3) 0 means that every gene should be considered as a core gene.')
         parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
         args = parser.parse_args()
 
@@ -72,5 +71,5 @@ if __name__ == '__main__':
             logging.basicConfig(level=logging.INFO)
         logger = logging.getLogger('main')
 
-        extract_core_genome(args.alignments_path, args.num_of_strains,
+        extract_core_genome(args.aa_alignments_path, args.num_of_strains,
                             args.core_genome_path, args.core_minimal_percentage)

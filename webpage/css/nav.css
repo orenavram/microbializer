@@ -5,9 +5,9 @@
     background-color: #222222;
 }
 
-li:last-child{
-    float: right;
-}
+/*li:last-child{*/
+    /*float: right;*/
+/*}*/
 
 li[name="black_text"]{
     color: #222;

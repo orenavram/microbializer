@@ -4,7 +4,7 @@
 
 def reconstruct_msa(sequences_file_path, output_file_path, maxiterate):
     import subprocess
-    cmd = f'mafft --maxiterate {maxiterate} --localpair {sequences_file_path} > {output_file_path}'
+    cmd = f'mafft-linsi --maxiterate {maxiterate} --localpair {sequences_file_path} > {output_file_path}'
     subprocess.run(cmd, shell=True)
 
 

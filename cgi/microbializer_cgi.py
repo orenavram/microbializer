@@ -40,69 +40,72 @@ def write_to_debug_file(cgi_debug_path_f, content):
     cgi_debug_path_f.write(f'{ctime()}: {content}\n')
 
 
-def write_html_prefix(output_path_f, run_number):
-    output_path_f.write(f'''<html><head>
-
-    <meta http-equiv="cache-control" content="no-cache, must-revalidate, post-check=0, pre-check=0" />
-    <meta http-equiv="cache-control" content="max-age=0" />
-    <meta http-equiv="expires" content="0" />
-    <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
-    <meta http-equiv="pragma" content="no-cache" />
-    {CONSTS.RELOAD_TAGS}
-
-    <title>{CONSTS.WEBSERVER_NAME} Job #{run_number}</title>
-    <link rel="shortcut icon" type="image/x-icon" href="{CONSTS.WEBSERVER_URL}/pics/logo.gif" />
-
-    <meta charset="utf-8">
-    <!--<meta name="viewport" content="width=device-width, initial-scale=1">-->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-    <link rel="stylesheet" href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css">
-
-    <link rel="stylesheet" href="{CONSTS.WEBSERVER_URL}/css/general.css">
-    <link rel="stylesheet" href="../webpage/css/general.css">
-
-    </head><body>
-    <nav role="navigation" class="navbar navbar-inverse navbar-fixed-top">
-        <div class="jumbotron" id="jumbo">
-            <div class="container">            
-                <div class="row" id="title-row" align="center">
-                    <div class="col-md-1">
+def write_html_prefix(output_path, run_number):
+    with open(output_path, 'w') as output_path_f:
+        output_path_f.write(f'''<html><head>
+    
+        <meta http-equiv="cache-control" content="no-cache, must-revalidate, post-check=0, pre-check=0" />
+        <meta http-equiv="cache-control" content="max-age=0" />
+        <meta http-equiv="expires" content="0" />
+        <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
+        <meta http-equiv="pragma" content="no-cache" />
+        {CONSTS.RELOAD_TAGS}
+    
+        <title>{CONSTS.WEBSERVER_NAME} Job #{run_number}</title>
+        <link rel="shortcut icon" type="image/x-icon" href="{CONSTS.WEBSERVER_URL}/pics/logo.gif" />
+    
+        <meta charset="utf-8">
+        <!--<meta name="viewport" content="width=device-width, initial-scale=1">-->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <link rel="stylesheet" href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css">
+    
+        <link rel="stylesheet" href="{CONSTS.WEBSERVER_URL}/css/general.css">
+        <link rel="stylesheet" href="../webpage/css/general.css">
+    
+        </head><body>
+        <nav role="navigation" class="navbar navbar-inverse navbar-fixed-top">
+            <div class="jumbotron" id="jumbo">
+                <div class="container">            
+                    <div class="row" id="title-row" align="center">
+                        <div class="col-md-1">
+                        </div>
+                        <div class="col-md-10">
+                            <span id="server-title">{CONSTS.WEBSERVER_NAME}</span>
+                            <img src="{CONSTS.WEBSERVER_URL}/pics/logo.gif" id="nav_bar_image" class="img-rounded">
+                            <br><span id="sub-title">{CONSTS.WEBSERVER_TITLE}</span>
+                        </div>
                     </div>
-                    <div class="col-md-10">
-                        <span id="server-title">{CONSTS.WEBSERVER_NAME}</span>
-                        <img src="{CONSTS.WEBSERVER_URL}/pics/logo.gif" id="nav_bar_image" class="img-rounded">
-                        <br><span id="sub-title">{CONSTS.WEBSERVER_TITLE}</span>
-                    </div>
-                </div>
-            </div>       
+                </div>       
+            </div>
+        </nav>
+        <div id="behind-nav-bar-results">
         </div>
-    </nav>
-    <div id="behind-nav-bar-results">
-    </div>
-    <br><br><div class="container" style="font-size: 17px; {CONSTS.CONTAINER_STYLE}"  align="justify"><br> 
-    <H1 align=center>Job Status: <FONT color='red'>RUNNING</FONT></h1>
-    <br>{CONSTS.WEBSERVER_NAME} is now processing your request. This page will be automatically updated every {CONSTS.RELOAD_INTERVAL} seconds (until the job is done). You can also reload it manually. Once the job has finished, the output will appear below. A link to this page was sent to your email in case you wish to view these results at a later time without recalculating them. Please note that the results will be kept in the server for 3 months.
-    <br><br></div>''')
-    output_path_f.flush()
+        <br><br><div class="container" style="font-size: 17px; {CONSTS.CONTAINER_STYLE}"  align="justify"><br> 
+        <H1 align=center>Job Status: <FONT color='red'>RUNNING</FONT></h1>
+        <br>{CONSTS.WEBSERVER_NAME} is now processing your request. This page will be automatically updated every {CONSTS.RELOAD_INTERVAL} seconds (until the job is done). You can also reload it manually. Once the job has finished, several links to the output files will appear below. A link to this page was sent to your email in case you wish to view these results at a later time without recalculating them. Please note that the results will be kept in the server for 3 months.
+        <br><br></div>''')
+        output_path_f.flush()
 
 
-def write_running_parameters_to_html(output_path_f, job_title, file_name=''):
-    output_path_f.write(f'<div class="container" style="{CONSTS.CONTAINER_STYLE}">')
+def write_running_parameters_to_html(output_path, job_title, file_name=''):
+    with open(output_path, 'a') as output_path_f:
+        output_path_f.write(f'<div class="container" style="{CONSTS.CONTAINER_STYLE}">')
 
-    # regular params rows
-    output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-8">')
-    output_path_f.write(f'<b>Folder name: </b>{file_name}')
-    output_path_f.write('</div></div>')
-
-    # optional params rows
-    if job_title != '':
+        # regular params rows
         output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-8">')
-        output_path_f.write(f'<b>Job title: </b>{job_title}')
+        output_path_f.write(f'<b>Folder name: </b>{file_name}')
         output_path_f.write('</div></div>')
 
-    output_path_f.write('</div><br>')
+        # optional params rows
+        if job_title != '':
+            output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-8">')
+            output_path_f.write(f'<b>Job title: </b>{job_title}')
+            output_path_f.write('</div></div>')
+
+        output_path_f.write('</div><br>')
+        output_path_f.flush()
 
 
 def write_cmds_file(cmds_file, parameters, run_number):
@@ -114,7 +117,7 @@ def write_cmds_file(cmds_file, parameters, run_number):
     with open(cmds_file, 'w') as f:
         f.write(f'module load {required_modules};')
         f.write(new_line_delimiter)
-        f.write(f'{" ".join(["python", CONSTS.MAIN_SCRIPT, parameters])}\tM1CR0{run_number}') # mic stands for M1CROB1AL1Z3R
+        f.write(f'{" ".join(["python", CONSTS.MAIN_SCRIPT, parameters])}\tmicrobializer_{run_number}')
 
 def run_cgi():
 
@@ -136,12 +139,11 @@ def run_cgi():
     wd = os.path.join(CONSTS.WEBSERVER_RESULTS_DIR, run_number)
     create_dir(wd)
     output_path = os.path.join(wd, 'output.html')
-    output_path_f = open(output_path, 'w')
     cgi_debug_path = os.path.join(wd, 'cgi_debug.txt')
     #print('Content-Type: text/html\n')  # For more details see https://www.w3.org/International/articles/http-charset/index#scripting
     # print_hello_world(output_html_path, run_number) # comment out for debugging
 
-    write_html_prefix(output_path_f, run_number)  # html's prefix must be written BEFORE redirecting...
+    write_html_prefix(output_path, run_number)  # html's prefix must be written BEFORE redirecting...
 
     print(f'Location: {output_url}')  # Redirects to the results url. MUST appear before any other print.
     print('Content-Type: text/html\n')  # For more details see https://www.w3.org/International/articles/http-charset/index#scripting
@@ -176,14 +178,12 @@ def run_cgi():
         # extract form's values:
         user_email = form['email'].value.strip()
 
-        job_title = ''
-        if form['job_title'].value != '':
-            job_title = form['job_title'].value.strip()
+        job_title = form['job_title'].value.strip()
 
         # This is hidden field that only spammer bots might fill in...
         confirm_email_add = form['confirm_email'].value  # if it is contain a value it is a spammer.
 
-        if form['example_page'] == 'no':
+        if form['example_page'].value == 'no':
             write_to_debug_file(cgi_debug_path_f, f'\n{"#"*80}\nuploading data\n')
 
             file_name = form['data'].filename
@@ -210,7 +210,7 @@ def run_cgi():
         write_to_debug_file(cgi_debug_path_f, f'ls of {wd} yields:\n{os.listdir(wd)}\n')
 
         write_to_debug_file(cgi_debug_path_f, f'{ctime()}: write_running_parameters_to_html...\n')
-        write_running_parameters_to_html(output_path_f, job_title, file_name)
+        write_running_parameters_to_html(output_path, job_title, file_name)
         write_to_debug_file(cgi_debug_path_f, f'{ctime()}: Running parameters were written to html successfully.\n')
 
         parameters = f'{data_path} {os.path.join(wd, "outputs")} {CONSTS.OWNER_EMAIL} -q bioseq'
@@ -224,6 +224,8 @@ def run_cgi():
 
         # simple command when using shebang header
         submission_cmd = f'ssh bioseq@lecs2login /bioseq/bioSequence_scripts_and_constants/q_submitter.py {cmds_file} {wd} -q bioseq --verbose > {log_file}'
+        # TODO: consider sending the main jobs only for a specific machine (or two) other wise you can get a dead lock
+        # TODO: (cluster might be full with main jobs waiting for sub jobs but they are in qw mode...)
 
         write_to_debug_file(cgi_debug_path_f, f'\nSSHing and SUBMITting the JOB to the QUEUE:\n{submission_cmd}\n')
 
@@ -236,7 +238,6 @@ def run_cgi():
         write_to_debug_file(cgi_debug_path_f, f'\n\n{"#"*50}\nCGI finished running!\n{"#"*50}\n')
 
         cgi_debug_path_f.close()
-        output_path_f.close()
 
     except Exception as e:
         msg = 'CGI crashed before the job was submitted :('

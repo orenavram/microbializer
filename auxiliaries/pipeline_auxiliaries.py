@@ -1,7 +1,7 @@
 import subprocess
 import os
 from directory_creator import create_dir
-from time import time, sleep
+from time import time, sleep, ctime
 import logging
 import WEBSERVER_CONSTANTS as CONSTS
 
@@ -26,7 +26,7 @@ def execute(process, raw=False):
 
 
 def wait_for_results(script_name, path, num_of_expected_results, error_file_path, suffix='done',
-                     remove=False, time_to_wait=30):
+                     remove=False, time_to_wait=10):
     '''waits until path contains num_of_expected_results $suffix files'''
     start = time()
     logger.info(f'Waiting for {script_name}...\nContinues when {num_of_expected_results} results will be in:\n{path}')
@@ -39,7 +39,7 @@ def wait_for_results(script_name, path, num_of_expected_results, error_file_path
         jobs_left = num_of_expected_results - current_num_of_results
         sleep(time_to_wait)
         i += time_to_wait
-        logger.info(f'{i} seconds have passed since started waiting ({num_of_expected_results} - {current_num_of_results} = {jobs_left} more files are still missing)')
+        logger.info(f'{measure_time(i)} have passed since started waiting ({num_of_expected_results} - {current_num_of_results} = {jobs_left} more files are still missing)')
     # if remove:
     #     execute(['python', '-u', '/groups/pupko/orenavr2/pipeline/RemoveDoneFiles.py', path, suffix])
     end = time()
@@ -59,6 +59,7 @@ def wait_for_results(script_name, path, num_of_expected_results, error_file_path
 
 
 def prepare_directories(outputs_dir_prefix, tmp_dir_prefix, dir_name):
+    logger.info(ctime())
     outputs_dir = os.path.join(outputs_dir_prefix, dir_name)
     create_dir(outputs_dir)
     tmp_dir = os.path.join(tmp_dir_prefix, dir_name)
@@ -69,29 +70,34 @@ def prepare_directories(outputs_dir_prefix, tmp_dir_prefix, dir_name):
 def submit_pipeline_step(script_path, params, tmp_dir, job_name, queue_name, new_line_delimiter='!@#',
                          q_submitter_script_path='/bioseq/bioSequence_scripts_and_constants/q_submitter.py',
                          done_files_script_path='/bioseq/microbializer/auxiliaries/file_writer.py',
-                         required_modules_as_list=None):
+                         required_modules_as_list=None, more_cmds=None):
 
     required_modules_as_str = 'python/anaconda_python-3.6.4'
     if required_modules_as_list:
         # don't forget a space after the python module!!
         required_modules_as_str += ' ' + ' '.join(required_modules_as_list)
-    cmds = f'module load {required_modules_as_str}'
-    cmds += new_line_delimiter
+    cmds_as_str = f'module load {required_modules_as_str}'
+    cmds_as_str += new_line_delimiter
 
-    # ACTUAL COMMAND
-    cmds += ' '.join(['python', '-u', script_path, *params])+';'
-    cmds += new_line_delimiter # the queue does not like very long commands so I use a dummy delimiter (!@#) to break the rows in q_submitter
+    if more_cmds:
+        for cmd in more_cmds:
+            cmds_as_str += ' '.join(['python', '-u', script_path, *cmd]) + ';'
+            cmds_as_str += new_line_delimiter  # the queue does not like very long commands so I use a dummy delimiter (!@#) to break the rows in q_submitter
+
+    # ACTUAL COMMAND (last command if it's a batch)
+    cmds_as_str += ' '.join(['python', '-u', script_path, *params])+';'
+    cmds_as_str += new_line_delimiter # the queue does not like very long commands so I use a dummy delimiter (!@#) to break the rows in q_submitter
 
     # GENERATE DONE FILE
     params = [os.path.join(tmp_dir, job_name + '.done'), ''] # write an empty string (like "touch" command)
-    cmds += ' '.join(['python', done_files_script_path, *params])+';'
-    cmds += new_line_delimiter
+    cmds_as_str += ' '.join(['python', done_files_script_path, *params])+';'
+    cmds_as_str += new_line_delimiter
 
-    cmds += '\t' + job_name + '\n'
-    print(cmds)
+    cmds_as_str += '\t' + job_name + '\n'
+    print(cmds_as_str)
     cmds_path = os.path.join(tmp_dir, job_name + '.cmds')
     with open(cmds_path, 'w') as f:
-        f.write(cmds)
+        f.write(cmds_as_str)
     execute([q_submitter_script_path, cmds_path, tmp_dir, '-q', queue_name])
 
 if __name__ == '__main__':
