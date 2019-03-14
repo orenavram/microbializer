@@ -1,0 +1,105 @@
+#title-row{
+    padding-top: 10px;
+}
+
+#jumbo{
+    /*font-family: 'Kalam';*/
+    /*font-family: "PT Sans";*/
+    margin-bottom: 0px;
+    padding: 5px;
+    background-color: #6AC47A; /*#8ad8ca;#FFE096*/
+    font-color: #ffffff;
+    /*font-family: "Segoe UI","Helvetica Neue",Helvetica,Arial,sans-serif;*/
+}
+
+#nav_bar_image{
+    width: 82px;
+    height: 67px;
+}
+
+#server-title{
+    margin-top: 10px;
+    font-size: 50px;
+
+}
+
+#sub-title{
+    font-size: 30px;
+}
+
+#nav_container{
+    /*font-family: 'Kalam';*/
+    /*font-family: "Segoe UI","Helvetica Neue",Helvetica,Arial,sans-serif;*/
+    /*font-family: "PT Sans";*/
+    font-size: 30px;
+    padding-top: 10px;
+    line-height: 60px;
+}
+
+#microbializer_form{
+    padding-top: 20px;
+}
+
+#overview_container, #gallery_container, #credits_container{
+    /*font-family: 'Kalam';*/
+    /*font-family: "Sans";*/
+    /*font-family: "Segoe UI","Helvetica Neue",Helvetica,Arial,sans-serif;*/
+    font-size: 20px;
+}
+
+#basic{
+    /*font-family: 'Kalam';*/
+    /*font-family: "Segoe UI","Helvetica Neue",Helvetica,Arial,sans-serif;*/
+    font-size: 20px;
+}
+
+#flow{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+body{
+    font-family: Ubuntu, sans-serif;
+    /*font-family: 'Kalam';*/
+}
+
+#file-button {
+    width: 150px;
+}
+
+#please-note{
+    color: red;
+}
+
+#behind-nav-bar-results{
+    padding: 60px;
+}
+
+#behind-nav-bar{
+    padding: 120px;
+}
+
+#advanced_button{
+    margin-bottom: 10px
+}
+
+td ul{
+    padding-left: 0px;
+}
+
+td h3{
+    padding-right: 10px;
+}
+
+#tar_info{
+    padding: 0px;
+    border: 0px;
+    top: 0px;
+    margin-bottom: 3px;
+    outline: none;
+}
+
+#lib_info_modal{
+    font-size: 18px;
+}

@@ -43,6 +43,7 @@ def load_reciprocal_hits_to_dictionary(all_reciprocal_hits_path, delimiter):
 
 
 def generate_text_to_mcl_input_file(gene_pair_to_score_dict, gene_pairs):
+    first_non_existing_pair = True
     text_to_mcl_file = ''
     logger.debug(f'gene_pair_to_score_dict content is:\n{gene_pair_to_score_dict}')
     for pair in gene_pairs:
@@ -53,7 +54,13 @@ def generate_text_to_mcl_input_file(gene_pair_to_score_dict, gene_pairs):
             score = gene_pair_to_score_dict.get(pair[::-1])
         if not score:
             # both pairs are not in the dictionary!! possible bug..?
-            logger.fatal(f'Pair {pair} does not exist in gene_pair_to_score_dict!! Setting score to 1')
+            if first_non_existing_pair:
+                logger.fatal(f'Pair {pair} does not exist in gene_pair_to_score_dict!! Setting score to 1\n'
+                             f'Notice that there might be some more non existing pairs (turn on debug mode to get the full log).')
+                first_non_existing_pair = False
+            else:
+                # avoid flooding the logs
+                logger.debug(f'Pair {pair} does not exist in gene_pair_to_score_dict!! Setting score to 1')
             score = '1'
 
         text_to_mcl_file += f'{pair[0]}\t{pair[1]}\t{score}\n'
