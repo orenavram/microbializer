@@ -4,14 +4,14 @@ import os
 def add_closing_html_tags(html_path, CONSTS, run_number):
     with open(html_path, 'a') as f:
         f.write(
-            f'<hr>\n<h4 class=footer><p align=\'center\'>Questions and comments are welcome! Please ' \
-            f'<span class="admin_link">' \
-            f'<a href="mailto:{CONSTS.ADMIN_EMAIL}?subject={CONSTS.WEBSERVER_NAME}%20Run%20Number%20{run_number}">contact us</a>' \
-            f'</span></p></h4>\n' \
-            f'<div id="bottom_links" align="center"><span class="bottom_link">' \
-            f'<a href="{CONSTS.WEBSERVER_URL}/" target="_blank">Home</a>' \
-            f'&nbsp;|&nbsp<a href="{CONSTS.WEBSERVER_URL}/overview.html" target="_blank">Overview</a>\n' \
-            f'</span>\n' \
+            f'<hr>\n<h4 class=footer><p align=\'center\'>Questions and comments are welcome! Please '
+            f'<span class="admin_link">'
+            f'<a href="mailto:{CONSTS.ADMIN_EMAIL}?subject={CONSTS.WEBSERVER_NAME}%20Run%20Number%20{run_number}">contact us</a>'
+            f'</span></p></h4>\n'
+            f'<div id="bottom_links" align="center"><span class="bottom_link">'
+            f'<a href="{CONSTS.WEBSERVER_URL}/" target="_blank">Home</a>'
+            f'&nbsp;|&nbsp<a href="{CONSTS.WEBSERVER_URL}/overview.html" target="_blank">Overview</a>\n'
+            f'</span>\n'
             f'<br><br><br>\n</body>\n</html>\n')
         f.flush()
 
@@ -25,7 +25,7 @@ def add_closing_html_tags(html_path, CONSTS, run_number):
         f.write(html_content)
 
 
-def get_html_string_of_restult(final_output_dir_name, meta_output_dir, end_of_str, figure_str_to_show_on_html='', raw_str_to_show_on_html='raw data'):
+def get_html_string_of_restult(final_output_dir_name, meta_output_dir, end_of_str, figure_str_to_show_on_html='', raw_str_to_show_on_html='raw data', additional_text=''):
     result = '<tr><td>'
     raw_file_suffix = os.path.join(final_output_dir_name, end_of_str)
     if os.path.exists(os.path.join(meta_output_dir, raw_file_suffix)):
@@ -34,6 +34,8 @@ def get_html_string_of_restult(final_output_dir_name, meta_output_dir, end_of_st
         result += f'<a href="{raw_file_suffix}" target="_blank">{raw_str_to_show_on_html}</a>'
         if figure_str_to_show_on_html:
             result += ')\n'
+        if additional_text:
+            result += additional_text + '\n'
         result += f'<br></td></tr>'
 
     return result
@@ -60,6 +62,26 @@ def edit_success_html(html_path, meta_output_dir, final_output_dir_name, run_num
         f'</thead>\n' \
         f'<tbody>'
 
+    raw_file_suffix = os.path.join(final_output_dir_name, '16_species_phylogeny/species_tree.txt')
+    if os.path.exists(os.path.join(meta_output_dir, raw_file_suffix)):
+        html_text += f'<tr><td><a href="{CONSTS.WEBSERVER_URL}/PhyD3/view_tree.php?id={run_number}&f=newick" target="_blank">Interactive species tree</a> ;' \
+            f' (<a href="{raw_file_suffix}" target="_blank">raw data</a>)\n<br></td></tr>'
+
+    html_text += get_html_string_of_restult(final_output_dir_name,
+                                            meta_output_dir,
+                                            '19_groups_sizes_frequency/groups_sizes_frequency.txt',
+                                            figure_str_to_show_on_html='Orthologs groups size dispersion')
+
+    html_text += get_html_string_of_restult(final_output_dir_name,
+                                            meta_output_dir,
+                                            '20_orfs_plots/orfs_counts.txt',
+                                            figure_str_to_show_on_html='ORFs per genome dispersion')
+
+    html_text += get_html_string_of_restult(final_output_dir_name,
+                                            meta_output_dir,
+                                            '20_orfs_plots/orfs_gc_contents.txt',
+                                            figure_str_to_show_on_html='GC content per genome dispersion')
+
     html_text += get_html_string_of_restult(final_output_dir_name,
                                             meta_output_dir,
                                             '11_final_table/final_orthologs_table.csv',
@@ -67,26 +89,11 @@ def edit_success_html(html_path, meta_output_dir, final_output_dir_name, run_num
 
     html_text += get_html_string_of_restult(final_output_dir_name,
                                             meta_output_dir,
-                                            '17_groups_sizes_frequency/groups_sizes_frequency.txt',
-                                            figure_str_to_show_on_html='Orthologs groups size dispersion')
+                                            '11_final_table/phyletic_pattern.fas',
+                                            raw_str_to_show_on_html='Phyletic pattern',
+                                            additional_text='&nbsp;(Further analyze gain/loss dynamics with <a href="http://gloome.tau.ac.il/" target="_blank">GLOOME</a>)')
 
-    html_text += get_html_string_of_restult(final_output_dir_name,
-                                            meta_output_dir,
-                                            '19_orfs_plots/orfs_counts.txt',
-                                            figure_str_to_show_on_html='ORFs per genome dispersion')
-
-    html_text += get_html_string_of_restult(final_output_dir_name,
-                                            meta_output_dir,
-                                            '19_orfs_plots/orfs_gc_contents.txt',
-                                            figure_str_to_show_on_html='GC content per genome dispersion')
-
-    raw_file_suffix = os.path.join(final_output_dir_name, '16_species_phylogeny/species_tree.txt')
-    if os.path.exists(os.path.join(meta_output_dir, raw_file_suffix)):
-        html_text += f'<tr><td><a href="{CONSTS.WEBSERVER_URL}/PhyD3/view_tree.php?id={run_number}&f=newick" target="_blank">Interactive species tree</a> ;' \
-            f' (<a href="{raw_file_suffix}" target="_blank">raw data</a>)\n<br></td></tr>'
-
-    html_text += f'</tbody></table>\n' \
-        f'</div>\n'
+    html_text += f'</tbody></table>\n</div>\n'
 
     with open(html_path, 'w') as f:
         f.write(html_text)

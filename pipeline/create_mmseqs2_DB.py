@@ -1,4 +1,4 @@
-def create_mmseq2_DB(reference_seq, output_path, translate, convert2fasta):
+def create_mmseq2_DB(fasta_path, output_path, tmp_path, translate, convert2fasta):
     '''
     input:  sequnce to base the DB on
             DB type (nucl/prot)
@@ -8,17 +8,17 @@ def create_mmseq2_DB(reference_seq, output_path, translate, convert2fasta):
     #for more details see: mmseqs createdb -h
     import subprocess
 
-    cmd = f'mmseqs createdb {reference_seq} {output_path} --dont-split-seq-by-len'
+    cmd = f'mmseqs createdb {fasta_path} {tmp_path} --dont-split-seq-by-len'
     logger.info(f'Starting mmseqs createdb. Executed command is:\n{cmd}')
     subprocess.run(cmd, shell=True)
 
     if translate or convert2fasta:
-        cmd = f'mmseqs translatenucs {output_path} {output_path}_aa'  # translate dna db to aa db
+        cmd = f'mmseqs translatenucs {tmp_path} {tmp_path}_aa'  # translate dna db to aa db
         logger.info(f'Translating dna DB to amino acids. Executed command is:\n{cmd}')
         subprocess.run(cmd, shell=True)
 
     if convert2fasta:
-        cmd = f'mmseqs convert2fasta {output_path}_aa {output_path}_aa.fas'  # convert the aa db to a regular fasta
+        cmd = f'mmseqs convert2fasta {tmp_path}_aa {output_path}_aa.fas'  # convert the aa db to a regular fasta
         logger.info(f'Converting amino acids DB to a fasta format. Executed command is:\n{cmd}')
         subprocess.run(cmd, shell=True)
 
@@ -32,6 +32,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('input_fasta', help='path to input fasta file')
     parser.add_argument('output_prefix', help='path prefix for the DB file(s)')
+    parser.add_argument('tmp_prefix', help='path prefix for the tmp file(s)')
     #parser.add_argument('--dbtype', help='database type for creating blast DB', default='nucl')
     parser.add_argument('-t', '--translate', help='whether to translate the dna to aa', action='store_true')
     parser.add_argument('-c', '--convert2fasta', help='whether to convert the dbs to fasta', action='store_true')
@@ -45,4 +46,4 @@ if __name__ == '__main__':
         logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger('main')
 
-    create_mmseq2_DB(args.input_fasta, args.output_prefix, args.translate, args.convert2fasta)
+    create_mmseq2_DB(args.input_fasta, args.output_prefix, args.tmp_prefix, args.translate, args.convert2fasta)

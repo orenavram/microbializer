@@ -1,4 +1,4 @@
-#!/data/shared/python/anaconda3-5.1.0/bin/python3.6
+#!/powerapps/share/centos7/python-anaconda3.6.5/bin/python
 
 import os
 
@@ -14,10 +14,12 @@ SERVERS_LOGS_DIR = '/bioseq/data/logs'
 RELOAD_INTERVAL = 30
 RELOAD_TAGS = f'<META HTTP-EQUIV="REFRESH" CONTENT="{RELOAD_INTERVAL}"/>'
 
-# external programs
-# IMPORTANT: one must run the command: setenv PATH "/bioseq/Programs/MAFFT_7.222/installation/bin:${PATH}" ahead of this mafft command so all components will be found...
-MAFFT_v7_222 = '/bioseq/Programs/MAFFT_7.222/installation/bin/mafft' # v7.222
-
+# relevant modules
+GCC = 'gcc/gcc-7.3.0'
+MCL = 'MCL-edge/mcl-14-137'
+MAFFT = 'mafft/mafft-7.407'
+RAXML = 'raXML'
+PRODIGAL = 'prodigal/prodigal-2.6.3'
 
 WEBSERVER_NAME = 'M1CR0B1AL1Z3R'
 WEBSERVER_URL = 'https://microbializer.tau.ac.il'
@@ -32,9 +34,15 @@ WEBSERVER_RESULTS_URL = os.path.join(WEBSERVER_URL, 'results')
 MAIN_SCRIPT = os.path.join('/bioseq/microbializer/pipeline/microbializer_pipeline.py')
 
 #path to example data
-EXAMPLE_DATA = os.path.join(WEBSERVER_HTML_DIR, 'example_data.tar.gz')
+EXAMPLE_DATA = os.path.join(WEBSERVER_HTML_DIR, 'example_data.zip')
 
 WEBSERVER_JUMBOTRON = f'&nbsp;&nbsp;&nbsp;&nbsp;<span id="server-title">{WEBSERVER_NAME}</span>&nbsp;&nbsp;&nbsp;&nbsp;<span id="sub-title">{WEBSERVER_TITLE}</span>'
+
+PROGRESS_BAR_TAG = '''<div class="progress">
+        <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width:5%">
+ORFs detection ; Searching homologs ; Clustering homologs ; Aligning homologs ; Core proteome inferrence ; Tree reconstruction ; Additional statistics
+        </div>
+    </div>'''
 
 CONTAINER_WIDTH = 'width: 850px'
 CONTAINER_NO_MARGIN = 'margin: 0 auto'
