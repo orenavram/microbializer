@@ -1,8 +1,8 @@
 def mcl(input_file, output_file):
     # --abc for a columns format, i.e., item1\item2\tscore
-    cmd = f'mcl {input_file} --abc -o {output_file}'
-    logger.info(f'Calling:\n{cmd}')
     import subprocess
+    cmd = f'mcl {input_file} --abc -o {output_file}'
+    logger.info(f'Starting MCL. Calling:\n{cmd}')
     subprocess.run(cmd, shell=True)
 
 

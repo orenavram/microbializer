@@ -1,4 +1,4 @@
-#!/data/shared/python/anaconda3-5.1.0/bin/python3.6
+#!/powerapps/share/centos7/python-anaconda3.6.5/bin/python
 
 import os
 import shutil
@@ -84,18 +84,35 @@ def write_html_prefix(output_path, run_number):
         </div>
         <br><br><div class="container" style="font-size: 17px; {CONSTS.CONTAINER_STYLE}"  align="justify"><br> 
         <H1 align=center>Job Status: <FONT color='red'>RUNNING</FONT></h1>
-        <br>{CONSTS.WEBSERVER_NAME} is now processing your request. This page will be automatically updated every {CONSTS.RELOAD_INTERVAL} seconds (until the job is done). You can also reload it manually. Once the job has finished, several links to the output files will appear below. A link to this page was sent to your email in case you wish to view these results at a later time without recalculating them. Please note that the results will be kept in the server for 3 months.
+        <br>
+        {CONSTS.PROGRESS_BAR_TAG}
+        {CONSTS.WEBSERVER_NAME} is now processing your request. This page will be automatically updated every {CONSTS.RELOAD_INTERVAL} seconds (until the job is done). You can also reload it manually. Once the job has finished, several links to the output files will appear below. A link to this page was sent to your email in case you wish to view these results at a later time without recalculating them. Please note that the results will be kept in the server for 3 months.
         <br><br></div>''')
         output_path_f.flush()
 
 
-def write_running_parameters_to_html(output_path, job_title, file_name=''):
+def write_running_parameters_to_html(output_path, identity_cutoff, e_value_cutoff, core_minimal_percentage, job_title, file_name=''):
     with open(output_path, 'a') as output_path_f:
         output_path_f.write(f'<div class="container" style="{CONSTS.CONTAINER_STYLE}">')
 
         # regular params rows
         output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-8">')
         output_path_f.write(f'<b>Folder name: </b>{file_name}')
+        output_path_f.write('</div></div>')
+
+        # regular params rows
+        output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-8">')
+        output_path_f.write(f'<b>Identity minimal percent cutoff: </b>{identity_cutoff}')
+        output_path_f.write('</div></div>')
+
+        # regular params rows
+        output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-8">')
+        output_path_f.write(f'<b>Maximal e-value cutoff: </b>{e_value_cutoff}')
+        output_path_f.write('</div></div>')
+
+        # regular params rows
+        output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-8">')
+        output_path_f.write(f'<b>Minimal percentage for core: </b>{core_minimal_percentage}')
         output_path_f.write('</div></div>')
 
         # optional params rows
@@ -113,7 +130,7 @@ def write_cmds_file(cmds_file, parameters, run_number):
     new_line_delimiter = '!@#'
     # the code contains features that are exclusive to Python3.6 (or higher)!
     required_modules = ' '.join(
-        ['python/anaconda_python-3.6.4'])
+        ['python/python-anaconda3.6.5'])
     with open(cmds_file, 'w') as f:
         f.write(f'module load {required_modules};')
         f.write(new_line_delimiter)
@@ -130,7 +147,7 @@ def run_cgi():
 
     # random_chars = "".join(choice(string.ascii_letters + string.digits) for x in range(20))
     run_number = str(round(time())) + str(randint(10 ** 19, 10 ** 20 - 1))  # adding 20 random digits to prevent users see data that are not their's
-    if form['example_page'].value == 'yes':
+    if form['example_page'].value == 'yes': #TODO: uncomment this if clause!!
         run_number = 'example'  # str(round(time())) + str(randint(1000,9999)) # adding 4 random figures to prevent users see data that are not their's
 
     results_url = os.path.join(CONSTS.WEBSERVER_RESULTS_URL, run_number)
@@ -140,10 +157,10 @@ def run_cgi():
     create_dir(wd)
     output_path = os.path.join(wd, 'output.html')
     cgi_debug_path = os.path.join(wd, 'cgi_debug.txt')
-    #print('Content-Type: text/html\n')  # For more details see https://www.w3.org/International/articles/http-charset/index#scripting
-    # print_hello_world(output_html_path, run_number) # comment out for debugging
 
-    write_html_prefix(output_path, run_number)  # html's prefix must be written BEFORE redirecting...
+    page_is_ready = os.path.exists(output_path)
+    if not page_is_ready:
+        write_html_prefix(output_path, run_number)  # html's prefix must be written BEFORE redirecting...
 
     print(f'Location: {output_url}')  # Redirects to the results url. MUST appear before any other print.
     print('Content-Type: text/html\n')  # For more details see https://www.w3.org/International/articles/http-charset/index#scripting
@@ -177,8 +194,11 @@ def run_cgi():
 
         # extract form's values:
         user_email = form['email'].value.strip()
-
         job_title = form['job_title'].value.strip()
+        identity_cutoff = form['identity_cutoff'].value.strip()
+        e_value_cutoff = form['e_value_cutoff'].value.strip()
+        core_minimal_percentage = form['core_minimal_percentage'].value.strip()
+
 
         # This is hidden field that only spammer bots might fill in...
         confirm_email_add = form['confirm_email'].value  # if it is contain a value it is a spammer.
@@ -197,7 +217,7 @@ def run_cgi():
                 data_f.write(data)
             write_to_debug_file(cgi_debug_path_f, f'Uploaded data was saved to disk successfully\n')
         else:  # example data
-            file_name = 'example_data.tar.gz'
+            file_name = 'example_data.zip'
             data_path = os.path.join(wd, file_name)
             write_to_debug_file(cgi_debug_path_f, f'Copying example data FROM {CONSTS.EXAMPLE_DATA} TO {data_path}\n')
             try:
@@ -210,29 +230,43 @@ def run_cgi():
         write_to_debug_file(cgi_debug_path_f, f'ls of {wd} yields:\n{os.listdir(wd)}\n')
 
         write_to_debug_file(cgi_debug_path_f, f'{ctime()}: write_running_parameters_to_html...\n')
-        write_running_parameters_to_html(output_path, job_title, file_name)
+
+        if not page_is_ready:
+            write_running_parameters_to_html(output_path, identity_cutoff, e_value_cutoff, core_minimal_percentage, job_title, file_name)
+
         write_to_debug_file(cgi_debug_path_f, f'{ctime()}: Running parameters were written to html successfully.\n')
 
-        parameters = f'{data_path} {os.path.join(wd, "outputs")} {CONSTS.OWNER_EMAIL} -q bioseq'
+        # send jobs only to one machine so there won't be a dead lock
+        # (cluster might be full with main jobs waiting for sub jobs but they are in qw mode...)
+        queue_name = '"pupkoweb -l nodes=compute-0-291"'
+        # queue_name = 'pupkoweb'  # all pupko machines on power
+        queue_name_for_subjobs = 'pupkoweb'  # all pupko machines on power
+
+        parameters = f'{data_path} ' \
+                     f'{os.path.join(wd, "outputs")} ' \
+                     f'{CONSTS.OWNER_EMAIL} ' \
+                     f'--identity_cutoff {identity_cutoff} ' \
+                     f'--e_value_cutoff {e_value_cutoff} ' \
+                     f'--core_minimal_percentage {core_minimal_percentage} ' \
+                     f'--queue_name {queue_name_for_subjobs}'
 
         cmds_file = os.path.join(wd, 'qsub.cmds')
         write_cmds_file(cmds_file, parameters, run_number)
 
         log_file = cmds_file.replace('cmds', 'log')
-        # complex command with more than one operation (module load + python q_submitter.py)
-        # submission_cmd = 'ssh bioseq@lecs2login "module load python/anaconda_python-3.6.4; python /bioseq/bioSequence_scripts_and_constants/q_submitter.py {} {} -q {} --verbose > {}"'.format(cmds_file, wd, queue_name, log_file)
+        # complex command with more than one operation (module load + python q_submitter_power.py)
+        # submission_cmd = 'ssh bioseq@powerlogin "module load python/python-3.6.7; python /bioseq/bioSequence_scripts_and_constants/q_submitter_power.py {} {} -q {} --verbose > {}"'.format(cmds_file, wd, queue_name, log_file)
 
         # simple command when using shebang header
-        submission_cmd = f'ssh bioseq@lecs2login /bioseq/bioSequence_scripts_and_constants/q_submitter.py {cmds_file} {wd} -q bioseq --verbose > {log_file}'
-        # TODO: consider sending the main jobs only for a specific machine (or two) other wise you can get a dead lock
-        # TODO: (cluster might be full with main jobs waiting for sub jobs but they are in qw mode...)
+        submission_cmd = f'/bioseq/bioSequence_scripts_and_constants/q_submitter_power.py {cmds_file} {wd} -q {queue_name} --verbose > {log_file}'
 
         write_to_debug_file(cgi_debug_path_f, f'\nSSHing and SUBMITting the JOB to the QUEUE:\n{submission_cmd}\n')
 
-        subprocess.call(submission_cmd, shell=True)
+        if not page_is_ready:
+            subprocess.call(submission_cmd, shell=True)
 
         if user_email != '':
-            with open(os.path.join(wd, 'user_email.txt'), 'w') as email_f:
+            with open(os.path.join(wd, 'user_email.txt'), 'a') as email_f:
                 email_f.write(f'{user_email}\n')
 
         write_to_debug_file(cgi_debug_path_f, f'\n\n{"#"*50}\nCGI finished running!\n{"#"*50}\n')

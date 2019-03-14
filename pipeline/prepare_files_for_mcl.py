@@ -44,6 +44,7 @@ def load_reciprocal_hits_to_dictionary(all_reciprocal_hits_path, delimiter):
 
 def generate_text_to_mcl_input_file(gene_pair_to_score_dict, gene_pairs):
     text_to_mcl_file = ''
+    logger.debug(f'gene_pair_to_score_dict content is:\n{gene_pair_to_score_dict}')
     for pair in gene_pairs:
         # get gene1,gene2 score
         score = gene_pair_to_score_dict.get(pair)
@@ -51,9 +52,8 @@ def generate_text_to_mcl_input_file(gene_pair_to_score_dict, gene_pairs):
             # get gene2,gene1 score if gene1,gene2 is not in the dictionary
             score = gene_pair_to_score_dict.get(pair[::-1])
         if not score:
-            # TODO: raise an exception
-            # both pairs are not in the dictionary!! probably a bug...
-            # raise ValueError(f'Pair {pair} does not exist in gene_pair_to_score_dict:\n{gene_pair_to_score_dict}')
+            # both pairs are not in the dictionary!! possible bug..?
+            logger.fatal(f'Pair {pair} does not exist in gene_pair_to_score_dict!! Setting score to 1')
             score = '1'
 
         text_to_mcl_file += f'{pair[0]}\t{pair[1]}\t{score}\n'

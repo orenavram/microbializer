@@ -15,10 +15,6 @@ def find_genes(genome, output_path, log_path):
     else:
         mode = 'single'
     cmd = f'prodigal -i {genome}  -d {output_path} -p {mode}'
-    #cmd = 'prodigal -i {input_file}  -d {output_file} -o {log_file} -p {Specify_mode}'.format(input_file=genome,
-    #                                                                                         output_file=output_path,
-    #                                                                                         log_file = log_path,
-    #                                                                                         Specify_mode=mode)
     logger.info(f'Starting prodigal. Executed command is:\n{cmd}')
     subprocess.run(cmd, shell=True)
 

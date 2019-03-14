@@ -25,8 +25,8 @@ def generate_boxplot(path_to_data, output_file_path, title='', xlabel='', ylabel
 
 def generate_tree_plot(path_to_data, output_file_path):
     tree = Phylo.read(path_to_data, 'newick')
-    Phylo.draw(tree)
-    pb.savefig(output_file_path)
+    Phylo.draw(tree)  # TODO: make figure proportional to number of species
+    pb.savefig(output_file_path, bbox_inches='tight', dpi=300)
 
 
 def generate_bar_plot(path_to_data, output_file_path, title='', xlabel='', ylabel='', dpi=300):

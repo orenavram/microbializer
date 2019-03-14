@@ -34,20 +34,25 @@ def update_core_genome(core_genome_dict, strain_to_gene_dict):
         core_genome_dict[strain] = core_genome_dict.get(strain, '') + strain_to_gene_dict[strain]
 
 
-def extract_core_genome(alignments_path, num_of_strains, core_genome_path, core_minimal_percentage):
+def extract_core_genome(alignments_path, num_of_strains, core_genome_path, core_ogs_names_path, core_minimal_percentage):
     core_genome_dict = {}
-    for og_file in os.listdir(alignments_path):
+    core_ogs = []
+    for og_file in os.listdir(alignments_path):  # TODO: consider sorting by og name (currnetly the concatenation is arbitrary)
         strain_to_gene_dict = load_orthologs_group_to_dict(os.path.join(alignments_path, og_file))
         if is_core_gene(strain_to_gene_dict, num_of_strains, core_minimal_percentage):
             logger.info(f'Adding to core genome: {og_file} ({len(strain_to_gene_dict)}/{num_of_strains} >= {core_minimal_percentage}%)')
             update_core_genome(core_genome_dict, strain_to_gene_dict)
+            core_ogs.append(og_file.split('_')[1])  # e.g., og_2655_aa_mafft.fas
         else:
             logger.info(f'Not a core gene: {og_file} ({len(strain_to_gene_dict)}/{num_of_strains} < {core_minimal_percentage}%)')
-
 
     with open(core_genome_path, 'w') as f:
         for strain in sorted(core_genome_dict):
             f.write(f'>{strain}\n{core_genome_dict[strain]}\n')
+
+    sorted_core_groups_names = sorted(core_ogs, key=int)
+    with open(core_ogs_names_path, 'w') as f:
+        f.write('\n'.join(f'og_{core_group}' for core_group in sorted_core_groups_names))  # e.g., 2655
 
 
 if __name__ == '__main__':
@@ -59,6 +64,7 @@ if __name__ == '__main__':
         parser.add_argument('aa_alignments_path', help='path to a folder where each file is a multiple sequences fasta file')
         parser.add_argument('num_of_strains', help='number of strains in the data', type=int)
         parser.add_argument('core_genome_path', help='path to an output file in which the core genome will be written')
+        parser.add_argument('core_ogs_names_path', help='path to an output file in which the core groups names will be written')
         parser.add_argument('--core_minimal_percentage', type=float,
                             help='number that represents the required percent that is needed to be considered a core gene. For example: (1) 100 means that for a gene to be considered core, all strains should have a member in the group.\n(2) 50 means that for a gene to be considered core, at least half of the strains should have a member in the group.\n(3) 0 means that every gene should be considered as a core gene.')
         parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
@@ -72,4 +78,4 @@ if __name__ == '__main__':
         logger = logging.getLogger('main')
 
         extract_core_genome(args.aa_alignments_path, args.num_of_strains,
-                            args.core_genome_path, args.core_minimal_percentage)
+                            args.core_genome_path, args.core_ogs_names_path, args.core_minimal_percentage)

@@ -4,7 +4,11 @@
 
 def reconstruct_msa(sequences_file_path, output_file_path, maxiterate):
     import subprocess
-    cmd = f'mafft-linsi --maxiterate {maxiterate} --localpair {sequences_file_path} > {output_file_path}'
+    #cmd = f'mafft-linsi --maxiterate {maxiterate} --localpair {sequences_file_path} > {output_file_path}'
+
+    # --auto Automatically selects an appropriate strategy from L-INS-i, FFT-NS-i and FFT-NS-2, according to data size.
+    cmd = f'mafft --auto {sequences_file_path} > {output_file_path}'
+    logger.info(f'Starting MAFFT. Executed command is:\n{cmd}')
     subprocess.run(cmd, shell=True)
 
 

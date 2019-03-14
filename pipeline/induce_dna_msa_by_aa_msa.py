@@ -25,8 +25,6 @@ def induce_msa(aa_msa_path, dna_ms_path, output_path):
                 og_name = line.lstrip('>').rstrip()
                 induced_dna_sequence = induce_sequence(og_name_to_aa[og_name], og_name_to_dna[og_name])
                 result += f'>{og_name}\n{induced_dna_sequence}\n'
-        # don't forget last record!!
-        result += f'>{og_name}\n{induced_dna_sequence}\n'
 
     with open(output_path, 'w') as f:
         f.write(result)

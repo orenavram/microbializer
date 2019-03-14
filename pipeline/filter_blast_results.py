@@ -22,7 +22,7 @@ if __name__ == '__main__':
     parser.add_argument('blast_result', help='path to fasta genome file')
     parser.add_argument('output_path', help='path to output file')
     parser.add_argument('--identity_cutoff', help='path to translated sequences', type=float)
-    parser.add_argument('--evaule_cutoff', help='path to translated sequences', type=float)
+    parser.add_argument('--e_value_cutoff', help='path to translated sequences', type=float)
     parser.add_argument('--delimiter', help='orthologs table delimiter', default='\t')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
 
@@ -35,5 +35,5 @@ if __name__ == '__main__':
         logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger('main')
 
-    filter_blast(args.blast_result, args.output_path, args.identity_cutoff, args.evaule_cutoff, args.delimiter)
+    filter_blast(args.blast_result, args.output_path, args.identity_cutoff, args.e_value_cutoff, args.delimiter)
 
