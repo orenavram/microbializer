@@ -122,6 +122,7 @@ def write_running_parameters_to_html(output_path, identity_cutoff, e_value_cutof
             output_path_f.write('</div></div>')
 
         output_path_f.write('</div><br>')
+        output_path_f.write('\n\n<!--result-->\n')
         output_path_f.flush()
 
 

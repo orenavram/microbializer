@@ -30,7 +30,8 @@ def wait_for_results(script_name, path, num_of_expected_results, error_file_path
     start = time()
     logger.info(f'Waiting for {script_name}...\nContinues when {num_of_expected_results} results will be in:\n{path}')
     if num_of_expected_results==0:
-        raise ValueError(f'\n{"#"*100}\nnum_of_expected_results is {num_of_expected_results}! Something went wrong in the previous step...\n{"#"*100}')
+        logger.fatal(f'\n{"#"*100}\nnum_of_expected_results in {path} is {num_of_expected_results}!\nSomething went wrong in the previous step...\n{"#"*100}')
+        #raise ValueError(f'\n{"#"*100}\nnum_of_expected_results is {num_of_expected_results}! Something went wrong in the previous step...\n{"#"*100}')
     total_time = 0
     i = 0
     current_num_of_results = 0
@@ -104,6 +105,13 @@ def submit_pipeline_step(script_path, params, tmp_dir, job_name, queue_name, new
     with open(cmds_path, 'w') as f:
         f.write(cmds_as_str)
     execute([q_submitter_script_path, cmds_path, tmp_dir, '-q', queue_name])
+
+
+def fail(error_msg, error_file_path):
+    with open(error_file_path, 'w') as error_f:
+        error_f.write(error_msg + '\n')
+    raise ValueError(error_msg)
+
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)

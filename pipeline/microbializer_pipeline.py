@@ -10,9 +10,9 @@ def notify_admin(meta_output_dir, meta_output_url, run_number, CONSTS):
         with open(user_email_path) as f:
             email = f.read().rstrip()
     error_log_path = 'NO_ERROR_LOG'
-    tmp = [file for file in os.listdir(meta_output_dir) if file.endswith('.err')]
+    tmp = [file for file in os.listdir(meta_output_dir) if file.endswith('.ER')]
     if len(tmp) > 0:
-        error_log_path = tmp[0]
+        error_log_path = tmp[-1]
     # Send me a notification email every time there's a failure
     send_email(smtp_server=CONSTS.SMTP_SERVER,
                sender=CONSTS.ADMIN_EMAIL,
@@ -56,6 +56,7 @@ try:
     import os
     import tarfile
     import shutil
+    import mmap
 
     print(os.getcwd())
     print(f'sys.path is\n{sys.path}')
@@ -120,6 +121,8 @@ try:
     meta_output_dir = os.path.join(os.path.split(args.output_dir)[0])
     logger.info(f'meta_output_dir is: {meta_output_dir}')
 
+    error_file_path = os.path.join(meta_output_dir, 'error.txt')
+
     run_number = os.path.join(os.path.split(meta_output_dir)[1])
     logger.info(f'run_number is {run_number}')
 
@@ -130,8 +133,6 @@ try:
     logger.info(f'output_url is {output_url}')
 
     meta_output_url = os.path.join(CONSTS.WEBSERVER_RESULTS_URL, run_number)
-
-    error_file_path = os.path.join(args.output_dir, 'error.txt')
 
     tmp_dir = os.path.join(args.output_dir, 'tmp_dir')
     create_dir(tmp_dir)
@@ -161,7 +162,10 @@ try:
             data_path = os.path.join(unzipping_data_path, file)
             file = [x for x in os.listdir(data_path) if not x.startswith(('_', '.'))][0]
             if os.path.isdir(os.path.join(data_path, file)):
-                assert ValueError('More than a 2-levels folder...')
+                error_msg = 'More than a 2-levels folder...'
+                with open(error_file_path, 'w') as error_f:
+                    error_f.write(error_msg+'\n')
+                raise ValueError(error_msg)
         else:
             data_path = unzipping_data_path
 
@@ -172,6 +176,25 @@ try:
         file_path = os.path.join(data_path, file)
         if file_path.endswith('gz'): # gunzip gz files in $data_path if any
             subprocess.run(f'gunzip -f {file_path}', shell=True)
+
+    for system_file in os.listdir(data_path):
+        if system_file.startswith(('.', '_')):
+            system_file_path = os.path.join(data_path, system_file)
+            logger.warning(f'Removing system file: {system_file_path}')
+            try:
+                shutil.rmtree(system_file_path) #maybe it's a folder
+            except:
+                pass
+            try:
+                os.remove(system_file_path)
+            except:
+                pass
+
+
+    min_number_of_genomes_to_analyze = 2
+    if len(os.listdir(data_path)) < min_number_of_genomes_to_analyze:
+        error_msg = f'Data contain too few genomes ({CONSTS.WEBSERVER_NAME} does comparative analysis and thus needs at least 2 genomes).'
+        fail(error_msg, error_file_path)
 
 
     # 1.	extract_orfs_sequences.py
@@ -189,9 +212,9 @@ try:
     if not os.path.exists(done_file_path):
         logger.info('Extracting ORFs...')
         for fasta_file in os.listdir(data_path):
-            if fasta_file.startswith(('.', '_')):
-                logger.warning(f'Skipping system file: {os.path.join(data_path, fasta_file)}')
-                continue
+            # if fasta_file.startswith(('.', '_')):
+            #     logger.warning(f'Skipping system file: {os.path.join(data_path, fasta_file)}')
+            #     continue
             fasta_file_prefix = os.path.splitext(fasta_file)[0]
             output_file_name = f'{fasta_file_prefix}.{dir_name}'
             output_coord_name = f'{fasta_file_prefix}.gene_coordinates'
@@ -206,6 +229,17 @@ try:
     else:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
     edit_progress(output_html_path, progress=10)
+
+
+    # make sure that all ORF files contain something....
+    for file in os.listdir(pipeline_step_output_dir):
+
+        with open(os.path.join(pipeline_step_output_dir, file), 'rb', 0) as orf_f, mmap.mmap(orf_f.fileno(), 0, access=mmap.ACCESS_READ) as s:
+            if s.find(b'>') > -1:
+                continue
+
+        error_msg = f'{CONSTS.WEBSERVER_NAME} could not find any ORFs in some of the genomes you provided (e.g., {os.path.splitext(file)[0]}).'
+        fail(error_msg, error_file_path)
 
 
     # 2.  create_mmseqs2_DB.py
@@ -672,6 +706,7 @@ try:
     num_of_expected_results = 0
     orthologs_dna_sequences_dir_path, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
     num_of_strains_path = os.path.join(final_orthologs_table_path, 'num_of_strains.txt')
+    strains_names_path = os.path.join(final_orthologs_table_path, 'strains_names.txt')
     done_file_path = os.path.join(done_files_dir, f'{step}_extract_orthologs_sequences.txt')
     num_of_cmds_per_job = 100
     num_of_aggregated_params = 0
@@ -718,8 +753,12 @@ try:
                                  more_cmds=more_cmds)
             num_of_expected_results += 1
 
-        # extract number of strains for core genome analysis later on
-        num_of_strains = len(final_table_header.split(','))
+        # extract number of strains and their names for core genome analysis later on
+        strains_names = final_table_header.split(',')
+        with open(strains_names_path, 'w') as f:
+            f.write('\n'.join(strains_names)+'\n')
+
+        num_of_strains = len(strains_names)
         with open(num_of_strains_path, 'w') as f:
             f.write(f'{num_of_strains}\n')
 
@@ -838,12 +877,14 @@ try:
     done_file_path = os.path.join(done_files_dir, f'{step}_extract_aligned_core_proteome.txt')
     aligned_core_proteome_file_path = os.path.join(aligned_core_proteome_path, 'aligned_core_proteome.fas')
     core_ogs_names_file_path = os.path.join(aligned_core_proteome_path, 'core_ortholog_groups_names.txt')
+    # with open(strains_names_path) as f:
+    #     strains_names = f.read().rstrip().split('\n')
+    with open(num_of_strains_path) as f:
+        num_of_strains = f.read().rstrip()
     if not os.path.exists(done_file_path):
         logger.info('Extracting aligned core proteome...')
-        with open(num_of_strains_path) as f:
-            num_of_strains = f.read().rstrip()
 
-        params = [aa_alignments_path, num_of_strains,
+        params = [aa_alignments_path, num_of_strains, strains_names_path,
                   aligned_core_proteome_file_path,
                   core_ogs_names_file_path,
                   f'--core_minimal_percentage {args.core_minimal_percentage}']  # how many members induce a core group?
@@ -866,8 +907,9 @@ try:
     num_of_expected_results = 1
     phylogeny_path, phylogeny_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
     phylogenetic_raw_tree_path = os.path.join(phylogeny_path, 'species_tree.txt')
-    done_file_path = os.path.join(done_files_dir, f'{step}_reconstruct_species_phylogeny.txt')
-    if not os.path.exists(done_file_path):
+    # no need to wait now. Wait before plotting the tree!
+    #done_file_path = os.path.join(done_files_dir, f'{step}_reconstruct_species_phylogeny.txt')
+    if not os.path.exists(phylogenetic_raw_tree_path):
         logger.info('Reconstructing species phylogeny...')
 
         params = [aligned_core_proteome_file_path,
@@ -877,10 +919,9 @@ try:
                              queue_name=args.queue_name, required_modules_as_list=[CONSTS.RAXML])
 
         # no need to wait now. Wait before plotting the tree!
-
-        file_writer.write_to_file(done_file_path)
+        #file_writer.write_to_file(done_file_path)
     else:
-        logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
+        logger.info(f'Raw tree file {phylogenetic_raw_tree_path} already exists.\nSkipping step...')
     edit_progress(output_html_path, progress=80)
 
 
@@ -983,6 +1024,9 @@ try:
         file_writer.write_to_file(done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
+        #num_of_expected_induced_results = (len(os.listdir(aa_alignments_path)) // num_of_cmds_per_job) + 1
+        #logger.info(f'num_of_expected_induced_results was set automatically to: {done_file_path}')
+
 
 
     # 19.	extract_groups_sizes_frequency
@@ -1065,7 +1109,7 @@ try:
     logger.info(f'Step {step}: {"_" * 100}')
     dir_name = f'{step}_plot_tree'
     done_file_path = os.path.join(done_files_dir, f'{step}_plot_species_phylogeny.txt')
-    if not os.path.exists(done_file_path):
+    if int(num_of_strains) > 3 and not os.path.exists(done_file_path):
         logger.info('Ploting species phylogeny...')
 
         # wait for the raw tree here
@@ -1073,11 +1117,18 @@ try:
                          num_of_expected_results=1, error_file_path=error_file_path)
 
         phylogenetic_png_tree_path = phylogenetic_raw_tree_path.replace('txt', 'png')
-        generate_tree_plot(phylogenetic_raw_tree_path, phylogenetic_png_tree_path)
+        try:
+            generate_tree_plot(phylogenetic_raw_tree_path, phylogenetic_png_tree_path)
+        except:
+            if not os.path.exists(phylogenetic_raw_tree_path):
+                logger.fatal(f'Raw tree file {phylogenetic_raw_tree_path} does not exist! Possible bug?')
+            else:
+                logger.fatal(f'Raw tree file {phylogenetic_raw_tree_path} exists but could not generate a png! Check RAxML logs for further info.')
 
         file_writer.write_to_file(done_file_path)
     else:
-        logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
+        logger.info(f'Number of strains is {num_of_strains}')
+        logger.info(f'Number of strains < 4 or done file {done_file_path} already exists.\nSkipping step...')
 
 
     edit_progress(output_html_path, progress=98)
@@ -1162,13 +1213,18 @@ except Exception as e:
     import logging
     logger = logging.getLogger('main')  # use logger instead of printing
 
-    msg = 'M1CR0B1AL1Z3R failed :('
+    error_msg = f'{CONSTS.WEBSERVER_NAME} failed :('
+    if os.path.exists(error_file_path):
+        with open(error_file_path) as error_f:
+            error_txt = error_f.read()
+            logger.error(f'error.txt file says:\n{error_txt}')
+            error_msg = f'The job was failed due to the following reason:<br>{error_txt}'
 
     exc_type, exc_obj, exc_tb = sys.exc_info()
     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-    logger.error(f'\n\n{"$" * 100}\n\n{msg}\n\n{fname}: {exc_type}, at line: {exc_tb.tb_lineno}\n\ne: {e}\n\n{"$" * 100}')
+    logger.error(f'\n\n{"$" * 100}\n\n{error_msg}\n\n{fname}: {exc_type}, at line: {exc_tb.tb_lineno}\n\ne: {e}\n\n{"$" * 100}')
 
-    edit_failure_html(output_html_path, run_number, msg, CONSTS)
+    edit_failure_html(output_html_path, run_number, error_msg, CONSTS)
     edit_progress(output_html_path, active=False)
 
     notify_admin(meta_output_dir, meta_output_url, run_number, CONSTS)

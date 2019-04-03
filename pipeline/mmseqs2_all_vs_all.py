@@ -13,7 +13,7 @@ def search_all_vs_all(query_dna_db, query_aa_db, target_dna_db, target_aa_db, al
         logger.info(f'Iteration #{i}: Executing mmseqs2 search for {query_aa_db} and {target_aa_db}')
         i += 1
 
-        cmd = f'mmseqs search {query_aa_db} {target_aa_db} {aln_db} {tmp_dir} --max-seqs 1'
+        cmd = f'mmseqs search {query_aa_db} {target_aa_db} {aln_db} {tmp_dir} --max-seqs 1' #TODO: check what this max-seqs parameter means!
         logger.info(f'Calling:\n{cmd}')
         subprocess.run(cmd, shell=True)
 
