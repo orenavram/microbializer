@@ -89,41 +89,23 @@
 </nav>
 <div id="behind-nav-bar">
 </div>
-<div class="container">
+<div class="container" id="basic">
     <div class="row">
         <div class="col-md-1">
         </div>
-        <div class="col-md-10" id="basic">
+        <div class="col-md-10">
+            <div id="please-note" align="justify">Please notice that files larger than 100MB may require up to 30 minutes to be uploaded, depending on your network speed (preferably not over Wi-Fi).</div>
             <form id="microbializer_form" action="https://microbializer.tau.ac.il/cgi-bin/microbializer_cgi.py" method="post" ENCTYPE="multipart/form-data" target="_blank" onsubmit="return validate_read_files()">
+                <div class="container">
                     <input type="hidden" name="example_page" value="no">
                     <!--<center><img src=pics/under_construction.png id="under-construction"></center><br>-->
                     <!--<h2><center><span>UNDER CONSTRUCTION!</span></center></h2>-->
-                    <div id="please-note" align="justify">Please notice that files larger than 100MB may require up to 30 minutes to be uploaded, depending on your network speed (preferably not over Wi-Fi).</div>
 
-                    <br>
                     <div class="form-group row">
                         <div class="col-md-4">
                                 <label for="data">
                                     Archived folder of genomic sequences (zip/tar.gz)
                                 </label>
-                                <!--<button type="button" class="btn btn-lg glyphicon" data-toggle="modal" data-target="#tar_info_modal" id="tar_info">&#xe085;</button>-->
-
-                                <!--&lt;!&ndash; Modal &ndash;&gt;-->
-                                <!--<div class="modal fade" id="tar_info_modal" role="dialog">-->
-                                    <!--<div class="modal-dialog">-->
-
-                                        <!--&lt;!&ndash; Modal content&ndash;&gt;-->
-                                        <!--<div class="modal-content">-->
-                                            <!--<div class="modal-header">-->
-                                                <!--<button type="button" class="close" data-dismiss="modal">&times;</button>-->
-                                                <!--<h4 class="modal-title">Don't have a zipped folder?</h4>-->
-                                            <!--</div>-->
-                                            <!--<div class="modal-body">-->
-                                                <!--If you have a folder with fasta files follow the instructions for <a href='https://linhost.info/2012/08/gzip-files-in-windows/' target="_blank">Windows</a> / <a href='https://coolestguidesontheplanet.com/how-to-compress-and-uncompress-files-and-folders-in-os-x-lion-10-7-using-terminal/' target="_blank">MacOS</a> to convert your folder into a <i>tar.gz</i> file-->
-                                            <!--</div>-->
-                                        <!--</div>-->
-                                    <!--</div>-->
-                                <!--</div>-->
                                 <label class="btn btn-default btn-file">
                                     <input type="file" id="data" name="data" required>
                                 </label>
@@ -131,24 +113,36 @@
                     </div>
                     <div class="form-group row">
                         <div class="col-md-4">
-                            <label for="email">Email</label>
+                            <label for="email">Email (optional)</label>
                             <input type="email" class="form-control" id="email" name="email" placeholder="We'll send you a link to the results">
                             <input class="form-control" name="confirm_email" type="hidden">
                         </div>
                         <div class="col-md-4">
-                            <label for="job_title">A descriptive job title</label>
-                            <input type="text" class="form-control" id="job_title" name="job_title" placeholder="(optional)">
+                            <label for="job_title">A descriptive job title (optional)</label>
+                            <input type="text" class="form-control" id="job_title" name="job_title">
                         </div>
                     </div>
                     <br>
 
                     <button type="button" class="btn btn-warning" id="advanced_button" onclick="openAdvanced()">Advanced options</button>
                     <div id="advanced" style="display:none;">
+                        <div class="form-group row">
+                            <div class="col-md-8">
+                                <br>
+                                <label for="bootstrap">Apply bootstrap?
+                                <!--<button type="button" class="btn btn-lg" data-toggle="modal" data-target="#info1">-->
+                                    <!--<span class="glyphicon glyphicon-question-sign"></span>-->
+                                <!--</button>-->
+                                    <label class="radio-inline"><input type="radio" name="bootstrap" id="bootstrap" value="yes" checked>Yes</label>
+                                    <label class="radio-inline"><input type="radio" name="bootstrap" value="no">No</label>
+                                </label>
+                            </div>
+                        </div>
 
                         <div class="form-group row">
                             <div class="col-md-8">
                                 <label for="core_minimal_percentage">Minimal percent of to be considered as a core gene:
-                                <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#info1">
+                                <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#info2">
                                     <span class="glyphicon glyphicon-question-sign"></span>
                                 </button>
                                 </label>
@@ -158,7 +152,7 @@
                         <div class="form-group row">
                             <div class="col-md-8">
                                 <label for="identity_cutoff">Minimal percent of identity:
-                                <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#info2">
+                                <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#info3">
                                     <span class="glyphicon glyphicon-question-sign"></span>
                                 </button></label>
                                 <input type="number" class="form-control" min="0" max="100" step="any" id="identity_cutoff" name="identity_cutoff" value="80" required>
@@ -167,7 +161,7 @@
                         <div class="form-group row">
                             <div class="col-md-8">
                                 <label for="e_value_cutoff">Maximal permitted e-value:
-                                <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#info3">
+                                <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#info4">
                                     <span class="glyphicon glyphicon-question-sign"></span>
                                 </button>
                                 </label>
@@ -177,6 +171,16 @@
                     </div>
                    <!-- Modals -->
                     <div class="modal fade" id="info1" role="dialog">
+                        <div class="modal-dialog">
+                            <!-- Modal content-->
+                            <div class="modal-content">
+                                <div class="modal-body">
+                                    Notice that Bootstrap analysis is time consuming
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal fade" id="info2" role="dialog">
                         <div class="modal-dialog">
                             <!-- Modal content-->
                             <div class="modal-content">
@@ -193,7 +197,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="modal fade" id="info2" role="dialog">
+                    <div class="modal fade" id="info3" role="dialog">
                         <div class="modal-dialog">
                             <!-- Modal content-->
                             <div class="modal-content">
@@ -208,7 +212,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="modal fade" id="info3" role="dialog">
+                    <div class="modal fade" id="info4" role="dialog">
                         <div class="modal-dialog">
                             <!-- Modal content-->
                             <div class="modal-content">
@@ -230,7 +234,7 @@
                     <a href="index_example.html"><button type="button" class="btn btn-info">Load Example</button></a>
                     <!--<a href="index.html"><button type="button" class="btn btn-info">Clear Example</button></a>-->
                     <br><br>
-
+                </div>
             </form>
         </div>
         <div class="col-md-1">

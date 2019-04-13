@@ -88,14 +88,18 @@
 </nav>
 <div id="behind-nav-bar">
 </div>
-<div class="container">
+<div class="container" id="basic">
     <div class="row">
         <div class="col-md-1">
         </div>
         <div class="col-md-10">
+
             <form id="microbializer_form" action="https://microbializer.tau.ac.il/cgi-bin/microbializer_cgi.py" method="post" ENCTYPE="multipart/form-data" target="_blank">
-                <div class="container" id="basic">
+                <div class="container">
                     <input type="hidden" name="example_page" value="yes">
+                    <!--<center><img src=pics/under_construction.png id="under-construction"></center><br>-->
+                    <!--<h2><center><span>UNDER CONSTRUCTION!</span></center></h2>-->
+
                     <div class="form-group">
                         <b>Example data</b>
                         <label class="btn btn-default btn-file">
@@ -103,24 +107,36 @@
                         </label>
                     </div>
                     <div class="form-group row">
-                        <div class="col-md-3">
-                            <label for="email">Email:</label>
+                        <div class="col-md-4">
+                            <label for="email">Email (optional):</label>
                             <input type="email" class="form-control" id="email" name="email" placeholder="We'll send you a link to the results">
                             <input class="form-control" name="confirm_email" type="hidden">
                         </div>
-                        <div class="col-md-3">
-                            <label for="job_title">A descriptive job title:</label>
+                        <div class="col-md-4">
+                            <label for="job_title">A descriptive job title (optional):</label>
                             <input type="text" class="form-control" id="job_title" name="job_title" value="Example dataset" readonly>
                         </div>
                     </div>
                     <br>
                     <button type="button" class="btn btn-warning" id="advanced_button" onclick="openAdvanced()">Advanced options</button>
                     <div id="advanced" style="display:none;">
+                        <div class="form-group row">
+                            <div class="col-md-8">
+                                <br>
+                                <label for="bootstrap">Apply bootstrap?
+                                <!--<button type="button" class="btn btn-lg" data-toggle="modal" data-target="#info1">-->
+                                    <!--<span class="glyphicon glyphicon-question-sign"></span>-->
+                                <!--</button>-->
+                                    <label class="radio-inline"><input type="radio" name="bootstrap" id="bootstrap" value="yes" checked>Yes</label>
+                                    <label class="radio-inline"><input type="radio" name="bootstrap" value="no" disabled>No</label>
+                                </label>
+                            </div>
+                        </div>
 
                         <div class="form-group row">
                             <div class="col-md-8">
                                 <label for="core_minimal_percentage">Minimal percent of to be considered as a core gene:
-                                <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#info1">
+                                <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#info2">
                                     <span class="glyphicon glyphicon-question-sign"></span>
                                 </button>
                                 </label>
@@ -130,7 +146,7 @@
                         <div class="form-group row">
                             <div class="col-md-8">
                                 <label for="identity_cutoff">Minimal percent of identity:
-                                <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#info2">
+                                <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#info3">
                                     <span class="glyphicon glyphicon-question-sign"></span>
                                 </button></label>
                                 <input type="number" class="form-control" min="0" max="100" step="any" id="identity_cutoff" name="identity_cutoff" value="80" readonly>
@@ -139,7 +155,7 @@
                         <div class="form-group row">
                             <div class="col-md-8">
                                 <label for="e_value_cutoff">Maximal permitted e-value:
-                                <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#info3">
+                                <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#info4">
                                     <span class="glyphicon glyphicon-question-sign"></span>
                                 </button>
                                 </label>
@@ -148,7 +164,7 @@
                         </div>
                     </div>
                    <!-- Modals -->
-                    <div class="modal fade" id="info1" role="dialog">
+                    <div class="modal fade" id="info2" role="dialog">
                         <div class="modal-dialog">
                             <!-- Modal content-->
                             <div class="modal-content">
@@ -165,7 +181,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="modal fade" id="info2" role="dialog">
+                    <div class="modal fade" id="info3" role="dialog">
                         <div class="modal-dialog">
                             <!-- Modal content-->
                             <div class="modal-content">
@@ -180,7 +196,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="modal fade" id="info3" role="dialog">
+                    <div class="modal fade" id="info4" role="dialog">
                         <div class="modal-dialog">
                             <!-- Modal content-->
                             <div class="modal-content">

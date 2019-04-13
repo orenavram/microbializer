@@ -94,28 +94,16 @@
 			<div class="col-md-1">
 			</div>
 			<div class="col-md-10" align="justify">
-				<h2>Why my analysis results does not include a species tree?</h2>
-                The are several cases in which the analysis results will lack a phylogenetic tree. Generally, the data should contain at least 4 different genomic sequences and the inferred core proteome should not be empty.
-				<ul>
-					<li>
-                        Less than 4 genomes were provided (unrooted species tree for less than 4 genomes is trivial).<br>
-                        <u>Possible solution</u>: provide more sequences.
-					</li>
-					<li>
-						Genomic sequences are too close (RAxML reduces the alignment to unique sequences, i.e., it removes duplicates).<br>
-                        <u>Possible solution</u>: try to add more (evolutionary) distant species.
-					</li>
-					<li>
-                        The species are too distant and the filtration parameters are too stringent (this might result in an empty core proteome).<br>
-                        <u>Possible solution</u>: try to play with the running parameters values (under the "advanced options" yellow button).
-					</li>
-				</ul>
+				<h2>Why was a species tree not included in my analysis results?</h2>
+                There are several cases in which a phylogenetic tree is absent from the results. This can reflect datasets with less than four different genomic sequences. In this case there is no tree because unrooted trees for less than four sequences is trivial (there is only a single tree).
+                Another possibility is that there are no core genes. The tree is built based on the core proteome, and if there are no core genes (genes shared by all samples), there is no data to build the tree. A way around this is to change the definition of core genes in the advanced options.
+                Sometimes there are more than three sequences, there are core genes and still a tree is missing. This can reflect genomic sequences that are identical. RAxML reduces the input alignment to unique sequences, i.e., it removes duplicates.
+                <br><br>
+
 				<br>
 				<h2>Why does the homologs inference step take so long?</h2>
-                In the homologs inference step, each gene of each species is queried against all other genes in the data (except those who are related to the same species) making it the most computationally intensive step. Even though M1CR0B1AL1Z3R uses the fastest algorithms that are currently available, for a dataset with more ~250 genomes, this step might take even 10 hours. We are consistently working to make the pipeline faster (e.g., by parallelization).<br>
-                <u>Possible solution</u>: be patient :)
+                When searching for homologs, each gene in each species is queried against all other genes in all other taxa, making it the most computationally intensive step. Even though M1CR0B1AL1Z3R uses the fastest algorithm that is currently available for this task and despite the fact it uses parallelization for this computational step, for a dataset with ~250 genomes, this step might take even 10 hours.
                 <br>
-
 
 			</div>
 		</div>
