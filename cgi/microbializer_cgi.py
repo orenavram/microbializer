@@ -91,7 +91,7 @@ def write_html_prefix(output_path, run_number):
         output_path_f.flush()
 
 
-def write_running_parameters_to_html(output_path, identity_cutoff, e_value_cutoff, core_minimal_percentage, job_title, file_name=''):
+def write_running_parameters_to_html(output_path, identity_cutoff, e_value_cutoff, core_minimal_percentage, bootstrap, root, job_title, file_name=''):
     with open(output_path, 'a') as output_path_f:
         output_path_f.write(f'<div class="container" style="{CONSTS.CONTAINER_STYLE}">')
 
@@ -113,6 +113,16 @@ def write_running_parameters_to_html(output_path, identity_cutoff, e_value_cutof
         # regular params rows
         output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-8">')
         output_path_f.write(f'<b>Minimal percentage for core: </b>{core_minimal_percentage}')
+        output_path_f.write('</div></div>')
+
+        # regular params rows
+        output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-8">')
+        output_path_f.write(f'<b>Apply bootstrap: </b>{bootstrap.upper()}')
+        output_path_f.write('</div></div>')
+
+        # regular params rows
+        output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-8">')
+        output_path_f.write(f'<b>Tree type: </b>{"ROOTED" if root=="yes" else "UNROOTED"}')
         output_path_f.write('</div></div>')
 
         # optional params rows
@@ -167,6 +177,12 @@ def run_cgi():
     print('Content-Type: text/html\n')  # For more details see https://www.w3.org/International/articles/http-charset/index#scripting
     sys.stdout.flush()  # must be flushed immediately!!!
 
+    if 'email' not in form or 'wasscan' in form['email'].value:
+        exit()
+
+    if 'confirm_email' in form and form['confirm_email'].value != '':
+        exit()
+
     # Send me a notification email every time there's a new request
     send_email(smtp_server=CONSTS.SMTP_SERVER,
                sender=CONSTS.ADMIN_EMAIL,
@@ -199,7 +215,8 @@ def run_cgi():
         identity_cutoff = form['identity_cutoff'].value.strip()
         e_value_cutoff = form['e_value_cutoff'].value.strip()
         core_minimal_percentage = form['core_minimal_percentage'].value.strip()
-
+        bootstrap = form['bootstrap'].value.strip()
+        root = form['root'].value.strip()
 
         # This is hidden field that only spammer bots might fill in...
         confirm_email_add = form['confirm_email'].value  # if it is contain a value it is a spammer.
@@ -233,14 +250,14 @@ def run_cgi():
         write_to_debug_file(cgi_debug_path_f, f'{ctime()}: write_running_parameters_to_html...\n')
 
         if not page_is_ready:
-            write_running_parameters_to_html(output_path, identity_cutoff, e_value_cutoff, core_minimal_percentage, job_title, file_name)
+            write_running_parameters_to_html(output_path, identity_cutoff, e_value_cutoff, core_minimal_percentage, bootstrap, root, job_title, file_name)
 
         write_to_debug_file(cgi_debug_path_f, f'{ctime()}: Running parameters were written to html successfully.\n')
 
         # send jobs only to one machine so there won't be a dead lock
         # (cluster might be full with main jobs waiting for sub jobs but they are in qw mode...)
-        queue_name = '"pupkoweb -l nodes=compute-0-291"'
-        # queue_name = 'pupkoweb'  # all pupko machines on power
+        queue_name = 'pupkoweb'  # all pupko machines on power
+        #queue_name = '"pupkoweb -l nodes=compute-0-291"'  # TODO: uncomment to avoid deadlock
         queue_name_for_subjobs = 'pupkoweb'  # all pupko machines on power
 
         parameters = f'{data_path} ' \
@@ -249,7 +266,10 @@ def run_cgi():
                      f'--identity_cutoff {identity_cutoff} ' \
                      f'--e_value_cutoff {e_value_cutoff} ' \
                      f'--core_minimal_percentage {core_minimal_percentage} ' \
+                     f'--bootstrap {bootstrap} ' \
+                     f'--root {root} ' \
                      f'--queue_name {queue_name_for_subjobs}'
+
 
         cmds_file = os.path.join(wd, 'qsub.cmds')
         write_cmds_file(cmds_file, parameters, run_number)

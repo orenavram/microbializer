@@ -62,7 +62,7 @@ def edit_success_html(html_path, meta_output_dir, final_output_dir_name, run_num
         f'</thead>\n' \
         f'<tbody>'
 
-    raw_file_suffix = os.path.join(final_output_dir_name, '16_species_phylogeny/species_tree.txt')
+    raw_file_suffix = os.path.join(final_output_dir_name, '16_species_phylogeny/final_species_tree.txt')
     if os.path.exists(os.path.join(meta_output_dir, raw_file_suffix)):
         html_text += f'<tr><td><a href="{CONSTS.WEBSERVER_URL}/PhyD3/view_tree.php?id={run_number}&f=newick" target="_blank">Interactive species tree</a> ;' \
             f' (<a href="{raw_file_suffix}" target="_blank">raw data</a>)\n<br></td></tr>'

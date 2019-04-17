@@ -98,6 +98,10 @@ try:
                         help='maxmimum permitted e-value (0 <= e_value_cutoff <= 1; higher values will be filtered out).')
     parser.add_argument('--core_minimal_percentage', default=99.9, type=lambda x: eval(x), # if 0 <= eval(x) <= 100 else parser.error(f"Can't use {x} as percent!"),
                         help='the minimum required percent of gene members that is needed to be considered a core gene. For example: (1) 100 means that for a gene to be considered core, all strains should have a member in the group.\n(2) 50 means that for a gene to be considered core, at least half of the strains should have a member in the group.\n(3) 0 means that every gene should be considered as a core gene.')
+    parser.add_argument('--bootstrap', default='no', choices=['yes', 'no'],
+                        help='whether or not to apply bootstrap procedure over the reconstructed species tree.')
+    parser.add_argument('--root', default='no', choices=['yes', 'no'],
+                        help='whether or not to root the species phylogeny.')
     parser.add_argument('-q', '--queue_name', help='The cluster to which the job(s) will be submitted to',
                         choices=['pupkoweb', 'pupko', 'itaym', 'lilach', 'bioseq', 'bental', 'oren.q', 'bioseq20.q'], default='pupkoweb')
     parser.add_argument('--dummy_delimiter',
@@ -428,7 +432,7 @@ try:
     num_of_expected_results = 0
     pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
     done_file_path = os.path.join(done_files_dir, f'{step}_find_reciprocal_hits.txt')
-    num_of_cmds_per_job = 10
+    num_of_cmds_per_job = 50
     num_of_aggregated_params = 0
     more_cmds = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
     if not os.path.exists(done_file_path):
@@ -906,20 +910,30 @@ try:
     script_path = os.path.join(args.src_dir, 'reconstruct_species_phylogeny.py')
     num_of_expected_results = 1
     phylogeny_path, phylogeny_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
-    phylogenetic_raw_tree_path = os.path.join(phylogeny_path, 'species_tree.txt')
+    phylogenetic_raw_tree_path = os.path.join(phylogeny_path, 'final_species_tree.txt')
     # no need to wait now. Wait before plotting the tree!
     #done_file_path = os.path.join(done_files_dir, f'{step}_reconstruct_species_phylogeny.txt')
     if not os.path.exists(phylogenetic_raw_tree_path):
         logger.info('Reconstructing species phylogeny...')
 
+        num_of_cpus = 3
         params = [aligned_core_proteome_file_path,
                   phylogenetic_raw_tree_path,
-                  '--model PROTGAMMAILG']
+                  '--model PROTGAMMAILG',
+                  f'--num_of_bootstrap_iterations {100 if args.bootstrap=="yes" else 0}',
+                  f'--cpu {num_of_cpus}']  # both the Q and RAxML should get this as a parameter
+        if args.bootstrap == 'yes':
+            params += ['--num_of_bootstrap_iterations 100']
+        if args.root == 'yes':
+            params += ['--root']
+
         submit_pipeline_step(script_path, params, phylogeny_tmp_dir, job_name='tree_reconstruction',
-                             queue_name=args.queue_name, required_modules_as_list=[CONSTS.RAXML])
+                             queue_name=args.queue_name, required_modules_as_list=[CONSTS.RAXML], num_of_cpus=num_of_cpus)
 
         # no need to wait now. Wait before plotting the tree!
-        #file_writer.write_to_file(done_file_path)
+        # Still, in order to get more than one thread, allow few seconds to the subjobs to be submitted
+        # (before the next batch is submitted and pounds the cluster)
+        sleep(60)
     else:
         logger.info(f'Raw tree file {phylogenetic_raw_tree_path} already exists.\nSkipping step...')
     edit_progress(output_html_path, progress=80)
@@ -973,7 +987,7 @@ try:
         file_writer.write_to_file(done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
-    edit_progress(output_html_path, progress=85)
+    #edit_progress(output_html_path, progress=85)
 
 
     # 18.	induce_dna_msa_by_aa_msa.py
@@ -1061,7 +1075,7 @@ try:
         file_writer.write_to_file(done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
-    edit_progress(output_html_path, progress=90)
+    #edit_progress(output_html_path, progress=90)
 
 
     # 20.	plot_orfs_statistics
@@ -1101,7 +1115,8 @@ try:
         file_writer.write_to_file(done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
-    edit_progress(output_html_path, progress=95)
+    #edit_progress(output_html_path, progress=95)
+    edit_progress(output_html_path, progress=85)
 
 
     # 21.	plot species phylogeny
