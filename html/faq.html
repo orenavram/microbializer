@@ -1,40 +1,39 @@
 <!DOCTYPE html>
-<div id="loadingMask" style="width: 100%; height: 100%; position: fixed; background: #ffffff;"></div>
 <html lang="en">
-<head>
-    <title>Microbializer</title>
-    <!--<meta charset="utf-8">-->
-    <!--<meta name="viewport" content="width=device-width, initial-scale=1">-->
-    <link rel="shortcut icon" type="image/x-icon" href="pics/logo.gif" />
+    <head>
+        <title>Microbializer</title>
+        <!--<meta charset="utf-8">-->
+        <!--<meta name="viewport" content="width=device-width, initial-scale=1">-->
+        <link rel="shortcut icon" type="image/x-icon" href="pics/logo.gif" />
 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-    <link rel="stylesheet" href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <link rel="stylesheet" href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css">
 
-    <!--files for the select tag-->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/css/bootstrap-select.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/js/bootstrap-select.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/js/i18n/defaults-*.min.js"></script>
+        <!--files for the select tag-->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/css/bootstrap-select.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/js/bootstrap-select.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/js/i18n/defaults-*.min.js"></script>
 
-    <!--files for the checkbox tag (toggle)-->
-    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+        <!--files for the checkbox tag (toggle)-->
+        <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
 
 
-    <link rel="stylesheet" href="css/general.css">
-    <link rel="stylesheet" href="css/nav.css">
-    <script src="scripts/form_handler.js"></script>
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/nav.css">
+        <script src="scripts/form_handler.js"></script>
 
-    <!--<link href='https://fonts.googleapis.com/css?family=Kalam' rel='stylesheet'>-->
+        <!--<link href='https://fonts.googleapis.com/css?family=Kalam' rel='stylesheet'>-->
 
-    <!--<script src="https://code.jquery.com/jquery-1.10.2.js"></script>-->
-    <!--<script> $(function(){-->
-        <!--$("head").load("header.html");-->
-        <!--$('#loadingMask').fadeOut();});-->
-    <!--</script>-->
+        <!--<script src="https://code.jquery.com/jquery-1.10.2.js"></script>-->
+        <!--<script> $(function(){-->
+            <!--$("head").load("header.html");-->
+            <!--$('#loadingMask').fadeOut();});-->
+        <!--</script>-->
 
-</head>
-<body>
+    </head>
+    <body>
         <nav role="navigation" class="navbar navbar-inverse navbar-fixed-top" id="nav">
             <div class="jumbotron" id="jumbo">
                 <div class="container">
@@ -53,60 +52,72 @@
                     </div>
                 </div>
             </div>
-    <div class="container" id="nav_container">
-        <div class="row">
-            <div class="col-md-1">
+            <div class="container" id="nav_container">
+                <div class="row">
+                    <div class="col-md-1">
+                    </div>
+                    <div class="col-md-10">
+                        <ul class="nav navbar-nav" id="menu-nav">
+                            <li>
+                                <a href="index.html">Home</a>
+                            </li>
+                            <li>
+                                <a href="overview.html">Overview</a>
+                            </li>
+                            <li>
+                                <a href="gallery.html">Gallery</a>
+                            </li>
+                            <li class="active">
+                                <a href="faq.html">FAQ</a>
+                            </li>
+                            <li>
+                                <a href="terms.html">Terms of Use</a>
+                            </li>
+                            <li>
+                                <a href="credits.html">Credits</a>
+                            </li>
+                            <li style="float: right">
+                                <a href="https://english.tau.ac.il/" id="tau-link" target="_blank">
+                                    <img src=pics/TAU_LOGO.png id="tau-logo">
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </div>
-            <div class="col-md-10">
-                <ul class="nav navbar-nav" id="menu-nav">
-                    <li>
-                        <a href="index.html">Home</a>
-                    </li>
-                    <li>
-                        <a href="overview.html">Overview</a>
-                    </li>
-                    <li>
-                        <a href="gallery.html">Gallery</a>
-                    </li>
-                    <li class="active">
-                        <a href="faq.html">FAQ</a>
-                    </li>
-                    <li>
-                        <a href="terms.html">Terms of Use</a>
-                    </li>
-                    <li>
-                        <a href="credits.html">Credits</a>
-                    </li>
-                    <li style="float: right">
-                        <a href="https://english.tau.ac.il/" id="tau-link" target="_blank">
-                            <img src=pics/TAU_LOGO.png id="tau-logo">
-                        </a>
-                    </li>
-                </ul>
+        </nav>
+        <div id="behind-nav-bar">
+        </div>
+        <div class="container" id="overview_container">
+            <div class="row">
+                <div class="col-md-1">
+                </div>
+                <div class="col-md-10" align="justify">
+                    <h2>Why was a species tree not included in my analysis results?</h2>
+                    There are several cases in which a phylogenetic tree is absent from the results. This can reflect datasets with less than four different genomic sequences. In this case there is no tree because unrooted trees for less than four sequences is trivial (there is only a single tree).
+                    Another possibility is that there are no core genes. The tree is built based on the core proteome, and if there are no core genes (genes shared by all samples), there is no data to build the tree. A way around this is to change the definition of core genes in the advanced options.
+                    Sometimes there are more than three sequences, there are core genes and still a tree is missing. This can reflect genomic sequences that are identical. RAxML reduces the input alignment to unique sequences, i.e., it removes duplicates.
+                    <br><br>
+
+                    <br>
+                    <h2>Why does the homologs inference step take so long?</h2>
+                    When searching for homologs, each gene in each species is queried against all other genes in all other taxa, making it the most computationally intensive step. Even though M1CR0B1AL1Z3R uses the fastest algorithm that is currently available for this task and despite the fact it uses parallelization for this computational step, for a dataset with ~150 genomes, this step might take even 10 hours.
+                    <br><br>
+
+                    <br>
+                    <h2>Why does the species tree reconstruction step take so long?</h2>
+                    <h1>TODO</h1>
+
+
+
+
+                    <br><br><br><br>
+
+                </div>
             </div>
         </div>
-    </div>
-</nav>
-<div id="behind-nav-bar">
-</div>
-	<div class="container" id="overview_container">
-		<div class="row">
-			<div class="col-md-1">
-			</div>
-			<div class="col-md-10" align="justify">
-				<h2>Why was a species tree not included in my analysis results?</h2>
-                There are several cases in which a phylogenetic tree is absent from the results. This can reflect datasets with less than four different genomic sequences. In this case there is no tree because unrooted trees for less than four sequences is trivial (there is only a single tree).
-                Another possibility is that there are no core genes. The tree is built based on the core proteome, and if there are no core genes (genes shared by all samples), there is no data to build the tree. A way around this is to change the definition of core genes in the advanced options.
-                Sometimes there are more than three sequences, there are core genes and still a tree is missing. This can reflect genomic sequences that are identical. RAxML reduces the input alignment to unique sequences, i.e., it removes duplicates.
-                <br><br>
-
-				<br>
-				<h2>Why does the homologs inference step take so long?</h2>
-                When searching for homologs, each gene in each species is queried against all other genes in all other taxa, making it the most computationally intensive step. Even though M1CR0B1AL1Z3R uses the fastest algorithm that is currently available for this task and despite the fact it uses parallelization for this computational step, for a dataset with ~250 genomes, this step might take even 10 hours.
-                <br>
-
-			</div>
-		</div>
-	</div>
-</body>
+        <nav role="navigation" class="navbar-inverse navbar-fixed-bottom ng-binding">
+            Research Site | <a href="https://www.tau.ac.il/~talp/" target="_blank">Pupko Group</a>
+        </nav>
+    </body>
 </html>
