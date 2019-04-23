@@ -151,10 +151,10 @@
                                 </div>
                                 <div class="form-group row">
                                     <div class="col-md-8">
-                                        <label for="outgroup">Add root to the species tree over this outgroup:
-                                        <!--<button type="button" class="btn btn-lg" data-toggle="modal">-->
-                                            <!--<span class="glyphicon glyphicon-question-sign"></span>-->
-                                        <!--</button>-->
+                                        <label for="outgroup">Root the species tree according to this outgroup:
+                                        <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#info1">
+                                            <span class="glyphicon glyphicon-question-sign"></span>
+                                        </button>
                                         </label>
                                         <input class="form-control" id="outgroup" name="outgroup" value="Efergusonii_ATCC_35469" readonly>
                                     </div>
@@ -173,6 +173,21 @@
                                 </div>
                             </div>
                            <!-- Modals -->
+                            <div class="modal fade" id="info1" role="dialog">
+                                <div class="modal-dialog">
+                                    <!-- Modal content-->
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                            <div class="modal-title">A species name based on which the tree should be rooted</div>
+                                        </div>
+                                        <div class="modal-body"> <!--align="justify">-->
+                                            For example, if the genomic sequence in a file named: "Efergusonii_ATCC_35469.fna" is the desired outgroup, than "Efergusonii_ATCC_35469" should be provided.
+                                            Of note, the outgroup name is CASE-SENSITIVE and thus should IDENTICAL to the corresponding genomic file name (excluding its extension), otherwise, the outgroup will be ignored and the resulted tree will be unrooted (as if no outgroup was provided).
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="modal fade" id="info2" role="dialog">
                                 <div class="modal-dialog">
                                     <!-- Modal content-->
@@ -196,11 +211,11 @@
                                     <div class="modal-content">
                                         <div class="modal-header">
                                             <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                            <div class="modal-title">The minimum percent of identity required for a pair of best reciprocal hits (lower values will be filtered out)</div>
+                                            <div class="modal-title">The minimum percent of identity required for a pair of best reciprocal hits</div>
                                         </div>
                                         <div class="modal-body">
                                             For example:<br>
-                                            If the cutoff is set to 80, every best reciprocal hit pair with less than 80% identity will be ignored.
+                                            If the cutoff is set to 80, every best reciprocal hit pair with less than 80% identity will be filtered out.
                                         </div>
                                     </div>
                                 </div>
@@ -211,11 +226,11 @@
                                     <div class="modal-content">
                                         <div class="modal-header">
                                             <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                            <div class="modal-title">The maxmimum permitted e-value for a pair of best reciprocal hits (higher values will be filtered out)</div>
+                                            <div class="modal-title">The maxmimum permitted e-value for a pair of best reciprocal hits</div>
                                         </div>
                                         <div class="modal-body">
                                             For example:<br>
-                                            If the cutoff is set to 0.01, every best reciprocal hit pair with greater e-value will be ignored.
+                                            If the cutoff is set to 0.01, every best reciprocal hit pair with greater e-value will be filtered out.
                                         </div>
                                     </div>
                                 </div>

@@ -157,10 +157,10 @@
                                 </div>
                                 <div class="form-group row">
                                     <div class="col-md-8">
-                                        <label for="outgroup">Add root to the species tree over this outgroup:
-                                        <!--<button type="button" class="btn btn-lg" data-toggle="modal">-->
-                                            <!--<span class="glyphicon glyphicon-question-sign"></span>-->
-                                        <!--</button>-->
+                                        <label for="outgroup">Root the species tree according to this outgroup:
+                                        <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#info1">
+                                            <span class="glyphicon glyphicon-question-sign"></span>
+                                        </button>
                                         </label>
                                         <input class="form-control" id="outgroup" name="outgroup" placeholder="Do you want a rooted species tree?" value="No outgroup">
                                     </div>
@@ -183,12 +183,27 @@
                                 <div class="modal-dialog">
                                     <!-- Modal content-->
                                     <div class="modal-content">
-                                        <div class="modal-body">
-                                            Notice that Bootstrap analysis is time consuming
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                            <div class="modal-title">A species name based on which the tree should be rooted</div>
+                                        </div>
+                                        <div class="modal-body"> <!--align="justify">-->
+                                            For example, if the genomic sequence in a file named: "Efergusonii_ATCC_35469.fna" is the desired outgroup, than "Efergusonii_ATCC_35469" should be provided.
+                                            Of note, the outgroup name is CASE-SENSITIVE and thus should IDENTICAL to the corresponding genomic file name (excluding its extension), otherwise, the outgroup will be ignored and the resulted tree will be unrooted (as if no outgroup was provided).
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                            <!--<div class="modal fade" id="info5" role="dialog">-->
+                                <!--<div class="modal-dialog">-->
+                                    <!--&lt;!&ndash; Modal content&ndash;&gt;-->
+                                    <!--<div class="modal-content">-->
+                                        <!--<div class="modal-body">-->
+                                            <!--Notice that Bootstrap analysis is time consuming-->
+                                        <!--</div>-->
+                                    <!--</div>-->
+                                <!--</div>-->
+                            <!--</div>-->
                             <div class="modal fade" id="info2" role="dialog">
                                 <div class="modal-dialog">
                                     <!-- Modal content-->
