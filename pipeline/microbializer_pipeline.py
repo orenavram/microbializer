@@ -23,6 +23,43 @@ def notify_admin(meta_output_dir, meta_output_url, run_number, CONSTS):
                f"{os.path.join(meta_output_url, error_log_path)}\n\n"
                f"{os.path.join(meta_output_dir, error_log_path)}")
 
+
+def verify_fasta_format(data_path):
+    Bio.SeqUtils.IUPACData.ambiguous_dna_letters += 'U-'
+    legal_chars = set(Bio.SeqUtils.IUPACData.ambiguous_dna_letters.lower() + Bio.SeqUtils.IUPACData.ambiguous_dna_letters)
+    for file_name in os.listdir(data_path):
+        file_path = os.path.join(data_path, file_name)
+        with open(file_path) as f:
+            line_number = 1
+            line = f.readline()
+            if not line.startswith('>'):
+                return f'Illegal <a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a>.<br>\nFirst line in "{file_name}" starts with "{line[0]}" instead of ">").'
+            previous_line_was_header = True
+            putative_end_of_file = False
+
+            for line in f:
+                line_number += 1
+                line = line.strip()
+                if not line:
+                    if not putative_end_of_file: # ignore trailing empty lines
+                        putative_end_of_file = line_number
+                    continue
+                if putative_end_of_file:  # non empty line after empty line
+                    return f'Illegal <a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a>.<br>\nLine {putative_end_of_file} in "{file_name}" is empty.'
+                if line.startswith('>'):
+                    if previous_line_was_header:
+                        return f'Illegal <a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a>.<br>\n"{file_name}" contains an empty record. Both lines {line_number-1} and {line_number} start with ">".'
+                    else:
+                        previous_line_was_header = True
+                        continue
+                else:  # not a header
+                    previous_line_was_header = False
+                    for c in line:
+                        if c not in legal_chars:
+                            return f'Illegal <a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a>.<br>\nLine {line_number} in "{file_name}" contains illegal dna character "{c}".'
+
+
+
 def edit_progress(output_html_path, progress=None, active=True):
     result = ''
     with open(output_html_path) as f:
@@ -57,6 +94,7 @@ try:
     import tarfile
     import shutil
     import mmap
+    import Bio.SeqUtils
 
     print(os.getcwd())
     print(f'sys.path is\n{sys.path}')
@@ -100,10 +138,10 @@ try:
                         help='the minimum required percent of gene members that is needed to be considered a core gene. For example: (1) 100 means that for a gene to be considered core, all strains should have a member in the group.\n(2) 50 means that for a gene to be considered core, at least half of the strains should have a member in the group.\n(3) 0 means that every gene should be considered as a core gene.')
     parser.add_argument('--bootstrap', default='no', choices=['yes', 'no'],
                         help='whether or not to apply bootstrap procedure over the reconstructed species tree.')
-    parser.add_argument('--root', default='no', choices=['yes', 'no'],
+    parser.add_argument('--outgroup', default=None,
                         help='whether or not to root the species phylogeny.')
     parser.add_argument('-q', '--queue_name', help='The cluster to which the job(s) will be submitted to',
-                        choices=['pupkoweb', 'pupko', 'itaym', 'lilach', 'bioseq', 'bental', 'oren.q', 'bioseq20.q'], default='pupkoweb')
+                        choices=['pupkoweb', 'pupko', 'itaym', 'lilach', 'bioseq', 'bental', 'oren.q', 'bioseq20.q', 'pupkotmp'], default='pupkoweb')
     parser.add_argument('--dummy_delimiter',
                         help='The queue does not "like" very long commands. A dummy delimiter is used to break each row into different commands of a single job',
                         default='!@#')
@@ -174,7 +212,6 @@ try:
             data_path = unzipping_data_path
 
     logger.info(f'Updated data_path is:\n{data_path}')
-    logger.info(f'data_path contains:\n{os.listdir(data_path)}')
 
     for file in os.listdir(data_path):
         file_path = os.path.join(data_path, file)
@@ -194,12 +231,32 @@ try:
             except:
                 pass
 
+    # have to be AFTER system files removal (in the weird case a file name starts with a space)
+    for file_name in os.listdir(data_path):
+        if ' ' in file_name:
+            new_file_name = file_name.replace(' ', '_')
+            try:
+                logger.info(f'File name with spaces was detected!\n'
+                            f'Renaming file path from:\n'
+                            f'{os.path.join(data_path, file_name)}\n'
+                            f'to this:\n'
+                            f'{os.path.join(data_path, new_file_name)}')
+                os.rename(os.path.join(data_path, file_name), os.path.join(data_path, new_file_name))
+            except:
+                error_msg = f'One (or more) file name(s) contain " " (spaces).<br>\nIn order to avoid downstream parsing errors, {CONSTS.WEBSERVER_NAME} automatically replaces these spaces with dashes. For some reason, the replacement for {file_name} failed. Please remove space characters from your file names and re-submit your job.'
+                fail(error_msg, error_file_path)
+
+    logger.info(f'data_path contains:\n{os.listdir(data_path)}')
+
 
     min_number_of_genomes_to_analyze = 2
     if len(os.listdir(data_path)) < min_number_of_genomes_to_analyze:
         error_msg = f'Data contain too few genomes ({CONSTS.WEBSERVER_NAME} does comparative analysis and thus needs at least 2 genomes).'
         fail(error_msg, error_file_path)
 
+    verification_error = verify_fasta_format(data_path)
+    if verification_error:
+        fail(verification_error, error_file_path)
 
     # 1.	extract_orfs_sequences.py
     # Input: (1) an input path for a fasta file with contigs/full genome (2) an output file path (with a suffix as follows: i_genes.fasta. especially relevant for the wrapper).
@@ -311,7 +368,7 @@ try:
     num_of_expected_results = 0
     pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
     done_file_path = os.path.join(done_files_dir, f'{step}_all_vs_all.txt')
-    num_of_cmds_per_job = 200
+    num_of_cmds_per_job = 50 if len(os.listdir(ORFs_dir)) > 22 else 15
     num_of_aggregated_params = 0
     more_cmds = [] # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
     if not os.path.exists(done_file_path):
@@ -560,16 +617,46 @@ try:
     logger.info(f'Step {step}: {"_"*100}')
     dir_name = f'{step}_mcl_input_files'
     script_path = os.path.join(args.src_dir, 'prepare_files_for_mcl.py')
-    num_of_expected_results = 1 # a single job that prepares all the files
+    num_of_expected_results = 0
     pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
     done_file_path = os.path.join(done_files_dir, f'{step}_prepare_files_for_mcl.txt')
+    num_of_cmds_per_job = 50
+    num_of_aggregated_params = 0
+    more_cmds = [] # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
+
+    with open(os.path.join(os.path.split(putative_orthologs_table_path)[0], 'num_of_putative_sets.txt')) as f:
+        num_of_putative_sets = int(f.read())
+
     if not os.path.exists(done_file_path):
         logger.info('Preparing files for MCL...')
-        job_name = os.path.split(script_path)[-1]
-        params = [all_reciprocal_hits_file,
-                  putative_orthologs_table_path,
-                  pipeline_step_output_dir]
-        submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=job_name, queue_name=args.queue_name)
+        step = 10
+        for i in range(1, num_of_putative_sets+1, step):
+            if num_of_aggregated_params > 0:
+                # params was already defined for this job batch. Save it before overridden
+                more_cmds.append(params)
+            first_mcl = str(i)
+            last_mcl = str(min(i+step-1, num_of_putative_sets))  # 1-10, 11-20, etc... for step=10
+            params = [all_reciprocal_hits_file,
+                      putative_orthologs_table_path,
+                      first_mcl,
+                      last_mcl,
+                      pipeline_step_output_dir]
+            num_of_aggregated_params += 1
+            if num_of_aggregated_params == num_of_cmds_per_job:
+                submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=f'{dir_name}_{last_mcl}',  # {i+step-num_of_cmds_per_job*step}_
+                                     queue_name=args.queue_name, required_modules_as_list=[CONSTS.MCL],
+                                     more_cmds=more_cmds)
+                num_of_expected_results += 1
+                num_of_aggregated_params = 0
+                more_cmds = []
+
+        if num_of_aggregated_params>0:
+            #don't forget the last batch!!
+            submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=f'{dir_name}_{last_mcl}',
+                                 queue_name=args.queue_name, required_modules_as_list=[CONSTS.MCL],
+                                 more_cmds=more_cmds)
+            num_of_expected_results += 1
+
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir, num_of_expected_results, error_file_path)
         file_writer.write_to_file(done_file_path)
     else:
@@ -767,7 +854,8 @@ try:
             f.write(f'{num_of_strains}\n')
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir, num_of_expected_results, error_file_path)
-        file_writer.write_to_file(done_file_path)
+        # this step always needs to run!!
+        # file_writer.write_to_file(done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
     edit_progress(output_html_path, progress=60)
@@ -881,6 +969,7 @@ try:
     done_file_path = os.path.join(done_files_dir, f'{step}_extract_aligned_core_proteome.txt')
     aligned_core_proteome_file_path = os.path.join(aligned_core_proteome_path, 'aligned_core_proteome.fas')
     core_ogs_names_file_path = os.path.join(aligned_core_proteome_path, 'core_ortholog_groups_names.txt')
+    core_length_file_path = os.path.join(aligned_core_proteome_path, 'core_length.txt')
     # with open(strains_names_path) as f:
     #     strains_names = f.read().rstrip().split('\n')
     with open(num_of_strains_path) as f:
@@ -891,6 +980,7 @@ try:
         params = [aa_alignments_path, num_of_strains, strains_names_path,
                   aligned_core_proteome_file_path,
                   core_ogs_names_file_path,
+                  core_length_file_path,
                   f'--core_minimal_percentage {args.core_minimal_percentage}']  # how many members induce a core group?
         submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name='core_proteome',
                              queue_name=args.queue_name)
@@ -913,19 +1003,24 @@ try:
     phylogenetic_raw_tree_path = os.path.join(phylogeny_path, 'final_species_tree.txt')
     # no need to wait now. Wait before plotting the tree!
     #done_file_path = os.path.join(done_files_dir, f'{step}_reconstruct_species_phylogeny.txt')
+    start_tree = time()
     if not os.path.exists(phylogenetic_raw_tree_path):
         logger.info('Reconstructing species phylogeny...')
 
-        num_of_cpus = 3
+        num_of_cpus = 25 #TODO: reduce to 5!!
         params = [aligned_core_proteome_file_path,
                   phylogenetic_raw_tree_path,
-                  '--model PROTGAMMAILG',
-                  f'--num_of_bootstrap_iterations {100 if args.bootstrap=="yes" else 0}',
                   f'--cpu {num_of_cpus}']  # both the Q and RAxML should get this as a parameter
+                  # '--model PROTGAMMAILG',
+                  # f'--num_of_bootstrap_iterations {100 if args.bootstrap=="yes" else 0}',
+        if args.outgroup:
+            if args.outgroup in strains_names:
+                params += [f'--outgroup {args.outgroup}']
+            else:
+                logger.info(f'Outgroup {args.outgroup} was specified but it is not one of the input species:\n'
+                            f'{",".join(sorted(strains_names))}\nAn unrooted tree is going to be reconstructed')
         if args.bootstrap == 'yes':
             params += ['--num_of_bootstrap_iterations 100']
-        if args.root == 'yes':
-            params += ['--root']
 
         submit_pipeline_step(script_path, params, phylogeny_tmp_dir, job_name='tree_reconstruction',
                              queue_name=args.queue_name, required_modules_as_list=[CONSTS.RAXML], num_of_cpus=num_of_cpus)
@@ -952,6 +1047,7 @@ try:
     num_of_cmds_per_job = 100
     num_of_aggregated_params = 0
     more_cmds = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
+    start_orf_stats = time()
     if not os.path.exists(done_file_path):
         logger.info('Collecting orfs counts...')
 
@@ -1003,8 +1099,10 @@ try:
     num_of_cmds_per_job = 100
     num_of_aggregated_params = 0
     more_cmds = [] # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
+    start_induced = time()
     if not os.path.exists(done_file_path):
         logger.info(f'Inducing dna alignments...\n(from {aa_alignments_path})')
+
         for og_file in os.listdir(aa_alignments_path):
             aa_alignment_path = os.path.join(aa_alignments_path, og_file)
             dna_unaligned_path = os.path.join(orthologs_dna_sequences_dir_path, og_file.replace('aa_mafft', 'dna'))
@@ -1091,7 +1189,7 @@ try:
     if not os.path.exists(done_file_path):
 
         wait_for_results('extract_orfs_statistics.py', orfs_statistics_tmp_dir,
-                         num_of_expected_orfs_results, error_file_path=error_file_path)
+                         num_of_expected_orfs_results, error_file_path=error_file_path, start=start_orf_stats)
 
         logger.info('Concatenating orfs counts...')
         cmd = f'cat {orfs_statistics_path}/*.orfs_count > {orfs_counts_frequency_file}'
@@ -1119,34 +1217,33 @@ try:
     edit_progress(output_html_path, progress=85)
 
 
-    # 21.	plot species phylogeny
-    step = '21'
-    logger.info(f'Step {step}: {"_" * 100}')
-    dir_name = f'{step}_plot_tree'
-    done_file_path = os.path.join(done_files_dir, f'{step}_plot_species_phylogeny.txt')
-    if int(num_of_strains) > 3 and not os.path.exists(done_file_path):
-        logger.info('Ploting species phylogeny...')
+    # # 21.	plot species phylogeny
+    # step = '21'
+    # logger.info(f'Step {step}: {"_" * 100}')
+    # dir_name = f'{step}_plot_tree'
+    # done_file_path = os.path.join(done_files_dir, f'{step}_plot_species_phylogeny.txt')
+    # if int(num_of_strains) > 3 and not os.path.exists(done_file_path):
+    #     logger.info('Ploting species phylogeny...')
+    #
+    #     # wait for the raw tree here
+    #     wait_for_results('reconstruct_species_phylogeny.py', phylogeny_tmp_dir,
+    #                      num_of_expected_results=1, error_file_path=error_file_path)
+    #
+    #     phylogenetic_png_tree_path = phylogenetic_raw_tree_path.replace('txt', 'png')
+    #     try:
+    #         generate_tree_plot(phylogenetic_raw_tree_path, phylogenetic_png_tree_path)
+    #     except:
+    #         if not os.path.exists(phylogenetic_raw_tree_path):
+    #             logger.fatal(f'Raw tree file {phylogenetic_raw_tree_path} does not exist! Possible bug?')
+    #         else:
+    #             logger.fatal(f'Raw tree file {phylogenetic_raw_tree_path} exists but could not generate a png! Check RAxML logs for further info.')
+    #
+    #     file_writer.write_to_file(done_file_path)
+    # else:
+    #     logger.info(f'Number of strains is {num_of_strains}')
+    #     logger.info(f'Number of strains < 4 or done file {done_file_path} already exists.\nSkipping step...')
 
-        # wait for the raw tree here
-        wait_for_results('reconstruct_species_phylogeny.py', phylogeny_tmp_dir,
-                         num_of_expected_results=1, error_file_path=error_file_path)
 
-        phylogenetic_png_tree_path = phylogenetic_raw_tree_path.replace('txt', 'png')
-        try:
-            generate_tree_plot(phylogenetic_raw_tree_path, phylogenetic_png_tree_path)
-        except:
-            if not os.path.exists(phylogenetic_raw_tree_path):
-                logger.fatal(f'Raw tree file {phylogenetic_raw_tree_path} does not exist! Possible bug?')
-            else:
-                logger.fatal(f'Raw tree file {phylogenetic_raw_tree_path} exists but could not generate a png! Check RAxML logs for further info.')
-
-        file_writer.write_to_file(done_file_path)
-    else:
-        logger.info(f'Number of strains is {num_of_strains}')
-        logger.info(f'Number of strains < 4 or done file {done_file_path} already exists.\nSkipping step...')
-
-
-    edit_progress(output_html_path, progress=98)
     # Final step: gather relevant results, zip them together and update html file
     logger.info(f'FINAL STEP: {"_"*100}')
     final_output_dir_name = f'{CONSTS.WEBSERVER_NAME}_{run_number}_outputs'
@@ -1170,20 +1267,28 @@ try:
         # move core proteome dir
         add_results_to_final_dir(aligned_core_proteome_path, final_output_dir)
 
-        # move species tree dir
-        add_results_to_final_dir(phylogeny_path, final_output_dir)
-
         # move groups sizes
         add_results_to_final_dir(group_sizes_path, final_output_dir)
 
         # move orfs statistics
+        add_results_to_final_dir(orfs_statistics_path, final_output_dir)
+
+        # move orfs plot
         add_results_to_final_dir(orfs_plots_path, final_output_dir)
 
         wait_for_results('induce_dna_msa_by_aa_msa.py', induced_tmp_dir,
                          num_of_expected_results=num_of_expected_induced_results,
-                         error_file_path=error_file_path)
+                         error_file_path=error_file_path, start=start_induced)
         # move induced dna sequences
         add_results_to_final_dir(dna_alignments_path, final_output_dir)
+
+        # wait for the raw tree here
+        wait_for_results('reconstruct_species_phylogeny.py', phylogeny_tmp_dir,
+                         num_of_expected_results=1, error_file_path=error_file_path, start=start_tree)
+        edit_progress(output_html_path, progress=98)
+
+        # move species tree dir
+        add_results_to_final_dir(phylogeny_path, final_output_dir)
 
         logger.info('Zipping results folder...')
         shutil.make_archive(final_output_dir, 'zip', final_output_dir)
