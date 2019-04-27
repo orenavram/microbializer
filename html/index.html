@@ -1,40 +1,40 @@
 <!DOCTYPE html>
-<div id="loadingMask" style="width: 100%; height: 100%; position: fixed; background: #ffffff;"></div>
+<!--<div id="loadingMask" style="width: 100%; height: 100%; position: fixed; background: #ffffff;"></div>-->
 <html lang="en">
-<head>
-    <title>Microbializer</title>
-    <!--<meta charset="utf-8">-->
-    <!--<meta name="viewport" content="width=device-width, initial-scale=1">-->
-    <link rel="shortcut icon" type="image/x-icon" href="pics/logo.gif" />
+    <head>
+        <title>Microbializer</title>
+        <!--<meta charset="utf-8">-->
+        <!--<meta name="viewport" content="width=device-width, initial-scale=1">-->
+        <link rel="shortcut icon" type="image/x-icon" href="pics/logo.gif" />
 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-    <link rel="stylesheet" href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <link rel="stylesheet" href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css">
 
-    <!--files for the select tag-->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/css/bootstrap-select.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/js/bootstrap-select.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/js/i18n/defaults-*.min.js"></script>
+        <!--files for the select tag-->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/css/bootstrap-select.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/js/bootstrap-select.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/js/i18n/defaults-*.min.js"></script>
 
-    <!--files for the checkbox tag (toggle)-->
-    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+        <!--files for the checkbox tag (toggle)-->
+        <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
 
 
-    <link rel="stylesheet" href="css/general.css">
-    <link rel="stylesheet" href="css/nav.css">
-    <script src="scripts/form_handler.js"></script>
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/nav.css">
+        <script src="scripts/form_handler.js"></script>
 
-    <!--<link href='https://fonts.googleapis.com/css?family=Kalam' rel='stylesheet'>-->
+        <!--<link href='https://fonts.googleapis.com/css?family=Kalam' rel='stylesheet'>-->
 
-    <!--<script src="https://code.jquery.com/jquery-1.10.2.js"></script>-->
-    <!--<script> $(function(){-->
-        <!--$("head").load("header.html");-->
-        <!--$('#loadingMask').fadeOut();});-->
-    <!--</script>-->
+        <!--<script src="https://code.jquery.com/jquery-1.10.2.js"></script>-->
+        <!--<script> $(function(){-->
+            <!--$("head").load("header.html");-->
+            <!--$('#loadingMask').fadeOut();});-->
+        <!--</script>-->
 
-</head>
-<body>
+    </head>
+    <body>
         <nav role="navigation" class="navbar navbar-inverse navbar-fixed-top" id="nav">
             <div class="jumbotron" id="jumbo">
                 <div class="container">
@@ -53,332 +53,367 @@
                     </div>
                 </div>
             </div>
-    <div class="container" id="nav_container">
-        <div class="row">
-            <div class="col-md-1">
+            <div class="container" id="nav_container">
+                <div class="row">
+                    <div class="col-md-1">
+                    </div>
+                    <div class="col-md-10">
+                        <ul class="nav navbar-nav" id="menu-nav">
+                            <li class="active">
+                                <a href="index.html">Home</a>
+                            </li>
+                            <li>
+                                <a href="overview.html">Overview</a>
+                            </li>
+                            <li>
+                                <a href="gallery.html">Gallery</a>
+                            </li>
+                            <li>
+                                <a href="faq.html">FAQ</a>
+                            </li>
+                            <li>
+                                <a href="terms.html">Terms of Use</a>
+                            </li>
+                            <li>
+                                <a href="credits.html">Credits</a>
+                            </li>
+                            <li style="float: right">
+                                <a href="https://english.tau.ac.il/" id="tau-link" target="_blank">
+                                    <img src=pics/TAU_LOGO.png id="tau-logo">
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </div>
-            <div class="col-md-10">
-                <ul class="nav navbar-nav" id="menu-nav">
-                    <li class="active">
-                        <a href="index.html">Home</a>
-                    </li>
-                    <li>
-                        <a href="overview.html">Overview</a>
-                    </li>
-                    <li>
-                        <a href="gallery.html">Gallery</a>
-                    </li>
-                    <li>
-                        <a href="terms.html">Terms of Use</a>
-                    </li>
-                    <li>
-                        <a href="credits.html">Credits</a>
-                    </li>
-                    <li style="float: right">
-                        <a href="https://english.tau.ac.il/" id="tau-link" target="_blank">
-                            <img src=pics/TAU_LOGO.png id="tau-logo">
-                        </a>
-                    </li>
-                </ul>
-            </div>
+        </nav>
+        <div id="behind-nav-bar">
         </div>
-    </div>
-</nav>
-<div id="behind-nav-bar">
-</div>
-<div class="container">
-    <div class="row">
-        <div class="col-md-1">
-        </div>
-        <div class="col-md-10" id="basic">
-            <form id="microbializer_form" action="https://microbializer.tau.ac.il/cgi-bin/microbializer_cgi.py" method="post" ENCTYPE="multipart/form-data" target="_blank" onsubmit="return validate_read_files()">
-                    <input type="hidden" name="example_page" value="no">
-                    <!--<center><img src=pics/under_construction.png id="under-construction"></center><br>-->
-                    <!--<h2><center><span>UNDER CONSTRUCTION!</span></center></h2>-->
+        <div class="container" id="basic">
+            <div class="row">
+                <div class="col-md-1">
+                </div>
+                <div class="col-md-10">
                     <div id="please-note" align="justify">Please notice that files larger than 100MB may require up to 30 minutes to be uploaded, depending on your network speed (preferably not over Wi-Fi).</div>
+                    <form id="microbializer_form" action="https://microbializer.tau.ac.il/cgi-bin/microbializer_cgi.py" method="post" ENCTYPE="multipart/form-data" target="_blank" onsubmit="return validate_read_files()">
+                        <div class="container">
+                            <input type="hidden" name="example_page" value="no">
+                            <!--<center><img src=pics/under_construction.png id="under-construction"></center><br>-->
+                            <!--<h2><center><span>UNDER CONSTRUCTION!</span></center></h2>-->
 
-                    <br>
-                    <div class="form-group row">
-                        <div class="col-md-4">
-                                <label for="data">
-                                    Archived folder of genomic sequences (zip/tar.gz)
-                                </label>
-                                <!--<button type="button" class="btn btn-lg glyphicon" data-toggle="modal" data-target="#tar_info_modal" id="tar_info">&#xe085;</button>-->
+                            <div class="form-group row">
+                                <div class="col-md-4">
+                                        <label for="data">
+                                            Archived folder of genomic sequences (zip/tar.gz):
+                                        </label>
+                                        <label class="btn btn-default btn-file">
+                                            <input type="file" id="data" name="data" required>
+                                        </label>
+                                    </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-md-4">
+                                    <label for="email">Email (optional):</label>
+                                    <input type="email" class="form-control" id="email" name="email" placeholder="We'll send you a link to the results">
+                                    <input class="form-control" name="confirm_email" type="hidden">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="job_title">A descriptive job title (optional):</label>
+                                    <input type="text" class="form-control" id="job_title" name="job_title">
+                                </div>
+                            </div>
+                            <br>
 
-                                <!--&lt;!&ndash; Modal &ndash;&gt;-->
-                                <!--<div class="modal fade" id="tar_info_modal" role="dialog">-->
-                                    <!--<div class="modal-dialog">-->
-
-                                        <!--&lt;!&ndash; Modal content&ndash;&gt;-->
-                                        <!--<div class="modal-content">-->
-                                            <!--<div class="modal-header">-->
-                                                <!--<button type="button" class="close" data-dismiss="modal">&times;</button>-->
-                                                <!--<h4 class="modal-title">Don't have a zipped folder?</h4>-->
-                                            <!--</div>-->
-                                            <!--<div class="modal-body">-->
-                                                <!--If you have a folder with fasta files follow the instructions for <a href='https://linhost.info/2012/08/gzip-files-in-windows/' target="_blank">Windows</a> / <a href='https://coolestguidesontheplanet.com/how-to-compress-and-uncompress-files-and-folders-in-os-x-lion-10-7-using-terminal/' target="_blank">MacOS</a> to convert your folder into a <i>tar.gz</i> file-->
-                                            <!--</div>-->
+                            <button type="button" class="btn btn-warning" id="advanced_button" onclick="openAdvanced()">Advanced options</button>
+                            <div id="advanced" style="display:none;">
+                                <div class="form-group row">
+                                    <div class="col-md-8">
+                                        <label for="e_value_cutoff">Maximal permitted e-value:
+                                        <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#info4">
+                                            <span class="glyphicon glyphicon-question-sign"></span>
+                                        </button>
+                                        </label>
+                                        <input type="number" class="form-control" min="0" max="1" step="any" id="e_value_cutoff" name="e_value_cutoff" value="0.01" required>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <div class="col-md-8">
+                                        <label for="identity_cutoff">Minimal percent of identity:
+                                        <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#info3">
+                                            <span class="glyphicon glyphicon-question-sign"></span>
+                                        </button></label>
+                                        <input type="number" class="form-control" min="0" max="100" step="any" id="identity_cutoff" name="identity_cutoff" value="80" required>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <div class="col-md-8">
+                                        <label for="core_minimal_percentage">Minimal percent of to be considered as a core gene:
+                                        <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#info2">
+                                            <span class="glyphicon glyphicon-question-sign"></span>
+                                        </button>
+                                        </label>
+                                        <input type="number" class="form-control" min="0" max="100" step="any" id="core_minimal_percentage" name="core_minimal_percentage" value="100.0" required>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <div class="col-md-8">
+                                        <label for="outgroup">Root the species tree according to this outgroup:
+                                        <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#info1">
+                                            <span class="glyphicon glyphicon-question-sign"></span>
+                                        </button>
+                                        </label>
+                                        <input class="form-control" id="outgroup" name="outgroup" placeholder="Do you want a rooted species tree?" value="No outgroup">
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <div class="col-md-8">
+                                        <br>
+                                        <label for="bootstrap">Apply bootstrap over the species tree?
+                                        <!--<button type="button" class="btn btn-lg" data-toggle="modal" data-target="#info1">-->
+                                            <!--<span class="glyphicon glyphicon-question-sign"></span>-->
+                                        <!--</button>-->
+                                            <label class="radio-inline"><input type="radio" name="bootstrap" id="bootstrap" value="yes">Yes</label>
+                                            <label class="radio-inline"><input type="radio" name="bootstrap" value="no" checked>No</label>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                           <!-- Modals -->
+                            <div class="modal fade" id="info1" role="dialog">
+                                <div class="modal-dialog">
+                                    <!-- Modal content-->
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                            <div class="modal-title">A species name based on which the tree should be rooted</div>
+                                        </div>
+                                        <div class="modal-body"> <!--align="justify">-->
+                                            For example, if the genomic sequence in a file named: "Efergusonii_ATCC_35469.fna" is the desired outgroup, than "Efergusonii_ATCC_35469" should be provided.
+                                            Of note, the outgroup name is CASE-SENSITIVE and thus should IDENTICAL to the corresponding genomic file name (excluding its extension), otherwise, the outgroup will be ignored and the resulted tree will be unrooted (as if no outgroup was provided).
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!--<div class="modal fade" id="info5" role="dialog">-->
+                                <!--<div class="modal-dialog">-->
+                                    <!--&lt;!&ndash; Modal content&ndash;&gt;-->
+                                    <!--<div class="modal-content">-->
+                                        <!--<div class="modal-body">-->
+                                            <!--Notice that Bootstrap analysis is time consuming-->
                                         <!--</div>-->
                                     <!--</div>-->
                                 <!--</div>-->
-                                <label class="btn btn-default btn-file">
-                                    <input type="file" id="data" name="data" required>
-                                </label>
+                            <!--</div>-->
+                            <div class="modal fade" id="info2" role="dialog">
+                                <div class="modal-dialog">
+                                    <!-- Modal content-->
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                            <div class="modal-title">The minimum required percent of gene members of an orthologs group that is required to be considered a core gene</div>
+                                        </div>
+                                        <div class="modal-body">
+                                            For example:<br>
+                                            (1) 100 means that for a gene to be considered core, all strains should have a member in the group.<br>
+                                            (2) 50 means that for a gene to be considered core, at least half of the strains should have a member in the group.<br>
+                                            (3) 0 means that every gene should be considered as a core gene.
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                    </div>
-                    <div class="form-group row">
-                        <div class="col-md-4">
-                            <label for="email">Email</label>
-                            <input type="email" class="form-control" id="email" name="email" placeholder="We'll send you a link to the results">
-                            <input class="form-control" name="confirm_email" type="hidden">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="job_title">A descriptive job title</label>
-                            <input type="text" class="form-control" id="job_title" name="job_title" placeholder="(optional)">
-                        </div>
-                    </div>
-                    <br>
+                            <div class="modal fade" id="info3" role="dialog">
+                                <div class="modal-dialog">
+                                    <!-- Modal content-->
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                            <div class="modal-title">The minimum percent of identity required for a pair of best reciprocal hits (lower values will be filtered out)</div>
+                                        </div>
+                                        <div class="modal-body">
+                                            For example:<br>
+                                            If the cutoff is set to 80, every best reciprocal hit pair with less than 80% identity will be ignored.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal fade" id="info4" role="dialog">
+                                <div class="modal-dialog">
+                                    <!-- Modal content-->
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                            <div class="modal-title">The maxmimum permitted e-value for a pair of best reciprocal hits (higher values will be filtered out)</div>
+                                        </div>
+                                        <div class="modal-body">
+                                            For example:<br>
+                                            If the cutoff is set to 0.01, every best reciprocal hit pair with greater e-value will be ignored.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
-                    <button type="button" class="btn btn-warning" id="advanced_button" onclick="openAdvanced()">Advanced options</button>
-                    <div id="advanced" style="display:none;">
-
-                        <div class="form-group row">
-                            <div class="col-md-8">
-                                <label for="core_minimal_percentage">Minimal percent of to be considered as a core gene:
-                                <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#info1">
-                                    <span class="glyphicon glyphicon-question-sign"></span>
-                                </button>
-                                </label>
-                                <input type="number" class="form-control" min="0" max="100" step="any" id="core_minimal_percentage" name="core_minimal_percentage" value="100.0" required>
-                            </div>
+                            <br>
+                            <button type="reset" class="btn btn-danger">Reset</button>
+                            <button type="submit" class="btn btn-success">Submit</button>
+                            <a href="index_example.html"><button type="button" class="btn btn-info">Load Example</button></a>
+                            <!--<a href="index.html"><button type="button" class="btn btn-info">Clear Example</button></a>-->
+                            <br><br><br>
                         </div>
-                        <div class="form-group row">
-                            <div class="col-md-8">
-                                <label for="identity_cutoff">Minimal percent of identity:
-                                <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#info2">
-                                    <span class="glyphicon glyphicon-question-sign"></span>
-                                </button></label>
-                                <input type="number" class="form-control" min="0" max="100" step="any" id="identity_cutoff" name="identity_cutoff" value="80" required>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <div class="col-md-8">
-                                <label for="e_value_cutoff">Maximal permitted e-value:
-                                <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#info3">
-                                    <span class="glyphicon glyphicon-question-sign"></span>
-                                </button>
-                                </label>
-                                <input type="number" class="form-control" min="0" max="1" step="any" id="e_value_cutoff" name="e_value_cutoff" value="0.01" required>
-                            </div>
-                        </div>
-                    </div>
-                   <!-- Modals -->
-                    <div class="modal fade" id="info1" role="dialog">
-                        <div class="modal-dialog">
-                            <!-- Modal content-->
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                    <div class="modal-title">The minimum required percent of gene members of an orthologs group that is required to be considered a core gene</div>
-                                </div>
-                                <div class="modal-body">
-                                    For example:<br>
-                                    (1) 100 means that for a gene to be considered core, all strains should have a member in the group.<br>
-                                    (2) 50 means that for a gene to be considered core, at least half of the strains should have a member in the group.<br>
-                                    (3) 0 means that every gene should be considered as a core gene.
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal fade" id="info2" role="dialog">
-                        <div class="modal-dialog">
-                            <!-- Modal content-->
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                    <div class="modal-title">The minimum percent of identity required for a pair of best reciprocal hits (lower values will be filtered out)</div>
-                                </div>
-                                <div class="modal-body">
-                                    For example:<br>
-                                    If the cutoff is set to 80, every best reciprocal hit pair with less than 80% identity will be ignored.
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal fade" id="info3" role="dialog">
-                        <div class="modal-dialog">
-                            <!-- Modal content-->
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                    <div class="modal-title">The maxmimum permitted e-value for a pair of best reciprocal hits (higher values will be filtered out)</div>
-                                </div>
-                                <div class="modal-body">
-                                    For example:<br>
-                                    If the cutoff is set to 0.01, every best reciprocal hit pair with greater e-value will be ignored.
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <br>
-                    <button type="reset" class="btn btn-danger">Reset</button>
-                    <button type="submit" class="btn btn-success">Submit</button>
-                    <a href="index_example.html"><button type="button" class="btn btn-info">Load Example</button></a>
-                    <!--<a href="index.html"><button type="button" class="btn btn-info">Clear Example</button></a>-->
-                    <br><br>
-
-            </form>
+                    </form>
+                </div>
+                <div class="col-md-1">
+                </div>
+            </div>
         </div>
-        <div class="col-md-1">
-        </div>
-    </div>
-</div>
 
 
-<!--
-    <div class="g-recaptcha" data-sitekey="6LfNOC8UAAAAAO2gQKB2YGqhURSiwZqU1avn5hHb"></div>
-        <noscript>
-            <div style="width: 302px; height: 352px;">
-            <div style="width: 302px; height: 352px; position: relative;">
-            <div style="width: 302px; height: 352px; position: absolute;">
-            <iframe src="https://www.google.com/recaptcha/api/fallback?k=6LfNOC8UAAAAAO2gQKB2YGqhURSiwZqU1avn5hHb"
-                    frameborder="0" scrolling="no"
-                    style="width: 302px; height:352px; border-style: none;">
-            </iframe>
-            </div>
-            <div style="width: 250px; height: 80px; position: absolute; border-style: none;
-                        bottom: 21px; left: 25px; margin: 0px; padding: 0px; right: 25px;">
-            <textarea id="g-recaptcha-response" name="g-recaptcha-response"
-                      class="g-recaptcha-response"
-                      style="width: 250px; height: 80px; border: 1px solid #c1c1c1;
-                      margin: 0px; padding: 0px; resize: none;" value="">
-            </textarea>
-            </div>
-            </div>
-            </div>
-        </noscript>
--->
-<!--&lt;!&ndash;run1&ndash;&gt;-->
-<!--<script>-->
-    <!--var run1_R1_button = document.getElementById('run1_R1_button');-->
-    <!--var run1_R1_text = document.getElementById('run1_R1_text');-->
+        <!--
+            <div class="g-recaptcha" data-sitekey="6LfNOC8UAAAAAO2gQKB2YGqhURSiwZqU1avn5hHb"></div>
+                <noscript>
+                    <div style="width: 302px; height: 352px;">
+                    <div style="width: 302px; height: 352px; position: relative;">
+                    <div style="width: 302px; height: 352px; position: absolute;">
+                    <iframe src="https://www.google.com/recaptcha/api/fallback?k=6LfNOC8UAAAAAO2gQKB2YGqhURSiwZqU1avn5hHb"
+                            frameborder="0" scrolling="no"
+                            style="width: 302px; height:352px; border-style: none;">
+                    </iframe>
+                    </div>
+                    <div style="width: 250px; height: 80px; position: absolute; border-style: none;
+                                bottom: 21px; left: 25px; margin: 0px; padding: 0px; right: 25px;">
+                    <textarea id="g-recaptcha-response" name="g-recaptcha-response"
+                              class="g-recaptcha-response"
+                              style="width: 250px; height: 80px; border: 1px solid #c1c1c1;
+                              margin: 0px; padding: 0px; resize: none;" value="">
+                    </textarea>
+                    </div>
+                    </div>
+                    </div>
+                </noscript>
+        -->
+        <!--&lt;!&ndash;run1&ndash;&gt;-->
+        <!--<script>-->
+            <!--var run1_R1_button = document.getElementById('run1_R1_button');-->
+            <!--var run1_R1_text = document.getElementById('run1_R1_text');-->
 
-    <!--run1_R1_button.addEventListener('change', show_run1_R1 );-->
+            <!--run1_R1_button.addEventListener('change', show_run1_R1 );-->
 
-    <!--function show_run1_R1(event) {-->
+            <!--function show_run1_R1(event) {-->
 
-        <!--// the change event gives us the input it occurred in-->
-        <!--var input = event.srcElement;-->
+                <!--// the change event gives us the input it occurred in-->
+                <!--var input = event.srcElement;-->
 
-        <!--// the input has an array of files in the `files` property, each one has a name that you can use. We're just using the name here.-->
-        <!--if (input.files[0]){-->
-            <!--run1_R1_text.textContent = input.files[0].name-->
-        <!--}else{-->
-            <!--run1_R1_text.textContent = 'R1'-->
-        <!--}-->
-        <!--// use fileName however fits your app best, i.e. add it into a div-->
-    <!--}-->
-    <!--var run1_R2_button = document.getElementById('run1_R2_button');-->
-    <!--var run1_R2_text = document.getElementById('run1_R2_text');-->
+                <!--// the input has an array of files in the `files` property, each one has a name that you can use. We're just using the name here.-->
+                <!--if (input.files[0]){-->
+                    <!--run1_R1_text.textContent = input.files[0].name-->
+                <!--}else{-->
+                    <!--run1_R1_text.textContent = 'R1'-->
+                <!--}-->
+                <!--// use fileName however fits your app best, i.e. add it into a div-->
+            <!--}-->
+            <!--var run1_R2_button = document.getElementById('run1_R2_button');-->
+            <!--var run1_R2_text = document.getElementById('run1_R2_text');-->
 
-    <!--run1_R2_button.addEventListener('change', show_run1_R2 );-->
+            <!--run1_R2_button.addEventListener('change', show_run1_R2 );-->
 
-    <!--function show_run1_R2(event) {-->
+            <!--function show_run1_R2(event) {-->
 
-        <!--// the change event gives us the input it occurred in-->
-        <!--var input = event.srcElement;-->
+                <!--// the change event gives us the input it occurred in-->
+                <!--var input = event.srcElement;-->
 
-        <!--// the input has an array of files in the `files` property, each one has a name that you can use. We're just using the name here.-->
-        <!--if (input.files[0]){-->
-            <!--run1_R2_text.textContent = input.files[0].name-->
-        <!--}else{-->
-            <!--run1_R2_text.textContent = 'R2'-->
-        <!--}-->
-        <!--// use fileName however fits your app best, i.e. add it into a div-->
-    <!--}-->
-<!--</script>-->
+                <!--// the input has an array of files in the `files` property, each one has a name that you can use. We're just using the name here.-->
+                <!--if (input.files[0]){-->
+                    <!--run1_R2_text.textContent = input.files[0].name-->
+                <!--}else{-->
+                    <!--run1_R2_text.textContent = 'R2'-->
+                <!--}-->
+                <!--// use fileName however fits your app best, i.e. add it into a div-->
+            <!--}-->
+        <!--</script>-->
 
-<!--&lt;!&ndash;run2&ndash;&gt;-->
-<!--<script>-->
-    <!--var run2_R1_button = document.getElementById('run2_R1_button');-->
-    <!--var run2_R1_text = document.getElementById('run2_R1_text');-->
+        <!--&lt;!&ndash;run2&ndash;&gt;-->
+        <!--<script>-->
+            <!--var run2_R1_button = document.getElementById('run2_R1_button');-->
+            <!--var run2_R1_text = document.getElementById('run2_R1_text');-->
 
-    <!--run2_R1_button.addEventListener('change', show_run2_R1 );-->
+            <!--run2_R1_button.addEventListener('change', show_run2_R1 );-->
 
-    <!--function show_run2_R1(event) {-->
+            <!--function show_run2_R1(event) {-->
 
-        <!--// the change event gives us the input it occurred in-->
-        <!--var input = event.srcElement;-->
+                <!--// the change event gives us the input it occurred in-->
+                <!--var input = event.srcElement;-->
 
-        <!--// the input has an array of files in the `files` property, each one has a name that you can use. We're just using the name here.-->
-        <!--if (input.files[0]){-->
-            <!--run2_R1_text.textContent = input.files[0].name-->
-        <!--}else{-->
-            <!--run2_R1_text.textContent = 'R1'-->
-        <!--}-->
-        <!--// use fileName however fits your app best, i.e. add it into a div-->
-    <!--}-->
-    <!--var run2_R2_button = document.getElementById('run2_R2_button');-->
-    <!--var run2_R2_text = document.getElementById('run2_R2_text');-->
+                <!--// the input has an array of files in the `files` property, each one has a name that you can use. We're just using the name here.-->
+                <!--if (input.files[0]){-->
+                    <!--run2_R1_text.textContent = input.files[0].name-->
+                <!--}else{-->
+                    <!--run2_R1_text.textContent = 'R1'-->
+                <!--}-->
+                <!--// use fileName however fits your app best, i.e. add it into a div-->
+            <!--}-->
+            <!--var run2_R2_button = document.getElementById('run2_R2_button');-->
+            <!--var run2_R2_text = document.getElementById('run2_R2_text');-->
 
-    <!--run2_R2_button.addEventListener('change', show_run2_R2 );-->
+            <!--run2_R2_button.addEventListener('change', show_run2_R2 );-->
 
-    <!--function show_run2_R2(event) {-->
+            <!--function show_run2_R2(event) {-->
 
-        <!--// the change event gives us the input it occurred in-->
-        <!--var input = event.srcElement;-->
+                <!--// the change event gives us the input it occurred in-->
+                <!--var input = event.srcElement;-->
 
-        <!--// the input has an array of files in the `files` property, each one has a name that you can use. We're just using the name here.-->
-        <!--if (input.files[0]){-->
-            <!--run2_R2_text.textContent = input.files[0].name-->
-        <!--}else{-->
-            <!--run2_R2_text.textContent = 'R2'-->
-        <!--}-->
-        <!--// use fileName however fits your app best, i.e. add it into a div-->
-    <!--}-->
-<!--</script>-->
+                <!--// the input has an array of files in the `files` property, each one has a name that you can use. We're just using the name here.-->
+                <!--if (input.files[0]){-->
+                    <!--run2_R2_text.textContent = input.files[0].name-->
+                <!--}else{-->
+                    <!--run2_R2_text.textContent = 'R2'-->
+                <!--}-->
+                <!--// use fileName however fits your app best, i.e. add it into a div-->
+            <!--}-->
+        <!--</script>-->
 
-<!--&lt;!&ndash;run3&ndash;&gt;-->
-<!--<script>-->
-    <!--var run3_R1_button = document.getElementById('run3_R1_button');-->
-    <!--var run3_R1_text = document.getElementById('run3_R1_text');-->
+        <!--&lt;!&ndash;run3&ndash;&gt;-->
+        <!--<script>-->
+            <!--var run3_R1_button = document.getElementById('run3_R1_button');-->
+            <!--var run3_R1_text = document.getElementById('run3_R1_text');-->
 
-    <!--run3_R1_button.addEventListener('change', show_run3_R1 );-->
+            <!--run3_R1_button.addEventListener('change', show_run3_R1 );-->
 
-    <!--function show_run3_R1(event) {-->
+            <!--function show_run3_R1(event) {-->
 
-        <!--// the change event gives us the input it occurred in-->
-        <!--var input = event.srcElement;-->
+                <!--// the change event gives us the input it occurred in-->
+                <!--var input = event.srcElement;-->
 
-        <!--// the input has an array of files in the `files` property, each one has a name that you can use. We're just using the name here.-->
-        <!--if (input.files[0]){-->
-            <!--run3_R1_text.textContent = input.files[0].name-->
-        <!--}else{-->
-            <!--run3_R1_text.textContent = 'R1'-->
-        <!--}-->
-        <!--// use fileName however fits your app best, i.e. add it into a div-->
-    <!--}-->
-    <!--var run3_R2_button = document.getElementById('run3_R2_button');-->
-    <!--var run3_R2_text = document.getElementById('run3_R2_text');-->
+                <!--// the input has an array of files in the `files` property, each one has a name that you can use. We're just using the name here.-->
+                <!--if (input.files[0]){-->
+                    <!--run3_R1_text.textContent = input.files[0].name-->
+                <!--}else{-->
+                    <!--run3_R1_text.textContent = 'R1'-->
+                <!--}-->
+                <!--// use fileName however fits your app best, i.e. add it into a div-->
+            <!--}-->
+            <!--var run3_R2_button = document.getElementById('run3_R2_button');-->
+            <!--var run3_R2_text = document.getElementById('run3_R2_text');-->
 
-    <!--run3_R2_button.addEventListener('change', show_run3_R2 );-->
+            <!--run3_R2_button.addEventListener('change', show_run3_R2 );-->
 
-    <!--function show_run3_R2(event) {-->
+            <!--function show_run3_R2(event) {-->
 
-        <!--// the change event gives us the input it occurred in-->
-        <!--var input = event.srcElement;-->
+                <!--// the change event gives us the input it occurred in-->
+                <!--var input = event.srcElement;-->
 
-        <!--// the input has an array of files in the `files` property, each one has a name that you can use. We're just using the name here.-->
-        <!--if (input.files[0]){-->
-            <!--run3_R2_text.textContent = input.files[0].name-->
-        <!--}else{-->
-            <!--run3_R2_text.textContent = 'R2'-->
-        <!--}-->
-        <!--// use fileName however fits your app best, i.e. add it into a div-->
-    <!--}-->
-<!--</script>-->
+                <!--// the input has an array of files in the `files` property, each one has a name that you can use. We're just using the name here.-->
+                <!--if (input.files[0]){-->
+                    <!--run3_R2_text.textContent = input.files[0].name-->
+                <!--}else{-->
+                    <!--run3_R2_text.textContent = 'R2'-->
+                <!--}-->
+                <!--// use fileName however fits your app best, i.e. add it into a div-->
+            <!--}-->
+        <!--</script>-->
 
-    <!--<script>setDefaultMassSpecSeq()</script>-->
-</body>
+            <!--<script>setDefaultMassSpecSeq()</script>-->
+
+        <nav role="navigation" class="navbar-inverse navbar-fixed-bottom ng-binding">
+            Research Site | <a href="https://www.tau.ac.il/~talp/" target="_blank">Pupko Group</a>
+        </nav>
+    </body>
 </html>

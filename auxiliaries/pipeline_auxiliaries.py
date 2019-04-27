@@ -25,12 +25,14 @@ def execute(process, raw=False):
 
 
 def wait_for_results(script_name, path, num_of_expected_results, error_file_path, suffix='done',
-                     remove=False, time_to_wait=10):
+                     remove=False, time_to_wait=10, start=0):
     '''waits until path contains num_of_expected_results $suffix files'''
-    start = time()
+    if not start:
+        start = time()
     logger.info(f'Waiting for {script_name}...\nContinues when {num_of_expected_results} results will be in:\n{path}')
     if num_of_expected_results==0:
-        raise ValueError(f'\n{"#"*100}\nnum_of_expected_results is {num_of_expected_results}! Something went wrong in the previous step...\n{"#"*100}')
+        logger.fatal(f'\n{"#"*100}\nnum_of_expected_results in {path} is {num_of_expected_results}!\nSomething went wrong in the previous step...\n{"#"*100}')
+        #raise ValueError(f'\n{"#"*100}\nnum_of_expected_results is {num_of_expected_results}! Something went wrong in the previous step...\n{"#"*100}')
     total_time = 0
     i = 0
     current_num_of_results = 0
@@ -41,7 +43,7 @@ def wait_for_results(script_name, path, num_of_expected_results, error_file_path
         total_time += time_to_wait
         i += 1
         if i % 5 == 0:  # print status every 5 cycles of $time_to_wait
-            logger.info(f'{measure_time(total_time)} have passed since started waiting ({num_of_expected_results} - {current_num_of_results} = {jobs_left} more files are still missing)')
+            logger.info(f'\t{measure_time(total_time)} have passed since started waiting ({num_of_expected_results} - {current_num_of_results} = {jobs_left} more files are still missing)')
     # if remove:
     #     execute(['python', '-u', '/groups/pupko/orenavr2/pipeline/RemoveDoneFiles.py', path, suffix])
     # logger.info(f'{measure_time(total_time)} have passed since started waiting ({num_of_expected_results} - {current_num_of_results} = {jobs_left} more files are still missing)')
@@ -73,7 +75,7 @@ def prepare_directories(outputs_dir_prefix, tmp_dir_prefix, dir_name):
 def submit_pipeline_step(script_path, params, tmp_dir, job_name, queue_name, new_line_delimiter='!@#',
                          q_submitter_script_path='/bioseq/bioSequence_scripts_and_constants/q_submitter_power.py',
                          done_files_script_path='/bioseq/microbializer/auxiliaries/file_writer.py',
-                         required_modules_as_list=None, more_cmds=None):
+                         required_modules_as_list=None, more_cmds=None, num_of_cpus=1):
 
     required_modules_as_str = 'python/python-anaconda3.6.5'
     if required_modules_as_list:
@@ -103,7 +105,14 @@ def submit_pipeline_step(script_path, params, tmp_dir, job_name, queue_name, new
     cmds_path = os.path.join(tmp_dir, job_name + '.cmds')
     with open(cmds_path, 'w') as f:
         f.write(cmds_as_str)
-    execute([q_submitter_script_path, cmds_path, tmp_dir, '-q', queue_name])
+    execute([q_submitter_script_path, cmds_path, tmp_dir, '-q', queue_name, '--cpu', str(num_of_cpus)])
+
+
+def fail(error_msg, error_file_path):
+    with open(error_file_path, 'w') as error_f:
+        error_f.write(error_msg + '\n')
+    raise ValueError(error_msg)
+
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)

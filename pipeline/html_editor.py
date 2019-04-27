@@ -20,7 +20,7 @@ def add_closing_html_tags(html_path, CONSTS, run_number):
     sleep(2 * CONSTS.RELOAD_INTERVAL)
     with open(html_path) as f:
         html_content = f.read()
-    html_content = html_content.replace(CONSTS.RELOAD_TAGS, '')
+    html_content = html_content.replace(CONSTS.RELOAD_TAGS, f'<!--{CONSTS.RELOAD_TAGS}-->')
     with open(html_path, 'w') as f:
         f.write(html_content)
 
@@ -62,7 +62,7 @@ def edit_success_html(html_path, meta_output_dir, final_output_dir_name, run_num
         f'</thead>\n' \
         f'<tbody>'
 
-    raw_file_suffix = os.path.join(final_output_dir_name, '16_species_phylogeny/species_tree.txt')
+    raw_file_suffix = os.path.join(final_output_dir_name, '16_species_phylogeny/final_species_tree.txt')
     if os.path.exists(os.path.join(meta_output_dir, raw_file_suffix)):
         html_text += f'<tr><td><a href="{CONSTS.WEBSERVER_URL}/PhyD3/view_tree.php?id={run_number}&f=newick" target="_blank">Interactive species tree</a> ;' \
             f' (<a href="{raw_file_suffix}" target="_blank">raw data</a>)\n<br></td></tr>'
@@ -116,12 +116,10 @@ def edit_failure_html(html_path, run_number, msg, CONSTS):
         logger.warning(f"Couldn't find html prefix at: {html_path}")
 
     html_text +=f'<br><br><br>\n' \
-                f'<center><h2>\n' \
+                f'<div class="container" style="{CONSTS.CONTAINER_STYLE}"><h3>\n' \
                 f'<font color="red">{msg}</font><br><br>' \
-                f'Please try to re-run your job or <a href="mailto:{CONSTS.ADMIN_EMAIL}?subject={CONSTS.WEBSERVER_NAME}%20Run%20Number:%20{run_number}">contact us</a> for further information' \
-                f'</h2></center>\n' \
-                f'<br><br>\n' \
-                f'</body>\n</html>\n'
+                f'Please make sure your input is OK and then try to re-run your job or <a href="mailto:{CONSTS.ADMIN_EMAIL}?subject={CONSTS.WEBSERVER_NAME}%20Run%20Number:%20{run_number}">contact us</a> for further information' \
+                f'</h3></div>\n'
 
     with open(html_path, 'w') as f:
         f.write(html_text)

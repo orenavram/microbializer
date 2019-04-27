@@ -67,12 +67,19 @@ def generate_text_to_mcl_input_file(gene_pair_to_score_dict, gene_pairs):
     return text_to_mcl_file
 
 
-def prepare_files_for_mcl(all_reciprocal_hits_path, putative_orthologs_path, output_path, delimiter):
+def prepare_files_for_mcl(all_reciprocal_hits_path, putative_orthologs_path, start, end, output_path, delimiter):
     from itertools import combinations
     gene_pair_to_score_dict = load_reciprocal_hits_to_dictionary(all_reciprocal_hits_path, delimiter)
+    logger.info(f'Reciprocal hits dictionary was loaded succesfully. Number of gene pairs is {len(gene_pair_to_score_dict)}.')
     with open(putative_orthologs_path) as f:
+        line_number = 0
         f.readline()  # skip header
         for line in f:
+            line_number += 1
+            if not start <= line_number <= end:
+                continue
+            if line_number > end:
+                break
             # parse each table row
             line_tokens = line.rstrip().split(delimiter)
             group_name = line_tokens[0]
@@ -101,6 +108,8 @@ if __name__ == '__main__':
 
     parser.add_argument('all_reciprocal_hits_path', help='path to a file with all the reciprocal hits files concatenated')
     parser.add_argument('putative_orthologs_path', help='path to a file with the putative orthologs sets')
+    parser.add_argument('start', help='first ortholog set to prepare', type=int)
+    parser.add_argument('end', help='last ortholog set to prepare', type=int)
     parser.add_argument('output_path', help='a folder in which the input files for mcl will be written')
     parser.add_argument('--delimiter', help='delimiter for the input and output files', default=',')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
@@ -113,4 +122,5 @@ if __name__ == '__main__':
         logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger('main')
 
-    prepare_files_for_mcl(args.all_reciprocal_hits_path, args.putative_orthologs_path, args.output_path, args.delimiter)
+    prepare_files_for_mcl(args.all_reciprocal_hits_path, args.putative_orthologs_path,
+                          args.start, args.end, args.output_path, args.delimiter)

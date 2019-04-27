@@ -76,11 +76,12 @@ def construct_table(all_reciprocal_hits_path, putative_orthologs_path, delimiter
     # strains sorted lexicographically
     sorted_strains = sorted(set(member_gene_to_strain_name_dict.values()))
     putative_orthologs_prefix = os.path.split(putative_orthologs_path)[0]
-    with open(os.path.join(putative_orthologs_prefix, 'number_of_strains.txt'), 'w') as f:
-        f.write(str(len(sorted_strains)))
+    with open(os.path.join(putative_orthologs_prefix, 'num_of_strains.txt'), 'w') as f:
+        f.write(f'{len(sorted_strains)}\n')
 
     header = delimiter.join(['OG_name']+sorted_strains) + '\n'
     result = ''
+    number_of_putative_sets = 0
     result += header
     # groups sorted by the strain they are associated with (group names are a subset of all the genes..)
     sorted_groups = sorted(group_name_to_member_genes, key=member_gene_to_strain_name_dict.get)
@@ -92,9 +93,13 @@ def construct_table(all_reciprocal_hits_path, putative_orthologs_path, delimiter
             strain = member_gene_to_strain_name_dict[member]
             strain_to_member[strain] = member
         result += delimiter.join([group]+[strain_to_member[strain] for strain in sorted_strains]) + '\n'
+        number_of_putative_sets += 1
 
     with open(putative_orthologs_path, 'w') as f:
         f.write(result)
+
+    with open(os.path.join(os.path.split(putative_orthologs_path)[0], 'num_of_putative_sets.txt'), 'w') as f:
+        f.write(f'{number_of_putative_sets}\n')
 
 
 if __name__ == '__main__':
