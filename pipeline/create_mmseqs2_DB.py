@@ -8,19 +8,27 @@ def create_mmseq2_DB(fasta_path, output_path, tmp_path, translate, convert2fasta
     #for more details see: mmseqs createdb -h
     import subprocess
 
-    cmd = f'mmseqs createdb {fasta_path} {tmp_path} --dont-split-seq-by-len'
+    # control verbosity level by -v [3] param ; verbosity levels: 0=nothing, 1: +errors, 2: +warnings, 3: +info
+    v = 2
+
+    cmd = f'mmseqs createdb {fasta_path} {tmp_path} -v {v}'# --dont-split-seq-by-len'
     logger.info(f'Starting mmseqs createdb. Executed command is:\n{cmd}')
     subprocess.run(cmd, shell=True)
 
     if translate or convert2fasta:
-        cmd = f'mmseqs translatenucs {tmp_path} {tmp_path}_aa'  # translate dna db to aa db
+        cmd = f'mmseqs translatenucs {tmp_path} {tmp_path}_aa -v {v}'  # translate dna db to aa db
         logger.info(f'Translating dna DB to amino acids. Executed command is:\n{cmd}')
         subprocess.run(cmd, shell=True)
 
-    if convert2fasta:
-        cmd = f'mmseqs convert2fasta {tmp_path}_aa {output_path}_aa.fas'  # convert the aa db to a regular fasta
-        logger.info(f'Converting amino acids DB to a fasta format. Executed command is:\n{cmd}')
+    if convert2fasta:  # for step 13: dna to aa
+        cmd = f'mmseqs convert2fasta {tmp_path}_aa {output_path}_aa.fas -v {v}'  # convert the aa db to a regular fasta
+        logger.info(f'Converting amino acids DB to a FASTA format. Executed command is:\n{cmd}')
         subprocess.run(cmd, shell=True)
+        intermediate_files = [f'{tmp_path}{suffix}' for suffix in ['', '_aa', '_aa.dbtype', '_aa_h', '_aa_h.dbtype', '_aa_h.index', '_aa.index', '.dbtype', '_h', '_h.dbtype', '_h.index', '.index', '.lookup']]
+        import os
+        # each pair generates 13 intermidiate files!!! lot's of junk once finished
+        for file in intermediate_files:
+            os.remove(file)
 
 
 

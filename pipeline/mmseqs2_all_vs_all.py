@@ -1,4 +1,4 @@
-def search_all_vs_all(query_dna_db, query_aa_db, target_dna_db, target_aa_db, aln_db, aln_offsetted_db, tmp_dir, m8_outfile):
+def search_all_vs_all(aa_db1, aa_db2, aln_offsetted_db, tmp_dir, m8_outfile):
     '''
     input:  mmseqs2 DBs
     output: query_vs_reference "mmseqs2 search" results file
@@ -10,20 +10,34 @@ def search_all_vs_all(query_dna_db, query_aa_db, target_dna_db, target_aa_db, al
     while not os.path.exists(m8_outfile):
         # when the data set is very big some files are not generated because of the heavy load
         # so we need to make sure they will be generated!
-        logger.info(f'Iteration #{i}: Executing mmseqs2 search for {query_aa_db} and {target_aa_db}')
+        logger.info(f'Iteration #{i}: Executing mmseqs2 search for {aa_db1} and {aa_db2}')
         i += 1
 
-        cmd = f'mmseqs search {query_aa_db} {target_aa_db} {aln_db} {tmp_dir} --max-seqs 1' #TODO: check what this max-seqs parameter means!
+        # control verbosity level by -v [3] param ; verbosity levels: 0=nothing, 1: +errors, 2: +warnings, 3: +info
+        v = 2
+
+        cmd = f'mmseqs rbh {aa_db1} {aa_db2} {aln_offsetted_db} {tmp_dir} -v {v}'
+
         logger.info(f'Calling:\n{cmd}')
         subprocess.run(cmd, shell=True)
 
-        cmd = f'mmseqs offsetalignment {query_aa_db} {query_dna_db} {target_aa_db} {target_dna_db} {aln_db} {aln_offsetted_db}'
+        # cmd = f'mmseqs search {aa_db1} {aa_db2} {aln_db} {tmp_dir} -v {v} --max-seqs 1' #TODO: check what this max-seqs parameter means!
+        # logger.info(f'Calling:\n{cmd}')
+        # subprocess.run(cmd, shell=True)
+        #
+        # cmd = f'mmseqs offsetalignment {aa_db1} {query_dna_db} {aa_db2} {target_dna_db} {aln_db} {aln_offsetted_db} -v {v}'
+        # logger.info(f'Calling:\n{cmd}')
+        # subprocess.run(cmd, shell=True)
+
+        cmd = f'mmseqs convertalis {aa_db1} {aa_db2}  {aln_offsetted_db}  {m8_outfile} -v {v}'
         logger.info(f'Calling:\n{cmd}')
         subprocess.run(cmd, shell=True)
 
-        cmd = f'mmseqs convertalis {query_aa_db} {target_aa_db}  {aln_offsetted_db}  {m8_outfile}'
-        logger.info(f'Calling:\n{cmd}')
-        subprocess.run(cmd, shell=True)
+    intermediate_files_prefix = os.path.splitext(aln_offsetted_db)[0]
+    intermediate_files = [f'{intermediate_files_prefix}{suffix}' for suffix in ['.alnOffsettedDB', '.alnOffsettedDB.dbtype', '.alnOffsettedDB.index']]
+    # each pair generates 3 intermidiate files! lot's of junk once finished
+    for file in intermediate_files:
+        os.remove(file)
 
 
 if __name__ == '__main__':
@@ -33,16 +47,10 @@ if __name__ == '__main__':
         import argparse
         parser = argparse.ArgumentParser()
 
-        parser.add_argument('query_dna_db', help='path to mmseqs2 QUERY dna DB')
-        parser.add_argument('query_aa_db', help='path to mmseqs2 QUERY aa DB')
-
-        parser.add_argument('target_dna_db', help='path to mmseqs2 TARGET dna DB')
-        parser.add_argument('target_aa_db', help='path to mmseqs2 TARGET aa DB')
-
-        parser.add_argument('aln_db', help='path to mmseqs2 alignment DB')
+        parser.add_argument('aa_db1', help='path to an aa DB')
+        parser.add_argument('aa_db2', help='path to another aa DB')
         parser.add_argument('aln_offsetted_db', help='path to mmseqs2 offsetted alignment DB')
-
-        parser.add_argument('tmp_dir', help='path to mmseqs2 intermediate tmp files')
+        parser.add_argument('tmp_dir', help='a path to write mmseqs internal files')
         parser.add_argument('output_path', help='path to which the results will be written (blast m8 format)')
 
         parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
@@ -55,5 +63,5 @@ if __name__ == '__main__':
             logging.basicConfig(level=logging.INFO)
         logger = logging.getLogger('main')
 
-        search_all_vs_all(args.query_dna_db, args.query_aa_db, args.target_dna_db, args.target_aa_db,
-                          args.aln_db, args.aln_offsetted_db, args.tmp_dir, args.output_path)
+        search_all_vs_all(args.aa_db1, args.aa_db2, args.aln_offsetted_db,
+                          args.tmp_dir, args.output_path)

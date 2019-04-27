@@ -10,6 +10,9 @@ def induce_sequence(aa_seq, dna_seq):
         else:
             result += dna_seq[i*3:(i+1)*3]
 
+    # fill with trailing gaps so each induced dna sequence is of the same length
+    result += (len(aa_seq)*3-len(result))*'-'
+
     return result
 
 
@@ -17,6 +20,7 @@ def induce_msa(aa_msa_path, dna_ms_path, output_path):
     from extract_core_genome import load_orthologs_group_to_dict
     og_name_to_aa = load_orthologs_group_to_dict(aa_msa_path)
     og_name_to_dna = load_orthologs_group_to_dict(dna_ms_path)
+
 
     result = ''
     with open(dna_ms_path) as f:

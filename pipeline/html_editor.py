@@ -20,7 +20,7 @@ def add_closing_html_tags(html_path, CONSTS, run_number):
     sleep(2 * CONSTS.RELOAD_INTERVAL)
     with open(html_path) as f:
         html_content = f.read()
-    html_content = html_content.replace(CONSTS.RELOAD_TAGS, '')
+    html_content = html_content.replace(CONSTS.RELOAD_TAGS, f'<!--{CONSTS.RELOAD_TAGS}-->')
     with open(html_path, 'w') as f:
         f.write(html_content)
 
@@ -116,10 +116,10 @@ def edit_failure_html(html_path, run_number, msg, CONSTS):
         logger.warning(f"Couldn't find html prefix at: {html_path}")
 
     html_text +=f'<br><br><br>\n' \
-                f'<div class="container" style="{CONSTS.CONTAINER_STYLE}"><h2>\n' \
+                f'<div class="container" style="{CONSTS.CONTAINER_STYLE}"><h3>\n' \
                 f'<font color="red">{msg}</font><br><br>' \
-                f'Please try to re-run your job or <a href="mailto:{CONSTS.ADMIN_EMAIL}?subject={CONSTS.WEBSERVER_NAME}%20Run%20Number:%20{run_number}">contact us</a> for further information' \
-                f'</h2></div>\n'
+                f'Please make sure your input is OK and then try to re-run your job or <a href="mailto:{CONSTS.ADMIN_EMAIL}?subject={CONSTS.WEBSERVER_NAME}%20Run%20Number:%20{run_number}">contact us</a> for further information' \
+                f'</h3></div>\n'
 
     with open(html_path, 'w') as f:
         f.write(html_text)

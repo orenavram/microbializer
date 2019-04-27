@@ -25,9 +25,10 @@ def execute(process, raw=False):
 
 
 def wait_for_results(script_name, path, num_of_expected_results, error_file_path, suffix='done',
-                     remove=False, time_to_wait=10):
+                     remove=False, time_to_wait=10, start=0):
     '''waits until path contains num_of_expected_results $suffix files'''
-    start = time()
+    if not start:
+        start = time()
     logger.info(f'Waiting for {script_name}...\nContinues when {num_of_expected_results} results will be in:\n{path}')
     if num_of_expected_results==0:
         logger.fatal(f'\n{"#"*100}\nnum_of_expected_results in {path} is {num_of_expected_results}!\nSomething went wrong in the previous step...\n{"#"*100}')

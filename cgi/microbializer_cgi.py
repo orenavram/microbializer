@@ -83,51 +83,51 @@ def write_html_prefix(output_path, run_number):
         <div id="behind-nav-bar-results">
         </div>
         <br><br><div class="container" style="font-size: 17px; {CONSTS.CONTAINER_STYLE}"  align="justify"><br> 
-        <H1 align=center>Job Status: <FONT color='red'>RUNNING</FONT></h1>
+        <H1 align=center>Job Status: <FONT color='red'>\nRUNNING\n</FONT></h1>
         <br>
         {CONSTS.PROGRESS_BAR_TAG}
-        {CONSTS.WEBSERVER_NAME} is now processing your request. This page will be automatically updated every {CONSTS.RELOAD_INTERVAL} seconds (until the job is done). You can also reload it manually. Once the job has finished, several links to the output files will appear below. A link to this page was sent to your email in case you wish to view these results at a later time without recalculating them. Please note that the results will be kept in the server for 3 months.
+        {CONSTS.WEBSERVER_NAME} is now processing your request. This page will be automatically updated every {CONSTS.RELOAD_INTERVAL} seconds (until the job is done). You can also reload it manually. Once the job has finished, several links to the output files will appear below. A link to this page was sent to your email in case you wish to view these results at a later time without recalculating them. Please note that the results will be kept in the server for three months.
         <br><br></div>''')
         output_path_f.flush()
 
 
-def write_running_parameters_to_html(output_path, identity_cutoff, e_value_cutoff, core_minimal_percentage, bootstrap, root, job_title, file_name=''):
+def write_running_parameters_to_html(output_path, identity_cutoff, e_value_cutoff, core_minimal_percentage, bootstrap, outgroup, job_title, file_name=''):
     with open(output_path, 'a') as output_path_f:
         output_path_f.write(f'<div class="container" style="{CONSTS.CONTAINER_STYLE}">')
 
         # regular params rows
-        output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-8">')
-        output_path_f.write(f'<b>Folder name: </b>{file_name}')
+        output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-12">')
+        output_path_f.write(f'<b>Archived folder name: </b>{file_name}')
         output_path_f.write('</div></div>')
 
         # regular params rows
-        output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-8">')
-        output_path_f.write(f'<b>Identity minimal percent cutoff: </b>{identity_cutoff}')
-        output_path_f.write('</div></div>')
-
-        # regular params rows
-        output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-8">')
+        output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-12">')
         output_path_f.write(f'<b>Maximal e-value cutoff: </b>{e_value_cutoff}')
         output_path_f.write('</div></div>')
 
         # regular params rows
-        output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-8">')
-        output_path_f.write(f'<b>Minimal percentage for core: </b>{core_minimal_percentage}')
+        output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-12">')
+        output_path_f.write(f'<b>Identity minimal percent cutoff: </b>{identity_cutoff}')  # TODO: add %
         output_path_f.write('</div></div>')
 
         # regular params rows
-        output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-8">')
+        output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-12">')
+        output_path_f.write(f'<b>Minimal percentage for core: </b>{core_minimal_percentage}')  #TODO: add %
+        output_path_f.write('</div></div>')
+
+        # regular params rows
+        output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-12">')
         output_path_f.write(f'<b>Apply bootstrap: </b>{bootstrap.upper()}')
         output_path_f.write('</div></div>')
 
         # regular params rows
-        output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-8">')
-        output_path_f.write(f'<b>Tree type: </b>{"ROOTED" if root=="yes" else "UNROOTED"}')
+        output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-12">')
+        output_path_f.write(f'<b>Outgroup: </b>{outgroup if outgroup else "NONE"}')
         output_path_f.write('</div></div>')
 
         # optional params rows
         if job_title != '':
-            output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-8">')
+            output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-12">')
             output_path_f.write(f'<b>Job title: </b>{job_title}')
             output_path_f.write('</div></div>')
 
@@ -158,7 +158,7 @@ def run_cgi():
 
     # random_chars = "".join(choice(string.ascii_letters + string.digits) for x in range(20))
     run_number = str(round(time())) + str(randint(10 ** 19, 10 ** 20 - 1))  # adding 20 random digits to prevent users see data that are not their's
-    if form['example_page'].value == 'yes': #TODO: uncomment this if clause!!
+    if form['example_page'].value == 'yes':
         run_number = 'example'  # str(round(time())) + str(randint(1000,9999)) # adding 4 random figures to prevent users see data that are not their's
 
     results_url = os.path.join(CONSTS.WEBSERVER_RESULTS_URL, run_number)
@@ -177,10 +177,7 @@ def run_cgi():
     print('Content-Type: text/html\n')  # For more details see https://www.w3.org/International/articles/http-charset/index#scripting
     sys.stdout.flush()  # must be flushed immediately!!!
 
-    if 'email' not in form or 'wasscan' in form['email'].value:
-        exit()
-
-    if 'confirm_email' in form and form['confirm_email'].value != '':
+    if 'email' not in form or ('confirm_email' in form and form['confirm_email'].value != ''):
         exit()
 
     # Send me a notification email every time there's a new request
@@ -216,7 +213,8 @@ def run_cgi():
         e_value_cutoff = form['e_value_cutoff'].value.strip()
         core_minimal_percentage = form['core_minimal_percentage'].value.strip()
         bootstrap = form['bootstrap'].value.strip()
-        root = form['root'].value.strip()
+        outgroup = form['outgroup'].value.strip()
+
 
         # This is hidden field that only spammer bots might fill in...
         confirm_email_add = form['confirm_email'].value  # if it is contain a value it is a spammer.
@@ -250,15 +248,16 @@ def run_cgi():
         write_to_debug_file(cgi_debug_path_f, f'{ctime()}: write_running_parameters_to_html...\n')
 
         if not page_is_ready:
-            write_running_parameters_to_html(output_path, identity_cutoff, e_value_cutoff, core_minimal_percentage, bootstrap, root, job_title, file_name)
+            write_running_parameters_to_html(output_path, identity_cutoff, e_value_cutoff, core_minimal_percentage, bootstrap, outgroup, job_title, file_name)
 
         write_to_debug_file(cgi_debug_path_f, f'{ctime()}: Running parameters were written to html successfully.\n')
 
         # send jobs only to one machine so there won't be a dead lock
         # (cluster might be full with main jobs waiting for sub jobs but they are in qw mode...)
-        queue_name = 'pupkoweb'  # all pupko machines on power
+        #queue_name = 'pupkoweb'  # all pupko machines on power
         #queue_name = '"pupkoweb -l nodes=compute-0-291"'  # TODO: uncomment to avoid deadlock
-        queue_name_for_subjobs = 'pupkoweb'  # all pupko machines on power
+        queue_name = '"pupkotmp -l nodes=compute-0-265"'  # TODO: uncomment to avoid deadlock
+        queue_name_for_subjobs = 'pupkotmp'  # all pupko machines on power
 
         parameters = f'{data_path} ' \
                      f'{os.path.join(wd, "outputs")} ' \
@@ -267,7 +266,7 @@ def run_cgi():
                      f'--e_value_cutoff {e_value_cutoff} ' \
                      f'--core_minimal_percentage {core_minimal_percentage} ' \
                      f'--bootstrap {bootstrap} ' \
-                     f'--root {root} ' \
+                     f'--outgroup "{outgroup}" ' \
                      f'--queue_name {queue_name_for_subjobs}'
 
 
@@ -290,16 +289,40 @@ def run_cgi():
             with open(os.path.join(wd, 'user_email.txt'), 'a') as email_f:
                 email_f.write(f'{user_email}\n')
 
+            job_name = f"Job title: {job_title}\n" if job_title else ''
+            notification_content = f"Your submission details are:\n\n{job_name}" \
+                               f"Dataset name: {file_name}\n" \
+                               f"Maximal e-value cutoff: {e_value_cutoff}\n" \
+                               f"Identity minimal percent cutoff: {identity_cutoff}%\n" \
+                               f"Minimal percentage for core: {core_minimal_percentage}%\n" \
+                               f"Apply bootstrap procedure: {bootstrap.upper()}\n" \
+                               f"Outgroup: {outgroup}\n\n" \
+                               f"Once the analysis will be ready, we will let you know! " \
+                               f"Meanwhile, you can track the progress of your job at:\n{os.path.join(CONSTS.WEBSERVER_URL, 'results', run_number, 'output.html')}\n\n"
+
+                # Send the user a notification email for their submission
+            send_email(smtp_server=CONSTS.SMTP_SERVER,
+                       sender=CONSTS.ADMIN_EMAIL,
+                       receiver=f'{user_email}',
+                       subject=f'{CONSTS.WEBSERVER_NAME} - Your job has been submitted! (Run number: {run_number})',
+                       content=notification_content)
+
         write_to_debug_file(cgi_debug_path_f, f'\n\n{"#"*50}\nCGI finished running!\n{"#"*50}\n')
 
         cgi_debug_path_f.close()
 
     except Exception as e:
-        msg = 'CGI crashed before the job was submitted :('
+        msg = 'CGI crashed before the job was submitted :(<br>\n' \
+              'Could heavy due to heavy load at the moment on our computer cluster or non <a href="http://www.asciitable.com/" target="_blank">ASCII characters</a> in your submission.'
         with open(output_path) as f:
             html_content = f.read()
         html_content = html_content.replace('RUNNING', 'FAILED')
-        html_content += f'<br><br><br><center><h2><font color="red">{msg}</font><br><br>Please try to re-run your job or <a href="mailto:{CONSTS.ADMIN_EMAIL}?subject={CONSTS.WEBSERVER_NAME}%20Run%20Number%20{run_number}">contact us</a> for further information</h2></center><br><br>\n</body>\n</html>\n'
+        html_content = html_content.replace(' active', '')
+        html_content += f'<br><br><br>' \
+                        f'<div class="container" style="{CONSTS.CONTAINER_STYLE}"><h3>' \
+                        f'<font color="red">{msg}</font><br><br>' \
+                        f'Please try to re-run your job in a few minutes or <a href="mailto:{CONSTS.ADMIN_EMAIL}?subject={CONSTS.WEBSERVER_NAME}%20Run%20Number%20{run_number}">contact us</a> for further information' \
+                        f'</h3></div><br><br>\n</body>\n</html>\n'
         with open(output_path, 'w') as f:
             f.write(html_content)
 
@@ -327,7 +350,7 @@ def run_cgi():
         sleep(2 * CONSTS.RELOAD_INTERVAL)
         with open(output_path) as f:
             html_content = f.read()
-        html_content = html_content.replace(CONSTS.RELOAD_TAGS, '')
+        html_content = html_content.replace(CONSTS.RELOAD_TAGS, f'<!--{CONSTS.RELOAD_TAGS}-->')
         with open(output_path, 'w') as f:
             f.write(html_content)
 
