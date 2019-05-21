@@ -30,7 +30,7 @@ def generate_tree_plot(path_to_data, output_file_path):
     pb.savefig(output_file_path, bbox_inches='tight', dpi=300)
 
 
-def generate_bar_plot(path_to_data, output_file_path, title='', xlabel='', ylabel='', dpi=300):
+def generate_bar_plot(path_to_data, output_file_path, xlabel='', ylabel='', dpi=300):
     data = np.loadtxt(path_to_data, dtype=int)
 
     fig = plt.figure(figsize=(10, 10))
@@ -47,8 +47,9 @@ def generate_bar_plot(path_to_data, output_file_path, title='', xlabel='', ylabe
             label.set_visible(True)
         else:
             label.set_visible(False)
-    # ax.set_xlabel(f'{xlabel}', fontdict={'fontsize': 20})
-    # ax.set_ylabel(ylabel, fontdict={'fontsize': 20})
+    ax.set_xlabel(f'{xlabel}', fontdict={'fontsize': 20})
+    ax.set_ylabel(f'{ylabel}', fontdict={'fontsize': 20})
+
     # ax.set_title(f'{title}', fontdict={'fontsize': 20})
     # ax.xaxis.set_major_locator(MaxNLocator(integer=True))
     # ax.yaxis.set_major_locator(MaxNLocator(integer=True))
@@ -58,15 +59,17 @@ def generate_bar_plot(path_to_data, output_file_path, title='', xlabel='', ylabe
 
 
 if __name__ == '__main__':
+    dataset_name = '29 GammaProteoBacteria (no Philadelphia) dataset'
+
     generate_bar_plot(
-        '/Users/Oren/Dropbox/Projects/Sweeps Project/microbilizer_web/data/19_groups_sizes_frequency/test.txt',
-        '/Users/Oren/Dropbox/Projects/Sweeps Project/microbilizer_web/data/19_groups_sizes_frequency/test.png',
-        xlabel='\nOrthologs group size', ylabel='Counts\n', dpi=100)
-    generate_boxplot('/Users/Oren/Dropbox/Projects/microbializer/output_examples/mock_output/14_orfs_statistics/orfs_gc_contents.txt',
-                      '/Users/Oren/Dropbox/Projects/microbializer/output_examples/mock_output/14_orfs_statistics/orfs_gc_contents.png',
-                     xlabel='\nGC content per genome', dpi=100)
-    generate_boxplot('/Users/Oren/Dropbox/Projects/microbializer/output_examples/mock_output/14_orfs_statistics/orfs_counts.txt',
-                      '/Users/Oren/Dropbox/Projects/microbializer/output_examples/mock_output/14_orfs_statistics/orfs_counts.png',
-                     xlabel='\nORFs count per genome', dpi=100)
-    generate_tree_plot('/Users/Oren/Dropbox/Projects/microbializer/output_examples/mock_output/17_species_phylogeny/final_species_tree.txt',
-                      '/Users/Oren/Dropbox/Projects/microbializer/output_examples/mock_output/17_species_phylogeny/final_species_tree.png')
+        f'/Users/Oren/Dropbox/Projects/Sweeps Project/microbilizer_web/data/{dataset_name}/19_groups_sizes_frequency/groups_sizes_frequency.txt',
+        f'/Users/Oren/Dropbox/Projects/microbializerPower/html/pics/{dataset_name.split()[0]}_groups_sizes_frequency.png',
+        xlabel='Orthologs group size', ylabel='Counts')
+    generate_boxplot(f'/Users/Oren/Dropbox/Projects/Sweeps Project/microbilizer_web/data/{dataset_name}/20_orfs_plots/orfs_gc_contents.txt',
+                      f'/Users/Oren/Dropbox/Projects/microbializerPower/html/pics/{dataset_name.split()[0]}_orfs_gc_contents.png',
+                     xlabel='GC content per genome')
+    generate_boxplot(f'/Users/Oren/Dropbox/Projects/Sweeps Project/microbilizer_web/data/{dataset_name}/20_orfs_plots/orfs_counts.txt',
+                      f'/Users/Oren/Dropbox/Projects/microbializerPower/html/pics/{dataset_name.split()[0]}_orfs_counts.png',
+                     xlabel='ORFs count per genome')
+    #generate_tree_plot('/Users/Oren/Dropbox/Projects/microbializer/output_examples/mock_output/17_species_phylogeny/final_species_tree.txt',
+    #                  '/Users/Oren/Dropbox/Projects/microbializer/output_examples/mock_output/17_species_phylogeny/final_species_tree.png')
