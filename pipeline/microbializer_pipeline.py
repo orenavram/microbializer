@@ -87,8 +87,8 @@ def add_results_to_final_dir(source, final_output_dir):
     logger.info(f'Moving {source} TO {dest}')
 
     try:
-        #shutil.move(source, dest) # TODO: move instead of copy!!
-        shutil.copytree(source, dest)
+        shutil.move(source, dest) # TODO: move instead of copy!!
+        #shutil.copytree(source, dest)
     except FileExistsError:
         pass
     return dest
@@ -880,17 +880,17 @@ try:
     edit_progress(output_html_path, progress=60)
 
 
-    # 13.  create_mmseqs2_DB.py
-    # Input: path to orfs file to create DB from
-    # Output: translated proteins
+    # 13.  translate_fna_to_faa.py
+    # Input: path to fna file and an faa file
+    # Output: translate the fna to protein and write to the faa file
     # Can be parallelized on cluster
     step = '13'
     logger.info(f'Step {step}: {"_"*100}')
     dir_name = f'{step}_orthologs_groups_aa_sequences'
-    script_path = os.path.join(args.src_dir, 'create_mmseqs2_DB.py')
+    script_path = os.path.join(args.src_dir, 'translate_fna_to_faa.py')
     num_of_expected_results = 0
     orthologs_aa_sequences_dir_path, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
-    done_file_path = os.path.join(done_files_dir, f'{step}_create_DB.txt')
+    done_file_path = os.path.join(done_files_dir, f'{step}_translate_fna_to_faa.txt')
     num_of_cmds_per_job = 100
     num_of_aggregated_params = 0
     more_cmds = [] # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
@@ -898,20 +898,17 @@ try:
         logger.info('Translating orthologs groups sequences...')
         for fasta_file in os.listdir(orthologs_dna_sequences_dir_path):
             file_path = os.path.join(orthologs_dna_sequences_dir_path, fasta_file)
-            output_path = os.path.join(orthologs_aa_sequences_dir_path, fasta_file.replace('_dna.fas', ''))
-            tmp_path = os.path.join(pipeline_step_tmp_dir, fasta_file.replace('_dna.fas', ''))
+            output_path = os.path.join(orthologs_aa_sequences_dir_path, fasta_file.replace('_dna.fas', '_aa.fas'))
 
             job_name = f'{os.path.splitext(fasta_file)[0]}_to_aa'
             if num_of_aggregated_params > 0:  # params was already defined for this job batch. Save it before overridden
                 more_cmds.append(params)
             params = [file_path,
-                      output_path,
-                      tmp_path,
-                      '-c'] # translate dna and convert to fasta  # Should we let the user decide?
+                      output_path]
             num_of_aggregated_params += 1
             if num_of_aggregated_params == num_of_cmds_per_job:
                 submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name,
-                                     queue_name=args.queue_name, more_cmds=more_cmds, required_modules_as_list=[CONSTS.GCC])
+                                     queue_name=args.queue_name, more_cmds=more_cmds)
                 num_of_expected_results += 1
                 num_of_aggregated_params = 0
                 more_cmds = []
@@ -919,7 +916,7 @@ try:
         if num_of_aggregated_params>0:
             #don't forget the last batch!!
             submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name,
-                                 queue_name=args.queue_name, more_cmds=more_cmds, required_modules_as_list=[CONSTS.GCC])
+                                 queue_name=args.queue_name, more_cmds=more_cmds)
             num_of_expected_results += 1
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir, num_of_expected_results, error_file_path)
@@ -1371,7 +1368,7 @@ send_email('mxout.tau.ac.il', 'TAU BioSequence <bioSequence@tauex.tau.ac.il>', a
 
 logger.info('Cleaning up...')
 if status == 'is done':
-    if remote_run and run_number.lower() != 'example' and False:  # TODO: remove the "and False" once ready.
+    if remote_run and run_number.lower() != 'example': # and False:  # TODO: remove the "and False" once ready.
         # remove raw data from the server
         try:
             shutil.rmtree(data_path)  # remove data
