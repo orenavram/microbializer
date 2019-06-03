@@ -261,13 +261,14 @@ def run_cgi():
 
         parameters = f'{data_path} ' \
                      f'{os.path.join(wd, "outputs")} ' \
-                     f'{CONSTS.OWNER_EMAIL} ' \
                      f'--identity_cutoff {identity_cutoff} ' \
                      f'--e_value_cutoff {e_value_cutoff} ' \
                      f'--core_minimal_percentage {core_minimal_percentage} ' \
                      f'--bootstrap {bootstrap} ' \
                      f'--outgroup "{outgroup}" ' \
-                     f'--queue_name {queue_name_for_subjobs}'
+                     f'--queue_name {queue_name_for_subjobs} '
+        if user_email != '':
+            parameters += ' ' + f'--email {user_email}'
 
 
         cmds_file = os.path.join(wd, 'qsub.cmds')

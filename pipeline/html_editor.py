@@ -66,6 +66,11 @@ def edit_success_html(html_path, meta_output_dir, final_output_dir_name, run_num
     if os.path.exists(os.path.join(meta_output_dir, raw_file_suffix)):
         html_text += f'<tr><td><a href="{CONSTS.WEBSERVER_URL}/PhyD3/view_tree.php?id={run_number}&f=newick" target="_blank">Interactive species tree</a> ;' \
             f' (<a href="{raw_file_suffix}" target="_blank">raw data</a>)\n<br></td></tr>'
+    else:
+        html_text += f'<tr><td>' \
+                     f'Species tree is not available for current analysis ' \
+                     f'(<a href="https://microbializer.tau.ac.il/faq.html#no_tree" target="_blank">Why?</a>)\n' \
+                     f'<br></td></tr>'
 
     html_text += get_html_string_of_restult(final_output_dir_name,
                                             meta_output_dir,

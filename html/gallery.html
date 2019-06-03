@@ -50,8 +50,7 @@
                         <div class="col-md-10" align="center">
                             <span id="server-title">M1CR0B1AL1Z3R</span>
                             <img src="pics/logo.gif" id="nav_bar_image" class="img-rounded">
-                            <br><span id="sub-title">A webserver for analyzing bacterial genomics data. Easily.</span>
-                            <!--<span id="sub-title">A webserver for analyzing bacterial genomics data</span><br>-->
+                            <br><span id="sub-title">A web server for analyzing bacterial genomics data. Easily.</span>
                         </div>
                         <!--<div class="col-md-1">-->
                             <!---->
@@ -101,60 +100,133 @@
                 <div class="col-md-1">
                 </div>
                 <div class="col-md-10" align="justify">
-                        In addition to various textual outputs M1CR0B1AL1Z3R provides several plots that summarizes different statistics of the data. For example:
-                </div>
-                <div class="col-md-1">
-                </div>
-            </div>
-            <br>
-            <div class="row">
-                <div class="col-md-1">
-                </div>
-                <div class="col-md-10">
-                    (1) A maximum-likelihood phylogenetic tree based on the inferred core-genome using RAxML (click on the figure to switch to interactive mode):
-                    <!--<div id="content"></div>-->
-                    <a href="https://microbializer.tau.ac.il/PhyD3/view_tree.php?id=155224082613419621042959406082&f=newick" target="_blank">
-                        <img src="pics/final_species_tree.png" style="height: 60%; width: 100%;">
+                    To demonstrate the utility of The M1CR0B1AL1Z3R web server, we provide detailed analysis of three different databases:<br><br>
+                    <div class="container">
+                        [1] <a href="https://microbializer.tau.ac.il/results/155645483043865906834622033673/output.html" target="_blank">50 <i>E. coli</i> isolates and one <i>E. fergusonii</i> as an outgroup</a>.<br>
+                        [2] <a href="https://microbializer.tau.ac.il/results/155645478129982753092049851441/output.html" target="_blank">73 <i>Escherichia</i> species (including 10 <i>Shigella</i>)</a>.<br>
+                        [3] <a href="https://microbializer.tau.ac.il/results/155645486998485855534384414130/output.html" target="_blank">29 Gammaproteobacteria species</a>.
+                    </div>
+                    <br> Of note, these examples highlight the main usage of the web server: a comparative analysis of assembled microbial genomes. It is not intended for raw metagenomics data (i.e., before assembly and binning). The results for each dataset are provided below.
+                    <br><br>
+                    [1] M1CR0B1AL1Z3R analysis of different isolates from the same <i>E. coli</i> strain. This dataset is comprised of 50 pathogenic Escherichia coli lineage ST131 genomes
+                    (<a href="https://doi.org/10.1371/journal.pgen.1006280" target="_blank">McNally A, et al.,  2016</a>).
+                    This dataset represents highly similar clinical isolates of a specific bacterial species. Several isolates were not fully assembled and contained dozens and even hundreds of contigs. This demonstrates the capability of M1CR0B1AL1Z3R to handle partially assembled genomes. We added an outgroup sequence to this dataset, the genomic sequence of Escherichia fergusonii.
+                    The results for this example can be found
+                    <a href="https://microbializer.tau.ac.il/results/155645483043865906834622033673/output.html" target="_blank">here</a>.
+                    <br><br>
+
+                    [1a] The identification of ORFs in each genome is one of the first computation steps. Below is a violin plot representing the dispersion of the ORF count per genome.
+                    <br><br>
+                    <img src="pics/50_orfs_counts.png" class="center">
+                    <br>
+                    Biological interpretation: As can be seen, there is high variation in the number of encoded ORFs. This variation is often attributed to the high rate of horizontal gene transfer. However, it is also possible that some variance may result from missing data in some genomes. This plot can thus provide a gateway for further research concerning the source of differences in the number of ORFs among genomes. The genome with the lowest number of ORFs is <i>E. fergusonii</i> ATCC 35469. It encodes 4,262 ORFs. The next smallest genome in terms of ORF count encodes 4,495 ORFs (genome J09).
+                    <br><br><br>
+
+                    [1b] An additional analysis that is conducted before searching for orthologous sequences is the determination of the distribution of the GC composition (the relative proportion of the G and C nucleotides out of the total number of nucleotides in protein coding sequences). Below is a violin plot representing the dispersion of the GC among genomes.
+                    <br><br>
+                    <img src="pics/50_orfs_gc_contents.png" class="center">
+                    <br>
+                    Biological interpretation: the vast majority of genomes have a GC content in the range of 51% to 52%. Few variants show atypical GC content. The names of the isolates with a lower GC content can be extracted from the provided output file. For example, the isolate with the lowest GC content is UTI423. It could be interesting to further study whether a correlation exists between isolates with the atypical GC content and those with extreme number of ORFs, or if they are relatively diverged from the other isolates on the phylogenetic tree. Testing this, we found that the two genomes (UTI423 and UTI587) with the lowest GC content (less than 50%) had the highest number of ORFs. This can be explained by extensive recent events of horizontal gene transfer acquired from AT rich donors. Of note, horizontally transferred genes are often AT rich, further supporting
+                    our biological interpretation (<a href="https://doi.org/10.1186/gb-2003-4-9-r57" target="_blank">Daubin V, et al., 2003</a>).
+                    <br><br><br>
+
+                    [1c] Orthologs detection
+                    <br><br>
+                    <img src="pics/50_groups_sizes_frequency.png" class="center">
+                    <br>
+                    Biological interpretation: As can be seen, many genes are shared by all isolates (2,471 core genes). This is in agreement with the analyzed phylogenetic range. When closely related genomes are analyzed (isolates of the same species in this case), one expects a high number of core genes (a shift to the right side of the distribution). Indeed, when more diverged genomes were analyzed, the number of core genes was substantially lower (see other examples in this Gallery). The left side of the distribution may indicate lateral transfer events to a sub population of the analyzed genomes.
+                    <br><br><br>
+
+                    [1d] Phylogenetic tree (click on the figure to move to open the interactive mode)
+                    <br><br>
+                    <a href="https://microbializer.tau.ac.il/PhyD3/view_tree.php?id=155645483043865906834622033673&f=newick" target="_blank">
+                        <img src="pics/50_phylogram.png" style="width:100%">
                     </a>
-                </div>
-                <div class="col-md-1">
+                    <br><br>
+                    Ignoring <i>E. fergusonii</i> that was added for rooting, the mostly diverged genomes on the tree are isolates B107 and B87 (their divergence is evident also by the long branches leading to these genomes). In agreement with their divergence from the main group of isolates, B87 has both an atypically low number of ORFs (4,596, the second lowest) and the highest GC content (above 52%). B107 has an atypically high number ORFs (5,305, the third highest).
+                    <br><br><br>
+
+
+                    [2] M1CR0B1AL1Z3R analysis of different <i>Escherichia</i> species (including 10 <i>Shigella</i>). The data were downloaded from the NCBI repository, comprising of 73 genomes: 62 <i>E. coli</i> species, 10 <i>Shigella</i> (that are considered as <i>E. coli</i> as well) and one <i>E. fergusonoii.</i> The results of this example can be found
+                    <a href="https://microbializer.tau.ac.il/results/155645478129982753092049851441/output.html" target="_blank">here</a>.
+                    <br><br>
+
+                    [2a] Below is a violin plot representing the dispersion of the ORF count per genome.
+                    <br><br>
+                    <img src="pics/73_orfs_counts.png" class="center">
+                    <br>
+                    Biological interpretation: Here, one genome (<i>E. coli</i> K12 MDS42) had the lowest number of ORFs: 3621 in total. One possible explanation for a low number of ORFs may be missing data. However, here this is clearly not the case, as this genome is composed of one contig only, with high coverage. In this case the explanation for the low number of ORFs is that the strain was engineered using synthetic biology techniques
+                    (<a href="https://doi.org/10.1126/science.1126439" target="_blank">Posfai G, et al., 2006</a>). It is a multiple-deletion series (MDS) strains, in which 15% of the genome was deleted, including many nonessential genes. The second smallest genome in terms of number of ORFs is <i>E. fergusonii</i> with 4,262 ORFs. Notably, even when this genome is excluded, genomes differ by more than 1,000 ORFs. As stated above, this can often be attributed to the high rate of horizontal gene transfer. As these genomes are highly annotated and well assembled, it is less likely that the variance is due to missing data in some of the genomes.
+                    <br><br><br>
+
+                    [2b] Below is a violin plot representing the dispersion of the GC content among genomes.
+                    <br><br>
+                    <img src="pics/73_orfs_gc_contents.png" class="center">
+                    <br>
+                    Biological interpretation: Except for one genome, the GC content is relatively uniform ranging between 51.5% and 52.5%. The genome with the atypical GC content is <i>E. fergusonii</i>. This is expected as GC content varies among bacterial clades and <i>E. fergusonii</i> is the outgroup genome, which is evolutionary diverged from all other genomes.
+                    <br><br><br>
+
+                    [2c] Orthologs detection
+                    <br><br>
+                    <img src="pics/73_groups_sizes_frequency.png" class="center">
+                    <br>
+                    Biological interpretation: there are 1,878 core genes (right most bar), shared by all 73 strains. We speculate that some of the orthologous groups shared by 72 and 71 genomes are core genes that are absent in one or two samples because of missing data, or because they were excluded by the specific thresholds used in
+                    the orthologs identification step (see "<a href="faq.html" target="_blank">What are the tunable parameters and how can they influence my results?</a>").
+                    <br><br><br>
+
+                    [2d] Phylogenetic tree (click on the figure to move to open the interactive mode)
+                    <br><br>
+                    <a href="https://microbializer.tau.ac.il/PhyD3/view_tree.php?id=155645478129982753092049851441&f=newick" target="_blank">
+                        <img src="pics/73_phylogram.png" style="width:100%">
+                    </a>
+                    <br><br>
+                    Biological interpretation: the tree is consistent with previously published E. coli trees (e.g., <a href="https://doi.org/10.1073/pnas.1413272111" target="_blank">Oren Y, et al., 2014</a>). As expected, the genome of <i>E. coli</i> K12 MDS42 clusters with MG1655 from which it originated. The large branch separating the outgroup from the ingroup genomes suggests these two species had substantial evolutionary time to diverge, in agreement with the differences in GC content between the genomes of <i>E. fergusonii</i> and <i>E. coli</i>.
+                    <br><br><br>
+
+
+
+                    [3] M1CR0B1AL1Z3R analysis of data from different species, representing the Gammaproteobacteria diversity. The data were downloaded from <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1669740/" target="_blank">here</a>. We analyzed 29 genomes. This demonstrates the capability of M1CR0B1AL1Z3R to handle highly diverged genomes. The results for this example can be found
+                    <a href="https://microbializer.tau.ac.il/results/155645486998485855534384414130/output.html" target="_blank">here</a>.
+                    <br><br>
+
+                    [3a] Below is a violin plot representing the dispersion of the ORF count per genome. The violin plot representing the dispersion of the ORF count per genome suggests very high variance.
+                    <br><br>
+                    <img src="pics/29_orfs_counts.png" class="center">
+                    <br>
+                    Biological interpretation: The genome of <i>Buchnera aphidicola</i> Bp has only 522 ORFs, while the genome <i>Photobacterium profundum</i> has over 10 fold more ORFs (5,749 ORFs). This high diversity is expected as we analyze phylogenetically distant bacterial clades.
+                    <br><br><br>
+
+                    [3b] The violin plot representing the GC content dispersion among genomes shows high variance as well:
+                    <br><br>
+                    <img src="pics/29_orfs_gc_contents.png" class="center">
+                    <br>
+                    Biological interpretation: GC content is known to substantially vary among diverged groups of bacteria. Hence it is not surprising that the highest variance among the three analyzed examples is found here, where diverged groups of bacteria are analyzed. <i>Buchnera aphidicola</i> Bp has the lowest GC content , only 27.1%. As mentioned above, this bacterium also encodes the lowest number of ORFs. These results are consistent with this strain being an obligate endosymbiont. It was previously shown that shifts to such a life style is associated with loss of genes and
+                    a decrease in GC content (<a href="https://doi.org/10.1073/pnas.0235981100" target="_blank">van Ham RC, et al., 2003</a>).
+                    <br><br><br>
+
+                    [3c] Orthologs detection
+                    <br><br>
+                    <img src="pics/29_groups_sizes_frequency.png" class="center">
+                    <br>
+                    Biological interpretation: Only three genes were inferred to be shared by all analyzed genomes, in line with their high divergence.
+                    <br><br><br>
+
+                    [3d] Phylogenetic tree. The tree is based on an alignment that is comprised of 51,552 amino acid sites. (click on the figure to move to open the interactive mode)
+                    <br><br>
+                    <a href="https://microbializer.tau.ac.il/PhyD3/view_tree.php?id=155645486998485855534384414130&f=newick" target="_blank">
+                        <img src="pics/29_phylogram.png" style="width:100%">
+                    </a>
+                    <br><br>
+                    Biological interpretation: The tree reconstruction set relied on 160 "core genes", defined here as those shared by at least 50% genomes
+                    (see "<a href="faq.html" target="_blank">What are the tunable parameters and how can they influence my results?</a>"). This low core genes threshold was selected because only three genes are shared by all the species. Trees that are based on such a small dataset may be highly unreliable
+                    (see "<a href="faq.html#msa_reliability" target="_blank">Can I trust the obtained core gene phylogenetic tree?</a>"). Indeed, when we tried reconstructing the tree based on the three shared genes only, we obtained a similar tree, albeit with much lower bootstrap values.
+                    <br><br><br>
+                    <div class="col-md-1">
+                    </div>
+                    <br><br><br>
                 </div>
             </div>
-            <br><br>
-            <div class="row">
-                <div class="col-md-1">
-                </div>
-                <div class="col-md-10">
-                    (2) A histogram of the frequency of the ortholog groups sizes for each size i:
-                    <img src="pics/groups_sizes_frequency.png" style="height: 60%; width: 60%;">
-                </div>
-                <div class="col-md-1">
-                </div>
-            </div>
-            <br><br>
-            <div class="row">
-                <div class="col-md-1">
-                </div>
-                <div class="col-md-10">
-                    (3) A violine plot of the ORFs counts per genome:
-                    <img src="pics/orfs_counts.png" style="height: 60%; width: 60%;">
-                </div>
-                <div class="col-md-1">
-                </div>
-            </div>
-            <br><br>
-            <div class="row">
-                <div class="col-md-1">
-                </div>
-                <div class="col-md-10">
-                    (4) A violine plot of the GC content per genome:
-                    <img src="pics/orfs_gc_contents.png" style="height: 60%; width: 60%;">
-                </div>
-                <div class="col-md-1">
-                </div>
-            </div>
-            <br><br><br>
-         </div>
+        </div>
         <nav role="navigation" class="navbar-inverse navbar-fixed-bottom ng-binding">
             Research Site | <a href="https://www.tau.ac.il/~talp/" target="_blank">Pupko Group</a>
         </nav>

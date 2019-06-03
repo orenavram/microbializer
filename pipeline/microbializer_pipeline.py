@@ -10,9 +10,11 @@ def notify_admin(meta_output_dir, meta_output_url, run_number, CONSTS):
         with open(user_email_path) as f:
             email = f.read().rstrip()
     error_log_path = 'NO_ERROR_LOG'
-    tmp = [file for file in os.listdir(meta_output_dir) if file.endswith('.ER')]
-    if len(tmp) > 0:
-        error_log_path = tmp[-1]
+    file_with_job_id_on_qstat = os.path.join(meta_output_dir, 'qsub.log')
+    if os.path.exists(file_with_job_id_on_qstat):
+        with open(file_with_job_id_on_qstat) as f:
+            job_id_on_qstat = f.read().strip()
+        error_log_path = os.path.join(meta_output_dir, f'{job_id_on_qstat}.power8.tau.ac.il.ER')
     # Send me a notification email every time there's a failure
     send_email(smtp_server=CONSTS.SMTP_SERVER,
                sender=CONSTS.ADMIN_EMAIL,
@@ -85,8 +87,8 @@ def add_results_to_final_dir(source, final_output_dir):
     logger.info(f'Moving {source} TO {dest}')
 
     try:
-        #shutil.move(source, dest) # TODO: move instead of copy!!
-        shutil.copytree(source, dest)
+        shutil.move(source, dest) # TODO: move instead of copy!!
+        #shutil.copytree(source, dest)
     except FileExistsError:
         pass
     return dest
@@ -133,7 +135,7 @@ try:
                         type=lambda path: path.rstrip('/') if os.path.exists(path) else parser.error(f'{path} does not exist!'))
     parser.add_argument('output_dir', help='directory where the output files will be written to',
                         type=lambda path: path.rstrip('/'))
-    parser.add_argument('email', help='A notification will be sent once the pipeline is done',
+    parser.add_argument('--email', help='A notification will be sent once the pipeline is done',
                         default=CONSTS.OWNER_EMAIL)
     parser.add_argument('--identity_cutoff', default=80, type=lambda x: eval(x),
                         help='minimum required percent of identity level (lower values will be filtered out)')
@@ -878,17 +880,17 @@ try:
     edit_progress(output_html_path, progress=60)
 
 
-    # 13.  create_mmseqs2_DB.py
-    # Input: path to orfs file to create DB from
-    # Output: translated proteins
+    # 13.  translate_fna_to_faa.py
+    # Input: path to fna file and an faa file
+    # Output: translate the fna to protein and write to the faa file
     # Can be parallelized on cluster
     step = '13'
     logger.info(f'Step {step}: {"_"*100}')
     dir_name = f'{step}_orthologs_groups_aa_sequences'
-    script_path = os.path.join(args.src_dir, 'create_mmseqs2_DB.py')
+    script_path = os.path.join(args.src_dir, 'translate_fna_to_faa.py')
     num_of_expected_results = 0
     orthologs_aa_sequences_dir_path, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
-    done_file_path = os.path.join(done_files_dir, f'{step}_create_DB.txt')
+    done_file_path = os.path.join(done_files_dir, f'{step}_translate_fna_to_faa.txt')
     num_of_cmds_per_job = 100
     num_of_aggregated_params = 0
     more_cmds = [] # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
@@ -896,20 +898,17 @@ try:
         logger.info('Translating orthologs groups sequences...')
         for fasta_file in os.listdir(orthologs_dna_sequences_dir_path):
             file_path = os.path.join(orthologs_dna_sequences_dir_path, fasta_file)
-            output_path = os.path.join(orthologs_aa_sequences_dir_path, fasta_file.replace('_dna.fas', ''))
-            tmp_path = os.path.join(pipeline_step_tmp_dir, fasta_file.replace('_dna.fas', ''))
+            output_path = os.path.join(orthologs_aa_sequences_dir_path, fasta_file.replace('_dna.fas', '_aa.fas'))
 
             job_name = f'{os.path.splitext(fasta_file)[0]}_to_aa'
             if num_of_aggregated_params > 0:  # params was already defined for this job batch. Save it before overridden
                 more_cmds.append(params)
             params = [file_path,
-                      output_path,
-                      tmp_path,
-                      '-c'] # translate dna and convert to fasta  # Should we let the user decide?
+                      output_path]
             num_of_aggregated_params += 1
             if num_of_aggregated_params == num_of_cmds_per_job:
                 submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name,
-                                     queue_name=args.queue_name, more_cmds=more_cmds, required_modules_as_list=[CONSTS.GCC])
+                                     queue_name=args.queue_name, more_cmds=more_cmds)
                 num_of_expected_results += 1
                 num_of_aggregated_params = 0
                 more_cmds = []
@@ -917,7 +916,7 @@ try:
         if num_of_aggregated_params>0:
             #don't forget the last batch!!
             submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name,
-                                 queue_name=args.queue_name, more_cmds=more_cmds, required_modules_as_list=[CONSTS.GCC])
+                                 queue_name=args.queue_name, more_cmds=more_cmds)
             num_of_expected_results += 1
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir, num_of_expected_results, error_file_path)
@@ -1185,7 +1184,7 @@ try:
 
         groups_sizes_frequency_png_file_path = groups_sizes_frequency_file_prefix + '.png'
         generate_bar_plot(groups_sizes_frequency_raw_file_path, groups_sizes_frequency_png_file_path,
-            xlabel='\nOrthologs group size', ylabel='Counts\n')
+            xlabel='Orthologous group size', ylabel='Count')
 
         file_writer.write_to_file(done_file_path, '.')
     else:
@@ -1221,11 +1220,11 @@ try:
         logger.info('Ploting violines...')
         orfs_counts_frequency_png_file_path = orfs_counts_frequency_file.replace('txt', 'png')
         generate_boxplot(orfs_counts_frequency_file, orfs_counts_frequency_png_file_path,
-                         xlabel='\nORFs count per genome', dpi=100)
+                         xlabel='\nORF count per genome', dpi=300)
 
         orfs_gc_content_png_file_path = orfs_gc_content_file.replace('txt', 'png')
         generate_boxplot(orfs_gc_content_file, orfs_gc_content_png_file_path,
-                         xlabel='\nGC content per genome', dpi=100)
+                         xlabel='\nGC content per genome', dpi=300)
 
         file_writer.write_to_file(done_file_path, '.')
     else:
@@ -1363,10 +1362,13 @@ if status == 'is done':
 else:
     msg += f'.\nFor further information please visit: {results_location}'
 logger.info(msg)
+
+logger.info(f'Sending a notification email to {args.email}')
 send_email('mxout.tau.ac.il', 'TAU BioSequence <bioSequence@tauex.tau.ac.il>', args.email, subject=f'Microbialzer run number {run_number} {status}.', content=msg)
 
+logger.info('Cleaning up...')
 if status == 'is done':
-    if remote_run and run_number.lower() != 'example' and False:  # TODO: remove the "and False" once ready.
+    if remote_run and run_number.lower() != 'example': # and False:  # TODO: remove the "and False" once ready.
         # remove raw data from the server
         try:
             shutil.rmtree(data_path)  # remove data
@@ -1377,3 +1379,5 @@ if status == 'is done':
             shutil.rmtree(args.output_dir)  # remove intermediate results
         except:
             pass
+
+logger.info('Done.')
