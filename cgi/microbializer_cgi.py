@@ -107,12 +107,12 @@ def write_running_parameters_to_html(output_path, identity_cutoff, e_value_cutof
 
         # regular params rows
         output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-12">')
-        output_path_f.write(f'<b>Identity minimal percent cutoff: </b>{identity_cutoff}')  # TODO: add %
+        output_path_f.write(f'<b>Identity minimal percent cutoff: </b>{identity_cutoff}%')
         output_path_f.write('</div></div>')
 
         # regular params rows
         output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-12">')
-        output_path_f.write(f'<b>Minimal percentage for core: </b>{core_minimal_percentage}')  #TODO: add %
+        output_path_f.write(f'<b>Minimal percentage for core: </b>{core_minimal_percentage}%')
         output_path_f.write('</div></div>')
 
         # regular params rows
@@ -252,7 +252,7 @@ def run_cgi():
 
         write_to_debug_file(cgi_debug_path_f, f'{ctime()}: Running parameters were written to html successfully.\n')
 
-        # send jobs only to one machine so there won't be a dead lock
+        # send jobs ONLY TO ONE MACHINE so there won't be a dead lock
         # (cluster might be full with main jobs waiting for sub jobs but they are in qw mode...)
         #queue_name = 'pupkoweb'  # all pupko machines on power
         #queue_name = '"pupkoweb -l nodes=compute-0-291"'  # TODO: uncomment to avoid deadlock
