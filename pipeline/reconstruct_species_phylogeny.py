@@ -36,7 +36,6 @@ def generate_phylogenetic_tree(msa_path, phylogenetic_tree_path, seed, model, ou
     if os.path.exists(intermediate_tree_path):
         os.rename(intermediate_tree_path, phylogenetic_tree_path)
     else:
-        #TODO: make sure that the script of ploting the tree is aware to that there is no tree.
         logger.fatal(f'TREE WAS NOT GENERATED!!')
         pass
 

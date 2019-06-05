@@ -62,7 +62,7 @@ def extract_core_genome(alignments_path, num_of_strains, core_length_path, strai
         strains_names = f.read().rstrip().split('\n')
     strain_to_core_genome_dict = dict.fromkeys(strains_names, '')
     core_ogs = []
-    for og_file in os.listdir(alignments_path):  # TODO: consider sorting by og name (currnetly the concatenation is arbitrary)
+    for og_file in os.listdir(alignments_path):  # TODO: consider sorting by og name (currently the concatenation is arbitrary)
         strain_to_gene_dict = load_orthologs_group_to_dict(os.path.join(alignments_path, og_file))
         if is_core_gene(strain_to_gene_dict, num_of_strains, core_minimal_percentage):
             logger.info(f'Adding to core genome: {og_file} ({len(strain_to_gene_dict)}/{num_of_strains} >= {core_minimal_percentage}%)')

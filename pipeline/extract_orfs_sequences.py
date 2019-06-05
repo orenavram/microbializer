@@ -8,23 +8,11 @@ def find_genes(genome, output_path, log_path):
     input:path to fasta file with prokaryotic genome to be analyzed
     output: protein-coding gene prediction for input genome
     '''
-    segments = list(SeqIO.parse(genome, 'fasta'))
-    length = sum(len(segment) for segment in segments)
-    # if length <= 20000:
-    #     mode = 'meta'
-    # else:
-    #     mode = 'single'
-    cmd = f'prodigal -i {genome}  -d {output_path}'# -p {mode}'
+    # segments = list(SeqIO.parse(genome, 'fasta'))
+    # length = sum(len(segment) for segment in segments)
+    cmd = f'prodigal -i {genome}  -d {output_path}'
     logger.info(f'Starting prodigal. Executed command is:\n{cmd}')
     subprocess.run(cmd, shell=True)
-
-    #TODO: move this part to verify_fasta_format step
-    #remove pipes ("|") from file to avoid queue bugs downstream
-    # with open(output_path) as f:
-    #     content = f.read()
-    # content = content.replace("|", "_")
-    # with open(output_path, 'w') as f:
-    #     f.write(content)
 
 
 if __name__ == '__main__':

@@ -21,14 +21,6 @@ def search_all_vs_all(aa_db1, aa_db2, aln_offsetted_db, tmp_dir, m8_outfile):
         logger.info(f'Calling:\n{cmd}')
         subprocess.run(cmd, shell=True)
 
-        # cmd = f'mmseqs search {aa_db1} {aa_db2} {aln_db} {tmp_dir} -v {v} --max-seqs 1' #TODO: check what this max-seqs parameter means!
-        # logger.info(f'Calling:\n{cmd}')
-        # subprocess.run(cmd, shell=True)
-        #
-        # cmd = f'mmseqs offsetalignment {aa_db1} {query_dna_db} {aa_db2} {target_dna_db} {aln_db} {aln_offsetted_db} -v {v}'
-        # logger.info(f'Calling:\n{cmd}')
-        # subprocess.run(cmd, shell=True)
-
         cmd = f'mmseqs convertalis {aa_db1} {aa_db2}  {aln_offsetted_db}  {m8_outfile} -v {v}'
         logger.info(f'Calling:\n{cmd}')
         subprocess.run(cmd, shell=True)

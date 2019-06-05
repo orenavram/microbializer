@@ -1,7 +1,3 @@
-from Bio import SeqIO
-import subprocess
-
-
 def extract_orfs_statistics(orf_path, orfs_count_output_path, orfs_gc_output_path):
     num_of_nucleotides = 0
     num_of_GC = 0
@@ -13,6 +9,9 @@ def extract_orfs_statistics(orf_path, orfs_count_output_path, orfs_gc_output_pat
                 orfs_count += 1
                 num_of_nucleotides += len(sequence)
                 num_of_GC += sequence.count('G') + sequence.count('C')
+                sequence = ''
+                if orfs_count % 1000 == 0:
+                    logger.debug(f'ORFs count is: {orfs_count}')
             else:
                 sequence += line.rstrip().upper()
 

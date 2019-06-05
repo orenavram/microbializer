@@ -67,9 +67,6 @@ if __name__ == '__main__':
     parser.add_argument('cluster_members', help='string that is the cluster members that is handled'
                                                  '(a row from the final orthologs table)')
     parser.add_argument('output_path', help='path to an output directory (aka orthologs sets sequences)')
-    # parser.add_argument('--number_of_first_group', help='number that represents the "arbirary" name that the first '
-    #                     'orthologs group will get (the second will get number_of_first_group + 1, etc...)', type=int,
-    #                     default = 0)
     parser.add_argument('--delimiter', help='orthologs table delimiter', default=',')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     args = parser.parse_args()
