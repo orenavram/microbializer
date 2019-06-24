@@ -1,5 +1,9 @@
 #!/powerapps/share/centos7/python-anaconda3.6.5/bin/python
 
+#############################################################################################################
+# this file should be saved as part of the pipeline and the cgi should import it rather than copy it twice! #
+#############################################################################################################
+
 import os
 
 # constants to use when sending e-mails using the server admin's email address.

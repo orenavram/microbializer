@@ -259,7 +259,7 @@ def run_cgi():
         queue_name = '"pupkotmp -l nodes=compute-0-265"'  # TODO: uncomment to avoid deadlock
         queue_name_for_subjobs = 'pupkotmp'  # all pupko machines on power
 
-        parameters = f'{data_path} ' \
+        parameters = f'"{data_path}" ' \
                      f'{os.path.join(wd, "outputs")} ' \
                      f'--identity_cutoff {identity_cutoff} ' \
                      f'--e_value_cutoff {e_value_cutoff} ' \
