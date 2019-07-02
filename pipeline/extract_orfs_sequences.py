@@ -10,7 +10,7 @@ def find_genes(genome, output_path, log_path):
     '''
     # segments = list(SeqIO.parse(genome, 'fasta'))
     # length = sum(len(segment) for segment in segments)
-    cmd = f'prodigal -i {genome}  -d {output_path}'
+    cmd = f'prodigal -i "{genome}"  -d {output_path}'
     logger.info(f'Starting prodigal. Executed command is:\n{cmd}')
     subprocess.run(cmd, shell=True)
 

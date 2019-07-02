@@ -1,3 +1,11 @@
+.gitignore
+.idea/*
+datasets/
+paper
+Capture.PNG
+pipeline/tests.py
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -102,3 +110,6 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# html figures
+html/pics/*

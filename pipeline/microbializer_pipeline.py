@@ -287,7 +287,7 @@ try:
             fasta_file_prefix = os.path.splitext(fasta_file)[0]
             output_file_name = f'{fasta_file_prefix}.{dir_name}'
             output_coord_name = f'{fasta_file_prefix}.gene_coordinates'
-            params = [os.path.join(data_path, fasta_file),
+            params = [f'"{os.path.join(data_path, fasta_file)}"',
                       os.path.join(ORFs_dir, output_file_name),
                       os.path.join(ORFs_dir, output_coord_name)] #Shir - path to translated sequences file
             submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=output_file_name,
@@ -302,13 +302,13 @@ try:
 
     # make sure that all ORF files contain something....
     for file in os.listdir(ORFs_dir):
-
-        with open(os.path.join(ORFs_dir, file), 'rb', 0) as orf_f, mmap.mmap(orf_f.fileno(), 0, access=mmap.ACCESS_READ) as s:
-            if s.find(b'>') > -1:
-                continue
-
-        error_msg = f'{CONSTS.WEBSERVER_NAME} could not find any ORFs in some of the genomes you provided (e.g., {os.path.splitext(file)[0]}).'
-        fail(error_msg, error_file_path)
+        try:
+            with open(os.path.join(ORFs_dir, file), 'rb', 0) as orf_f, mmap.mmap(orf_f.fileno(), 0, access=mmap.ACCESS_READ) as s:
+                if s.find(b'>') > -1:
+                    continue
+        except:
+            error_msg = f'{CONSTS.WEBSERVER_NAME} could not find any ORFs in some of the genomes you provided (e.g., {os.path.splitext(file)[0]}).'
+            fail(error_msg, error_file_path)
 
 
     # 2.  create_mmseqs2_DB.py
@@ -775,6 +775,9 @@ try:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
     edit_progress(output_html_path, progress=50)
 
+    if num_of_expected_results == 0:
+        error_msg = f'No ortholog groups were found in your dataset. Please try to lower the identity threshold (see Advanced options in the submission page) and re-submit your job.'
+        fail(error_msg, error_file_path)
 
     # 11.	construct_final_orthologs_table.py
     # Input: (1) a path for directory with all the verified OGs (2) an output path to a final OGs table.
