@@ -225,6 +225,10 @@ def run_cgi():
             file_name = form['data'].filename
             write_to_debug_file(cgi_debug_path_f, f'file name is:\n{file_name}')
 
+            if not file_name.endswith(('zip', 'tar.gz', 'gz')):
+                write_to_debug_file(cgi_debug_path_f, f'FILE FORMAT IS ILLEGAL!!')
+                raise
+
             data = form['data'].value
             write_to_debug_file(cgi_debug_path_f, f'{file_name} first 100 chars are: {data[:100]}\n')
 
@@ -313,8 +317,8 @@ def run_cgi():
         cgi_debug_path_f.close()
 
     except Exception as e:
-        msg = 'CGI crashed before the job was submitted :(<br>\n' \
-              'Could heavy due to heavy load at the moment on our computer cluster or non <a href="http://www.asciitable.com/" target="_blank">ASCII characters</a> in your submission.'
+        msg = f'{CONSTS.WEBSERVER_NAME} crashed before the job was submitted :(<br>\n' \
+              'Could happen due to one of the following reasons: (1) Illegal data format; (2) non <a href="http://www.asciitable.com/" target="_blank">ASCII characters</a> in your submission; (3) heavy load at the moment on our computer cluster.'
         with open(output_path) as f:
             html_content = f.read()
         html_content = html_content.replace('RUNNING', 'FAILED')

@@ -96,6 +96,18 @@ def add_results_to_final_dir(source, final_output_dir):
     return dest
 
 
+def remove_path(path_to_remove):
+    logger.info(f'Removing {path_to_remove} ...')
+    try:
+        shutil.rmtree(path_to_remove)  # maybe it's a folder
+    except:
+        pass
+    try:
+        os.remove(path_to_remove)
+    except:
+        pass
+
+
 try:
     import argparse
     import sys
@@ -204,7 +216,15 @@ try:
             # data_path = data_path.split('.tar')[0] # e.g., /groups/pupko/orenavr2/microbializer/example_data.tar.gz
             # logger.info(f'Updated data_path is:\n{data_path}')
         else:
-            shutil.unpack_archive(data_path, extract_dir=unzipped_data_path) # unzip tar folder to parent dir
+            try:
+                shutil.unpack_archive(data_path, extract_dir=unzipped_data_path) # unzip tar folder to parent dir
+            except Exception as e:
+                logger.info(e)
+                remove_path(data_path)
+                fail(f'Illegal file format. Please upload'
+                     f'either a <a href="https://support.microsoft.com/en-us/help/14200/windows-compress-uncompress-zip-files" target="_blank">.zip</a> file'
+                     f'or a <a href="https://linhost.info/2012/08/gzip-files-in-windows/" target="_blank">.tar.gz</a>) file in which each file is a'
+                     f'<a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a> containing genomic sequence of a different species', error_file_path)
             # data_path = os.path.join(meta_output_dir, 'data') # e.g., /groups/pupko/orenavr2/microbializer/example_data.tar.gz
             # logger.info(f'Updated data_path is:\n{data_path}')
 
@@ -214,10 +234,7 @@ try:
             data_path = os.path.join(unzipped_data_path, file)
             file = [x for x in os.listdir(data_path) if not x.startswith(('_', '.'))][0]
             if os.path.isdir(os.path.join(data_path, file)):
-                error_msg = 'More than a 2-levels folder...'
-                with open(error_file_path, 'w') as error_f:
-                    error_f.write(error_msg+'\n')
-                raise ValueError(error_msg)
+                fail('More than a 2-levels folder...', error_file_path)
         else:
             data_path = unzipped_data_path
 
@@ -232,14 +249,7 @@ try:
         if system_file.startswith(('.', '_')):
             system_file_path = os.path.join(data_path, system_file)
             logger.warning(f'Removing system file: {system_file_path}')
-            try:
-                shutil.rmtree(system_file_path) #maybe it's a folder
-            except:
-                pass
-            try:
-                os.remove(system_file_path)
-            except:
-                pass
+            remove_path(system_file_path)
 
     # have to be AFTER system files removal (in the weird case a file name starts with a space)
     for file_name in os.listdir(data_path):
@@ -258,16 +268,17 @@ try:
 
     logger.info(f'data_path contains:\n{os.listdir(data_path)}')
 
+    # must be only after the spaces removal from the species names!!
+    verification_error = verify_fasta_format(data_path)
+    if verification_error:
+        remove_path(data_path)
+        fail(verification_error, error_file_path)
+
 
     min_number_of_genomes_to_analyze = 2
     if len(os.listdir(data_path)) < min_number_of_genomes_to_analyze:
         error_msg = f'Data contain too few genomes ({CONSTS.WEBSERVER_NAME} does comparative analysis and thus needs at least 2 genomes).'
         fail(error_msg, error_file_path)
-
-    # must be only after the spaces removal from the species names!!
-    verification_error = verify_fasta_format(data_path)
-    if verification_error:
-        fail(verification_error, error_file_path)
 
     # 1.	extract_orfs_sequences.py
     # Input: (1) an input path for a fasta file with contigs/full genome (2) an output file path (with a suffix as follows: i_genes.fasta. especially relevant for the wrapper).
@@ -1526,29 +1537,23 @@ if status == 'is done':
 
     if remote_run and run_number.lower() != 'example': # and 'oren' not in args.email:
         # remove raw data from the server
-        try:
-            logger.info(f'Removing {unzipped_data_path} ...')
-            shutil.rmtree(unzipped_data_path)  # remove data
-        except:
-            pass
-        # remove raw data from the server
-        try:
-            logger.info(f'Removing {args.output_dir} ...')
-            shutil.rmtree(args.output_dir)  # remove intermediate results
-        except:
-            pass
+
+        # remove data
+        remove_path(unzipped_data_path)
+
+        # remove intermediate results
+        remove_path(args.output_dir)
+
         # remove raw data from the server
         for path_to_remove in [os.path.join(meta_output_dir, final_output_dir_name, x) for x in
-                                                                ['12_orthologs_groups_dna_sequences',
-                                                                 '13_orthologs_groups_aa_sequences',
-                                                                 '14_aligned_aa_orthologs_groups',
-                                                                 '15_aligned_core_proteome',
-                                                                 '17_orfs_statistics',
-                                                                 '18_induce_dna_msa_by_aa_msa']]:
-            try:
-                logger.info(f'Removing {path_to_remove} ...')
-                shutil.rmtree(path_to_remove)  # remove intermediate results
-            except:
-                pass
+                               ['12_orthologs_groups_dna_sequences',
+                                '13_orthologs_groups_aa_sequences',
+                                '14_aligned_aa_orthologs_groups',
+                                '15_aligned_core_proteome',
+                                '17_orfs_statistics',
+                                '18_induce_dna_msa_by_aa_msa']]:
+
+            # remove intermediate results
+            remove_path(path_to_remove)
 
 logger.info('Done.')
