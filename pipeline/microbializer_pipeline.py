@@ -14,7 +14,8 @@ def notify_admin(meta_output_dir, meta_output_url, run_number, CONSTS):
     if os.path.exists(file_with_job_id_on_qstat):
         with open(file_with_job_id_on_qstat) as f:
             job_id_on_qstat = f.read().strip()
-        error_log_path = os.path.join(meta_output_dir, f'{job_id_on_qstat}.power8.tau.ac.il.ER')
+        error_log_path = os.path.join(meta_output_dir, f'{job_id_on_qstat}.ER')
+        # TODO: change to ER url and add reading permissions
     # Send me a notification email every time there's a failure
     send_email(smtp_server=CONSTS.SMTP_SERVER,
                sender=CONSTS.ADMIN_EMAIL,
@@ -23,7 +24,7 @@ def notify_admin(meta_output_dir, meta_output_url, run_number, CONSTS):
                content=f"{email}\n\n{os.path.join(meta_output_url, 'output.html')}\n\n"
                f"{os.path.join(meta_output_url, 'cgi_debug.txt')}\n\n"
                f"{os.path.join(meta_output_url, error_log_path)}\n\n"
-               f"{os.path.join(meta_output_dir, error_log_path)}")
+               f"{os.path.join(meta_output_dir, error_log_path.replace('ER', 'OU'))}")
 
 
 def verify_fasta_format(data_path):
