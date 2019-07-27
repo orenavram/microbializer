@@ -120,8 +120,7 @@ def edit_failure_html(html_path, run_number, msg, CONSTS):
         logger = logging.getLogger('main')
         logger.warning(f"Couldn't find html prefix at: {html_path}")
 
-    html_text +=f'<br><br><br>\n' \
-                f'<div class="container" style="{CONSTS.CONTAINER_STYLE}"><h3>\n' \
+    html_text +=f'<div class="container" style="{CONSTS.CONTAINER_STYLE}"><h3>\n' \
                 f'<font color="red">{msg}</font><br><br>' \
                 f'Please make sure your input is OK and then try to re-run your job or <a href="mailto:{CONSTS.ADMIN_EMAIL}?subject={CONSTS.WEBSERVER_NAME}%20Run%20Number:%20{run_number}">contact us</a> for further information' \
                 f'</h3></div>\n'
