@@ -141,7 +141,7 @@ def write_cmds_file(cmds_file, parameters, run_number):
     new_line_delimiter = '!@#'
     # the code contains features that are exclusive to Python3.6 (or higher)!
     required_modules = ' '.join(
-        ['python/python-anaconda3.6.5'])
+        ['python/python-anaconda3.6.5-orenavr2'])
     with open(cmds_file, 'w') as f:
         f.write(f'module load {required_modules};')
         f.write(new_line_delimiter)
