@@ -1,4 +1,4 @@
-#!/powerapps/share/centos7/python-anaconda3.6.5/bin/python
+#!/groups/pupko/modules/python-anaconda3.6.5/bin/python
 
 import os
 import shutil
@@ -177,6 +177,9 @@ def run_cgi():
     print('Content-Type: text/html\n')  # For more details see https://www.w3.org/International/articles/http-charset/index#scripting
     sys.stdout.flush()  # must be flushed immediately!!!
 
+    # email field should ALWAYS exist in the form (even if it's empty!!)
+    # if it's not there, someone sent a request not via the website so they should be blocked.
+    # confirm_email is hidden field that only spammer bots might fill in...
     if 'email' not in form or ('confirm_email' in form and form['confirm_email'].value != ''):
         exit()
 
@@ -214,10 +217,6 @@ def run_cgi():
         core_minimal_percentage = form['core_minimal_percentage'].value.strip()
         bootstrap = form['bootstrap'].value.strip()
         outgroup = form['outgroup'].value.strip()
-
-
-        # This is hidden field that only spammer bots might fill in...
-        confirm_email_add = form['confirm_email'].value  # if it is contain a value it is a spammer.
 
         if form['example_page'].value == 'no':
             write_to_debug_file(cgi_debug_path_f, f'\n{"#"*80}\nuploading data\n')
