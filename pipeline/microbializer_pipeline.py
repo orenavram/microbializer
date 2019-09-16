@@ -222,9 +222,9 @@ try:
             except Exception as e:
                 logger.info(e)
                 remove_path(data_path)
-                fail(f'Illegal file format. Please upload'
-                     f'either a <a href="https://support.microsoft.com/en-us/help/14200/windows-compress-uncompress-zip-files" target="_blank">.zip</a> file'
-                     f'or a <a href="https://linhost.info/2012/08/gzip-files-in-windows/" target="_blank">.tar.gz</a>) file in which each file is a'
+                fail(f'Illegal file format. Please upload either a '
+                     f'<a href="https://support.microsoft.com/en-us/help/14200/windows-compress-uncompress-zip-files" target="_blank">.zip</a> file or a '
+                     f'<a href="https://linhost.info/2012/08/gzip-files-in-windows/" target="_blank">.tar.gz</a>) file in which each file is a '
                      f'<a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a> containing genomic sequence of a different species', error_file_path)
             # data_path = os.path.join(meta_output_dir, 'data') # e.g., /groups/pupko/orenavr2/microbializer/example_data.tar.gz
             # logger.info(f'Updated data_path is:\n{data_path}')
@@ -319,7 +319,8 @@ try:
                 if s.find(b'>') > -1:
                     continue
         except:
-            error_msg = f'{CONSTS.WEBSERVER_NAME} could not find any ORFs in some of the genomes you provided (e.g., {os.path.splitext(file)[0]}).'
+            error_msg = f'{CONSTS.WEBSERVER_NAME} could not find any ORFs in some of the genomes you provided (e.g., {os.path.splitext(file)[0]}). ' \
+                        f'It is recommended to use files that contain at least 20K base pairs (each).'
             fail(error_msg, error_file_path)
 
 
