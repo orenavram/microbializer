@@ -31,17 +31,20 @@ def verify_fasta_format(data_path):
     Bio.SeqUtils.IUPACData.ambiguous_dna_letters += 'U-'
     legal_chars = set(Bio.SeqUtils.IUPACData.ambiguous_dna_letters.lower() + Bio.SeqUtils.IUPACData.ambiguous_dna_letters)
     for file_name in os.listdir(data_path):
+        if file_name.endswith('zip') or file_name.endswith('gz') or file_name.endswith('rar'):
+            return f'{file_name} is a binary file (rather than textual). Please upload your genomes as text files (such as fas or fna).'
         file_path = os.path.join(data_path, file_name)
         strain_name = os.path.splitext(file_name)[0]
         with open(file_path) as f:
-            line_number = 1
-            line = f.readline()
-            if not line.startswith('>'):
-                return f'Illegal <a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a>. First line in "{file_name}" starts with "{line[0]}" instead of ">").'
-            previous_line_was_header = True
-            putative_end_of_file = False
-            curated_content = f'>{strain_name}_{line[1:]}'.replace("|", "_")
+            line_number = 0
             try:
+                line = f.readline()
+                line_number += 1
+                if not line.startswith('>'):
+                    return f'Illegal <a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a>. First line in "{file_name}" starts with "{line[0]}" instead of ">".'
+                previous_line_was_header = True
+                putative_end_of_file = False
+                curated_content = f'>{strain_name}_{line[1:]}'.replace("|", "_")
                 for line in f:
                     line_number += 1
                     line = line.strip()
@@ -1363,11 +1366,11 @@ msg = f'M1CR0B1AL1Z3R pipeline {status}'
 if status == 'is done':
     msg += f' (Took {measure_time(int(end-start))}).\nResults can be found at {results_location}.\nPlease note that the results will be kept in the server for three months.'
 else:
-    msg += f'.\nFor further information please visit: {results_location}'
+    msg += f'. For further information please visit: {results_location}'
 logger.info(msg)
 
 logger.info(f'Sending a notification email to {args.email}')
-send_email('mxout.tau.ac.il', 'TAU BioSequence <bioSequence@tauex.tau.ac.il>', args.email, subject=f'Microbialzer run number {run_number} {status}.', content=msg)
+send_email('mxout.tau.ac.il', 'TAU BioSequence <bioSequence@tauex.tau.ac.il>', args.email, subject=f'{CONSTS.WEBSERVER_NAME} run number {run_number} {status}.', content=msg)
 
 logger.info('Cleaning up...')
 if status == 'is done':
