@@ -260,19 +260,22 @@ try:
             remove_path(system_file_path)
 
     # have to be AFTER system files removal (in the weird case a file name starts with a space)
+    illegal_chars = ' ();'
     for file_name in os.listdir(data_path):
-        if ' ' in file_name:
-            new_file_name = file_name.replace(' ', '_')
-            try:
-                logger.info(f'File name with spaces was detected!\n'
+        for char in illegal_chars:
+            if char in file_name:
+                new_file_name = file_name.replace(char, '_')
+                logger.info(f'File name with illegal character "{char}" was detected!\n'
                             f'Renaming file path from:\n'
                             f'{os.path.join(data_path, file_name)}\n'
                             f'to this:\n'
                             f'{os.path.join(data_path, new_file_name)}')
-                os.rename(os.path.join(data_path, file_name), os.path.join(data_path, new_file_name))
-            except:
-                error_msg = f'One (or more) file name(s) contain " " (spaces).<br>\nIn order to avoid downstream parsing errors, {CONSTS.WEBSERVER_NAME} automatically replaces these spaces with dashes. For some reason, the replacement for {file_name} failed. Please remove space characters from your file names and re-submit your job.'
-                fail(error_msg, error_file_path)
+                try:
+                    os.rename(os.path.join(data_path, file_name), os.path.join(data_path, new_file_name))
+                    file_name = new_file_name
+                except:
+                    error_msg = f'One (or more) file name(s) contain illegal character "{char}".<br>\nIn order to avoid downstream parsing errors, {CONSTS.WEBSERVER_NAME} automatically replaces these spaces with dashes. For some reason, the replacement for {file_name} failed. Please remove space characters from your file names and re-submit your job.'
+                    fail(error_msg, error_file_path)
 
     logger.info(f'data_path contains:\n{os.listdir(data_path)}')
 
@@ -950,7 +953,7 @@ try:
 
 
     # 14.	align_orthologs_group.py
-    # Input: (1) A path to an unaligned sequences file (2) An output file path
+    # Input: (1) A path to an unaligned amino acid sequences file (2) An output file path
     # Output: aligned sequences
     # Can be parallelized on cluster
     step = '14'
@@ -1510,7 +1513,7 @@ if status == 'is done':
                 if num_of_aggregated_params > 0:
                     # params was already defined for this job batch. Save it before overridden
                     more_cmds.append(params)
-                params = [og_path, alignment_path]
+                params = [og_path, '--nuc', alignment_path]
                 num_of_aggregated_params += 1
                 if num_of_aggregated_params == num_of_cmds_per_job:
                     submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=og_file_prefix,

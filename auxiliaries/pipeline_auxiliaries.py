@@ -46,7 +46,6 @@ def wait_for_results(script_name, path, num_of_expected_results, error_file_path
             logger.info(f'\t{measure_time(total_time)} have passed since started waiting ({num_of_expected_results} - {current_num_of_results} = {jobs_left} more files are still missing)')
     # if remove:
     #     execute(['python', '-u', '/groups/pupko/orenavr2/pipeline/RemoveDoneFiles.py', path, suffix])
-    # logger.info(f'{measure_time(total_time)} have passed since started waiting ({num_of_expected_results} - {current_num_of_results} = {jobs_left} more files are still missing)')
     end = time()
     logger.info(f'Done waiting for:\n{script_name}\n(took {measure_time(int(end-start))}).\n')
     assert not os.path.exists(error_file_path)
