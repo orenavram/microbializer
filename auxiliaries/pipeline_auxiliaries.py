@@ -76,6 +76,9 @@ def submit_pipeline_step(script_path, params, tmp_dir, job_name, queue_name, new
                          done_files_script_path='/bioseq/microbializer/auxiliaries/file_writer.py',
                          required_modules_as_list=None, more_cmds=None, num_of_cpus=1):
 
+    for char in ' ,;()"\'':
+        job_name = job_name.replace(char, '_')
+
     required_modules_as_str = 'python/python-anaconda3.6.5-orenavr2'
     if required_modules_as_list:
         # don't forget a space after the python module!!
