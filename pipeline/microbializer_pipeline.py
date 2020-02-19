@@ -776,8 +776,8 @@ try:
             if num_of_aggregated_params > 0:
                 # params was already defined for this job batch. Save it before overridden
                 more_cmds.append(params)
-            params = [os.path.join(previous_pipeline_step_output_dir, putative_orthologs_group),
-                      os.path.join(pipeline_step_output_dir, putative_orthologs_group)]
+            params = [f'"{os.path.join(previous_pipeline_step_output_dir, putative_orthologs_group)}"',
+                      f'"{os.path.join(pipeline_step_output_dir, putative_orthologs_group)}"']
             num_of_aggregated_params += 1
             if num_of_aggregated_params == num_of_cmds_per_job:
                 submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=job_name,
