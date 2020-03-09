@@ -170,7 +170,8 @@ try:
     parser.add_argument('--outgroup', default=None,
                         help='whether or not to root the species phylogeny.')
     parser.add_argument('-q', '--queue_name', help='The cluster to which the job(s) will be submitted to',
-                        choices=['pupkoweb', 'pupko', 'itaym', 'lilach', 'bioseq', 'bental', 'oren.q', 'bioseq20.q', 'pupkotmp'], default='pupkoweb')
+                        choices=['pupkoweb', 'pupkowebr', 'pupkolab', 'pupkolabr', 'pupkotmp', 'pupkotmpr',
+                                 'itaym', 'lilach', 'bioseq', 'bental', 'oren.q', 'bioseq20.q'], default='pupkotmpr')
     parser.add_argument('--dummy_delimiter',
                         help='The queue does not "like" very long commands. A dummy delimiter is used to break each row into different commands of a single job',
                         default='!@#')

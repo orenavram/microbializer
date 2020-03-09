@@ -259,8 +259,8 @@ def run_cgi():
         # (cluster might be full with main jobs waiting for sub jobs but they are in qw mode...)
         #queue_name = 'pupkoweb'  # all pupko machines on power
         #queue_name = '"pupkoweb -l nodes=compute-0-291"'  # TODO: uncomment to avoid deadlock
-        queue_name = '"pupkotmp -l nodes=compute-0-265"'  # TODO: uncomment to avoid deadlock
-        queue_name_for_subjobs = 'pupkotmp'  # all pupko machines on power
+        queue_name = '"pupkotmpr -l nodes=compute-0-265"'  # TODO: uncomment to avoid deadlock
+        queue_name_for_subjobs = 'pupkotmpr'  # all pupko machines on power
 
         parameters = f'"{data_path}" ' \
                      f'{os.path.join(wd, "outputs")} ' \
