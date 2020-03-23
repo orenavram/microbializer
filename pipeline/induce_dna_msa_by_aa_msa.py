@@ -4,15 +4,21 @@
 
 def induce_sequence(aa_seq, dna_seq):
     result = ''
-    for i in range(len(aa_seq)):
-        if aa_seq[i] == '-':
+    dna_i = 0
+    for aa_i in range(len(aa_seq)):
+        if aa_seq[aa_i] == '-':
             result += '-'*3
         else:
-            result += dna_seq[i*3:(i+1)*3]
+            result += dna_seq[dna_i:dna_i+3]
+            dna_i += 3
 
-    # fill with trailing gaps so each induced dna sequence is of the same length
-    result += (len(aa_seq)*3-len(result))*'-'
-
+    # TODO: remove this checkup
+    if len(aa_seq)*3 != len(result):
+        logger.error('$'*80)
+        logger.error('len(aa_seq)*3 != len(result)')
+        logger.error(f'{len(aa_seq)*3} != {len(result)}')
+    # # fill with trailing gaps so each induced dna sequence is of the same length
+    # result += (len(aa_seq)*3-len(result))*'-'
     return result
 
 
