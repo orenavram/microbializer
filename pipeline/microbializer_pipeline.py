@@ -278,19 +278,25 @@ try:
                     error_msg = f'One (or more) file name(s) contain illegal character "{char}".<br>\nIn order to avoid downstream parsing errors, {CONSTS.WEBSERVER_NAME} automatically replaces these spaces with dashes. For some reason, the replacement for {file_name} failed. Please remove space characters from your file names and re-submit your job.'
                     fail(error_msg, error_file_path)
 
-    logger.info(f'data_path contains:\n{os.listdir(data_path)}')
+    logger.info(f'data_path contains the following {len(os.listdir(data_path))} files:\n{os.listdir(data_path)}')
+
+    # check MINimal number of genomes
+    min_number_of_genomes_to_analyze = 2
+    if len(os.listdir(data_path)) < min_number_of_genomes_to_analyze:
+        error_msg = f'The dataset contains too few genomes ({CONSTS.WEBSERVER_NAME} does comparative analysis and thus needs at least 2 genomes).'
+        fail(error_msg, error_file_path)
+
+    # check MAXimal number of genomes
+    max_number_of_genomes_to_analyze = 200
+    if len(os.listdir(data_path)) > max_number_of_genomes_to_analyze:
+        error_msg = f'The dataset contains too many genomes (currently {CONSTS.WEBSERVER_NAME} is able to handle up to 200 genomes due to technical issues. We are working to optimize it and soon it will be able to handle more genomes!).'
+        fail(error_msg, error_file_path)
 
     # must be only after the spaces removal from the species names!!
     verification_error = verify_fasta_format(data_path)
     if verification_error:
         remove_path(data_path)
         fail(verification_error, error_file_path)
-
-
-    min_number_of_genomes_to_analyze = 2
-    if len(os.listdir(data_path)) < min_number_of_genomes_to_analyze:
-        error_msg = f'Data contain too few genomes ({CONSTS.WEBSERVER_NAME} does comparative analysis and thus needs at least 2 genomes).'
-        fail(error_msg, error_file_path)
 
     # 1.	extract_orfs_sequences.py
     # Input: (1) an input path for a fasta file with contigs/full genome (2) an output file path (with a suffix as follows: i_genes.fasta. especially relevant for the wrapper).
@@ -1290,9 +1296,6 @@ try:
         # move aligned aa sequences
         add_results_to_final_dir(aa_alignments_path, final_output_dir)
 
-        # move core proteome dir
-        add_results_to_final_dir(aligned_core_proteome_path, final_output_dir)
-
         # move groups sizes
         add_results_to_final_dir(group_sizes_path, final_output_dir)
 
@@ -1312,6 +1315,9 @@ try:
         wait_for_results('reconstruct_species_phylogeny.py', phylogeny_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path, start=start_tree)
         edit_progress(output_html_path, progress=98)
+
+        # move core proteome dir
+        add_results_to_final_dir(aligned_core_proteome_path, final_output_dir)
 
         # move species tree dir
         add_results_to_final_dir(phylogeny_path, final_output_dir)
@@ -1549,10 +1555,6 @@ if status == 'is done':
             pass
 
     if remote_run and run_number.lower() != 'example': # and 'oren' not in args.email:
-        # remove raw data from the server
-
-        # remove data
-        remove_path(unzipped_data_path)
 
         # remove intermediate results
         remove_path(args.output_dir)
@@ -1569,4 +1571,6 @@ if status == 'is done':
             # remove intermediate results
             remove_path(path_to_remove)
 
+# remove data
+remove_path(unzipped_data_path)
 logger.info('Done.')
