@@ -158,11 +158,11 @@ def run_cgi():
 
     # random_chars = "".join(choice(string.ascii_letters + string.digits) for x in range(20))
     run_number = str(round(time())) + str(randint(10 ** 19, 10 ** 20 - 1))  # adding 20 random digits to prevent users see data that are not their's
-    if form['example_page'].value == 'yes':
-        run_number = 'example'  # str(round(time())) + str(randint(1000,9999)) # adding 4 random figures to prevent users see data that are not their's
+    output_url = os.path.join(f'{CONSTS.WEBSERVER_RESULTS_URL}/{run_number}/output.html')
 
-    results_url = os.path.join(CONSTS.WEBSERVER_RESULTS_URL, run_number)
-    output_url = os.path.join(results_url, 'output.html')
+    if form['example_page'].value == 'yes':
+        run_number = 'example_data'  # str(round(time())) + str(randint(1000,9999)) # adding 4 random figures to prevent users see data that are not their's
+        output_url = os.path.join(f'{CONSTS.WEBSERVER_URL}/{run_number}/output.html')
 
     wd = os.path.join(CONSTS.WEBSERVER_RESULTS_DIR, run_number)
     create_dir(wd)
@@ -189,7 +189,7 @@ def run_cgi():
                receiver=f'{CONSTS.OWNER_EMAIL}',
                subject=f'{CONSTS.WEBSERVER_NAME} - A new job has been submitted: {run_number}',
                content=f"{os.path.join(CONSTS.WEBSERVER_URL, 'results', run_number, 'cgi_debug.txt')}\n"
-                        f"{os.path.join(CONSTS.WEBSERVER_URL, 'results', run_number, 'output.html')}")
+                       f"{os.path.join(CONSTS.WEBSERVER_URL, 'results', run_number, 'output.html')}")
 
     try:
         cgi_debug_path_f = open(cgi_debug_path,'w')
@@ -295,16 +295,16 @@ def run_cgi():
 
             job_name = f"Job title: {job_title}\n" if job_title else ''
             notification_content = f"Your submission details are:\n\n{job_name}" \
-                               f"Dataset name: {file_name}\n" \
-                               f"Maximal e-value cutoff: {e_value_cutoff}\n" \
-                               f"Identity minimal percent cutoff: {identity_cutoff}%\n" \
-                               f"Minimal percentage for core: {core_minimal_percentage}%\n" \
-                               f"Apply bootstrap procedure: {bootstrap.upper()}\n" \
-                               f"Outgroup: {outgroup}\n\n" \
-                               f"Once the analysis will be ready, we will let you know! " \
-                               f"Meanwhile, you can track the progress of your job at:\n{os.path.join(CONSTS.WEBSERVER_URL, 'results', run_number, 'output.html')}\n\n"
+                                   f"Dataset name: {file_name}\n" \
+                                   f"Maximal e-value cutoff: {e_value_cutoff}\n" \
+                                   f"Identity minimal percent cutoff: {identity_cutoff}%\n" \
+                                   f"Minimal percentage for core: {core_minimal_percentage}%\n" \
+                                   f"Apply bootstrap procedure: {bootstrap.upper()}\n" \
+                                   f"Outgroup: {outgroup}\n\n" \
+                                   f"Once the analysis will be ready, we will let you know! " \
+                                   f"Meanwhile, you can track the progress of your job at:\n{os.path.join(CONSTS.WEBSERVER_URL, 'results', run_number, 'output.html')}\n\n"
 
-                # Send the user a notification email for their submission
+            # Send the user a notification email for their submission
             send_email(smtp_server=CONSTS.SMTP_SERVER,
                        sender=CONSTS.ADMIN_EMAIL,
                        receiver=f'{user_email}',
@@ -345,7 +345,7 @@ def run_cgi():
                    receiver=f'{CONSTS.OWNER_EMAIL}',
                    subject=f'{CONSTS.WEBSERVER_NAME} job {run_number} by {email} has been failed!',
                    content=f"{email}\n\n{os.path.join(CONSTS.WEBSERVER_URL, 'results', run_number, 'output.html')}\n"
-                            f"\n{os.path.join(CONSTS.WEBSERVER_URL, 'results', run_number, 'cgi_debug.txt')}")
+                           f"\n{os.path.join(CONSTS.WEBSERVER_URL, 'results', run_number, 'cgi_debug.txt')}")
 
         # logger.info(f'Waiting {2*CONSTS.RELOAD_INTERVAL} seconds to remove html refreshing headers...')
         # Must be after flushing all previous data. Otherwise it might refresh during the writing.. :(
