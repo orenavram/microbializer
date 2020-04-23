@@ -158,6 +158,7 @@ def run_cgi():
 
     # random_chars = "".join(choice(string.ascii_letters + string.digits) for x in range(20))
     run_number = str(round(time())) + str(randint(10 ** 19, 10 ** 20 - 1))  # adding 20 random digits to prevent users see data that are not their's
+    # run_number = 'test'
     output_url = os.path.join(f'{CONSTS.WEBSERVER_RESULTS_URL}/{run_number}/output.html')
 
     if form['example_page'].value == 'yes':
@@ -259,8 +260,10 @@ def run_cgi():
         # (cluster might be full with main jobs waiting for sub jobs but they are in qw mode...)
         #queue_name = 'pupkoweb'  # all pupko machines on power
         #queue_name = '"pupkoweb -l nodes=compute-0-291"'  # TODO: uncomment to avoid deadlock
-        queue_name = '"pupkotmpr -l nodes=compute-0-265"'  # TODO: uncomment to avoid deadlock
-        queue_name_for_subjobs = 'pupkotmpr'  # all pupko machines on power
+        # queue_name = '"pupkotmpr -l nodes=compute-0-265"'  # TODO: uncomment to avoid deadlock
+        queue_name = '"pupkolabr -l nodes=compute-0-299"'  # TODO: uncomment to avoid deadlock
+        # queue_name_for_subjobs = 'pupkotmpr'
+        queue_name_for_subjobs = 'pupkowebr'  # all pupko machines on power
 
         parameters = f'"{data_path}" ' \
                      f'{os.path.join(wd, "outputs")} ' \
