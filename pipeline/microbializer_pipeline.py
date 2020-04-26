@@ -65,7 +65,7 @@ def verify_fasta_format(data_path):
                         previous_line_was_header = False
                         for c in line:
                             if c not in legal_chars:
-                                return f'Illegal <a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a>. Line {line_number} in "{file_name}" contains illegal dna character "{c}".'
+                                return f'Illegal <a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a>. Line {line_number} in "{file_name}" contains illegal DNA character "{c}".'
                         curated_content += f'{line}\n'
             except UnicodeDecodeError:
                 line_number += 1  # the line that was failed to be read
@@ -114,6 +114,15 @@ def remove_path(path_to_remove):
         os.remove(path_to_remove)
     except:
         pass
+
+
+def remove_bootstrap_values(in_tree_path, out_tree_path):
+    with open(in_tree_path) as f:
+        tree_as_str = f.read()
+    import re
+    tree_as_str = re.sub('\)\d+:', '):', tree_as_str)
+    with open(out_tree_path, 'w') as f:
+        f.write(tree_as_str)
 
 
 try:
@@ -309,7 +318,7 @@ try:
     script_path = os.path.join(args.src_dir, 'extract_orfs_sequences.py')
     num_of_expected_results = 0
     ORFs_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
-    done_file_path = os.path.join(done_files_dir, f'{step}_extract_orfs.txt')
+    done_file_path = os.path.join(done_files_dir, f'{dir_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Extracting ORFs...')
         for fasta_file in os.listdir(data_path):
@@ -352,7 +361,7 @@ try:
     script_path = os.path.join(args.src_dir, 'create_mmseqs2_DB.py')
     num_of_expected_results = 0
     pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
-    done_file_path = os.path.join(done_files_dir, f'{step}_create_DB.txt')
+    done_file_path = os.path.join(done_files_dir, f'{dir_name}.txt')
     num_of_cmds_per_job = 2
     num_of_aggregated_params = 0
     more_cmds = [] # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
@@ -410,7 +419,7 @@ try:
     script_path = os.path.join(args.src_dir, 'mmseqs2_all_vs_all.py')
     num_of_expected_results = 0
     pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
-    done_file_path = os.path.join(done_files_dir, f'{step}_all_vs_all.txt')
+    done_file_path = os.path.join(done_files_dir, f'{dir_name}.txt')
     num_of_cmds_per_job = 25 if len(os.listdir(ORFs_dir)) > 22 else 15
     num_of_aggregated_params = 0
     more_cmds = [] # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
@@ -467,10 +476,10 @@ try:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
     edit_progress(output_html_path, progress=20)
 
-    # send a subjob that removes all mmseqs intermediate *FOLDERS* (e.g., 3465136234521948 etc..) in tmp_dir
+    # send a subjob that removes (now instead of at the end) all mmseqs intermediate *FOLDERS* (e.g., 3465136234521948 etc..) in tmp_dir
     # does not remove (sge/cmds/log) files. only folders.
-    submit_pipeline_step(os.path.join(args.src_dir, 'remove_tmp_folders.py'), [pipeline_step_tmp_dir], pipeline_step_tmp_dir,
-                         job_name='remove_dirs_from_tmp', queue_name=args.queue_name)
+    # submit_pipeline_step(os.path.join(args.src_dir, 'remove_tmp_folders.py'), [previous_pipeline_step_output_dir], pipeline_step_tmp_dir,
+    #                      job_name='remove_m8_files', queue_name=args.queue_name)
 
     # 4.	filter_blast.py
     # Input: (1) a path for a i_vs_j.tsv file (2) an output path (with a suffix as follows: i_vs_j_filtered.tsv. especially relevant for the wrapper).
@@ -486,7 +495,7 @@ try:
     script_path = os.path.join(args.src_dir, 'filter_blast_results.py')
     num_of_expected_results = 0
     pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
-    done_file_path = os.path.join(done_files_dir, f'{step}_filter_blast_results.txt')
+    done_file_path = os.path.join(done_files_dir, f'{dir_name}.txt')
     num_of_cmds_per_job = 50 if len(os.listdir(ORFs_dir)) > 22 else 15
     num_of_aggregated_params = 0
     more_cmds = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
@@ -524,57 +533,10 @@ try:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
     edit_progress(output_html_path, progress=25)
 
-    #
-    # # 5.	find_reciprocal_hits.py
-    # # Input: (1) a path for a i_vs_j.blast_filtered file and a path for a j_vs_i.blast_filtered file (2) an output path (with a suffix as follows: i_vs_j_reciprocal_hits.tsv
-    # # Output: a tab delimited file containing only reciprocal best-hit pairs and their bit score from blast, i.e., if x’s best hit was y in the first file with bit score z, x\ty\tz will appear in the output file only if y’s best hit in the other file will be x.
-    # # Can be parallelized on cluster
-    # step = '05'
-    # logger.info(f'Step {step}: {"_"*100}')
-    # previous_pipeline_step_output_dir = pipeline_step_output_dir
-    # dir_name = f'{step}_reciprocal_hits'
-    # script_path = os.path.join(args.src_dir, 'find_reciprocal_hits.py')
-    # num_of_expected_results = 0
-    # pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
-    # done_file_path = os.path.join(done_files_dir, f'{step}_find_reciprocal_hits.txt')
-    # num_of_cmds_per_job = 50
-    # num_of_aggregated_params = 0
-    # more_cmds = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-    # if not os.path.exists(done_file_path):
-    #     logger.info('Extracting reciprocal hits...')
-    #     for blast_filtered_results_file in os.listdir(previous_pipeline_step_output_dir):
-    #         file_name_prefix = os.path.splitext(blast_filtered_results_file)[0]
-    #         strain1, strain2 = file_name_prefix.split('_vs_')[:2]
-    #         logger.debug(f'\nstrain1: {strain1}\nstrain2: {strain2}')
-    #         if strain1<strain2:
-    #             # avoid both strain1,strain2 and strain2,strain1
-    #             reciprocal_file_name_prefix = "_vs_".join([strain2, strain1])
-    #             reciprocal_file_name = reciprocal_file_name_prefix + os.path.splitext(blast_filtered_results_file)[1]
-    #             output_file_name = f'{file_name_prefix}.{dir_name}'
-    #             if num_of_aggregated_params > 0:  # params was already defined for this job batch. Save it before overridden
-    #                 more_cmds.append(params)
-    #             params = [os.path.join(previous_pipeline_step_output_dir, blast_filtered_results_file),
-    #                       os.path.join(previous_pipeline_step_output_dir, reciprocal_file_name),
-    #                       os.path.join(pipeline_step_output_dir, output_file_name)]
-    #             num_of_aggregated_params += 1
-    #             if num_of_aggregated_params == num_of_cmds_per_job:
-    #                 submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=output_file_name,
-    #                                      queue_name=args.queue_name, more_cmds=more_cmds)
-    #                 num_of_expected_results += 1
-    #                 num_of_aggregated_params = 0
-    #                 more_cmds = []
-    #
-    #     if num_of_aggregated_params > 0:
-    #         # don't forget the last batch!!
-    #         submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=output_file_name,
-    #                              queue_name=args.queue_name, more_cmds=more_cmds)
-    #         num_of_expected_results += 1
-    #
-    #     wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir, num_of_expected_results, error_file_path)
-    #     file_writer.write_to_file(done_file_path, '.')
-    # else:
-    #     logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
-    # edit_progress(output_html_path, progress=30)
+    # send a subjob that removes all m8 files from the output dir as they are no longer needed and might cost a lot of inodes!
+    # does not remove (sge/cmds/log) files. only folders.
+    # submit_pipeline_step(os.path.join(args.src_dir, 'remove_tmp_folders.py'), [pipeline_step_tmp_dir], pipeline_step_tmp_dir,
+    #                      job_name='remove_dirs_from_tmp', queue_name=args.queue_name)
 
 
     # 6. concatenate_reciprocal_hits
@@ -589,12 +551,13 @@ try:
         logger.info('Concatenating reciprocal hits...')
         cmd = f'cat {pipeline_step_output_dir}/*.{dir_name} > {all_reciprocal_hits_file}'
         logger.info(f'Calling:\n{cmd}')
-        subprocess.run(cmd, shell = True)
+        subprocess.run(cmd, shell=True)
         # No need to wait...
         file_writer.write_to_file(done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
     edit_progress(output_html_path, progress=30)
+
 
     # 7.	construct_putative_orthologs_table.py
     # Input: (1) a path for a i_vs_j_reciprocal_hits.tsv file (2) a path for a putative orthologs file (with a single line).
@@ -607,7 +570,7 @@ try:
     num_of_expected_results = 0
     pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
     putative_orthologs_table_path = os.path.join(pipeline_step_output_dir, 'putative_orthologs_table.txt')
-    done_file_path = os.path.join(done_files_dir, f'{step}_construct_putative_orthologs_table.txt')
+    done_file_path = os.path.join(done_files_dir, f'{dir_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Constructing putative orthologs table...')
         job_name = os.path.split(script_path)[-1]
@@ -623,40 +586,6 @@ try:
     edit_progress(output_html_path, progress=35)
 
 
-    # # 6.	split_putative_orthologs_table
-    # # Input: (1) a path for a putative orthologs table (each row in this table is a putative orthologous group) (2) an output_path to a directory.
-    # # Output: each line is written to a separate file in the output directory.
-    # # Can be parallelized on cluster (better as a subprocess)
-    # logger.info(f'Step 6: {"_"*100}')
-    # dir_name = 'splitted_putative_orthologs_table'
-    # # script_path = os.path.join(args.src_dir, '..', 'auxiliaries', 'file_writer.py')
-    # # num_of_expected_results = 0
-    # pipeline_step_output_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)[0]  # pipeline_step_tmp_dir is not needed
-    # done_file_path = os.path.join(done_files_dir, '6_split_putative_orthologs_table.txt')
-    # if not os.path.exists(done_file_path):
-    #     logger.info('Splitting putative orthologs table...')
-    #     with open(putative_orthologs_table_path) as f:
-    #         header = f.readline()
-    #         lines = ''
-    #         i = 0
-    #         for line in f:
-    #             lines += line
-    #             i += 1
-    #             if i % 100 == 0:
-    #                 out_file = os.path.join(pipeline_step_output_dir, (line.split(',')[0]) + '.' + dir_name)
-    #                 # subprocess.call(['python', script_path, out_file,'--content' ,line])
-    #                 file_writer.write_to_file(out_file, header+lines)
-    #                 lines = ''
-    #         if lines: # write last rows (maybe we didn't reach 100...)
-    #             out_file = os.path.join(pipeline_step_output_dir, (line.split(',')[0]) + '.' + dir_name)
-    #             file_writer.write_to_file(out_file, header+lines)
-    #         # wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir, num_of_expected_results, error_file_path)
-    #
-    #     file_writer.write_to_file(done_file_path, '.')
-    # else:
-    #     logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
-
-
     # 8   prepare_files_for_mcl.py
     # Input: (1) a path for a concatenated all reciprocal hits file (2) a path for a putative orthologs file (3) a path for an output folder
     # Output: an input file for MCL for each putative orthologs group
@@ -667,8 +596,8 @@ try:
     script_path = os.path.join(args.src_dir, 'prepare_files_for_mcl.py')
     num_of_expected_results = 0
     pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
-    done_file_path = os.path.join(done_files_dir, f'{step}_prepare_files_for_mcl.txt')
-    num_of_cmds_per_job = 50
+    done_file_path = os.path.join(done_files_dir, f'{dir_name}.txt')
+    num_of_cmds_per_job = 25  # *times* the number of steps below. 250 in total per batch!
     num_of_aggregated_params = 0
     more_cmds = [] # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
 
@@ -692,8 +621,7 @@ try:
             num_of_aggregated_params += 1
             if num_of_aggregated_params == num_of_cmds_per_job:
                 submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=f'{dir_name}_{last_mcl}',  # {i+step-num_of_cmds_per_job*step}_
-                                     queue_name=args.queue_name, required_modules_as_list=[CONSTS.MCL],
-                                     more_cmds=more_cmds)
+                                     queue_name=args.queue_name, more_cmds=more_cmds)
                 num_of_expected_results += 1
                 num_of_aggregated_params = 0
                 more_cmds = []
@@ -701,8 +629,7 @@ try:
         if num_of_aggregated_params>0:
             #don't forget the last batch!!
             submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=f'{dir_name}_{last_mcl}',
-                                 queue_name=args.queue_name, required_modules_as_list=[CONSTS.MCL],
-                                 more_cmds=more_cmds)
+                                 queue_name=args.queue_name, more_cmds=more_cmds)
             num_of_expected_results += 1
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir, num_of_expected_results, error_file_path)
@@ -723,7 +650,7 @@ try:
     script_path = os.path.join(args.src_dir, 'run_mcl.py')
     num_of_expected_results = 0
     pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
-    done_file_path = os.path.join(done_files_dir, f'{step}_run_mcl.txt')
+    done_file_path = os.path.join(done_files_dir, f'{dir_name}.txt')
     num_of_cmds_per_job = 100
     num_of_aggregated_params = 0
     more_cmds = [] # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
@@ -771,7 +698,7 @@ try:
     script_path = os.path.join(args.src_dir, 'verify_cluster.py')
     num_of_expected_results = 0
     pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
-    done_file_path = os.path.join(done_files_dir, f'{step}_verify_cluster.txt')
+    done_file_path = os.path.join(done_files_dir, f'{dir_name}.txt')
     num_of_cmds_per_job = 100
     num_of_aggregated_params = 0
     more_cmds = [] # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
@@ -821,7 +748,7 @@ try:
     final_orthologs_table_path, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
     final_orthologs_table_file_path = os.path.join(final_orthologs_table_path, 'final_orthologs_table.csv')
     phyletic_patterns_path = os.path.join(final_orthologs_table_path, 'phyletic_pattern.fas')
-    done_file_path = os.path.join(done_files_dir, f'{step}_construct_final_orthologs_table.txt')
+    done_file_path = os.path.join(done_files_dir, f'{dir_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Constructing final orthologs table...')
         job_name = os.path.split(final_orthologs_table_file_path)[-1]
@@ -849,8 +776,8 @@ try:
     orthologs_dna_sequences_dir_path, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
     num_of_strains_path = os.path.join(final_orthologs_table_path, 'num_of_strains.txt')
     strains_names_path = os.path.join(final_orthologs_table_path, 'strains_names.txt')
-    done_file_path = os.path.join(done_files_dir, f'{step}_extract_orthologs_sequences.txt')
-    num_of_cmds_per_job = 100
+    done_file_path = os.path.join(done_files_dir, f'{dir_name}.txt')
+    num_of_cmds_per_job = 250
     num_of_aggregated_params = 0
     more_cmds = [] # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
     if not os.path.exists(done_file_path):
@@ -922,8 +849,8 @@ try:
     script_path = os.path.join(args.src_dir, 'translate_fna_to_faa.py')
     num_of_expected_results = 0
     orthologs_aa_sequences_dir_path, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
-    done_file_path = os.path.join(done_files_dir, f'{step}_translate_fna_to_faa.txt')
-    num_of_cmds_per_job = 100
+    done_file_path = os.path.join(done_files_dir, f'{dir_name}.txt')
+    num_of_cmds_per_job = 250
     num_of_aggregated_params = 0
     more_cmds = [] # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
     if not os.path.exists(done_file_path):
@@ -969,14 +896,16 @@ try:
     script_path = os.path.join(args.src_dir, 'align_orthologs_group.py')
     num_of_expected_results = 0
     aa_alignments_path, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
-    done_file_path = os.path.join(done_files_dir, f'{step}_aligned_aa_orthologs_groups.txt')
-    num_of_cmds_per_job = 100
+    done_file_path = os.path.join(done_files_dir, f'{dir_name}.txt')
+    num_of_cmds_per_job = 250
     num_of_aggregated_params = 0
     more_cmds = [] # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
     if not os.path.exists(done_file_path):
         logger.info('Aligning orthologs groups...')
-        og_files = [x for x in os.listdir(orthologs_aa_sequences_dir_path) if x.endswith('fas')]
-        for og_file in og_files:
+        for og_file in os.listdir(orthologs_aa_sequences_dir_path):
+            # if not og_file.endswith('fas'):
+            #     # why should that happen?
+            #     continue
             og_path = os.path.join(orthologs_aa_sequences_dir_path, og_file)
             og_file_prefix = os.path.splitext(og_file)[0]
             alignment_path = os.path.join(aa_alignments_path, f'{og_file_prefix}_mafft.fas')
@@ -1015,7 +944,7 @@ try:
     script_path = os.path.join(args.src_dir, 'extract_core_genome.py')
     num_of_expected_results = 1
     aligned_core_proteome_path, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
-    done_file_path = os.path.join(done_files_dir, f'{step}_extract_aligned_core_proteome.txt')
+    done_file_path = os.path.join(done_files_dir, f'{dir_name}.txt')
     aligned_core_proteome_file_path = os.path.join(aligned_core_proteome_path, 'aligned_core_proteome.fas')
     core_ogs_names_file_path = os.path.join(aligned_core_proteome_path, 'core_ortholog_groups_names.txt')
     core_length_file_path = os.path.join(aligned_core_proteome_path, 'core_length.txt')
@@ -1054,7 +983,7 @@ try:
     if not os.path.exists(phylogenetic_raw_tree_path):
         logger.info('Reconstructing species phylogeny...')
 
-        num_of_cpus = 10 #TODO: reduce to 5!!
+        num_of_cpus = 5
         params = [aligned_core_proteome_file_path,
                   phylogenetic_raw_tree_path,
                   f'--cpu {num_of_cpus}']  # both the Q and RAxML should get this as a parameter
@@ -1090,7 +1019,7 @@ try:
     script_path = os.path.join(args.src_dir, 'extract_orfs_statistics.py')
     num_of_expected_orfs_results = 0
     orfs_statistics_path, orfs_statistics_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
-    done_file_path = os.path.join(done_files_dir, f'{step}_extract_orfs_statistics.txt')
+    done_file_path = os.path.join(done_files_dir, f'{dir_name}.txt')
     num_of_cmds_per_job = 100
     num_of_aggregated_params = 0
     more_cmds = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
@@ -1143,8 +1072,8 @@ try:
     script_path = os.path.join(args.src_dir, 'induce_dna_msa_by_aa_msa.py')
     num_of_expected_induced_results = 0
     dna_alignments_path, induced_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
-    done_file_path = os.path.join(done_files_dir, f'{step}_aligned_dna_orthologs_groups.txt')
-    num_of_cmds_per_job = 100
+    done_file_path = os.path.join(done_files_dir, f'{dir_name}.txt')
+    num_of_cmds_per_job = 250
     num_of_aggregated_params = 0
     more_cmds = [] # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
     start_induced = time()
@@ -1185,7 +1114,7 @@ try:
     dir_name = f'{step}_groups_sizes_frequency'
     group_sizes_path, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
     groups_sizes_frequency_file_prefix = os.path.join(group_sizes_path, 'groups_sizes_frequency')
-    done_file_path = os.path.join(done_files_dir, f'{step}_extract_groups_sizes_frequency.txt')
+    done_file_path = os.path.join(done_files_dir, f'{dir_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Collecting sizes...')
 
@@ -1218,7 +1147,7 @@ try:
     orfs_plots_path, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
     orfs_counts_frequency_file = os.path.join(orfs_plots_path, 'orfs_counts.txt')
     orfs_gc_content_file = os.path.join(orfs_plots_path, 'orfs_gc_contents.txt')
-    done_file_path = os.path.join(done_files_dir, f'{step}_plot_orfs_statistics.txt')
+    done_file_path = os.path.join(done_files_dir, f'{dir_name}.txt')
     if not os.path.exists(done_file_path):
 
         wait_for_results('extract_orfs_statistics.py', orfs_statistics_tmp_dir,
@@ -1280,7 +1209,7 @@ try:
     logger.info(f'FINAL STEP: {"_"*100}')
     final_output_dir_name = f'{CONSTS.WEBSERVER_NAME}_{run_number}_outputs'
     final_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, final_output_dir_name)
-    done_file_path = os.path.join(done_files_dir, final_output_dir_name + '.txt')
+    done_file_path = os.path.join(done_files_dir, f'{final_output_dir_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Gathering results to final output dir...')
 
@@ -1393,10 +1322,10 @@ if status == 'is done':
         step = '21'
         logger.info(f'Step {step}: {"_"*100}')
         dir_name = f'{step}_extract_promoters_and_orfs'
-        script_path = os.path.join(args.src_dir, 'extract_promoters_and_orfs.py')
+        script_path = f'{args.src_dir}/../post_analysis/extract_promoters_and_orfs.py'
         num_of_expected_results = 0
         pipeline_step_output_dir_21, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
-        done_file_path = os.path.join(done_files_dir, f'{step}_extract_promoters_and_orfs.txt')
+        done_file_path = os.path.join(done_files_dir, f'{dir_name}.txt')
         num_of_cmds_per_job = 5
         num_of_aggregated_params = 0
         more_cmds = [] # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
@@ -1445,7 +1374,7 @@ if status == 'is done':
         script_path = os.path.join(args.src_dir, 'extract_orthologs_sequences.py')
         num_of_expected_results = 0
         pipeline_step_output_dir_22, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
-        done_file_path = os.path.join(done_files_dir, f'{step}_extract_orthologs_sequences.txt')
+        done_file_path = os.path.join(done_files_dir, f'{dir_name}.txt')
         num_of_cmds_per_job = 100
         num_of_aggregated_params = 0
         more_cmds = [] # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
@@ -1458,11 +1387,11 @@ if status == 'is done':
             with open(final_orthologs_table_file_path) as f:
                 header_line = f.readline()
                 first_delimiter_index = header_line.index(delimiter)
-                final_table_header = header_line.rstrip()[first_delimiter_index + 1:] #remove "OG_name"
+                final_table_header = header_line.rstrip()[first_delimiter_index + 1:]  # remove "OG_name"
                 for line in f:
                     first_delimiter_index = line.index(delimiter)
                     og_name = line[:first_delimiter_index]
-                    cluster_members = line.rstrip()[first_delimiter_index+1:] #remove "OG_name"
+                    cluster_members = line.rstrip()[first_delimiter_index + 1:]  # remove "OG_name"
                     output_file_name = og_name
                     # og_number += 1
                     if num_of_aggregated_params > 0:
@@ -1506,21 +1435,20 @@ if status == 'is done':
         script_path = os.path.join(args.src_dir, 'align_orthologs_group.py')
         num_of_expected_results = 0
         pipeline_step_output_dir_23, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
-        done_file_path = os.path.join(done_files_dir, f'{step}_aligned_dna_orthologs_groups_with_promoter.txt')
+        done_file_path = os.path.join(done_files_dir, f'{dir_name}.txt')
         num_of_cmds_per_job = 100
         num_of_aggregated_params = 0
         more_cmds = [] # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
         if not os.path.exists(done_file_path):
             logger.info('Aligning orthologs groups...')
-            og_files = [x for x in os.listdir(pipeline_step_output_dir_22) if x.endswith('fas')]
-            for og_file in og_files:
+            for og_file in os.listdir(pipeline_step_output_dir_22):
                 og_path = os.path.join(pipeline_step_output_dir_22, og_file)
                 og_file_prefix = os.path.splitext(og_file)[0]
                 alignment_path = os.path.join(pipeline_step_output_dir_23, f'{og_file_prefix}_mafft.fas')
                 if num_of_aggregated_params > 0:
                     # params was already defined for this job batch. Save it before overridden
                     more_cmds.append(params)
-                params = [og_path, '--nuc', alignment_path]
+                params = [og_path, alignment_path, '--type nuc']
                 num_of_aggregated_params += 1
                 if num_of_aggregated_params == num_of_cmds_per_job:
                     submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=og_file_prefix,
@@ -1543,20 +1471,68 @@ if status == 'is done':
         else:
             logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
 
-        # TODO: generate prunned tree per alignment
-        # python ~/src/CreateListToPrune.py' + ' ' + pathToMSAs  + '/' + msaFile + ' ' + fullTreeFile + ' ' + outputPath + '/' + msaName + '.listToPrune' + '\n' # must end with '\n' !!!
-        #  '~/src/removeTaxa' + ' ' + fullTreeFile + ' ' + pathToLists + '/' + listName + '.listToPrune' + ' ' + outputPath + '/' + listName + '.tree' + '\n' # must end with '\n' !!!
+        # 24.	adjust_tree_to_msa.py
+        # Input: (1) A path to an MSA file to which the tree should be adjusted
+        #        (2) A path to a species tree that contains (at least) all the species in the input MSA
+        #        (3) A path to a folder in which a txt file (with the same name as the msa_file) will be created. All the species that do not appear in the msa (and thus will be removed) will be written to the file that was created',
+        #        (4) A path to a file in which the prunned tree will be written
+        # Output: an adjusted tree per msa at (4)
+        step = '24'
+        logger.info(f'Step {step}: {"_"*100}')
+        dir_name = f'{step}_prunned_trees'
+        script_path = f'{args.src_dir}/../post_analysis/adjust_tree_to_msa.py'
+        num_of_expected_results = 0
+        pipeline_step_output_dir_24, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
+        done_file_path = os.path.join(done_files_dir, f'{step}_{dir_name}.txt')
+        num_of_cmds_per_job = 250
+        num_of_aggregated_params = 0
+        more_cmds = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
+        if not os.path.exists(done_file_path):
+            phylogenetic_raw_tree_path = phylogenetic_raw_tree_path.replace('outputs', final_output_dir_name)  # the tree was moved to the final dir..
+            phylogenetic_raw_tree_path_without_bootstrap_values = phylogenetic_raw_tree_path.replace('.txt', '_no_bootstrap.txt')
+            logger.info('Removing bootstrap values from tree...')
+            remove_bootstrap_values(phylogenetic_raw_tree_path, phylogenetic_raw_tree_path_without_bootstrap_values)
 
+            logger.info('Prunning trees...')
+            for msa_file in os.listdir(pipeline_step_output_dir_23):
+                msa_path = os.path.join(pipeline_step_output_dir_23, msa_file)
+                msa_file_prefix = os.path.splitext(msa_file)[0]
+                prunned_tree_path = os.path.join(pipeline_step_output_dir_24, f'{msa_file_prefix}.tree')
+                if num_of_aggregated_params > 0:
+                    # params was already defined for this job batch. Save it before overridden
+                    more_cmds.append(params)
+                params = [msa_path, phylogenetic_raw_tree_path_without_bootstrap_values, pipeline_step_tmp_dir, prunned_tree_path]
+                num_of_aggregated_params += 1
+                if num_of_aggregated_params == num_of_cmds_per_job:
+                    submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=msa_file_prefix,
+                                         queue_name=args.queue_name, more_cmds=more_cmds)
+                    num_of_expected_results += 1
+                    num_of_aggregated_params = 0
+                    more_cmds = []
 
-        logger.info(f'Moving {pipeline_step_output_dir_23} TO {os.path.join(meta_output_dir, dir_name)}')
+            if num_of_aggregated_params > 0:
+                # don't forget the last batch!!
+                submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=msa_file_prefix,
+                                     queue_name=args.queue_name, more_cmds=more_cmds)
+                num_of_expected_results += 1
+
+            wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir, num_of_expected_results,
+                             error_file_path)
+            file_writer.write_to_file(done_file_path, '.')
+        else:
+            logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
+
+        # preventing folder's deletion (output dir is being deleted
+        logger.info(f'Moving {pipeline_step_output_dir_24} TO {os.path.join(meta_output_dir, dir_name)}')
         try:
             shutil.move(pipeline_step_output_dir_23, meta_output_dir)
+            shutil.move(pipeline_step_output_dir_24, meta_output_dir)
         except FileExistsError:
             pass
 
-    if remote_run and run_number.lower() != 'example': # and 'oren' not in args.email:
+    if remote_run and run_number.lower() != 'example' and 'oren' not in args.email:
 
-        # remove intermediate results
+        # remove intermediate results (including tmp_dir)
         remove_path(args.output_dir)
 
         # remove raw data from the server
