@@ -28,7 +28,7 @@ Output:
 
 import os
 
-def load_reciprocal_hits_to_dictionary(all_reciprocal_hits_path, delimiter):
+def load_reciprocal_hits_to_dictionary(all_reciprocal_hits_path, group_name_to_pair_combinations, delimiter):
     gene_pair_to_score = {}
     with open(all_reciprocal_hits_path) as f:
         for line in f:
@@ -37,8 +37,12 @@ def load_reciprocal_hits_to_dictionary(all_reciprocal_hits_path, delimiter):
                 # new reciprocal hits file starts
                 continue
             pair = tuple(line_tokens[:2])
-            score = line_tokens[2]
-            gene_pair_to_score[pair] = score
+            for group_name in group_name_to_pair_combinations:
+                pair_combinations = group_name_to_pair_combinations[group_name]
+                if pair in pair_combinations or pair[::-1] in pair_combinations:
+                    score = line_tokens[2]
+                    gene_pair_to_score[pair] = score
+                    break
     return gene_pair_to_score
 
 
@@ -47,13 +51,13 @@ def generate_text_to_mcl_input_file(gene_pair_to_score_dict, gene_pairs):
     text_to_mcl_file = ''
     logger.debug(f'gene_pair_to_score_dict content is:\n{gene_pair_to_score_dict}')
     for pair in gene_pairs:
-        # get gene1,gene2 score
-        score = gene_pair_to_score_dict.get(pair)
+        # get gene1,gene2 score and if it's not there try gene2,gene1
+        score = gene_pair_to_score_dict.get(pair, gene_pair_to_score_dict.get(pair[::-1]))
         if not score:
-            # get gene2,gene1 score if gene1,gene2 is not in the dictionary
-            score = gene_pair_to_score_dict.get(pair[::-1])
-        if not score:
-            # both pairs are not in the dictionary!! possible bug..?
+            # both pairs are not in the dictionary!
+            # E.g., say we found these pairs a1-b1 (A:B), a1-c2 (A:C), b1-c1 (B:C), c1-a2 (C:A)
+            # a1-c1 was discarded earlier because it is not *best* hit (best hit was with paralogs, a2 and c2, respectively)
+            # Thus, it will not appear in the concatenated best hits.
             if first_non_existing_pair:
                 logger.fatal(f'Pair {pair} does not exist in gene_pair_to_score_dict!! Setting score to 1\n'
                              f'Notice that there might be some more non existing pairs (turn on debug mode to get the full log).')
@@ -69,14 +73,13 @@ def generate_text_to_mcl_input_file(gene_pair_to_score_dict, gene_pairs):
 
 def prepare_files_for_mcl(all_reciprocal_hits_path, putative_orthologs_path, start, end, output_path, delimiter):
     from itertools import combinations
-    gene_pair_to_score_dict = load_reciprocal_hits_to_dictionary(all_reciprocal_hits_path, delimiter)
-    logger.info(f'Reciprocal hits dictionary was loaded succesfully. Number of gene pairs is {len(gene_pair_to_score_dict)}.')
+    group_name_to_combinations = {}
     with open(putative_orthologs_path) as f:
         line_number = 0
         f.readline()  # skip header
         for line in f:
             line_number += 1
-            if not start <= line_number <= end:
+            if line_number < start:
                 continue
             if line_number > end:
                 break
@@ -86,17 +89,22 @@ def prepare_files_for_mcl(all_reciprocal_hits_path, putative_orthologs_path, sta
             og_members = line_tokens[1:]
 
             # remove empty tokens
-            while '' in og_members:
-                og_members.remove('')
+            og_members = [member for member in og_members if member != '']
 
-            # get all pair combinations as a tuple of tuples
-            gene_pairs = combinations(og_members, 2)
+            # get all pair combinations as a set of tuples
+            group_name_to_combinations[group_name] = set(combinations(og_members, 2))
 
-            # create input file for mcl
-            text_to_mcl_file = generate_text_to_mcl_input_file(gene_pair_to_score_dict, gene_pairs)
-            mcl_file_path = os.path.join(output_path, group_name + '.mcl_input')
-            with open(mcl_file_path, 'w') as mcl_f:
-                mcl_f.write(text_to_mcl_file)
+    logger.info('Loading relevant reciprocal hit scores to dictionary...')
+    gene_pair_to_score_dict = load_reciprocal_hits_to_dictionary(all_reciprocal_hits_path, group_name_to_combinations, delimiter)
+    logger.info(f'All relevant reciprocal hits dictionary were loaded succesfully. Number of relevant gene pairs is {len(gene_pair_to_score_dict)}.')
+
+    for group_name in group_name_to_combinations:
+        # create input file for mcl
+        text_to_mcl_file = generate_text_to_mcl_input_file(gene_pair_to_score_dict, group_name_to_combinations[group_name])
+        mcl_file_path = os.path.join(output_path, group_name + '.mcl_input')
+
+        with open(mcl_file_path, 'w') as mcl_f:
+            mcl_f.write(text_to_mcl_file)
 
 
 if __name__ == '__main__':
