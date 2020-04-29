@@ -11,9 +11,15 @@ function openAdvanced() {
 function validate_read_files() {
     var data = document.getElementById("data").value;
 
-    if (!(data.endsWith('zip') || data.endsWith('tar.gz'))){
+    if (!(data.endsWith('.zip') || data.endsWith('.gz'))){
         alert("Chosen file is illegal. Only zip/tar.gz formats are allowed.");
         return false;
     }
     return true;
 }
+
+// function onSubmit(response) {
+//     if (validate_read_files() === true) {
+//         document.getElementById("microbializer_form").submit();
+//     }
+// }

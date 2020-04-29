@@ -25,6 +25,8 @@
         <link rel="stylesheet" href="css/nav.css">
         <script src="scripts/form_handler.js"></script>
 
+        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
         <!--<link href='https://fonts.googleapis.com/css?family=Kalam' rel='stylesheet'>-->
 
         <!--<script src="https://code.jquery.com/jquery-1.10.2.js"></script>-->
@@ -90,13 +92,6 @@
         </div>
         <div class="container" id="basic">
             <div class="row">
-                <!--<div class="col-md-1">-->
-                <!--</div>-->
-                <!--<div class="col-md-10">-->
-                    <!--<div id="please-note" align="justify">&nbsp;&nbsp;&nbsp;Please notice that files larger than 100MB may require up to 30 minutes to be uploaded, depending on<br>&nbsp;&nbsp;&nbsp;your network speed (preferably not over Wi-Fi).</div>-->
-                <!--</div>-->
-                <!--<div class="col-md-1">-->
-                <!--</div>-->
             </div>
             <div class="row">
                 <div class="col-md-1">
@@ -281,7 +276,10 @@
                             </div>
 
                             <br>
-                            <button type="submit" class="btn btn-success"><span class="glyphicon glyphicon-cloud-upload"></span>&nbsp; Submit</button>
+                            <button type="submit" class="btn btn-success"> <!--g-recaptcha" data-callback="onSubmit" data-sitekey="6LdIEO4UAAAAAG8KoM5Netgx5LgEJnwfZAngTljA">-->
+                                <span class="glyphicon glyphicon-cloud-upload"></span>&nbsp;
+                                Submit
+                            </button>
                             <a href="index_example.html"><button type="button" class="btn btn-info">Load Example</button></a>
                             <button type="reset" class="btn btn-danger"><span class="glyphicon glyphicon-trash"></span>&nbsp; Reset</button>
                             <!--<a href="index.html"><button type="button" class="btn btn-info">Clear Example</button></a>-->
