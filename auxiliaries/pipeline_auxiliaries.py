@@ -37,7 +37,11 @@ def wait_for_results(script_name, path, num_of_expected_results, error_file_path
     i = 0
     current_num_of_results = 0
     while num_of_expected_results > current_num_of_results:
-        current_num_of_results = sum(1 for x in os.listdir(path) if x.endswith(suffix))
+        try:
+            current_num_of_results = sum(1 for x in os.listdir(path) if x.endswith(suffix))
+        except:
+            logger.info(f'Could not run the following command, probably due to some system error...')
+            logger.info(f'current_num_of_results = sum(1 for x in os.listdir({path}) if x.endswith({suffix}))')
         jobs_left = num_of_expected_results - current_num_of_results
         sleep(time_to_wait)
         total_time += time_to_wait

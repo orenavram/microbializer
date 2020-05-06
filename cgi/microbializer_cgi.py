@@ -9,14 +9,16 @@ import subprocess
 from time import time, ctime
 from random import randint
 
-import WEBSERVER_CONSTANTS as CONSTS
 if os.path.exists('/bioseq/microbializer'): # remote run
-    sys.path.append('/bioseq/microbializer/auxiliaries/')
-    sys.path.append('/bioseq/bioSequence_scripts_and_constants/')
+    sys.path.insert(0, '/bioseq/microbializer/pipeline/')
+    sys.path.insert(0, '/bioseq/microbializer/auxiliaries/')
+    # sys.path.append('/bioseq/bioSequence_scripts_and_constants/')
 else:
     # local run
+    sys.path.append('../pipeline/')
     sys.path.append('../auxiliaries/')
 
+import CONSTANTS as CONSTS
 from directory_creator import create_dir # from /bioseq/microbializer/auxiliaries/
 from email_sender import send_email # from /bioseq/bioSequence_scripts_and_constants/
 
@@ -262,8 +264,8 @@ def run_cgi():
         #queue_name = '"pupkoweb -l nodes=compute-0-291"'  # TODO: uncomment to avoid deadlock
         # queue_name = '"pupkotmpr -l nodes=compute-0-265"'  # TODO: uncomment to avoid deadlock
         queue_name = '"pupkolabr -l nodes=compute-0-299"'  # TODO: uncomment to avoid deadlock
-        # queue_name_for_subjobs = 'pupkotmpr'
-        queue_name_for_subjobs = 'pupkowebr'  # all pupko machines on power
+        queue_name_for_subjobs = 'pupkotmpr'
+        # queue_name_for_subjobs = 'pupkowebr'  # all pupko machines on power
 
         parameters = f'"{data_path}" ' \
                      f'{os.path.join(wd, "outputs")} ' \
@@ -308,11 +310,14 @@ def run_cgi():
                                    f"Meanwhile, you can track the progress of your job at:\n{os.path.join(CONSTS.WEBSERVER_URL, 'results', run_number, 'output.html')}\n\n"
 
             # Send the user a notification email for their submission
-            send_email(smtp_server=CONSTS.SMTP_SERVER,
-                       sender=CONSTS.ADMIN_EMAIL,
-                       receiver=f'{user_email}',
-                       subject=f'{CONSTS.WEBSERVER_NAME} - Your job has been submitted! (Run number: {run_number})',
-                       content=notification_content)
+            try:
+                send_email(smtp_server=CONSTS.SMTP_SERVER,
+                           sender=CONSTS.ADMIN_EMAIL,
+                           receiver=f'{user_email}',
+                           subject=f'{CONSTS.WEBSERVER_NAME} - Your job has been submitted! (Run number: {run_number})',
+                           content=notification_content)
+            except:
+                write_to_debug_file(cgi_debug_path_f, f'\nFailed sending notification to {user_email}\n')
 
         write_to_debug_file(cgi_debug_path_f, f'\n\n{"#"*50}\nCGI finished running!\n{"#"*50}\n')
 
