@@ -24,6 +24,7 @@ MCL = 'MCL-edge/mcl-14-137'
 MAFFT = 'mafft/mafft-7.407'
 RAXML = 'raXML'
 PRODIGAL = 'prodigal/prodigal-2.6.3'
+MMSEQS = 'MMseqs2/May2020'
 
 WEBSERVER_NAME = 'M1CR0B1AL1Z3R'
 WEBSERVER_URL = 'https://microbializer.tau.ac.il'
