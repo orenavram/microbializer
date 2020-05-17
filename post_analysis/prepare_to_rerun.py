@@ -2,8 +2,11 @@ def prepare(wd_path):
 
     import os
     error_file = os.path.join(wd_path, 'error.txt')
-    os.remove(error_file)
-    print(f'{error_file} was deleted!')
+    try:
+        os.remove(error_file)
+        print(f'{error_file} was deleted!')
+    except:
+        print(f'No {error_file} file to delete was found.')
 
     html_path = os.path.join(wd_path, 'output.html')
     with open(html_path) as f:
