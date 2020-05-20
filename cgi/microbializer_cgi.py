@@ -263,9 +263,9 @@ def run_cgi():
         #queue_name = 'pupkoweb'  # all pupko machines on power
         #queue_name = '"pupkoweb -l nodes=compute-0-291"'  # TODO: uncomment to avoid deadlock
         # queue_name = '"pupkotmpr -l nodes=compute-0-265"'  # TODO: uncomment to avoid deadlock
-        queue_name = '"pupkolabr -l nodes=compute-0-299"'  # TODO: uncomment to avoid deadlock
-        queue_name_for_subjobs = 'pupkotmpr'
-        # queue_name_for_subjobs = 'pupkowebr'  # all pupko machines on power
+        queue_name = '"pupkolabr -l nodes=compute-0-296"'  # TODO: uncomment to avoid deadlock
+        # queue_name_for_subjobs = '"pupkotmpr -l nodes=compute-0-18"'
+        queue_name_for_subjobs = 'pupkowebr'  # all pupko machines on power
 
         parameters = f'"{data_path}" ' \
                      f'{os.path.join(wd, "outputs")} ' \
