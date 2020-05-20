@@ -162,11 +162,11 @@
                                     <div class="col-md-8">
                                         <br>
                                         <label for="bootstrap">Apply bootstrap over the species tree?
-                                        <!--<button type="button" class="btn btn-lg" data-toggle="modal" data-target="#info1">-->
-                                            <!--<span class="glyphicon glyphicon-question-sign"></span>-->
-                                        <!--</button>-->
-                                            <label class="radio-inline"><input type="radio" name="bootstrap" id="bootstrap" value="yes" checked>Yes</label>
-                                            <label class="radio-inline"><input type="radio" name="bootstrap" value="no" disabled>No</label>
+                                        <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#info6">
+                                            <span class="glyphicon glyphicon-question-sign"></span>
+                                        </button>
+                                            <label class="radio-inline"><input type="radio" name="bootstrap" value="yes" checked>Yes</label>
+                                            <label class="radio-inline"><input type="radio" name="bootstrap" id="bootstrap" value="no" disabled>No</label>
                                         </label>
                                     </div>
                                 </div>
@@ -234,10 +234,24 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="modal fade" id="info6" role="dialog">
+                                <div class="modal-dialog">
+                                    <!-- Modal content-->
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                            <div class="modal-title">Bootstrap procedure</div>
+                                        </div>
+                                        <div class="modal-body">
+                                            If marked "Yes", 100 bootstrap iterations will be applied over the data set. In any case, no bootstrap will be applied for a data set with more than 100 genomes as bootstrap over large data, even when being parallelized into a few threads, might take hundreds of hours. If you do need to run bootstrap for larger data sets, please contact us directly and we will try to assist, per request.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <br>
                             <button type="submit" class="btn btn-success"><span class="glyphicon glyphicon-cloud-upload"></span>&nbsp; Submit</button>
-                            <a href="index.html"><button type="button" class="btn btn-info">Clear Example</button></a>
-                            <button type="reset" class="btn btn-danger"><span class="glyphicon glyphicon-trash"></span>&nbsp; Reset</button>
+                            <!--<a href="index.html"><button type="button" class="btn btn-info">Clear Example</button></a>-->
+                            <a href="index.html"><button type="button" class="btn btn-danger"><span class="glyphicon glyphicon-trash"></span>&nbsp; Clear Example</button></a>
                             <br><br><br>
                         </div>
 

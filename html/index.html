@@ -174,9 +174,9 @@
                                     <div class="col-md-8">
                                         <br>
                                         <label for="bootstrap">Apply bootstrap over the species tree?
-                                        <!--<button type="button" class="btn btn-lg" data-toggle="modal" data-target="#info1">-->
-                                            <!--<span class="glyphicon glyphicon-question-sign"></span>-->
-                                        <!--</button>-->
+                                        <button type="button" class="btn btn-lg" data-toggle="modal" data-target="#info6">
+                                            <span class="glyphicon glyphicon-question-sign"></span>
+                                        </button>
                                             <label class="radio-inline"><input type="radio" name="bootstrap" value="yes">Yes</label>
                                             <label class="radio-inline"><input type="radio" name="bootstrap" id="bootstrap" value="no" checked>No</label>
                                         </label>
@@ -208,7 +208,7 @@
                                     <div class="modal-content">
                                         <div class="modal-header">
                                             <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                            <div class="modal-title">A species name based on which the tree should be rooted</div>
+                                            <div class="modal-title">A single species name based on which the tree should be rooted</div>
                                         </div>
                                         <div class="modal-body"> <!--align="justify">-->
                                             For example, if the genomic sequence in a file named: "Efergusonii_ATCC_35469.fna" is the desired outgroup, than "Efergusonii_ATCC_35469" should be provided.
@@ -270,6 +270,20 @@
                                         <div class="modal-body">
                                             For example:<br>
                                             If the cutoff is set to 0.01, every best reciprocal hit pair with greater e-value will be ignored.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal fade" id="info6" role="dialog">
+                                <div class="modal-dialog">
+                                    <!-- Modal content-->
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                            <div class="modal-title">Bootstrap procedure</div>
+                                        </div>
+                                        <div class="modal-body">
+                                            If marked "Yes", 100 bootstrap iterations will be applied over the data set. In any case, no bootstrap will be applied for a data set with more than 100 genomes as bootstrap over large data, even when being parallelized into a few threads, might take hundreds of hours. If you do need to run bootstrap for larger data sets, please contact us directly and we will try to assist, per request.
                                         </div>
                                     </div>
                                 </div>
