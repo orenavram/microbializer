@@ -5,3 +5,12 @@ M1CR0B1AL1Z3R (pronounced: microbializer) was developed in order to facilitate l
 
 <img src="html/pics/logo.gif" width="134" height="100"> 
 
+# Citation 
+If you used M1CR0B1AL1Z3R please cite the following paper:
+
+M1CR0B1AL1Z3R - a user-friendly web server for the analysis of large-scale microbial genomics data;
+
+Oren Avram, Dana Rapoport, Shir Portugez, & Tal Pupko
+
+Nucleic Acids Res, May 2019
+DOI: https://doi.org/10.1093/nar/gkz423
