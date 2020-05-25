@@ -201,7 +201,7 @@ def run_cgi():
             write_to_debug_file(cgi_debug_path_f, f"{form['email'].value.strip()}\n\n")
 
         # for debugging
-        write_to_debug_file(cgi_debug_path_f, f'{"#"*100}\n{ctime()}: A new CGI request has been recieved!\n')
+        write_to_debug_file(cgi_debug_path_f, f'{"#"*100}\n{ctime()}: A new CGI request has been received!\n')
         sorted_form_keys = sorted(form.keys())
         write_to_debug_file(cgi_debug_path_f, f'These are the keys that the CGI received:\n{"; ".join(sorted_form_keys)}\n\n')
         write_to_debug_file(cgi_debug_path_f, 'Form values are:\n')
@@ -265,7 +265,7 @@ def run_cgi():
         # queue_name = '"pupkotmpr -l nodes=compute-0-265"'  # TODO: uncomment to avoid deadlock
         queue_name = '"pupkolabr -l nodes=compute-0-296"'  # TODO: uncomment to avoid deadlock
         # queue_name_for_subjobs = '"pupkotmpr -l nodes=compute-0-18"'
-        queue_name_for_subjobs = 'pupkowebr'  # all pupko machines on power
+        queue_name_for_subjobs = '"pupkowebr -p -1"'  # all pupko machines on power
 
         parameters = f'"{data_path}" ' \
                      f'{os.path.join(wd, "outputs")} ' \
