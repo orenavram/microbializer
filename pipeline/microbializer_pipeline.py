@@ -67,7 +67,8 @@ def verify_fasta_format(data_path):
                             if c not in legal_chars:
                                 return f'Illegal <a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a>. Line {line_number} in "{file_name}" contains illegal DNA character "{c}".'
                         curated_content += f'{line}\n'
-            except UnicodeDecodeError:
+            except UnicodeDecodeError as e:
+                logger.info(e.args)
                 line_number += 1  # the line that was failed to be read
                 return f'Illegal <a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a>. Line {line_number} in "{file_name}" contains one (or more) non <a href="https://en.wikipedia.org/wiki/ASCII" target="_blank">ascii</a> character(s).'
         # override the old file with the curated content
@@ -90,17 +91,19 @@ def edit_progress(output_html_path, progress=None, active=True):
     with open(output_html_path, 'w') as f:
         f.write(result)
 
-def add_results_to_final_dir(source, final_output_dir):
+def add_results_to_final_dir(source, final_output_dir, copy=True):
     dest = os.path.join(final_output_dir, os.path.split(source)[1])
-    logger.info(f'Moving {source} TO {dest}')
 
     try:
-        if not '11_final_table' in source:
+        if not copy:
+            logger.info(f'Moving {source} TO {dest}')
             shutil.move(source, dest)
         else:
+            logger.info(f'Copying {source} TO {dest}')
             shutil.copytree(source, dest)
     except FileExistsError:
         pass
+
     return dest
 
 
@@ -123,6 +126,60 @@ def remove_bootstrap_values(in_tree_path, out_tree_path):
     tree_as_str = re.sub('\)\d+:', '):', tree_as_str)
     with open(out_tree_path, 'w') as f:
         f.write(tree_as_str)
+
+
+def unpack_data(data_path):
+    if not os.path.isdir(data_path):
+        unzipped_data_path = os.path.join(meta_output_dir, 'data')
+        try:
+            if tarfile.is_tarfile(data_path):
+                logger.info('UnTARing')
+                with tarfile.open(data_path, 'r:gz') as f:
+                    f.extractall(path=unzipped_data_path)  # unzip tar folder to parent dir
+                logger.info('Succeeded!')
+                # data_path = data_path.split('.tar')[0] # e.g., /groups/pupko/orenavr2/microbializer/example_data.tar.gz
+                # logger.info(f'Updated data_path is:\n{data_path}')
+            elif data_path.endswith('.gz'):  # gunzip gz file
+                subprocess.run(f'gunzip -f "{data_path}"', shell=True)
+                unzipped_data_path = data_path[:-3]  # trim the ".gz"
+            else:
+                logger.info('UnZIPing')
+                shutil.unpack_archive(data_path, extract_dir=unzipped_data_path)  # unzip tar folder to parent dir
+        except Exception as e:
+            logger.info(e)
+            remove_path(data_path)
+            fail(f'Illegal file format. Please upload either a '
+                 f'<a href="https://support.microsoft.com/en-us/help/14200/windows-compress-uncompress-zip-files" target="_blank">.zip</a> file or a '
+                 f'<a href="https://linhost.info/2012/08/gzip-files-in-windows/" target="_blank">.tar.gz</a> file in which each file is a '
+                 f'<a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a> containing genomic sequence of a different species',
+                 error_file_path)
+        logger.info('Succeeded!')
+        # data_path = os.path.join(meta_output_dir, 'data') # e.g., /groups/pupko/orenavr2/microbializer/example_data.tar.gz
+        # logger.info(f'Updated data_path is:\n{data_path}')
+
+        if not os.path.exists(unzipped_data_path):
+            fail(f'Failed to unzip {os.path.split(data_path)[-1]} (maybe it is empty?)', error_file_path)
+
+        if not os.path.isdir(unzipped_data_path):
+            fail('Archived file content is not a folder', error_file_path)
+
+        file = [x for x in os.listdir(unzipped_data_path) if not x.startswith(('_', '.'))][0]
+        logger.info(f'first file in {unzipped_data_path} is:\n{file}')
+        if os.path.isdir(os.path.join(unzipped_data_path, file)):
+            data_path = os.path.join(unzipped_data_path, file)
+            file = [x for x in os.listdir(data_path) if not x.startswith(('_', '.'))][0]
+            if os.path.isdir(os.path.join(data_path, file)):
+                fail('More than a 2-levels folder...', error_file_path)
+        else:
+            data_path = unzipped_data_path
+
+    logger.info(f'Updated data_path is:\n{data_path}')
+    for file in os.listdir(data_path):
+        file_path = os.path.join(data_path, file)
+        if file_path.endswith('gz'):  # gunzip gz files in $data_path if any
+            subprocess.run(f'gunzip -f "{file_path}"', shell=True)
+
+    return data_path
 
 
 try:
@@ -155,7 +212,7 @@ try:
     from pipeline_auxiliaries import *
     from plots_generator import *
 
-    import WEBSERVER_CONSTANTS as CONSTS
+    import CONSTANTS as CONSTS
 
     from html_editor import edit_success_html, edit_failure_html
 
@@ -178,9 +235,7 @@ try:
                         help='whether or not to apply bootstrap procedure over the reconstructed species tree.')
     parser.add_argument('--outgroup', default=None,
                         help='whether or not to root the species phylogeny.')
-    parser.add_argument('-q', '--queue_name', help='The cluster to which the job(s) will be submitted to',
-                        choices=['pupkoweb', 'pupkowebr', 'pupkolab', 'pupkolabr', 'pupkotmp', 'pupkotmpr',
-                                 'itaym', 'lilach', 'bioseq', 'bental', 'oren.q', 'bioseq20.q'], default='pupkotmpr')
+    parser.add_argument('-q', '--queue_name', help='The cluster to which the job(s) will be submitted to', default='pupkotmpr')  # , choices=['pupkoweb', 'pupkowebr', 'pupkolab', 'pupkolabr', 'pupkotmp', 'pupkotmpr', 'itaym', 'lilach', 'bioseq', 'bental', 'oren.q', 'bioseq20.q'])
     parser.add_argument('--dummy_delimiter',
                         help='The queue does not "like" very long commands. A dummy delimiter is used to break each row into different commands of a single job',
                         default='!@#')
@@ -225,43 +280,9 @@ try:
     logger.info(f'data_path is: {data_path}')
 
     delimiter = ','
+
     # extract zip and detect data folder
-    if not os.path.isdir(data_path):
-        unzipped_data_path = os.path.join(meta_output_dir, 'data')
-        if tarfile.is_tarfile(data_path):
-            with tarfile.open(data_path, 'r:gz') as f:
-                f.extractall(path=unzipped_data_path) # unzip tar folder to parent dir
-            # data_path = data_path.split('.tar')[0] # e.g., /groups/pupko/orenavr2/microbializer/example_data.tar.gz
-            # logger.info(f'Updated data_path is:\n{data_path}')
-        else:
-            try:
-                shutil.unpack_archive(data_path, extract_dir=unzipped_data_path) # unzip tar folder to parent dir
-            except Exception as e:
-                logger.info(e)
-                remove_path(data_path)
-                fail(f'Illegal file format. Please upload either a '
-                     f'<a href="https://support.microsoft.com/en-us/help/14200/windows-compress-uncompress-zip-files" target="_blank">.zip</a> file or a '
-                     f'<a href="https://linhost.info/2012/08/gzip-files-in-windows/" target="_blank">.tar.gz</a>) file in which each file is a '
-                     f'<a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a> containing genomic sequence of a different species', error_file_path)
-            # data_path = os.path.join(meta_output_dir, 'data') # e.g., /groups/pupko/orenavr2/microbializer/example_data.tar.gz
-            # logger.info(f'Updated data_path is:\n{data_path}')
-
-        file = [x for x in os.listdir(unzipped_data_path) if not x.startswith(('_', '.'))][0]
-        logger.info(f'first file in {unzipped_data_path} is:\n{file}')
-        if os.path.isdir(os.path.join(unzipped_data_path, file)):
-            data_path = os.path.join(unzipped_data_path, file)
-            file = [x for x in os.listdir(data_path) if not x.startswith(('_', '.'))][0]
-            if os.path.isdir(os.path.join(data_path, file)):
-                fail('More than a 2-levels folder...', error_file_path)
-        else:
-            data_path = unzipped_data_path
-
-    logger.info(f'Updated data_path is:\n{data_path}')
-
-    for file in os.listdir(data_path):
-        file_path = os.path.join(data_path, file)
-        if file_path.endswith('gz'): # gunzip gz files in $data_path if any
-            subprocess.run(f'gunzip -f {file_path}', shell=True)
+    data_path = unpack_data(data_path)
 
     for system_file in os.listdir(data_path):
         if system_file.startswith(('.', '_')):
@@ -287,17 +308,19 @@ try:
                     error_msg = f'One (or more) file name(s) contain illegal character "{char}".<br>\nIn order to avoid downstream parsing errors, {CONSTS.WEBSERVER_NAME} automatically replaces these spaces with dashes. For some reason, the replacement for {file_name} failed. Please remove space characters from your file names and re-submit your job.'
                     fail(error_msg, error_file_path)
 
-    logger.info(f'data_path contains the following {len(os.listdir(data_path))} files:\n{os.listdir(data_path)}')
+    number_of_genomes = len(os.listdir(data_path))
+    logger.info(f'Number of genomes to analyze is {number_of_genomes}')
+    logger.info(f'data_path contains the following {number_of_genomes} files:\n{os.listdir(data_path)}')
 
     # check MINimal number of genomes
     min_number_of_genomes_to_analyze = 2
-    if len(os.listdir(data_path)) < min_number_of_genomes_to_analyze:
+    if number_of_genomes < min_number_of_genomes_to_analyze:
         error_msg = f'The dataset contains too few genomes ({CONSTS.WEBSERVER_NAME} does comparative analysis and thus needs at least 2 genomes).'
         fail(error_msg, error_file_path)
 
     # check MAXimal number of genomes
-    max_number_of_genomes_to_analyze = 200
-    if len(os.listdir(data_path)) > max_number_of_genomes_to_analyze:
+    max_number_of_genomes_to_analyze = 250
+    if number_of_genomes > max_number_of_genomes_to_analyze and args.outgroup.lower() != 'michael':
         error_msg = f'The dataset contains too many genomes (currently {CONSTS.WEBSERVER_NAME} is able to handle up to 200 genomes due to technical issues. We are working to optimize it and soon it will be able to handle more genomes!).'
         fail(error_msg, error_file_path)
 
@@ -383,7 +406,7 @@ try:
             num_of_aggregated_params += 1
             if num_of_aggregated_params == num_of_cmds_per_job:
                 submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=fasta_file_prefix,
-                                     queue_name=args.queue_name, more_cmds=more_cmds, required_modules_as_list=[CONSTS.GCC])
+                                     queue_name=args.queue_name, more_cmds=more_cmds, required_modules_as_list=[CONSTS.MMSEQS])
                 num_of_expected_results += 1
                 num_of_aggregated_params = 0
                 more_cmds = []
@@ -391,7 +414,7 @@ try:
         if num_of_aggregated_params>0:
             #don't forget the last batch!!
             submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=fasta_file_prefix,
-                                 queue_name=args.queue_name, more_cmds=more_cmds, required_modules_as_list=[CONSTS.GCC])
+                                 queue_name=args.queue_name, more_cmds=more_cmds, required_modules_as_list=[CONSTS.MMSEQS])
             num_of_expected_results += 1
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir, num_of_expected_results, error_file_path)
@@ -420,7 +443,7 @@ try:
     num_of_expected_results = 0
     pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
     done_file_path = os.path.join(done_files_dir, f'{dir_name}.txt')
-    num_of_cmds_per_job = 25 if len(os.listdir(ORFs_dir)) > 22 else 15
+    num_of_cmds_per_job = 100 if len(os.listdir(ORFs_dir)) > 100 else 50
     num_of_aggregated_params = 0
     more_cmds = [] # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
     if not os.path.exists(done_file_path):
@@ -452,14 +475,14 @@ try:
                 params = [query_aa_db,
                           target_aa_db,
                           aln_offsetted_db,
-                          pipeline_step_tmp_dir,
+                          f'{pipeline_step_tmp_dir}/{strain1_name}_vs_{strain2_name}',
                           output_file_path]
                           #, f';!@#ls -1 {pipeline_step_output_dir} | grep "{strain1_name}_vs_{strain2_name}" | grep -v m8 | xargs rm']
 
                 num_of_aggregated_params += 1
                 if num_of_aggregated_params == num_of_cmds_per_job:
                     submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=output_file_name,
-                                         queue_name=args.queue_name, more_cmds=more_cmds, required_modules_as_list=[CONSTS.GCC])
+                                         queue_name='pupkowebr -p -1', more_cmds=more_cmds, required_modules_as_list=[CONSTS.MMSEQS])
                     num_of_expected_results += 1
                     num_of_aggregated_params = 0
                     more_cmds = []
@@ -467,7 +490,7 @@ try:
         if num_of_aggregated_params>0:
             #don't forget the last batch!!
             submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=output_file_name,
-                                 queue_name=args.queue_name, more_cmds=more_cmds, required_modules_as_list=[CONSTS.GCC])
+                                 queue_name='pupkowebr -p -1', more_cmds=more_cmds, required_modules_as_list=[CONSTS.MMSEQS])
             num_of_expected_results += 1
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir, num_of_expected_results, error_file_path)
@@ -496,7 +519,7 @@ try:
     num_of_expected_results = 0
     pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, dir_name)
     done_file_path = os.path.join(done_files_dir, f'{dir_name}.txt')
-    num_of_cmds_per_job = 50 if len(os.listdir(ORFs_dir)) > 22 else 15
+    num_of_cmds_per_job = 100 if len(os.listdir(ORFs_dir)) > 100 else 50
     num_of_aggregated_params = 0
     more_cmds = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
     if not os.path.exists(done_file_path):
@@ -983,7 +1006,11 @@ try:
     if not os.path.exists(phylogenetic_raw_tree_path):
         logger.info('Reconstructing species phylogeny...')
 
-        num_of_cpus = 5
+        if 'pupkoweb' not in args.queue_name:
+            num_of_cpus = 20  # anyhow it can't be more than 20! o.w., "qsub: Job violates queue and/or server resource limits"
+        else:
+            # don't use more than 5 cpus when running on pupkoweb
+            num_of_cpus = 5
         params = [aligned_core_proteome_file_path,
                   phylogenetic_raw_tree_path,
                   f'--cpu {num_of_cpus}']  # both the Q and RAxML should get this as a parameter
@@ -995,7 +1022,7 @@ try:
             else:
                 logger.info(f'Outgroup {args.outgroup} was specified but it is not one of the input species:\n'
                             f'{",".join(sorted(strains_names))}\nAn unrooted tree is going to be reconstructed')
-        if args.bootstrap == 'yes':
+        if args.bootstrap == 'yes' and number_of_genomes < 120:  # allow bootstrap only for less than 120 genomes
             params += ['--num_of_bootstrap_iterations 100']
 
         submit_pipeline_step(script_path, params, phylogeny_tmp_dir, job_name='tree_reconstruction',
@@ -1213,8 +1240,11 @@ try:
     if not os.path.exists(done_file_path):
         logger.info('Gathering results to final output dir...')
 
+        # move ORFs folder
+        add_results_to_final_dir(ORFs_dir, final_output_dir, copy=True)
+
         # move orthologs table
-        add_results_to_final_dir(final_orthologs_table_path, final_output_dir)
+        add_results_to_final_dir(final_orthologs_table_path, final_output_dir, copy=True)
 
         # move unaligned dna sequences
         add_results_to_final_dir(orthologs_dna_sequences_dir_path, final_output_dir)
@@ -1309,7 +1339,11 @@ else:
 logger.info(msg)
 
 logger.info(f'Sending a notification email to {args.email}')
-send_email('mxout.tau.ac.il', 'TAU BioSequence <bioSequence@tauex.tau.ac.il>', args.email, subject=f'{CONSTS.WEBSERVER_NAME} run number {run_number} {status}.', content=msg)
+try:
+    send_email('mxout.tau.ac.il', 'TAU BioSequence <bioSequence@tauex.tau.ac.il>', args.email, subject=f'{CONSTS.WEBSERVER_NAME} run number {run_number} {status}.', content=msg)
+except:
+    logger.info(f'\nFailed sending notification to {args.email}\n')
+
 
 logger.info('Cleaning up...')
 if status == 'is done':
@@ -1548,5 +1582,8 @@ if status == 'is done':
             remove_path(path_to_remove)
 
 # remove data
-remove_path(unzipped_data_path)
+try:
+    remove_path(unzipped_data_path)
+except:
+    pass
 logger.info('Done.')
