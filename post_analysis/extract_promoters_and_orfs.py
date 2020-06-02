@@ -5,7 +5,9 @@ def get_genome_sequence(genome_path):
         f.readline() # get rid of the header
         genome = f.read().replace('\n', '')
 
-    assert '>' not in genome, '\n\nThis script handles only single contigs genomes!'
+    assert '>' not in genome, f'\n\nThis script handles only SINGLE contigs genomes!\n' \
+        f'What is the meaning of global relative location when you have a set of contigs, right?\n' \
+        f'genome starts with {genome[:10]}'
     return genome
 
 def get_sequence(genome, genome_len, start, stop, reverse_complement, promoters_length):
