@@ -291,8 +291,16 @@ try:
             remove_path(system_file_path)
 
     # have to be AFTER system files removal (in the weird case a file name starts with a space)
+    filename_prefixes = set()
     illegal_chars = ' ();'
     for file_name in os.listdir(data_path):
+
+        filename_prefix = os.path.splitext(file_name)[0]
+        if filename_prefix in filename_prefixes:
+            error_msg = f'Two (or more) of the uploaded geonmes contain the same name (prefix), e.g., {filename_prefix}. Please make sure each file name is unique.'
+            fail(error_msg, error_file_path)
+        filename_prefixes.add(filename_prefix)
+
         for char in illegal_chars:
             if char in file_name:
                 new_file_name = file_name.replace(char, '_')
