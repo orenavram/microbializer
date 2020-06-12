@@ -57,7 +57,8 @@ def update_core_genome(strain_to_core_genome_dict, strain_to_gene_dict):
         #     # strain_to_core_genome_dict[strain] = ('-' * core_genome_length) + strain_to_gene_dict[strain]
 
 
-def extract_core_genome(alignments_path, num_of_strains, core_length_path, strains_names_path, core_genome_path, core_ogs_names_path, core_minimal_percentage):
+def extract_core_genome(alignments_path, num_of_strains, core_length_path, strains_names_path, core_genome_path,
+                        core_ogs_names_path, number_of_core_memebers, core_minimal_percentage):
     with open(strains_names_path) as f:
         strains_names = f.read().rstrip().split('\n')
     strain_to_core_genome_dict = dict.fromkeys(strains_names, '')
@@ -93,6 +94,9 @@ def extract_core_genome(alignments_path, num_of_strains, core_length_path, strai
     with open(core_ogs_names_path, 'w') as f:
         f.write('\n'.join(f'og_{core_group}' for core_group in sorted_core_groups_names))  # e.g., 2655
 
+    with open(number_of_core_memebers, 'w') as f:
+        f.write(f'{len(core_ogs)}\n')
+
 
 if __name__ == '__main__':
         from sys import argv
@@ -106,6 +110,7 @@ if __name__ == '__main__':
         parser.add_argument('core_genome_path', help='path to an output file in which the core genome will be written')
         parser.add_argument('core_ogs_names_path', help='path to an output file in which the core groups names will be written')
         parser.add_argument('core_length_path', help='path to an output file in which the core genome length')
+        parser.add_argument('number_of_core_memebers', help='path to an output file in which the number of core genes detected will be written to')
         parser.add_argument('--core_minimal_percentage', type=float, default=100.0,
                             help='number that represents the required percent that is needed to be considered a core gene. For example: (1) 100 means that for a gene to be considered core, all strains should have a member in the group.\n(2) 50 means that for a gene to be considered core, at least half of the strains should have a member in the group.\n(3) 0 means that every gene should be considered as a core gene.')
         parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
@@ -118,5 +123,6 @@ if __name__ == '__main__':
             logging.basicConfig(level=logging.INFO)
         logger = logging.getLogger('main')
 
-        extract_core_genome(args.aa_alignments_path, args.num_of_strains, args.core_length_path, args.strains_names_path,
-                            args.core_genome_path, args.core_ogs_names_path, args.core_minimal_percentage)
+        extract_core_genome(args.aa_alignments_path, args.num_of_strains, args.core_length_path,
+                            args.strains_names_path, args.core_genome_path, args.core_ogs_names_path,
+                            args.number_of_core_memebers, args.core_minimal_percentage)
