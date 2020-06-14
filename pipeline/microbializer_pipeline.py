@@ -979,6 +979,7 @@ try:
     aligned_core_proteome_file_path = os.path.join(aligned_core_proteome_path, 'aligned_core_proteome.fas')
     core_ogs_names_file_path = os.path.join(aligned_core_proteome_path, 'core_ortholog_groups_names.txt')
     core_length_file_path = os.path.join(aligned_core_proteome_path, 'core_length.txt')
+    number_of_core_memebers = os.path.join(aligned_core_proteome_path, 'number_of_core_genes.txt')
     with open(num_of_strains_path) as f:
         num_of_strains = f.read().rstrip()
     if not os.path.exists(done_file_path):
@@ -988,6 +989,7 @@ try:
                   aligned_core_proteome_file_path,
                   core_ogs_names_file_path,
                   core_length_file_path,
+                  number_of_core_memebers,
                   f'--core_minimal_percentage {args.core_minimal_percentage}']  # how many members induce a core group?
         submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name='core_proteome',
                              queue_name=args.queue_name)
