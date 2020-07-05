@@ -229,7 +229,7 @@ def run_cgi():
 
             if not file_name.endswith(('zip', 'tar.gz', 'gz')):
                 write_to_debug_file(cgi_debug_path_f, f'FILE FORMAT IS ILLEGAL!!')
-                raise
+                raise ValueError
 
             data = form['data'].value
             write_to_debug_file(cgi_debug_path_f, f'{file_name} first 100 chars are: {data[:100]}\n')
