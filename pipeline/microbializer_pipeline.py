@@ -292,7 +292,7 @@ try:
 
     # have to be AFTER system files removal (in the weird case a file name starts with a space)
     filename_prefixes = set()
-    illegal_chars = ' ();'
+    illegal_chars = ' ();,'
     for file_name in os.listdir(data_path):
 
         filename_prefix = os.path.splitext(file_name)[0]
@@ -301,20 +301,25 @@ try:
             fail(error_msg, error_file_path)
         filename_prefixes.add(filename_prefix)
 
+        illegal_char = None
+        new_file_name = file_name
         for char in illegal_chars:
-            if char in file_name:
-                new_file_name = file_name.replace(char, '_')
-                logger.info(f'File name with illegal character "{char}" was detected!\n'
-                            f'Renaming file path from:\n'
+            if char in new_file_name:
+                illegal_char = char
+                new_file_name = new_file_name.replace(char, '_')
+                logger.info(f'File name with illegal character "{char}" was detected!\n')
+        if illegal_char:
+            # a name replacement was applied
+            try:
+                logger.info(f'Renaming file path from:\n'
                             f'{os.path.join(data_path, file_name)}\n'
                             f'to this:\n'
                             f'{os.path.join(data_path, new_file_name)}')
-                try:
-                    os.rename(os.path.join(data_path, file_name), os.path.join(data_path, new_file_name))
-                    file_name = new_file_name
-                except:
-                    error_msg = f'One (or more) file name(s) contain illegal character "{char}".<br>\nIn order to avoid downstream parsing errors, {CONSTS.WEBSERVER_NAME} automatically replaces these spaces with dashes. For some reason, the replacement for {file_name} failed. Please remove space characters from your file names and re-submit your job.'
-                    fail(error_msg, error_file_path)
+                os.rename(os.path.join(data_path, file_name), os.path.join(data_path, new_file_name))
+                file_name = new_file_name
+            except:
+                error_msg = f'One (or more) file name(s) contain illegal character "{illegal_char}".<br>\nIn order to avoid downstream parsing errors, {CONSTS.WEBSERVER_NAME} automatically replaces these spaces with dashes. For some reason, the replacement for {file_name} failed. Please remove space characters from your file names and re-submit your job.'
+                fail(error_msg, error_file_path)
 
     number_of_genomes = len(os.listdir(data_path))
     logger.info(f'Number of genomes to analyze is {number_of_genomes}')
