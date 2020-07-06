@@ -37,6 +37,7 @@ def wait_for_results(script_name, path, num_of_expected_results, error_file_path
     i = 0
     current_num_of_results = 0
     while num_of_expected_results > current_num_of_results:
+        assert not os.path.exists(error_file_path)
         try:
             current_num_of_results = sum(1 for x in os.listdir(path) if x.endswith(suffix))
         except:
