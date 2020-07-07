@@ -15,7 +15,7 @@ OWNER_EMAIL = 'orenavram@gmail.com'
 # general vars
 SERVERS_RESULTS_DIR = '/bioseq/data/results'
 SERVERS_LOGS_DIR = '/bioseq/data/logs'
-RELOAD_INTERVAL = 30
+RELOAD_INTERVAL = 5
 RELOAD_TAGS = f'<META HTTP-EQUIV="REFRESH" CONTENT="{RELOAD_INTERVAL}"/>'
 
 # relevant modules
@@ -24,7 +24,7 @@ MCL = 'MCL-edge/mcl-14-137'
 MAFFT = 'mafft/mafft-7.407'
 RAXML = 'raXML'
 PRODIGAL = 'prodigal/prodigal-2.6.3'
-MMSEQS = 'MMseqs2/May2020'
+MMSEQS = 'MMseqs2/June2020'
 
 WEBSERVER_NAME = 'M1CR0B1AL1Z3R'
 WEBSERVER_URL = 'https://microbializer.tau.ac.il'
