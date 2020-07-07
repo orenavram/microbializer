@@ -427,7 +427,7 @@ try:
         if num_of_aggregated_params>0:
             #don't forget the last batch!!
             submit_pipeline_step(script_path, params, pipeline_step_tmp_dir, job_name=fasta_file_prefix,
-                                 queue_name=args.queue_name, more_cmds=more_cmds, required_modules_as_list=[CONSTS.MMSEQS])
+                                 queue_name='pupkowebr -p -1', more_cmds=more_cmds, required_modules_as_list=[CONSTS.MMSEQS])
             num_of_expected_results += 1
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir, num_of_expected_results, error_file_path)
@@ -439,7 +439,7 @@ try:
     # send a subjob that removes all mmseqs intermediate *FOLDERS* (e.g., 3465136234521948 etc..) in tmp_dir
     # does not remove (sge/cmds/log) files. only folders.
     submit_pipeline_step(os.path.join(args.src_dir, 'remove_tmp_folders.py'), [pipeline_step_tmp_dir], pipeline_step_tmp_dir,
-                         job_name='remove_dirs_from_tmp', queue_name=args.queue_name)
+                         job_name='remove_dirs_from_tmp', queue_name='pupkowebr -p -1')
 
 
     # 3.	mmseqs2_all_vs_all.py

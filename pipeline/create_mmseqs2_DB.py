@@ -1,3 +1,21 @@
+import os
+
+
+def too_many_trials(cmd, error_file_path):
+    msg = f'Failed to fetch <i>{cmd}</i> command. Could be due to heavy load on our web servers. ' \
+          'Please contact us for further assistance.'
+    if os.path.exists('/bioseq'):  # remote run
+        from sys import path
+        path.append('/bioseq/microbializer/auxiliaries')
+        from pipeline_auxiliaries import fail
+        # get error_log path
+        # e.g., from this aa_db1: /bioseq/data/results/microbializer/159375410340094617808216800611/outputs/02_dbs/SAL_BA5690AA_AS.scaffold_aa
+        # into this: /bioseq/data/results/microbializer/159375410340094617808216800611/error.txt
+        logger.info(f'Writing to error file in {error_file_path}')
+        fail(msg, error_file_path)
+    raise OSError(msg)
+
+
 def create_mmseq2_DB(fasta_path, output_path, tmp_path, translate, convert2fasta, verbosity_level):
     '''
     input:  sequnce to base the DB on
@@ -18,6 +36,9 @@ def create_mmseq2_DB(fasta_path, output_path, tmp_path, translate, convert2fasta
         logger.info(f'Starting mmseqs createdb. Executed command is:\n{cmd}')
         subprocess.run(cmd, shell=True)
         i += 1
+        if i == 1000:
+            error_file_path = f'{os.path.split(output_path)[0]}/../../error.txt'
+            too_many_trials('mmseqs createdb', error_file_path)
         time.sleep(1)
 
     if translate or convert2fasta:
@@ -28,6 +49,9 @@ def create_mmseq2_DB(fasta_path, output_path, tmp_path, translate, convert2fasta
             logger.info(f'Translating dna DB to amino acids. Executed command is:\n{cmd}')
             subprocess.run(cmd, shell=True)
             i += 1
+            if i == 1000:
+                error_file_path = f'{os.path.split(output_path)[0]}/../../error.txt'
+                too_many_trials('mmseqs translatenucs', error_file_path)
             time.sleep(1)
 
     if convert2fasta:  # for step 13: dna to aa
@@ -38,10 +62,12 @@ def create_mmseq2_DB(fasta_path, output_path, tmp_path, translate, convert2fasta
             logger.info(f'Converting amino acids DB to a FASTA format. Executed command is:\n{cmd}')
             subprocess.run(cmd, shell=True)
             i += 1
+            if i == 1000:
+                error_file_path = f'{os.path.split(output_path)[0]}/../../error.txt'
+                too_many_trials('mmseqs convert2fasta', error_file_path)
             time.sleep(1)
 
         intermediate_files = [f'{tmp_path}{suffix}' for suffix in ['', '_aa', '_aa.dbtype', '_aa_h', '_aa_h.dbtype', '_aa_h.index', '_aa.index', '.dbtype', '_h', '_h.dbtype', '_h.index', '.index', '.lookup']]
-        import os
         # each pair generates 13 intermidiate files!!! lot's of junk once finished
         for file in intermediate_files:
             os.remove(file)
