@@ -85,10 +85,10 @@ def write_html_prefix(output_path, run_number):
         <div id="behind-nav-bar-results">
         </div>
         <br><br><div class="container" style="font-size: 17px; {CONSTS.CONTAINER_STYLE}"  align="justify"><br> 
-        <H1 align=center>Job Status: <FONT color='red'>\nRUNNING\n</FONT></h1>
+        <H1 align=center>Job Status: <FONT color='red'>\nQUEUED\n</FONT></h1>
         <br>
         {CONSTS.PROGRESS_BAR_TAG}
-        {CONSTS.WEBSERVER_NAME} is now processing your request. This page will be automatically updated every {CONSTS.RELOAD_INTERVAL} seconds (until the job is done). You can also reload it manually. Once the job has finished, several links to the output files will appear below. A link to this page was sent to your email in case you wish to view these results at a later time without recalculating them. Please note that the results will be kept in the server for three months.
+        {CONSTS.WEBSERVER_NAME} is now processing your request. This page will be automatically updated every few seconds (until the job is done). You can also reload it manually. Once the job has finished, several links to the output files will appear below. A link to this page was sent to your email in case you wish to view these results at a later time without recalculating them. Please note that the results will be kept in the server for three months.
         <br><br></div>''')
         output_path_f.flush()
 
@@ -319,6 +319,13 @@ def run_cgi():
             except:
                 write_to_debug_file(cgi_debug_path_f, f'\nFailed sending notification to {user_email}\n')
 
+        write_to_debug_file(cgi_debug_path_f, f'\n\nUpdating status from QUEUED to RUNNING\n')
+        with open(output_path) as f:
+            html_content = f.read()
+        html_content = html_content.replace('QUEUED', 'RUNNING')
+        with open(output_path, 'w') as f:
+            f.write(html_content)
+
         write_to_debug_file(cgi_debug_path_f, f'\n\n{"#"*50}\nCGI finished running!\n{"#"*50}\n')
 
         cgi_debug_path_f.close()
@@ -328,7 +335,7 @@ def run_cgi():
               'Could happen due to one of the following reasons: (1) Illegal data format; (2) non <a href="http://www.asciitable.com/" target="_blank">ASCII characters</a> in your submission; (3) heavy load at the moment on our computer cluster.'
         with open(output_path) as f:
             html_content = f.read()
-        html_content = html_content.replace('RUNNING', 'FAILED')
+        html_content = html_content.replace('QUEUED', 'FAILED').replace('RUNNING', 'FAILED')
         html_content = html_content.replace(' active', '')
         html_content += f'<br><br><br>' \
                         f'<div class="container" style="{CONSTS.CONTAINER_STYLE}"><h3>' \
