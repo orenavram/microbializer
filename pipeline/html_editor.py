@@ -47,7 +47,7 @@ def edit_success_html(html_path, meta_output_dir, final_output_dir_name, run_num
         with open(html_path) as f:
             html_text = f.read()
         # The initial file exists (generate by the cgi) so we can read and parse it.
-        html_text = html_text.replace('RUNNING', 'FINISHED').replace(f'{CONSTS.WEBSERVER_NAME} is now processing your request. This page will be automatically updated every {CONSTS.RELOAD_INTERVAL} seconds (until the job is done). You can also reload it manually. Once the job has finished, several links to the output files will appear below. ', '')
+        html_text = html_text.replace('RUNNING', 'FINISHED').replace(f'{CONSTS.WEBSERVER_NAME} is now processing your request. This page will be automatically updated every few seconds (until the job is done). You can also reload it manually. Once the job has finished, several links to the output files will appear below. ', '')
     except FileNotFoundError:
         import logging
         logger = logging.getLogger('main')
@@ -114,7 +114,7 @@ def edit_failure_html(html_path, run_number, msg, CONSTS):
         with open(html_path) as f:
             html_text = f.read()
         # The initial file exists (generate by the cgi) so we can read and parse it.
-        html_text = html_text.replace('RUNNING', 'FAILED').replace(f'{CONSTS.WEBSERVER_NAME} is now processing your request. This page will be automatically updated every {CONSTS.RELOAD_INTERVAL} seconds (until the job is done). You can also reload it manually. Once the job has finished, several links to the output files will appear below. ', '')
+        html_text = html_text.replace('RUNNING', 'FAILED').replace(f'{CONSTS.WEBSERVER_NAME} is now processing your request. This page will be automatically updated every few seconds (until the job is done). You can also reload it manually. Once the job has finished, several links to the output files will appear below. ', '')
     except FileNotFoundError:
         import logging
         logger = logging.getLogger('main')
