@@ -213,7 +213,7 @@ def run_cgi():
                 write_to_debug_file(cgi_debug_path_f, f'100 first characters of {key} = {form[key].value[:100]}\n')
 
         # extract form's values:
-        user_email = form['email'].value.strip()
+        email = form['email'].value.strip()
         job_title = form['job_title'].value.strip()
         identity_cutoff = form['identity_cutoff'].value.strip()
         e_value_cutoff = form['e_value_cutoff'].value.strip()
@@ -260,12 +260,12 @@ def run_cgi():
 
         # send jobs ONLY TO ONE MACHINE so there won't be a dead lock
         # (cluster might be full with main jobs waiting for sub jobs but they are in qw mode...)
-        #queue_name = 'pupkoweb'  # all pupko machines on power
-        #queue_name = '"pupkoweb -l nodes=compute-0-291"'  # TODO: uncomment to avoid deadlock
-        # queue_name = '"pupkotmpr -l nodes=compute-0-265"'  # TODO: uncomment to avoid deadlock
-        queue_name = '"pupkolabr -l nodes=compute-0-296"'  # TODO: uncomment to avoid deadlock
+        # queue_name = 'pupkor'  # all pupko machines on power
+        # queue_name = '"pupkoweb -l nodes=compute-0-291"'
+        queue_name = '"pupkolabr -l nodes=compute-0-296"'  # run main thread on pupkolab machine to prevent deadlock
         # queue_name_for_subjobs = '"pupkotmpr -l nodes=compute-0-18"'
-        queue_name_for_subjobs = '"pupkowebr -p -1"'  # all pupko machines on power
+        queue_name_for_subjobs = 'pupkowebr'
+        # queue_name_for_subjobs = '"pupkowebr -p -1"'  # reduced priority
 
         parameters = f'"{data_path}" ' \
                      f'{os.path.join(wd, "outputs")} ' \
@@ -275,8 +275,8 @@ def run_cgi():
                      f'--bootstrap {bootstrap} ' \
                      f'--outgroup "{outgroup}" ' \
                      f'--queue_name {queue_name_for_subjobs} '
-        if user_email != '':
-            parameters += ' ' + f'--email {user_email}'
+        if email != '':
+            parameters += ' ' + f'--email {email}'
 
 
         cmds_file = os.path.join(wd, 'qsub.cmds')
@@ -294,9 +294,9 @@ def run_cgi():
         if not page_is_ready:
             subprocess.call(submission_cmd, shell=True)
 
-        if user_email != '':
-            with open(os.path.join(wd, 'user_email.txt'), 'a') as email_f:
-                email_f.write(f'{user_email}\n')
+        if email != '':
+            with open(os.path.join(wd, 'email.txt'), 'a') as email_f:
+                email_f.write(f'{email}\n')
 
             job_name = f"Job title: {job_title}\n" if job_title else ''
             notification_content = f"Your submission details are:\n\n{job_name}" \
@@ -313,11 +313,11 @@ def run_cgi():
             try:
                 send_email(smtp_server=CONSTS.SMTP_SERVER,
                            sender=CONSTS.ADMIN_EMAIL,
-                           receiver=f'{user_email}',
+                           receiver=f'{email}',
                            subject=f'{CONSTS.WEBSERVER_NAME} - Your job has been submitted! (Run number: {run_number})',
                            content=notification_content)
             except:
-                write_to_debug_file(cgi_debug_path_f, f'\nFailed sending notification to {user_email}\n')
+                write_to_debug_file(cgi_debug_path_f, f'\nFailed sending notification to {email}\n')
 
         write_to_debug_file(cgi_debug_path_f, f'\n\nUpdating status from QUEUED to RUNNING\n')
         with open(output_path) as f:
@@ -373,5 +373,14 @@ def run_cgi():
         with open(output_path, 'w') as f:
             f.write(html_content)
 
+    # logging submission
+    with open(CONSTS.SUBMISSIONS_LOG, 'a') as f:
+        f.write(f'{email}\t{run_number}\t{ctime()}\n')
+
+    with open(cgi_debug_path, 'a') as f:  # for cgi debugging
+        f.write(f'{ctime()}: Submission was documented in \n')
+
+
 if __name__ == '__main__':
     run_cgi()
+

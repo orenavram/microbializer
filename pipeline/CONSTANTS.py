@@ -36,7 +36,8 @@ WEBSERVER_HTML_DIR = '/data/www/html/microbializer'
 
 WEBSERVER_RESULTS_URL = os.path.join(WEBSERVER_URL, 'results')
 
-MAIN_SCRIPT = os.path.join('/bioseq/microbializer/pipeline/microbializer_pipeline.py')
+MAIN_SCRIPT = '/bioseq/microbializer/pipeline/microbializer_pipeline.py'
+SUBMISSIONS_LOG = '/bioseq/microbializer/submissions_log.txt'
 
 #path to example data
 EXAMPLE_DATA = os.path.join(WEBSERVER_HTML_DIR, 'example_data.zip')
