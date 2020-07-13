@@ -40,7 +40,7 @@ def generate_bar_plot(path_to_data, output_file_path, xlabel='', ylabel='', dpi=
     ax = sns.countplot(data, color="C0")
     # ax.set_xticklabels(ax.get_xticklabels(), rotation=90)
 
-    visible_bins = max(1,len(np.unique(data))//20)
+    visible_bins = max(1, len(np.unique(data))//20)
     print(f'len(np.unique(data))={len(np.unique(data))}')
     for ind, label in enumerate(ax.get_xticklabels()):
         if ind % visible_bins == 0:  # every $visible_bins bins, label is kept
