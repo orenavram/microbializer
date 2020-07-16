@@ -295,7 +295,7 @@ def run_cgi():
             subprocess.call(submission_cmd, shell=True)
 
         if email != '':
-            with open(os.path.join(wd, 'email.txt'), 'a') as email_f:
+            with open(os.path.join(wd, CONSTS.EMAIL_FILE_NAME), 'a') as email_f:
                 email_f.write(f'{email}\n')
 
             job_name = f"Job title: {job_title}\n" if job_title else ''

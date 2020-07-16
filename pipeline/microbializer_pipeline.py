@@ -5,7 +5,7 @@ script_name.py /Users/Oren/Dropbox/Projects/microbializer/data_for_test_cds/ /Us
 
 def notify_admin(meta_output_dir, meta_output_url, run_number, CONSTS):
     email = 'NO_EMAIL'
-    user_email_path = os.path.join(meta_output_dir, 'user_email.txt')
+    user_email_path = os.path.join(meta_output_dir, CONSTS.EMAIL_FILE_NAME)
     if os.path.exists(user_email_path):
         with open(user_email_path) as f:
             email = f.read().rstrip()
