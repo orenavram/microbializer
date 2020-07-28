@@ -1,10 +1,46 @@
 import subprocess
 import os
-from directory_creator import create_dir
-from time import time, sleep, ctime
 import logging
+from time import time, sleep, ctime
+from subprocess import run
 
-logger = logging.getLogger('main') # use logger instead of printing
+logger = logging.getLogger('main')  # use logger instead of printing
+
+
+def load_header2sequences_dict(fasta_path, get_length=False, upper_sequence=False):
+    header_to_sequence_dict = {}
+    seq_length = 0
+    with open(fasta_path) as f:
+        header = f.readline().lstrip('>').rstrip()
+        sequence = ''
+        for line in f:
+            line = line.rstrip()
+            if line.startswith('>'):
+                seq_length = len(sequence)
+                if upper_sequence:
+                    header_to_sequence_dict[header] = sequence.upper()
+                else:
+                    # leave untouched
+                    header_to_sequence_dict[header] = sequence
+                header = line.lstrip('>')
+                sequence = ''
+            else:
+                sequence += line
+
+        # don't forget last record!!
+        if sequence != '':
+
+            if upper_sequence:
+                header_to_sequence_dict[header] = sequence.upper()
+            else:
+                # leave untouched
+                header_to_sequence_dict[header] = sequence
+
+    if get_length:
+        return header_to_sequence_dict, seq_length
+    else:
+        return header_to_sequence_dict
+
 
 def measure_time(total):
     hours = total // 3600
@@ -32,7 +68,7 @@ def wait_for_results(script_name, path, num_of_expected_results, error_file_path
     logger.info(f'Waiting for {script_name}...\nContinues when {num_of_expected_results} results will be in:\n{path}')
     if num_of_expected_results==0:
         logger.fatal(f'\n{"#"*100}\nnum_of_expected_results in {path} is {num_of_expected_results}!\nSomething went wrong in the previous step...\n{"#"*100}')
-        #raise ValueError(f'\n{"#"*100}\nnum_of_expected_results is {num_of_expected_results}! Something went wrong in the previous step...\n{"#"*100}')
+        #raise ValueError(f'\n{"#"*100}\nnum_of_expected_results is {num_of_expected_results}! Something went wrong in the previous step_number...\n{"#"*100}')
     total_time = 0
     i = 0
     current_num_of_results = 0
@@ -68,11 +104,14 @@ def wait_for_results(script_name, path, num_of_expected_results, error_file_path
 
 
 def prepare_directories(outputs_dir_prefix, tmp_dir_prefix, dir_name):
-    logger.info(ctime())
     outputs_dir = os.path.join(outputs_dir_prefix, dir_name)
-    create_dir(outputs_dir)
+    logger.info(f'{ctime()}: Creating {outputs_dir}\n')
+    os.makedirs(outputs_dir, exist_ok=True)
+
     tmp_dir = os.path.join(tmp_dir_prefix, dir_name)
-    create_dir(tmp_dir)
+    logger.info(f'{ctime()}: Creating {tmp_dir}\n')
+    os.makedirs(tmp_dir, exist_ok=True)
+
     return outputs_dir, tmp_dir
 
 
@@ -119,6 +158,58 @@ def fail(error_msg, error_file_path):
     with open(error_file_path, 'w') as error_f:
         error_f.write(error_msg + '\n')
     raise ValueError(error_msg)
+
+
+def new_submit_pipeline_step(script_path, params_lists, tmp_dir, job_name, queue_name, q_submitter_script_path,
+                             new_line_delimiter, verbose=False, required_modules_as_list=None, num_of_cpus=1):
+
+    required_modules_as_str = 'python/python-anaconda3.6.5'
+    if required_modules_as_list:
+        # don't forget a space after the python module!!
+        required_modules_as_str += ' ' + ' '.join(required_modules_as_list)
+    cmds_as_str = f'module load {required_modules_as_str}'
+    # the queue does not like very long commands so I use a dummy delimiter (!@#) to break the rows in q_submitter
+    cmds_as_str += new_line_delimiter
+
+    example_cmd = ' '.join(['python', script_path, *[str(param) for param in params_lists[0]]] + (['-v'] if verbose else [])) + ';'
+    for params in params_lists:
+        cmds_as_str += ' '.join(['python', script_path, *[str(param) for param in params]] + (['-v'] if verbose else [])) + ';'
+        cmds_as_str += new_line_delimiter
+
+    cmds_as_str += '\t' + job_name + '\n'
+    cmds_path = os.path.join(tmp_dir, f'{job_name}.cmds')
+    if os.path.exists(cmds_path):
+        cmds_path = os.path.join(tmp_dir, f'{job_name}_{time()}.cmds')
+
+    with open(cmds_path, 'w') as f:
+        f.write(cmds_as_str)
+
+    # process_str = f'{q_submitter_script_path} {cmds_path} {tmp_dir} -q {queue_name} --cpu {num_of_cpus}'
+    process = [q_submitter_script_path, cmds_path, tmp_dir, '-q', queue_name, '--cpu', str(num_of_cpus)]
+    logger.info(f'Calling:\n{" ".join(process)}')
+    run(process)
+    return example_cmd
+
+
+def submit_batches(script_path, all_cmds_params, tmp_dir, job_prefix, queue_name, num_of_cmds_per_job=1,
+                   q_submitter_script_path='/bioseq/bioSequence_scripts_and_constants/q_submitter_power.py',
+                   new_line_delimiter='!@#', required_modules_as_list=None, num_of_cpus=1):
+
+    num_of_batches = 0
+    example_cmd_from_batch = 'NO COMMANDS WERE FETCHED'
+
+    for i in range(0, len(all_cmds_params), num_of_cmds_per_job):
+        current_batch = all_cmds_params[i: i + num_of_cmds_per_job]
+        example_cmd_from_batch = new_submit_pipeline_step(script_path, current_batch, tmp_dir,
+                                                          f'{num_of_batches}_{job_prefix}', queue_name,
+                                                          q_submitter_script_path, new_line_delimiter, verbose=False,
+                                                          required_modules_as_list=required_modules_as_list,
+                                                          num_of_cpus=num_of_cpus)
+        logger.info(f'Example command from current batch:\n{example_cmd_from_batch}')
+        num_of_batches += 1
+
+    return num_of_batches, example_cmd_from_batch
+
 
 
 if __name__ == '__main__':
