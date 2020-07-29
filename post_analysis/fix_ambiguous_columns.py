@@ -43,7 +43,6 @@ def fix_msa(msa_path, output_path):
     logger.info(f'MSA was fixed and stored successfully at {output_path}')
 
 
-
 if __name__ == '__main__':
         from sys import argv
         print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
@@ -51,7 +50,7 @@ if __name__ == '__main__':
         import argparse
         parser = argparse.ArgumentParser()
         parser.add_argument('input_msa_path',
-                            help='A path to an MSA file to which should be fixed',
+                            help='A path to an MSA file that should be fixed',
                             type=lambda path: path if os.path.exists(path) else parser.error(f'{path} does not exist!'))
         parser.add_argument('output_msa_path',
                             help='A path to the fixed MSA',
