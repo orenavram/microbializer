@@ -161,30 +161,41 @@ def fail(error_msg, error_file_path):
 
 
 def new_submit_pipeline_step(script_path, params_lists, tmp_dir, job_name, queue_name, q_submitter_script_path,
-                             new_line_delimiter, verbose=False, required_modules_as_list=None, num_of_cpus=1):
+                             new_line_delimiter, verbose=False, required_modules_as_list=None, num_of_cpus=1,
+                             done_files_script_path='/bioseq/microbializer/auxiliaries/file_writer.py'):
 
+    # LOADING RELEVANT MODULES
     required_modules_as_str = 'python/python-anaconda3.6.5'
     if required_modules_as_list:
         # don't forget a space after the python module!!
         required_modules_as_str += ' ' + ' '.join(required_modules_as_list)
     cmds_as_str = f'module load {required_modules_as_str}'
-    # the queue does not like very long commands so I use a dummy delimiter (!@#) to break the rows in q_submitter
-    cmds_as_str += new_line_delimiter
+    cmds_as_str += new_line_delimiter  # several commands that will be split to different lines
+                                       # (long lines with ";" are bad practice)
 
     example_cmd = ' '.join(['python', script_path, *[str(param) for param in params_lists[0]]] + (['-v'] if verbose else [])) + ';'
+    # PREPARING RELEVANT COMMANDS
     for params in params_lists:
         cmds_as_str += ' '.join(['python', script_path, *[str(param) for param in params]] + (['-v'] if verbose else [])) + ';'
         cmds_as_str += new_line_delimiter
 
+
+    # GENERATE DONE FILE
+    params = [os.path.join(tmp_dir, job_name + '.done'), '']  # write an empty string (like "touch" command)
+    cmds_as_str += ' '.join(['python', done_files_script_path, *params])+';'
+    cmds_as_str += new_line_delimiter
+
+    # ADDING THE JOB NAME
     cmds_as_str += '\t' + job_name + '\n'
+
+    # WRITING CMDS FILE
     cmds_path = os.path.join(tmp_dir, f'{job_name}.cmds')
     if os.path.exists(cmds_path):
         cmds_path = os.path.join(tmp_dir, f'{job_name}_{time()}.cmds')
-
     with open(cmds_path, 'w') as f:
         f.write(cmds_as_str)
 
-    # process_str = f'{q_submitter_script_path} {cmds_path} {tmp_dir} -q {queue_name} --cpu {num_of_cpus}'
+    # FETCHING Q_SUBMITTER
     process = [q_submitter_script_path, cmds_path, tmp_dir, '-q', queue_name, '--cpu', str(num_of_cpus)]
     logger.info(f'Calling:\n{" ".join(process)}')
     run(process)
