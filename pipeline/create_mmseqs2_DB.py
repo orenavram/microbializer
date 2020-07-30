@@ -1,12 +1,12 @@
 import os
+import sys
 
 
 def too_many_trials(cmd, error_file_path):
     msg = f'Failed to fetch <i>{cmd}</i> command. Could be due to heavy load on our web servers. ' \
           'Please contact us for further assistance.'
     if os.path.exists('/bioseq'):  # remote run
-        from sys import path
-        path.append('/bioseq/microbializer/auxiliaries')
+        sys.path.append('/bioseq/microbializer/auxiliaries')
         from pipeline_auxiliaries import fail
         # get error_log path
         # e.g., from this aa_db1: /bioseq/data/results/microbializer/159375410340094617808216800611/outputs/02_dbs/SAL_BA5690AA_AS.scaffold_aa
@@ -56,7 +56,7 @@ def create_mmseq2_DB(fasta_path, output_path, tmp_path, translate, convert2fasta
                 too_many_trials('mmseqs translatenucs', error_file_path)
             time.sleep(1)
 
-    if convert2fasta:  # for step 13: dna to aa
+    if convert2fasta:  # for dna to aa translation
         i = 1
         while not os.path.exists(f'{output_path}_aa'):
             logger.info(f'Iteration #{i}: convert2fasta. Result should be at {output_path}_aa')

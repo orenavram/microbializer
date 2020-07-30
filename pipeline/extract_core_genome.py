@@ -1,29 +1,8 @@
-"""
-script_name.py and then
-/Users/Oren/Downloads/14_aligned_aa_orthologs_groups 21 /Users/Oren/Downloads/11_final_table/strains_names.txt /Users/Oren/Downloads/15_aligned_core_genome/aligned_core_genome.fasta /Users/Oren/Downloads/15_aligned_core_genome/core_ortholog_groups_names.txt --core_minimal_percentage 85
-"""
-
 import os
-
-def load_orthologs_group_to_dict(fasta_path):
-    header_to_sequence_dict = {}
-    with open(fasta_path) as f:
-        header = f.readline().lstrip('>').rstrip()
-        sequence = ''
-        for line in f:
-            line = line.rstrip()
-            if line.startswith('>'):
-                header_to_sequence_dict[header] = sequence
-                header = line.lstrip('>')
-                sequence = ''
-            else:
-                sequence += line
-
-        # don't forget last record!!
-        if sequence != '':
-            header_to_sequence_dict[header] = sequence
-
-    return header_to_sequence_dict
+import sys
+if os.path.exists('/bioseq'):  # remote run
+    sys.path.append('/bioseq/microbializer/auxiliaries')
+    from pipeline_auxiliaries import load_header2sequences_dict
 
 
 def is_core_gene(strain_to_gene_dict, num_of_strains, core_minimal_percentage):
@@ -31,12 +10,6 @@ def is_core_gene(strain_to_gene_dict, num_of_strains, core_minimal_percentage):
 
 
 def update_core_genome(strain_to_core_genome_dict, strain_to_gene_dict):
-    # for strain in strain_to_core_genome_dict:
-    #     core_genome_length = len(strain_to_core_genome_dict[strain])
-    #     break # all core genomes has the same length
-    # else:
-    #     # updating core genome for the first time (strain_to_core_genome_dict is empty)
-    #     core_genome_length = 0
 
     for strain in strain_to_gene_dict:
         current_gene_length = len(strain_to_gene_dict[strain])
@@ -64,7 +37,7 @@ def extract_core_genome(alignments_path, num_of_strains, core_length_path, strai
     strain_to_core_genome_dict = dict.fromkeys(strains_names, '')
     core_ogs = []
     for og_file in os.listdir(alignments_path):  # TODO: consider sorting by og name (currently the concatenation is arbitrary)
-        strain_to_gene_dict = load_orthologs_group_to_dict(os.path.join(alignments_path, og_file))
+        strain_to_gene_dict = load_header2sequences_dict(os.path.join(alignments_path, og_file))
         if is_core_gene(strain_to_gene_dict, num_of_strains, core_minimal_percentage):
             logger.info(f'Adding to core genome: {og_file} ({len(strain_to_gene_dict)}/{num_of_strains} >= {core_minimal_percentage}%)')
             update_core_genome(strain_to_core_genome_dict, strain_to_gene_dict)
