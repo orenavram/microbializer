@@ -19,7 +19,6 @@ else:
     sys.path.append('../auxiliaries/')
 
 import CONSTANTS as CONSTS
-from directory_creator import create_dir # from /bioseq/microbializer/auxiliaries/
 from email_sender import send_email # from /bioseq/bioSequence_scripts_and_constants/
 
 def print_hello_world(output_path = '', run_number = 'NO_RUN_NUMBER'):
@@ -167,8 +166,10 @@ def run_cgi():
         run_number = 'example_data'  # str(round(time())) + str(randint(1000,9999)) # adding 4 random figures to prevent users see data that are not their's
         output_url = os.path.join(f'{CONSTS.WEBSERVER_URL}/{run_number}/output.html')
 
+    # creating working directory
     wd = os.path.join(CONSTS.WEBSERVER_RESULTS_DIR, run_number)
-    create_dir(wd)
+    os.makedirs(wd, exist_ok=True)
+
     output_path = os.path.join(wd, 'output.html')
     cgi_debug_path = os.path.join(wd, 'cgi_debug.txt')
 

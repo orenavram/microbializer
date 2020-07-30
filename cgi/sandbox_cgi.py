@@ -24,8 +24,6 @@ import sys
 #sys.path.append('/bioseq/bioSequence_scripts_and_constants')
 sys.path.append('/bioseq/MICROBIALIZER/auxiliaries')
 import CONSTANTS as CONSTS
-from auxiliaries import create_dir
-
 
 def hello_world(output_path='', run_number='NO_RUN_NUMBER'):
     with open(output_path, 'w') as f:
@@ -71,7 +69,8 @@ results_url = os.path.join(CONSTS.MICROBIALIZER_RESULTS_URL, run_number)
 output_url = os.path.join(results_url, 'output.html')
 
 wd = os.path.join(CONSTS.MICROBIALIZER_RESULTS_DIR, run_number)
-create_dir(wd)
+os.makedirs(wd, exist_ok=True)
+
 output_path = os.path.join(wd, 'output.html')
 cgi_debug_path = os.path.join(wd, 'cgi_debug.txt')
 
