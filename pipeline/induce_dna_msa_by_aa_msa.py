@@ -1,6 +1,8 @@
-"""
-
-"""
+import os
+import sys
+if os.path.exists('/bioseq'):  # remote run
+    sys.path.append('/bioseq/microbializer/auxiliaries')
+    from pipeline_auxiliaries import load_header2sequences_dict
 
 def induce_sequence(aa_seq, dna_seq):
     result = ''
@@ -23,9 +25,8 @@ def induce_sequence(aa_seq, dna_seq):
 
 
 def induce_msa(aa_msa_path, dna_ms_path, output_path):
-    from extract_core_genome import load_orthologs_group_to_dict
-    og_name_to_aa = load_orthologs_group_to_dict(aa_msa_path)
-    og_name_to_dna = load_orthologs_group_to_dict(dna_ms_path)
+    og_name_to_aa = load_header2sequences_dict(aa_msa_path)
+    og_name_to_dna = load_header2sequences_dict(dna_ms_path)
 
 
     result = ''
