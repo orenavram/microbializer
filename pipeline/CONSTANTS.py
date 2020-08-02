@@ -19,7 +19,7 @@ RELOAD_INTERVAL = 5
 RELOAD_TAGS = f'<META HTTP-EQUIV="REFRESH" CONTENT="{RELOAD_INTERVAL}"/>'
 
 # relevant modules
-GCC = 'gcc/gcc-7.3.0'
+GCC = 'gcc/gcc-6.2.0'
 MCL = 'MCL-edge/mcl-14-137'
 MAFFT = 'mafft/mafft-7.407'
 RAXML = 'raXML'
