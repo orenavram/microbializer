@@ -283,12 +283,12 @@ def run_cgi():
         cmds_file = os.path.join(wd, 'qsub.cmds')
         write_cmds_file(cmds_file, parameters, run_number)
 
-        log_file = cmds_file.replace('cmds', 'log')
+        job_id_file = os.path.join(wd, 'job_id.txt')
         # complex command with more than one operation (module load + python q_submitter_power.py)
-        # submission_cmd = 'ssh bioseq@powerlogin "module load python/python-3.6.7; python /bioseq/bioSequence_scripts_and_constants/q_submitter_power.py {} {} -q {} --verbose > {}"'.format(cmds_file, wd, queue_name, log_file)
+        # submission_cmd = 'ssh bioseq@powerlogin "module load python/python-3.6.7; python /bioseq/bioSequence_scripts_and_constants/q_submitter_power.py {} {} -q {} --verbose > {}"'.format(cmds_file, wd, queue_name, job_id_file)
 
         # simple command when using shebang header
-        submission_cmd = f'/bioseq/bioSequence_scripts_and_constants/q_submitter_power.py {cmds_file} {wd} -q {queue_name} --verbose > {log_file}'
+        submission_cmd = f'/bioseq/bioSequence_scripts_and_constants/q_submitter_power.py {cmds_file} {wd} -q {queue_name} --verbose > {job_id_file}'
 
         write_to_debug_file(cgi_debug_path_f, f'\nSSHing and SUBMITting the JOB to the QUEUE:\n{submission_cmd}\n')
 
