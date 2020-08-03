@@ -2,7 +2,6 @@ import subprocess
 import os
 import logging
 from time import time, sleep, ctime
-from subprocess import run
 
 logger = logging.getLogger('main')  # use logger instead of printing
 
@@ -10,6 +9,7 @@ logger = logging.getLogger('main')  # use logger instead of printing
 def load_header2sequences_dict(fasta_path, get_length=False, upper_sequence=False):
     header_to_sequence_dict = {}
     seq_length = 0
+
     with open(fasta_path) as f:
         header = f.readline().lstrip('>').rstrip()
         sequence = ''
@@ -160,60 +160,95 @@ def fail(error_msg, error_file_path):
     raise ValueError(error_msg)
 
 
-def new_submit_pipeline_step(script_path, params_lists, tmp_dir, job_name, queue_name, q_submitter_script_path,
-                             new_line_delimiter, verbose=False, required_modules_as_list=None, num_of_cpus=1,
-                             done_files_script_path='/bioseq/microbializer/auxiliaries/file_writer.py'):
+def new_submit_pipeline_step(script_path, params_lists, logs_dir, queue_name, q_submitter_script_path,
+                             job_name='', new_line_delimiter='!@#', verbose=False, required_modules_as_list=None,
+                             num_of_cpus=1, done_files_script_path='/bioseq/microbializer/auxiliaries/file_writer.py',
+                             submit_as_a_job=True, done_file_is_needed=True):
+    """
+    :param script_path:
+    :param params_lists: a list of lists. each sublist corresponds to a single command and contain its parameters
+    :param logs_dir:
+    :param job_name:
+    :param queue_name:
+    :param q_submitter_script_path: leave it as is
+    :param new_line_delimiter: leave it as is
+    :param verbose:
+    :param required_modules_as_list: a list of strings containing module names that should be loaded before running
+    :param num_of_cpus:
+    :param done_files_script_path: leave it as is
+    :param submit_as_a_job: if False, fetched directly in shell and not as an independent job
+    :return: an example command to debug on the shell
+    """
 
-    # LOADING RELEVANT MODULES
+    # COMMAND FOR LOADING RELEVANT MODULES
     required_modules_as_str = 'python/python-anaconda3.6.5'
     if required_modules_as_list:
         # don't forget a space after the python module!!
         required_modules_as_str += ' ' + ' '.join(required_modules_as_list)
-    cmds_as_str = f'module load {required_modules_as_str}'
-    cmds_as_str += new_line_delimiter  # several commands that will be split to different lines
-                                       # (long lines with ";" are bad practice)
 
-    example_cmd = ' '.join(['python', script_path, *[str(param) for param in params_lists[0]]] + (['-v'] if verbose else [])) + ';'
+    shell_cmds_as_str = f'module load {required_modules_as_str}'
+    shell_cmds_as_str += new_line_delimiter  # several commands that will be split to different lines
+                                             # (long lines with ";" are bad practice)
+
+    example_shell_cmd = ' '.join(['python', script_path, *[str(param) for param in params_lists[0]]] + (['-v'] if verbose else [])) + ';'
     # PREPARING RELEVANT COMMANDS
     for params in params_lists:
-        cmds_as_str += ' '.join(['python', script_path, *[str(param) for param in params]] + (['-v'] if verbose else [])) + ';'
-        cmds_as_str += new_line_delimiter
+        shell_cmds_as_str += ' '.join(['python', script_path, *[str(param) for param in params]] + (['-v'] if verbose else [])) + ';'
+        shell_cmds_as_str += new_line_delimiter
+
+    if not job_name:
+        job_name = time()
+
+    if done_file_is_needed:
+        # GENERATE DONE FILE
+        params = [os.path.join(logs_dir, job_name + '.done'), '']  # write an empty string (like "touch" command)
+        shell_cmds_as_str += ' '.join(['python', done_files_script_path, *params])+';'
+        shell_cmds_as_str += new_line_delimiter
+
+    if submit_as_a_job:
+        # WRITING CMDS FILE
+        cmds_path = os.path.join(logs_dir, f'{job_name}.cmds')
+        with open(cmds_path, 'w') as f:
+            f.write(f'{shell_cmds_as_str}\t{job_name}\n')  # ADDING THE JOB NAME
+
+        job_cmd = [q_submitter_script_path, cmds_path, logs_dir, '-q', queue_name, '--cpu', str(num_of_cpus)]
+        logger.info(f'Calling:\n{" ".join(job_cmd)}')
+        execute(job_cmd)
+    else:
+        # fetch directly on shell
+        for shell_cmd in shell_cmds_as_str.split(new_line_delimiter):
+            execute(shell_cmd, shell=True)
+
+    return example_shell_cmd
 
 
-    # GENERATE DONE FILE
-    params = [os.path.join(tmp_dir, job_name + '.done'), '']  # write an empty string (like "touch" command)
-    cmds_as_str += ' '.join(['python', done_files_script_path, *params])+';'
-    cmds_as_str += new_line_delimiter
-
-    # ADDING THE JOB NAME
-    cmds_as_str += '\t' + job_name + '\n'
-
-    # WRITING CMDS FILE
-    cmds_path = os.path.join(tmp_dir, f'{job_name}.cmds')
-    if os.path.exists(cmds_path):
-        cmds_path = os.path.join(tmp_dir, f'{job_name}_{time()}.cmds')
-    with open(cmds_path, 'w') as f:
-        f.write(cmds_as_str)
-
-    # FETCHING Q_SUBMITTER
-    process = [q_submitter_script_path, cmds_path, tmp_dir, '-q', queue_name, '--cpu', str(num_of_cpus)]
-    logger.info(f'Calling:\n{" ".join(process)}')
-    run(process)
-    return example_cmd
-
-
-def submit_batches(script_path, all_cmds_params, tmp_dir, job_prefix, queue_name, num_of_cmds_per_job=1,
+def submit_batches(script_path, all_cmds_params, logs_dir, job_name_suffix='', queue_name='pupkolabr', num_of_cmds_per_job=1,
                    q_submitter_script_path='/bioseq/bioSequence_scripts_and_constants/q_submitter_power.py',
                    new_line_delimiter='!@#', required_modules_as_list=None, num_of_cpus=1):
-
+    """
+    :param script_path: 
+    :param all_cmds_params: a list of lists. each sublist corresponds to a single command and contain its parameters
+    :param logs_dir: 
+    :param job_name_suffix: a string that will be concatenated after the batch number as the job name
+    :param queue_name: 
+    :param num_of_cmds_per_job:
+    :param q_submitter_script_path: leave it as is
+    :param new_line_delimiter: leave it as is
+    :param required_modules_as_list: a list of strings containing module names that should be loaded before running
+    :param num_of_cpus: 
+    :return: number of batches submitted (in case waiting for the results) and an example command to debug on the shell
+    """
     num_of_batches = 0
     example_cmd_from_batch = 'NO COMMANDS WERE FETCHED'
 
+    if not job_name_suffix:
+        job_name_suffix = time()
+
     for i in range(0, len(all_cmds_params), num_of_cmds_per_job):
-        current_batch = all_cmds_params[i: i + num_of_cmds_per_job]
-        example_cmd_from_batch = new_submit_pipeline_step(script_path, current_batch, tmp_dir,
-                                                          f'{num_of_batches}_{job_prefix}', queue_name,
-                                                          q_submitter_script_path, new_line_delimiter, verbose=False,
+        current_batch_params = all_cmds_params[i: i + num_of_cmds_per_job]
+        example_cmd_from_batch = new_submit_pipeline_step(script_path, current_batch_params, logs_dir, queue_name,
+                                                          q_submitter_script_path, f'{num_of_batches}_{job_name_suffix}',
+                                                          new_line_delimiter, verbose=False,
                                                           required_modules_as_list=required_modules_as_list,
                                                           num_of_cpus=num_of_cpus)
         logger.info(f'Example command from current batch:\n{example_cmd_from_batch}')
@@ -222,12 +257,5 @@ def submit_batches(script_path, all_cmds_params, tmp_dir, job_prefix, queue_name
     return num_of_batches, example_cmd_from_batch
 
 
-
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-
-# def done_if_exist(done_file, file_to_check = './'):
-#     if os.path.exists(file_to_check):
-#         execute(['touch', done_file])
-#     else:
-#         raise AssertionError(file_to_check + ' does not exist....')
