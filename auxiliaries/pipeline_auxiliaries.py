@@ -54,10 +54,10 @@ def measure_time(total):
         return f'{seconds} seconds'
 
 
-def execute(process, raw=False):
-    process_str = process if raw else ' '.join(str(token) for token in process)
-    logger.info(f'Calling (raw == {raw}):\n{process_str}')
-    subprocess.run(process, shell=raw)
+def execute(process, process_is_string=False):
+    process_str = process if process_is_string else ' '.join(str(token) for token in process)
+    logger.info(f'Calling (process_is_string == {process_is_string}):\n{process_str}')
+    subprocess.run(process, shell=process_is_string)
 
 
 def wait_for_results(script_name, path, num_of_expected_results, error_file_path, suffix='done',
@@ -212,7 +212,6 @@ def new_submit_pipeline_step(script_path, params_lists, logs_dir, queue_name, q_
             f.write(f'{shell_cmds_as_str}\t{job_name}\n')  # ADDING THE JOB NAME
 
         job_cmd = [q_submitter_script_path, cmds_path, logs_dir, '-q', queue_name, '--cpu', str(num_of_cpus)]
-        logger.info(f'Calling:\n{" ".join(job_cmd)}')
         execute(job_cmd)
     else:
         # fetch directly on shell
