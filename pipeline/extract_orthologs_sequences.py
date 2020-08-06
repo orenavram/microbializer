@@ -35,13 +35,20 @@ def get_orthologs_group_sequences(orfs_dir, strain_name_to_ortholog_name, strain
     for orfs_file in os.listdir(orfs_dir):
         strain = os.path.splitext(orfs_file)[0]
         strain_to_strain_orfs_path_dict[strain] = os.path.join(orfs_dir, orfs_file)
+
     for strain in strains:
         ortholog_name = strain_name_to_ortholog_name[strain]
         if ortholog_name != '':
             # current strain has a member in this cluster
-            orfs_path = strain_to_strain_orfs_path_dict[strain]
-            ortholog_sequence = get_sequence_by_ortholog_name(orfs_path, ortholog_name)
-            result += f'>{strain}\n{ortholog_sequence}\n'
+            if strain_to_strain_orfs_path_dict.get(strain) is not None:
+                orfs_path = strain_to_strain_orfs_path_dict[strain]
+                ortholog_sequence = get_sequence_by_ortholog_name(orfs_path, ortholog_name)
+                result += f'>{strain}\n{ortholog_sequence}\n'
+            else:
+                logger.info(f'Could not extract {strain_name_to_ortholog_name[strain]} ortholog of strain {strain} as '
+                            f'its ORFs file does not exist at {orfs_dir} (probably ORFs sequence extraction for was '
+                            f'failed due to multiple contigs in the corresponding genomic file. Try to grep "failed" '
+                            f'on ORFs extraction ER log files)')
 
     return result
 
