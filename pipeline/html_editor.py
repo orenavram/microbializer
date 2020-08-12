@@ -1,4 +1,6 @@
 import os
+import logging
+logger = logging.getLogger('main')
 
 
 def add_closing_html_tags(html_path, CONSTS, run_number):
@@ -49,8 +51,6 @@ def edit_success_html(html_path, meta_output_dir, final_output_dir_name, run_num
         # The initial file exists (generate by the cgi) so we can read and parse it.
         html_text = html_text.replace('RUNNING', 'FINISHED').replace(f'{CONSTS.WEBSERVER_NAME} is now processing your request. This page will be automatically updated every few seconds (until the job is done). You can also reload it manually. Once the job has finished, several links to the output files will appear below. ', '')
     except FileNotFoundError:
-        import logging
-        logger = logging.getLogger('main')
         logger.warning(f"Couldn't find html prefix at: {html_path}")
 
     html_text += f'<div class="container" style="{CONSTS.CONTAINER_STYLE}">\n' \
@@ -131,3 +131,18 @@ def edit_failure_html(html_path, run_number, msg, CONSTS):
 
     add_closing_html_tags(html_path, CONSTS, run_number)
 
+
+def edit_progress(output_html_path, progress=None, active=True):
+    result = ''
+    with open(output_html_path) as f:
+        for line in f:
+            if 'progress-bar' in line:
+                if progress:
+                    line = line.split('style')[0]  # <div class="progress-bar ... style="width:0%">\n
+                    line += f'style="width:{progress}%">\n'
+                if not active:
+                    line = line.replace(' active', '')  # <div class="progress-bar progress-bar-striped bg-success active" ...
+            result += line
+
+    with open(output_html_path, 'w') as f:
+        f.write(result)

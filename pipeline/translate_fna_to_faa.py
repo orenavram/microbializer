@@ -1,5 +1,9 @@
-
 import os
+import sys
+if os.path.exists('/bioseq'):  # remote run
+    sys.path.insert(0, '/bioseq/microbializer/auxiliaries')
+    from pipeline_auxiliaries import wait_for_output_folder
+
 
 def fna_to_faa(nucleotide_path, protein_path):
     import Bio.Seq
@@ -23,7 +27,6 @@ def fna_to_faa(nucleotide_path, protein_path):
     logger.info(f'Translated fatsa file was write successfully to: {protein_path}')
 
 
-
 if __name__ == '__main__':
         from sys import argv
         print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
@@ -33,12 +36,15 @@ if __name__ == '__main__':
         parser.add_argument('nucleotide_path',
                             help='A path to a nucleotide fasta file',
                             type=lambda path: path if os.path.exists(path) else parser.error(f'{path} does not exist!'))
-        parser.add_argument('protein_path', help='A path to which the translated dna will be written',
-                            type=lambda path: path if os.path.exists(os.path.split(path)[0]) else parser.error(f'output folder {os.path.split(path)[0]} does not exist!'))
+        parser.add_argument('protein_path', help='A path to which the translated dna will be written')
+                            # type=lambda path: path if os.path.exists(os.path.split(path)[0]) else
+                            # parser.error(f'output folder {os.path.split(path)[0]} does not exist!'))
         args = parser.parse_args()
 
         import logging
         logging.basicConfig(level=logging.INFO)
         logger = logging.getLogger('main')
+
+        wait_for_output_folder(os.path.split(args.protein_path)[0])
 
         fna_to_faa(args.nucleotide_path, args.protein_path)

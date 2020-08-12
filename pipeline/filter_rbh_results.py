@@ -1,8 +1,9 @@
 
-def filter_blast(query_vs_reference, output_path, precent_identity_cutoff, e_value_cutoff, delimiter, names_delimiter):
+def filter_rbh_results(query_vs_reference, output_path, precent_identity_cutoff,
+                       e_value_cutoff, delimiter, names_delimiter):
     '''
     input:  path to file of blast results
-            desiered cutoff values
+            desired cutoff values
     output: file with filtered results
     '''
     import pandas as pd
@@ -43,6 +44,6 @@ if __name__ == '__main__':
         logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger('main')
 
-    filter_blast(args.blast_result, args.output_path, args.identity_cutoff,
-                 args.e_value_cutoff, args.delimiter, args.names_delimiter)
+    filter_rbh_results(args.blast_result, args.output_path, args.identity_cutoff,
+                       args.e_value_cutoff, args.delimiter, args.names_delimiter)
 

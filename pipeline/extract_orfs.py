@@ -45,7 +45,7 @@ def get_orthologs_group_sequences(orfs_dir, strain_name_to_ortholog_name, strain
                 ortholog_sequence = get_sequence_by_ortholog_name(orfs_path, ortholog_name)
                 result += f'>{strain}\n{ortholog_sequence}\n'
             else:
-                logger.info(f'Could not extract {strain_name_to_ortholog_name[strain]} ortholog of strain {strain} as '
+                logger.error(f'Could not extract {strain_name_to_ortholog_name[strain]} ortholog of strain {strain} as '
                             f'its ORFs file does not exist at {orfs_dir} (probably ORFs sequence extraction for was '
                             f'failed due to multiple contigs in the corresponding genomic file. Try to grep "failed" '
                             f'on ORFs extraction ER log files)')
@@ -54,11 +54,16 @@ def get_orthologs_group_sequences(orfs_dir, strain_name_to_ortholog_name, strain
 
 
 
-def extract_orthologs_sequences(sequences_dir, final_table_header_line, cluster_members_line, output_path, delimiter):
+def extract_orfs(sequences_dir, final_table_header_line, cluster_members_line,
+                 cluster_name, output_path, delimiter):
     strains = final_table_header_line.rstrip().split(delimiter)
     cluster_members = cluster_members_line.rstrip().split(delimiter)
     strain_name_to_ortholog_name = dict(zip(strains, cluster_members))
     orthologs_sequences = get_orthologs_group_sequences(sequences_dir, strain_name_to_ortholog_name, strains)
+    if not orthologs_sequences:
+        logger.error(f'Failed to extract any sequence for {cluster_name}.')
+        return
+
     with open(os.path.join(output_path), 'w') as f:
         f.write(orthologs_sequences)
 
@@ -73,6 +78,7 @@ if __name__ == '__main__':
     parser.add_argument('final_table_header', help='string that is the header of the final table')
     parser.add_argument('cluster_members', help='string that is the cluster members that is handled'
                                                  '(a row from the final orthologs table)')
+    parser.add_argument('cluster_name', help='the name of orthologs group being extracted')
     parser.add_argument('output_path', help='path to an output directory (aka orthologs sets sequences)')
     parser.add_argument('--delimiter', help='orthologs table delimiter', default=',')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
@@ -85,5 +91,5 @@ if __name__ == '__main__':
         logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger('main')
 
-    extract_orthologs_sequences(args.sequences_dir, args.final_table_header, args.cluster_members,
-                                args.output_path, args.delimiter)
+    extract_orfs(args.sequences_dir, args.final_table_header, args.cluster_members,
+                 args.cluster_name, args.output_path, args.delimiter)

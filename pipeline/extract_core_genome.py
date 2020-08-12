@@ -1,7 +1,7 @@
 import os
 import sys
 if os.path.exists('/bioseq'):  # remote run
-    sys.path.append('/bioseq/microbializer/auxiliaries')
+    sys.path.insert(0, '/bioseq/microbializer/auxiliaries')
     from pipeline_auxiliaries import load_header2sequences_dict
 
 

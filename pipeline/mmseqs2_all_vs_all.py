@@ -8,12 +8,12 @@ def too_many_trials(cmd, error_file_path):
     msg = f'Failed to fetch <i>{cmd}</i> command. Could be due to heavy load on our web servers. ' \
           'Please contact us for further assistance.'
     if os.path.exists('/bioseq'):  # remote run
-        sys.path.append('/bioseq/microbializer/auxiliaries')
+        sys.path.insert(0, '/bioseq/microbializer/auxiliaries')
         from pipeline_auxiliaries import fail
         # get error_log path
         # e.g., from this aa_db1: /bioseq/data/results/microbializer/159375410340094617808216800611/outputs/02_dbs/SAL_BA5690AA_AS.scaffold_aa
         # into this: /bioseq/data/results/microbializer/159375410340094617808216800611/error.txt
-        logger.info(f'Writing to error file in {error_file_path}')
+        logger.error(f'Writing to error file in {error_file_path}')
         fail(msg, error_file_path)
     raise OSError(msg)
 
