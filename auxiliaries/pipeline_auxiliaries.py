@@ -1,7 +1,13 @@
+import sys
+sys.path.insert(0, '/bioseq/bioSequence_scripts_and_constants/')  # ADD file_writer
+
+import shutil
 import subprocess
 import os
 import logging
+import tarfile
 from time import time, sleep, ctime
+from email_sender import send_email
 
 logger = logging.getLogger('main')  # use logger instead of printing
 
@@ -61,13 +67,14 @@ def execute(process, process_is_string=False):
 
 
 def wait_for_results(script_name, path, num_of_expected_results, error_file_path, suffix='done',
-                     remove=False, time_to_wait=10, start=0):
+                     remove=False, time_to_wait=10, start=0, error_message=None):
     '''waits until path contains num_of_expected_results $suffix files'''
     if not start:
         start = time()
     logger.info(f'Waiting for {script_name}...\nContinues when {num_of_expected_results} results will be in:\n{path}')
     if num_of_expected_results == 0:
-        # logger.fatal(f'\n{"#"*100}\nnum_of_expected_results in {path} is {num_of_expected_results}!\nSomething went wrong in the previous step...\n{"#"*100}')
+        if error_message:
+            fail(error_message, error_file_path)
         raise ValueError(f'\n{"#"*100}\nNumber of expected results is {num_of_expected_results}! Something went wrong in the previous analysis steps...\n{"#"*100}')
     total_time = 0
     i = 0
@@ -155,6 +162,7 @@ def submit_pipeline_step(script_path, params, tmp_dir, job_name, queue_name, new
 
 
 def fail(error_msg, error_file_path):
+    logger.error(error_msg)
     with open(error_file_path, 'w') as error_f:
         error_f.write(error_msg + '\n')
     raise ValueError(error_msg)
@@ -243,6 +251,8 @@ def submit_batches(script_path, all_cmds_params, logs_dir, job_name_suffix='', q
     if not job_name_suffix:
         job_name_suffix = time()
 
+    job_name_suffix = job_name_suffix.replace(' ', '_')  # job name cannot contain spaces!
+
     for i in range(0, len(all_cmds_params), num_of_cmds_per_job):
         current_batch_params = all_cmds_params[i: i + num_of_cmds_per_job]
         example_cmd_from_batch = new_submit_pipeline_step(script_path, current_batch_params, logs_dir, queue_name,
@@ -258,3 +268,128 @@ def submit_batches(script_path, all_cmds_params, logs_dir, job_name_suffix='', q
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
+
+
+def wait_for_output_folder(output_folder, max_waiting_time=300):
+    i = 0
+    while not os.path.exists(output_folder):
+        logger.info(f'Waiting to {output_folder} to be generated... (waited {i} seconds)')
+        i += 1
+        if i>max_waiting_time:
+            raise OSError(f'{output_folder} was not generated after {max_waiting_time} second. Failed to continue the analysis.')
+        sleep(1)
+
+
+def remove_bootstrap_values(in_tree_path, out_tree_path):
+    with open(in_tree_path) as f:
+        tree_as_str = f.read()
+    import re
+    tree_as_str = re.sub('\)\d+:', '):', tree_as_str)
+    with open(out_tree_path, 'w') as f:
+        f.write(tree_as_str)
+
+
+def notify_admin(meta_output_dir, meta_output_url, run_number, CONSTS):
+    email = 'NO_EMAIL'
+    user_email_path = os.path.join(meta_output_dir, CONSTS.EMAIL_FILE_NAME)
+    if os.path.exists(user_email_path):
+        with open(user_email_path) as f:
+            email = f.read().rstrip()
+    error_log_path = 'NO_ERROR_LOG'
+    file_with_job_id_on_qstat = os.path.join(meta_output_dir, 'qsub.log')
+    if os.path.exists(file_with_job_id_on_qstat):
+        with open(file_with_job_id_on_qstat) as f:
+            job_id_on_qstat = f.read().strip()
+        error_log_path = os.path.join(meta_output_dir, f'{job_id_on_qstat}.ER')
+        # TODO: change to ER url and add reading permissions
+    # Send me a notification email every time there's a failure
+    send_email(smtp_server=CONSTS.SMTP_SERVER,
+               sender=CONSTS.ADMIN_EMAIL,
+               receiver=CONSTS.OWNER_EMAIL,
+               subject=f'{CONSTS.WEBSERVER_NAME} job {run_number} by {email} has been failed: ',
+               content=f"{email}\n\n{os.path.join(meta_output_url, 'output.html')}\n\n"
+               f"{os.path.join(meta_output_url, 'cgi_debug.txt')}\n\n"
+               f"{os.path.join(meta_output_url, error_log_path)}\n\n"
+               f"{os.path.join(meta_output_dir, error_log_path.replace('ER', 'OU'))}")
+
+
+def add_results_to_final_dir(source, final_output_dir, copy=True):
+    dest = os.path.join(final_output_dir, os.path.split(source)[1])
+
+    try:
+        if not copy:
+            logger.info(f'Moving {source} TO {dest}')
+            shutil.move(source, dest)
+        else:
+            logger.info(f'Copying {source} TO {dest}')
+            shutil.copytree(source, dest)
+    except FileExistsError:
+        pass
+
+    return dest
+
+
+def remove_path(path_to_remove):
+    logger.info(f'Removing {path_to_remove} ...')
+    try:
+        shutil.rmtree(path_to_remove)  # maybe it's a folder
+    except:
+        pass
+    try:
+        os.remove(path_to_remove)
+    except:
+        pass
+
+
+def unpack_data(data_path, meta_output_dir, error_file_path):
+    if not os.path.isdir(data_path):
+        unzipped_data_path = os.path.join(meta_output_dir, 'data')
+        try:
+            if tarfile.is_tarfile(data_path):
+                logger.info('UnTARing')
+                with tarfile.open(data_path, 'r:gz') as f:
+                    f.extractall(path=unzipped_data_path)  # unzip tar folder to parent dir
+                logger.info('Succeeded!')
+                # data_path = data_path.split('.tar')[0] # e.g., /groups/pupko/orenavr2/microbializer/example_data.tar.gz
+                # logger.info(f'Updated data_path is:\n{data_path}')
+            elif data_path.endswith('.gz'):  # gunzip gz file
+                execute(f'gunzip -f "{data_path}"', process_is_string=True)
+                unzipped_data_path = data_path[:-3]  # trim the ".gz"
+            else:
+                logger.info('UnZIPing')
+                shutil.unpack_archive(data_path, extract_dir=unzipped_data_path)  # unzip tar folder to parent dir
+        except Exception as e:
+            logger.info(e)
+            remove_path(data_path)
+            fail(f'Illegal file format. Please upload either a '
+                 f'<a href="https://support.microsoft.com/en-us/help/14200/windows-compress-uncompress-zip-files" target="_blank">.zip</a> file or a '
+                 f'<a href="https://linhost.info/2012/08/gzip-files-in-windows/" target="_blank">.tar.gz</a> file in which each file is a '
+                 f'<a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a> containing genomic sequence of a different species',
+                 error_file_path)
+        logger.info('Succeeded!')
+        # data_path = os.path.join(meta_output_dir, 'data') # e.g., /groups/pupko/orenavr2/microbializer/example_data.tar.gz
+        # logger.info(f'Updated data_path is:\n{data_path}')
+
+        if not os.path.exists(unzipped_data_path):
+            fail(f'Failed to unzip {os.path.split(data_path)[-1]} (maybe it is empty?)', error_file_path)
+
+        if not os.path.isdir(unzipped_data_path):
+            fail('Archived file content is not a folder', error_file_path)
+
+        file = [x for x in os.listdir(unzipped_data_path) if not x.startswith(('_', '.'))][0]
+        logger.info(f'first file in {unzipped_data_path} is:\n{file}')
+        if os.path.isdir(os.path.join(unzipped_data_path, file)):
+            data_path = os.path.join(unzipped_data_path, file)
+            file = [x for x in os.listdir(data_path) if not x.startswith(('_', '.'))][0]
+            if os.path.isdir(os.path.join(data_path, file)):
+                fail('More than a 2-levels folder...', error_file_path)
+        else:
+            data_path = unzipped_data_path
+
+    logger.info(f'Updated data_path is:\n{data_path}')
+    for file in os.listdir(data_path):
+        file_path = os.path.join(data_path, file)
+        if file_path.endswith('gz'):  # gunzip gz files in $data_path if any
+            execute(f'gunzip -f "{file_path}"', process_is_string=True)
+
+    return data_path
