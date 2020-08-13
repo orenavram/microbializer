@@ -1,4 +1,9 @@
 import os
+import sys
+if os.path.exists('/bioseq'):  # remote run
+    sys.path.insert(0, '/bioseq/microbializer/auxiliaries')
+    from pipeline_auxiliaries import wait_for_output_folder
+
 
 def get_genome_sequence(genome_path):
     with open(genome_path) as f:
@@ -10,6 +15,7 @@ def get_genome_sequence(genome_path):
         f'contigs, right?\n'
 
     return genome
+
 
 def get_sequence(genome, genome_len, start, stop, reverse_complement, promoters_length):
     import Bio.Seq
@@ -34,8 +40,7 @@ def get_sequence(genome, genome_len, start, stop, reverse_complement, promoters_
     return sequence
 
 
-
-def extract_sequences(prodigal_orfs_path, genome_path, promoters_length, output_path):
+def extract_promoters_and_orfs(prodigal_orfs_path, genome_path, promoters_length, output_path):
     genome = get_genome_sequence(genome_path)
     genome_len = len(genome)
     logger.info(f'Genome length is: {genome_len}')
@@ -80,10 +85,9 @@ if __name__ == '__main__':
         parser.add_argument('prodigal_orfs_path',
                             help='A path to a Prodigal output file from which coordinates should be extracted',
                             type=lambda path: path if os.path.exists(path) else parser.error(f'{path} does not exist!'))
-        parser.add_argument('output_path',
-                            help='A path to which the promoters and orfs will be written',
-                            type=lambda path: path if os.path.exists(os.path.split(path)[0]) else parser.error(
-                                f'output folder {os.path.split(path)[0]} does not exist!'))
+        parser.add_argument('output_path', help='A path to which the promoters and orfs will be written')
+                            # type=lambda path: path if os.path.exists(os.path.split(path)[0])
+                            # else parser.error(f'output folder {os.path.split(path)[0]} does not exist!'))
         parser.add_argument('--promoters_length',
                             help='How much bases upstream to the ORF should be extracted',
                             type=int, default=300)
@@ -93,4 +97,6 @@ if __name__ == '__main__':
         logging.basicConfig(level=logging.INFO)
         logger = logging.getLogger('main')
 
-        extract_sequences(args.prodigal_orfs_path, args.genome_path, args.promoters_length, args.output_path)
+        wait_for_output_folder(os.path.split(args.output_path)[0])
+
+        extract_promoters_and_orfs(args.prodigal_orfs_path, args.genome_path, args.promoters_length, args.output_path)
