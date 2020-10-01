@@ -2,24 +2,19 @@
 
 import os
 import shutil
-import sys
 import cgi
 import cgitb
 import subprocess
 from time import time, ctime
 from random import randint
+import sys
+sys.path.insert(0, '/bioseq/microbializer/pipeline/')
+sys.path.insert(1, '/bioseq/microbializer/auxiliaries/')
+sys.path.insert(2, '/bioseq/bioSequence_scripts_and_constants/')  # for email_sender
 
-if os.path.exists('/bioseq/microbializer'): # remote run
-    sys.path.insert(0, '/bioseq/microbializer/pipeline/')
-    sys.path.insert(0, '/bioseq/microbializer/auxiliaries/')
-    # sys.path.append('/bioseq/bioSequence_scripts_and_constants/')
-else:
-    # local run
-    sys.path.append('../pipeline/')
-    sys.path.append('../auxiliaries/')
 
 import CONSTANTS as CONSTS
-from email_sender import send_email # from /bioseq/bioSequence_scripts_and_constants/
+from email_sender import send_email
 
 def print_hello_world(output_path = '', run_number = 'NO_RUN_NUMBER'):
 
@@ -262,8 +257,8 @@ def run_cgi():
         # send jobs ONLY TO ONE MACHINE so there won't be a dead lock
         # (cluster might be full with main jobs waiting for sub jobs but they are in qw mode...)
         # queue_name = 'pupkor'  # all pupko machines on power
-        # queue_name = '"pupkoweb -l nodes=compute-0-291"'
-        queue_name = '"pupkolabr -l nodes=compute-0-296"'  # run main thread on pupkolab machine to prevent deadlock
+        queue_name = '"pupkoweb -l nodes=compute-0-291"'
+        # queue_name = '"pupkolabr -l nodes=compute-0-296"'  # run main thread on pupkolab machine to prevent deadlock
         # queue_name_for_subjobs = '"pupkotmpr -l nodes=compute-0-18"'
         queue_name_for_subjobs = 'pupkowebr'
         # queue_name_for_subjobs = '"pupkowebr -p -1"'  # reduced priority
@@ -320,23 +315,16 @@ def run_cgi():
             except:
                 write_to_debug_file(cgi_debug_path_f, f'\nFailed sending notification to {email}\n')
 
-        write_to_debug_file(cgi_debug_path_f, f'\n\nUpdating status from QUEUED to RUNNING\n')
-        with open(output_path) as f:
-            html_content = f.read()
-        html_content = html_content.replace('QUEUED', 'RUNNING')
-        with open(output_path, 'w') as f:
-            f.write(html_content)
-
         write_to_debug_file(cgi_debug_path_f, f'\n\n{"#"*50}\nCGI finished running!\n{"#"*50}\n')
 
         cgi_debug_path_f.close()
 
     except Exception as e:
-        msg = f'{CONSTS.WEBSERVER_NAME} crashed before the job was submitted :(<br>\n' \
-              'Could happen due to one of the following reasons: (1) Illegal data format; (2) non <a href="http://www.asciitable.com/" target="_blank">ASCII characters</a> in your submission; (3) heavy load at the moment on our computer cluster.'
+        msg = f'{CONSTS.WEBSERVER_NAME} could not save your data 😞<br>\n' \
+              'Most likely because your data contain non <a href="http://www.asciitable.com/" target="_blank">ASCII characters</a>.'
         with open(output_path) as f:
             html_content = f.read()
-        html_content = html_content.replace('QUEUED', 'FAILED').replace('RUNNING', 'FAILED')
+        html_content = html_content.replace('QUEUED', 'FAILED')
         html_content = html_content.replace(' active', '')
         html_content += f'<br><br><br>' \
                         f'<div class="container" style="{CONSTS.CONTAINER_STYLE}"><h3>' \
