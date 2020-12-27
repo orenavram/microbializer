@@ -6,7 +6,7 @@ import sys
 
 def too_many_trials(cmd, error_file_path):
     msg = f'Failed to fetch <i>{cmd}</i> command. Could be due to heavy load on our web servers. ' \
-          'Please contact us for further assistance.'
+          'Please try to re-submit your job in a few minutes or contact us for further information.'
     if os.path.exists('/bioseq'):  # remote run
         sys.path.insert(0, '/bioseq/microbializer/auxiliaries')
         from pipeline_auxiliaries import fail
