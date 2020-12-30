@@ -16,6 +16,8 @@ def verify_fasta_format(data_path):
             try:
                 line = f.readline()
                 line_number += 1
+                if not line:
+                    return f'Illegal <a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a>. First line in "{file_name}" is empty.'
                 if not line.startswith('>'):
                     return f'Illegal <a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a>. First line in "{file_name}" starts with "{line[0]}" instead of ">".'
                 previous_line_was_header = True
