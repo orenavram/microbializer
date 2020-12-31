@@ -28,36 +28,13 @@ def generate_phylogenetic_tree(msa_path, phylogenetic_tree_path, seed, model, ou
 
     logger.info(f'Reconstructing species phylogeny with RAxML. Executed command is:\n{cmd}')
     subprocess.run(cmd, shell=True)
-    #
-    # raxml_best_tree_output_path = os.path.join(wd, f'RAxML_result.{phylogenetic_tree_name}')
-    #
-    # bootstrapped_raw_tree_path = os.path.join(wd, f'RAxML_bipartitions.{phylogenetic_tree_name}')
 
     if os.path.exists(intermediate_tree_path):
         os.rename(intermediate_tree_path, phylogenetic_tree_path)
     else:
         logger.fatal(f'TREE WAS NOT GENERATED!!')
-        pass
 
-    # if os.path.exists(bootstrapped_raw_tree_path):
-    #     intermediate_tree_path = bootstrapped_raw_tree_path
-    # elif os.path.exists(raxml_best_tree_output_path):
-    #     intermediate_tree_path = raxml_best_tree_output_path
-    # else:
-    #
-    #
-    # if root and os.path.exists(intermediate_tree_path):
-    #     # raxmlHPC-PTHREADS-SSE3 -m PROTGAMMAILG -n rooted_species_tree.txt -w /bioseq/data/results/microbializer/155542823177458857633443576357/outputs/16_species_phylogeny -t /bioseq/data/results/microbializer/155542823177458857633443576357/outputs/16_species_phylogeny/RAxML_bipartitions.unrooted_species_tree.txt -f I
-    #     cmd = f'raxmlHPC-PTHREADS-SSE3  -m {model} -n {rooted_phylogenetic_tree_name} -w {wd} -t {intermediate_tree_path} -f I'
-    #     logger.info(f'Rooting species tree. Executed command is:\n{cmd}')
-    #     subprocess.run(cmd, shell=True)
-    #     if os.path.exists(os.path.join(wd, f'RAxML_rootedTree.{rooted_phylogenetic_tree_name}')):
-    #         logger.info(f'Rooting succeeded!')
-    #         intermediate_tree_path = os.path.join(wd, f'RAxML_rootedTree.{rooted_phylogenetic_tree_name}')
-    #     else:
-    #         logger.fatal(f'Rooting failed! Returning the unrooted tree.')
-
-
+    # update info file regarding duplicated sequences reduction
     raxml_info_output_path = os.path.join(wd, f'RAxML_info.{final_tree_name}')
     if os.path.exists(raxml_info_output_path):
         with open(raxml_info_output_path) as f:
