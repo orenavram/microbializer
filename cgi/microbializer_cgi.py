@@ -281,9 +281,9 @@ def run_cgi():
 
         job_id_file = os.path.join(wd, 'job_id.txt')
         # simple command when using shebang header
-        submission_cmd = f'/bioseq/bioSequence_scripts_and_constants/q_submitter_power.py {cmds_file} {wd} -q {queue_name} --verbose > {job_id_file}'
+        submission_cmd = f'{CONSTS.Q_SUBMITTER_PATH} {cmds_file} {wd} -q {queue_name} --verbose > {job_id_file}'
 
-        write_to_debug_file(cgi_debug_path_f, f'\nSSHing and SUBMITting the JOB to the QUEUE:\n{submission_cmd}\n')
+        write_to_debug_file(cgi_debug_path_f, f'\nSUBMITTING JOB TO QUEUE:\n{submission_cmd}\n')
         if not page_is_ready:
             subprocess.call(submission_cmd, shell=True)
 
@@ -313,6 +313,15 @@ def run_cgi():
                 write_to_debug_file(cgi_debug_path_f, f'\nFailed sending notification to {email}\n')
 
         write_to_debug_file(cgi_debug_path_f, f'\n\n{"#"*50}\nCGI finished running!\n{"#"*50}\n')
+
+        # run periodical cleanup on the background...
+        try:
+            submission_cmd = f'{CONSTS.Q_SUBMITTER_PATH} {CONSTS.WEBSERVER_RESULTS_DIR}/cleanup_microbializer.cmds {CONSTS.WEBSERVER_RESULTS_DIR}'
+
+            write_to_debug_file(cgi_debug_path_f, f'\nSUBMITTING CLEANUP:\n{submission_cmd}\n')
+            subprocess.call(submission_cmd, shell=True)
+        except:
+            write_to_debug_file(cgi_debug_path_f, f'\n\n{"%"*50}\nFailed to fetch folders cleanup for some reason...')
 
         cgi_debug_path_f.close()
 
@@ -369,4 +378,3 @@ def run_cgi():
 
 if __name__ == '__main__':
     run_cgi()
-
