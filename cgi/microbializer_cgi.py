@@ -8,15 +8,14 @@ import subprocess
 from time import time, ctime
 from random import randint
 import sys
-sys.path.insert(0, '/bioseq/microbializer/pipeline/')
-sys.path.insert(1, '/bioseq/microbializer/auxiliaries/')
-sys.path.insert(2, '/bioseq/bioSequence_scripts_and_constants/')  # for email_sender
-
+sys.path.insert(0, '/bioseq/microbializer/pipeline/')  # for CONSTANTS and auxiliaries
 
 import CONSTANTS as CONSTS
-from email_sender import send_email
+from auxiliaries.pipeline_auxiliaries import fix_illegal_chars_in_file_name
+from auxiliaries.email_sender import send_email
 
-def print_hello_world(output_path = '', run_number = 'NO_RUN_NUMBER'):
+
+def print_hello_world(output_path='', run_number='HAPPY FLOW'):
 
     hello_world_html = """
 <html>
@@ -87,45 +86,45 @@ def write_html_prefix(output_path, run_number):
         output_path_f.flush()
 
 
-def write_running_parameters_to_html(output_path, identity_cutoff, e_value_cutoff, core_minimal_percentage, bootstrap, outgroup, job_title, file_name=''):
+def write_running_parameters_to_html(output_path, identity_cutoff, e_value_cutoff, core_minimal_percentage, bootstrap, outgroup, job_title, original_file_name):
     with open(output_path, 'a') as output_path_f:
         output_path_f.write(f'<div class="container" style="{CONSTS.CONTAINER_STYLE}">')
 
-        # regular params rows
-        output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-12">')
-        output_path_f.write(f'<b>Archived folder name: </b>{file_name}')
-        output_path_f.write('</div></div>')
-
-        # regular params rows
-        output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-12">')
-        output_path_f.write(f'<b>Maximal e-value cutoff: </b>{e_value_cutoff}')
-        output_path_f.write('</div></div>')
-
-        # regular params rows
-        output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-12">')
-        output_path_f.write(f'<b>Identity minimal percent cutoff: </b>{identity_cutoff}%')
-        output_path_f.write('</div></div>')
-
-        # regular params rows
-        output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-12">')
-        output_path_f.write(f'<b>Minimal percentage for core: </b>{core_minimal_percentage}%')
-        output_path_f.write('</div></div>')
-
-        # regular params rows
-        output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-12">')
-        output_path_f.write(f'<b>Apply bootstrap: </b>{bootstrap.upper()}')
-        output_path_f.write('</div></div>')
-
-        # regular params rows
-        output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-12">')
-        output_path_f.write(f'<b>Outgroup: </b>{outgroup if outgroup else "NONE"}')
-        output_path_f.write('</div></div>')
-
-        # optional params rows
+        # optional param row
         if job_title != '':
             output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-12">')
             output_path_f.write(f'<b>Job title: </b>{job_title}')
             output_path_f.write('</div></div>')
+
+        # mandatory param row
+        output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-12">')
+        output_path_f.write(f'<b>Archived data file name: </b>{original_file_name}')
+        output_path_f.write('</div></div>')
+
+        # mandatory param row
+        output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-12">')
+        output_path_f.write(f'<b>Maximal e-value cutoff: </b>{e_value_cutoff}')
+        output_path_f.write('</div></div>')
+
+        # mandatory param row
+        output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-12">')
+        output_path_f.write(f'<b>Identity minimal percent cutoff: </b>{identity_cutoff}%')
+        output_path_f.write('</div></div>')
+
+        # mandatory param row
+        output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-12">')
+        output_path_f.write(f'<b>Minimal percentage for core: </b>{core_minimal_percentage}%')
+        output_path_f.write('</div></div>')
+
+        # mandatory param row
+        output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-12">')
+        output_path_f.write(f'<b>Apply bootstrap: </b>{bootstrap.upper()}')
+        output_path_f.write('</div></div>')
+
+        # mandatory param row
+        output_path_f.write('<div class="row" style="font-size: 20px;"><div class="col-md-12">')
+        output_path_f.write(f'<b>Outgroup: </b>{outgroup if outgroup else "NONE"}')
+        output_path_f.write('</div></div>')
 
         output_path_f.write('</div><br>')
         output_path_f.write('\n\n<!--result-->\n')
@@ -143,6 +142,7 @@ def write_cmds_file(cmds_file, parameters, run_number):
         f.write(new_line_delimiter)
         f.write(f'{" ".join(["python", CONSTS.MAIN_SCRIPT, parameters])}\tmicrobializer_{run_number}')
 
+
 def run_cgi():
 
     # prints detailed error report on BROWSER when backend crashes
@@ -152,21 +152,21 @@ def run_cgi():
     # print_hello_world() # for debugging
     form = cgi.FieldStorage()  # extract POSTed object
 
-    # random_chars = "".join(choice(string.ascii_letters + string.digits) for x in range(20))
-    run_number = str(round(time())) + str(randint(10 ** 19, 10 ** 20 - 1))  # adding 20 random digits to prevent users see data that are not their's
+    # adding 20 random digits to prevent users see data that are not their's
+    run_number = str(round(time())) + str(randint(10 ** 19, 10 ** 20 - 1))
     # run_number = 'test'
-    output_url = os.path.join(f'{CONSTS.WEBSERVER_RESULTS_URL}/{run_number}/output.html')
+    output_url = f'{CONSTS.WEBSERVER_RESULTS_URL}/{run_number}/{CONSTS.RESULT_WEBPAGE_NAME}'
 
     if form['example_page'].value == 'yes':
-        run_number = 'example_data'  # str(round(time())) + str(randint(1000,9999)) # adding 4 random figures to prevent users see data that are not their's
-        output_url = os.path.join(f'{CONSTS.WEBSERVER_URL}/{run_number}/output.html')
+        run_number = 'example_data'
+        output_url = os.path.join(f'{CONSTS.WEBSERVER_URL}/{run_number}/{CONSTS.RESULT_WEBPAGE_NAME}')
 
     # creating working directory
     wd = os.path.join(CONSTS.WEBSERVER_RESULTS_DIR, run_number)
     os.makedirs(wd, exist_ok=True)
 
-    output_path = os.path.join(wd, 'output.html')
-    cgi_debug_path = os.path.join(wd, 'cgi_debug.txt')
+    output_path = os.path.join(wd, CONSTS.RESULT_WEBPAGE_NAME)
+    cgi_debug_path = os.path.join(wd, CONSTS.CGI_DEBUG_FILE_NAME)
 
     page_is_ready = os.path.exists(output_path)
     if not page_is_ready:
@@ -187,8 +187,8 @@ def run_cgi():
                sender=CONSTS.ADMIN_EMAIL,
                receiver=f'{CONSTS.OWNER_EMAIL}',
                subject=f'{CONSTS.WEBSERVER_NAME} - A new job has been submitted: {run_number}',
-               content=f"{os.path.join(CONSTS.WEBSERVER_URL, 'results', run_number, 'cgi_debug.txt')}\n"
-                       f"{os.path.join(CONSTS.WEBSERVER_URL, 'results', run_number, 'output.html')}")
+               content=f"{os.path.join(CONSTS.WEBSERVER_RESULTS_URL, run_number, CONSTS.CGI_DEBUG_FILE_NAME)}\n"
+                       f"{os.path.join(CONSTS.WEBSERVER_RESULTS_URL, run_number, CONSTS.RESULT_WEBPAGE_NAME)}")
 
     try:
         cgi_debug_path_f = open(cgi_debug_path,'w')
@@ -227,6 +227,9 @@ def run_cgi():
                 write_to_debug_file(cgi_debug_path_f, f'FILE FORMAT IS ILLEGAL!!')
                 raise ValueError
 
+            original_file_name = file_name
+            file_name = fix_illegal_chars_in_file_name(file_name)
+
             data = form['data'].value
             write_to_debug_file(cgi_debug_path_f, f'{file_name} first 100 chars are: {data[:100]}\n')
 
@@ -235,7 +238,7 @@ def run_cgi():
                 data_f.write(data)
             write_to_debug_file(cgi_debug_path_f, f'Uploaded data was saved to disk successfully\n')
         else:  # example data
-            file_name = 'example_data.zip'
+            original_file_name = file_name = CONSTS.EXAMPLE_DATA_FILE_NAME
             data_path = os.path.join(wd, file_name)
             write_to_debug_file(cgi_debug_path_f, f'Copying example data FROM {CONSTS.EXAMPLE_DATA} TO {data_path}\n')
             try:
@@ -250,17 +253,16 @@ def run_cgi():
         write_to_debug_file(cgi_debug_path_f, f'{ctime()}: write_running_parameters_to_html...\n')
 
         if not page_is_ready:
-            write_running_parameters_to_html(output_path, identity_cutoff, e_value_cutoff, core_minimal_percentage, bootstrap, outgroup, job_title, file_name)
+            write_running_parameters_to_html(output_path, identity_cutoff, e_value_cutoff, core_minimal_percentage, bootstrap, outgroup, job_title, original_file_name)
 
         write_to_debug_file(cgi_debug_path_f, f'{ctime()}: Running parameters were written to html successfully.\n')
 
-        # send jobs ONLY TO ONE MACHINE so there won't be a dead lock
+        # send main jobs ONLY TO ONE MACHINE so there won't be a dead lock
         # (cluster might be full with main jobs waiting for sub jobs but they are in qw mode...)
-        # queue_name = 'pupkor'  # all pupko machines on power
-        queue_name = '"pupkoweb -l nodes=compute-0-291"'
-        # queue_name = '"pupkolabr -l nodes=compute-0-296"'  # run main thread on pupkolab machine to prevent deadlock
-        # queue_name_for_subjobs = '"pupkotmpr -l nodes=compute-0-18"'
+        queue_name = 'pupkor'  # all pupko machines on power
         queue_name_for_subjobs = 'pupkowebr'
+        # queue_name_for_subjobs = '"pupkotmpr -l nodes=compute-0-18"'
+        # queue_name = '"pupkowebr -l nodes=compute-0-292"'  # run main thread on pupkolab machine to prevent deadlock
         # queue_name_for_subjobs = '"pupkowebr -p -1"'  # reduced priority
 
         parameters = f'"{data_path}" ' \
@@ -274,19 +276,14 @@ def run_cgi():
         if email != '':
             parameters += ' ' + f'--email {email}'
 
-
         cmds_file = os.path.join(wd, 'qsub.cmds')
         write_cmds_file(cmds_file, parameters, run_number)
 
         job_id_file = os.path.join(wd, 'job_id.txt')
-        # complex command with more than one operation (module load + python q_submitter_power.py)
-        # submission_cmd = 'ssh bioseq@powerlogin "module load python/python-3.6.7; python /bioseq/bioSequence_scripts_and_constants/q_submitter_power.py {} {} -q {} --verbose > {}"'.format(cmds_file, wd, queue_name, job_id_file)
-
         # simple command when using shebang header
         submission_cmd = f'/bioseq/bioSequence_scripts_and_constants/q_submitter_power.py {cmds_file} {wd} -q {queue_name} --verbose > {job_id_file}'
 
         write_to_debug_file(cgi_debug_path_f, f'\nSSHing and SUBMITting the JOB to the QUEUE:\n{submission_cmd}\n')
-
         if not page_is_ready:
             subprocess.call(submission_cmd, shell=True)
 
@@ -303,7 +300,7 @@ def run_cgi():
                                    f"Apply bootstrap procedure: {bootstrap.upper()}\n" \
                                    f"Outgroup: {outgroup}\n\n" \
                                    f"Once the analysis will be ready, we will let you know! " \
-                                   f"Meanwhile, you can track the progress of your job at:\n{os.path.join(CONSTS.WEBSERVER_URL, 'results', run_number, 'output.html')}\n\n"
+                                   f"Meanwhile, you can track the progress of your job at:\n{os.path.join(CONSTS.WEBSERVER_RESULTS_URL, run_number, CONSTS.RESULT_WEBPAGE_NAME)}\n\n"
 
             # Send the user a notification email for their submission
             try:
@@ -348,8 +345,8 @@ def run_cgi():
                    sender=CONSTS.ADMIN_EMAIL,
                    receiver=f'{CONSTS.OWNER_EMAIL}',
                    subject=f'{CONSTS.WEBSERVER_NAME} job {run_number} by {email} has been failed!',
-                   content=f"{email}\n\n{os.path.join(CONSTS.WEBSERVER_URL, 'results', run_number, 'output.html')}\n"
-                           f"\n{os.path.join(CONSTS.WEBSERVER_URL, 'results', run_number, 'cgi_debug.txt')}")
+                   content=f"{email}\n\n{os.path.join(CONSTS.WEBSERVER_RESULTS_URL, run_number, CONSTS.RESULT_WEBPAGE_NAME)}\n"
+                           f"\n{os.path.join(CONSTS.WEBSERVER_RESULTS_URL, run_number, CONSTS.CGI_DEBUG_FILE_NAME)}")
 
         # logger.info(f'Waiting {2*CONSTS.RELOAD_INTERVAL} seconds to remove html refreshing headers...')
         # Must be after flushing all previous data. Otherwise it might refresh during the writing.. :(

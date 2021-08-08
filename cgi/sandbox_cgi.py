@@ -21,8 +21,7 @@ import cgitb
 import os
 import sys
 
-#sys.path.append('/bioseq/bioSequence_scripts_and_constants')
-sys.path.append('/bioseq/MICROBIALIZER/auxiliaries')
+sys.path.insert(0, '/bioseq/microbializer/auxiliaries')
 import CONSTANTS as CONSTS
 
 def hello_world(output_path='', run_number='NO_RUN_NUMBER'):
@@ -65,14 +64,14 @@ form = cgi.FieldStorage()  # extract POSTed object
 
 run_number = 'sandbox'
 
-results_url = os.path.join(CONSTS.MICROBIALIZER_RESULTS_URL, run_number)
-output_url = os.path.join(results_url, 'output.html')
+results_url = os.path.join(CONSTS.WEBSERVER_RESULTS_URL, run_number)
+output_url = os.path.join(results_url, CONSTS.RESULT_WEBPAGE_NAME)
 
-wd = os.path.join(CONSTS.MICROBIALIZER_RESULTS_DIR, run_number)
+wd = os.path.join(CONSTS.WEBSERVER_RESULTS_DIR, run_number)
 os.makedirs(wd, exist_ok=True)
 
-output_path = os.path.join(wd, 'output.html')
-cgi_debug_path = os.path.join(wd, 'cgi_debug.txt')
+output_path = os.path.join(wd, CONSTS.RESULT_WEBPAGE_NAME)
+cgi_debug_path = os.path.join(wd, CONSTS.CGI_DEBUG_FILE_NAME)
 
 hello_world(output_path, run_number)
 write_running_parameters_to_html(output_path, form) # html's prefix must be written BEFORE redirecting...
