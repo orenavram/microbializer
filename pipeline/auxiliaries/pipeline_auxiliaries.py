@@ -1,5 +1,8 @@
 import sys
-sys.path.insert(0, '/bioseq/bioSequence_scripts_and_constants/')  # ADD file_writer
+
+import CONSTANTS as CONSTS
+
+sys.path.append('/bioseq/bioSequence_scripts_and_constants/')  # ADD file_writer
 
 import shutil
 import subprocess
@@ -50,7 +53,7 @@ def load_header2sequences_dict(fasta_path, get_length=False, upper_sequence=Fals
 
 def measure_time(total):
     hours = total // 3600
-    minutes = (total% 3600) // 60
+    minutes = (total % 3600) // 60
     seconds = total % 60
     if hours != 0:
         return f'{hours}:{minutes:02}:{seconds:02} hours'
@@ -67,12 +70,12 @@ def execute(process, process_is_string=False):
 
 
 def wait_for_results(script_name, path, num_of_expected_results, error_file_path, suffix='done',
-                     remove=False, time_to_wait=10, start=0, error_message=None):
-    '''waits until path contains num_of_expected_results $suffix files'''
+                     time_to_wait=10, start=0, error_message=None, email=None):
+    """waits until path contains num_of_expected_results $suffix files"""
     if not start:
         start = time()
     logger.info(f'Waiting for {script_name}...\nContinues when {num_of_expected_results} results will be in:\n{path}')
-    if num_of_expected_results == 0:
+    if num_of_expected_results == 0 and 'oren' not in email:
         if error_message:
             fail(error_message, error_file_path)
         raise ValueError(f'\n{"#"*100}\nNumber of expected results is {num_of_expected_results}! Something went wrong in the previous analysis steps...\n{"#"*100}')
@@ -92,22 +95,10 @@ def wait_for_results(script_name, path, num_of_expected_results, error_file_path
         i += 1
         if i % 5 == 0:  # print status every 5 cycles of $time_to_wait
             logger.info(f'\t{measure_time(total_time)} have passed since started waiting ({num_of_expected_results} - {current_num_of_results} = {jobs_left} more files are still missing)')
-    # if remove:
-    #     execute(['python', '-u', '/groups/pupko/orenavr2/pipeline/RemoveDoneFiles.py', path, suffix])
+
     end = time()
     logger.info(f'Done waiting for:\n{script_name}\n(took {measure_time(int(end-start))}).\n')
     assert not os.path.exists(error_file_path)
-
-
-# def remove_files_with_suffix(path, suffix='done'):
-#     '''remove all files from path that end with suffix'''
-#     logger.info(f'Removing {suffix} files from {path}')
-#     for file_name in os.listdir(path):
-#         if file_name.endswith(suffix):
-#             file_path = os.path.join(path,file_name)
-#             logger.debug(f'Removing {file_path}')
-#             os.remove(file_path)
-#     logger.info('Done removing.')
 
 
 def prepare_directories(outputs_dir_prefix, tmp_dir_prefix, dir_name):
@@ -122,45 +113,6 @@ def prepare_directories(outputs_dir_prefix, tmp_dir_prefix, dir_name):
     return outputs_dir, tmp_dir
 
 
-def submit_pipeline_step(script_path, params, tmp_dir, job_name, queue_name, new_line_delimiter='!@#',
-                         q_submitter_script_path='/bioseq/bioSequence_scripts_and_constants/q_submitter_power.py',
-                         done_files_script_path='/bioseq/microbializer/auxiliaries/file_writer.py',
-                         required_modules_as_list=None, more_cmds=None, num_of_cpus=1):
-
-    for char in ' ,;()"\'':
-        job_name = job_name.replace(char, '_')
-
-    required_modules_as_str = 'python/python-anaconda3.6.5-orenavr2'
-    if required_modules_as_list:
-        # don't forget a space after the python module!!
-        required_modules_as_str += ' ' + ' '.join(required_modules_as_list)
-    cmds_as_str = f'module load {required_modules_as_str}'
-    cmds_as_str += new_line_delimiter
-
-    if more_cmds:
-        for cmd in more_cmds:
-            #cmds_as_str += ' '.join(['python', '-u', script_path, *cmd]) + ';' #unbuffering
-            cmds_as_str += ' '.join(['python', script_path, *cmd]) + ';' #buffering
-            cmds_as_str += new_line_delimiter  # the queue does not like very long commands so I use a dummy delimiter (!@#) to break the rows in q_submitter
-
-    # ACTUAL COMMAND (last command if it's a batch)
-    #cmds_as_str += ' '.join(['python', '-u', script_path, *params])+';' #unbuffering
-    cmds_as_str += ' '.join(['python', script_path, *params])+';' #buffering
-    cmds_as_str += new_line_delimiter # the queue does not like very long commands so I use a dummy delimiter (!@#) to break the rows in q_submitter
-
-    # GENERATE DONE FILE
-    params = [os.path.join(tmp_dir, job_name + '.done'), ''] # write an empty string (like "touch" command)
-    cmds_as_str += ' '.join(['python', done_files_script_path, *params])+';'
-    cmds_as_str += new_line_delimiter
-
-    cmds_as_str += '\t' + job_name + '\n'
-    logger.debug(cmds_as_str)
-    cmds_path = os.path.join(tmp_dir, job_name + '.cmds')
-    with open(cmds_path, 'w') as f:
-        f.write(cmds_as_str)
-    execute([q_submitter_script_path, cmds_path, tmp_dir, '-q', queue_name, '--cpu', str(num_of_cpus)])
-
-
 def fail(error_msg, error_file_path):
     logger.error(error_msg)
     with open(error_file_path, 'w') as error_f:
@@ -168,13 +120,14 @@ def fail(error_msg, error_file_path):
     raise ValueError(error_msg)
 
 
-def new_submit_pipeline_step(script_path, params_lists, logs_dir, queue_name, q_submitter_script_path,
-                             job_name='', new_line_delimiter='!@#', verbose=False, required_modules_as_list=None,
-                             num_of_cpus=1, done_files_script_path='/bioseq/microbializer/auxiliaries/file_writer.py',
-                             submit_as_a_job=True, done_file_is_needed=True):
+def submit_mini_batch(script_path, mini_batch_parameters_list, logs_dir, queue_name, job_name='',
+                      new_line_delimiter='!@#', verbose=False, required_modules_as_list=None, num_of_cpus=1,
+                      submit_as_a_job=True, done_file_is_needed=True,
+                      q_submitter_script_path=CONSTS.Q_SUBMITTER_PATH,
+                      done_files_script_path='/bioseq/microbializer/pipeline/auxiliaries/file_writer.py'):
     """
     :param script_path:
-    :param params_lists: a list of lists. each sublist corresponds to a single command and contain its parameters
+    :param mini_batch_parameters_list: a list of lists. each sublist corresponds to a single command and contain its parameters
     :param logs_dir:
     :param job_name:
     :param queue_name:
@@ -198,9 +151,9 @@ def new_submit_pipeline_step(script_path, params_lists, logs_dir, queue_name, q_
     shell_cmds_as_str += new_line_delimiter  # several commands that will be split to different lines
                                              # (long lines with ";" are bad practice)
 
-    example_shell_cmd = ' '.join(['python', script_path, *[str(param) for param in params_lists[0]]] + (['-v'] if verbose else [])) + ';'
+    example_shell_cmd = ' '.join(['python', script_path, *[str(param) for param in mini_batch_parameters_list[0]]] + (['-v'] if verbose else [])) + ';'
     # PREPARING RELEVANT COMMANDS
-    for params in params_lists:
+    for params in mini_batch_parameters_list:
         shell_cmds_as_str += ' '.join(['python', script_path, *[str(param) for param in params]] + (['-v'] if verbose else [])) + ';'
         shell_cmds_as_str += new_line_delimiter
 
@@ -224,46 +177,46 @@ def new_submit_pipeline_step(script_path, params_lists, logs_dir, queue_name, q_
     else:
         # fetch directly on shell
         for shell_cmd in shell_cmds_as_str.split(new_line_delimiter):
-            execute(shell_cmd, shell=True)
+            execute(shell_cmd, process_is_string=True)
 
     return example_shell_cmd
 
 
-def submit_batches(script_path, all_cmds_params, logs_dir, job_name_suffix='', queue_name='pupkolabr', num_of_cmds_per_job=1,
-                   q_submitter_script_path='/bioseq/bioSequence_scripts_and_constants/q_submitter_power.py',
-                   new_line_delimiter='!@#', required_modules_as_list=None, num_of_cpus=1):
+def submit_batch(script_path, batch_parameters_list, logs_dir, job_name_suffix='', queue_name='pupkolabr',
+                 num_of_cmds_per_job=1, new_line_delimiter='!@#', required_modules_as_list=None, num_of_cpus=1,
+                 q_submitter_script_path=CONSTS.Q_SUBMITTER_PATH):
     """
-    :param script_path: 
-    :param all_cmds_params: a list of lists. each sublist corresponds to a single command and contain its parameters
-    :param logs_dir: 
+    :param script_path:
+    :param batch_parameters_list: a list of lists. each sublist corresponds to a single command and contain its parameters
+    :param logs_dir:
     :param job_name_suffix: a string that will be concatenated after the batch number as the job name
-    :param queue_name: 
+    :param queue_name:
     :param num_of_cmds_per_job:
     :param q_submitter_script_path: leave it as is
     :param new_line_delimiter: leave it as is
     :param required_modules_as_list: a list of strings containing module names that should be loaded before running
-    :param num_of_cpus: 
+    :param num_of_cpus:
     :return: number of batches submitted (in case waiting for the results) and an example command to debug on the shell
     """
-    num_of_batches = 0
-    example_cmd_from_batch = 'NO COMMANDS WERE FETCHED'
+    num_of_mini_batches = 0
+    example_cmd_from_last_mini_batch = 'NO COMMANDS WERE FETCHED'
 
     if not job_name_suffix:
         job_name_suffix = time()
 
     job_name_suffix = job_name_suffix.replace(' ', '_')  # job name cannot contain spaces!
 
-    for i in range(0, len(all_cmds_params), num_of_cmds_per_job):
-        current_batch_params = all_cmds_params[i: i + num_of_cmds_per_job]
-        example_cmd_from_batch = new_submit_pipeline_step(script_path, current_batch_params, logs_dir, queue_name,
-                                                          q_submitter_script_path, f'{num_of_batches}_{job_name_suffix}',
-                                                          new_line_delimiter, verbose=False,
-                                                          required_modules_as_list=required_modules_as_list,
-                                                          num_of_cpus=num_of_cpus)
-        logger.info(f'Example command from current batch:\n{example_cmd_from_batch}')
-        num_of_batches += 1
+    for i in range(0, len(batch_parameters_list), num_of_cmds_per_job):
+        mini_batch_parameters_list = batch_parameters_list[i: i + num_of_cmds_per_job]
+        example_cmd_from_last_mini_batch = submit_mini_batch(script_path, mini_batch_parameters_list, logs_dir,
+                                                             queue_name, f'{num_of_mini_batches}_{job_name_suffix}',
+                                                             new_line_delimiter, verbose=False, num_of_cpus=num_of_cpus,
+                                                             required_modules_as_list=required_modules_as_list,
+                                                             q_submitter_script_path=q_submitter_script_path)
+        logger.info(f'Example command from current batch:\n{example_cmd_from_last_mini_batch}')
+        num_of_mini_batches += 1
 
-    return num_of_batches, example_cmd_from_batch
+    return num_of_mini_batches, example_cmd_from_last_mini_batch
 
 
 if __name__ == '__main__':
@@ -307,8 +260,8 @@ def notify_admin(meta_output_dir, meta_output_url, run_number, CONSTS):
                sender=CONSTS.ADMIN_EMAIL,
                receiver=CONSTS.OWNER_EMAIL,
                subject=f'{CONSTS.WEBSERVER_NAME} job {run_number} by {email} has been failed: ',
-               content=f"{email}\n\n{os.path.join(meta_output_url, 'output.html')}\n\n"
-               f"{os.path.join(meta_output_url, 'cgi_debug.txt')}\n\n"
+               content=f"{email}\n\n{os.path.join(meta_output_url, CONSTS.RESULT_WEBPAGE_NAME)}\n\n"
+               f"{os.path.join(meta_output_url, CONSTS.CGI_DEBUG_FILE_NAME)}\n\n"
                f"{os.path.join(meta_output_url, error_log_path)}\n\n"
                f"{os.path.join(meta_output_dir, error_log_path.replace('ER', 'OU'))}")
 
@@ -361,10 +314,12 @@ def unpack_data(data_path, meta_output_dir, error_file_path):
         except Exception as e:
             logger.info(e)
             remove_path(data_path)
-            fail(f'Illegal file format. Please upload either a '
+            fail(f'{CONSTS.WEBSERVER_NAME} failed to decompress your data. Please make sure all your FASTA files names '
+                 f'do contain only dashes, dots, and alphanumeric characters (a-z, A-Z, 0-9). Other characters such as '
+                 f'parenthesis, pipes, slashes, are not allowed. Please also make sure your archived file format is legal (either a '
                  f'<a href="https://support.microsoft.com/en-us/help/14200/windows-compress-uncompress-zip-files" target="_blank">.zip</a> file or a '
                  f'<a href="https://linhost.info/2012/08/gzip-files-in-windows/" target="_blank">.tar.gz</a> file in which each file is a '
-                 f'<a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a> containing genomic sequence of a different species',
+                 f'<a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a> containing genomic sequence of a different species).',
                  error_file_path)
         logger.info('Succeeded!')
         # data_path = os.path.join(meta_output_dir, 'data') # e.g., /groups/pupko/orenavr2/microbializer/example_data.tar.gz
@@ -393,3 +348,26 @@ def unpack_data(data_path, meta_output_dir, error_file_path):
             execute(f'gunzip -f "{file_path}"', process_is_string=True)
 
     return data_path
+
+
+def fix_illegal_chars_in_file_name(file_name, illegal_chars='\\|( );,\xa0'):
+    new_file_name = file_name
+    for char in illegal_chars:
+        if char in new_file_name:
+            logger.info(f'File name with illegal character "{char}" was detected!\n')
+            new_file_name = new_file_name.replace(char, '_')
+    return new_file_name
+
+
+def move_file(folder, file_name, new_file_name, error_file_path):
+    # a name replacement was applied. move the file to its new name.
+    try:
+        logger.info(f'Renaming file path from:\n'
+                    f'{os.path.join(folder, file_name)}\n'
+                    f'to this:\n'
+                    f'{os.path.join(folder, new_file_name)}')
+        os.rename(os.path.join(folder, file_name), os.path.join(folder, new_file_name))
+        file_name = new_file_name
+    except:
+        error_msg = f'One (or more) file name(s) contain illegal character such as parenthesis, pipes, or slashes.<br>\nIn order to avoid downstream parsing errors, {CONSTS.WEBSERVER_NAME} automatically replaces these spaces with dashes. For some reason, the replacement for {file_name} failed. Please make sure all your input files names contain only dashes, dots, and alphanumeric characters (a-z, A-Z, 0-9) and re-submit your job.'
+        fail(error_msg, error_file_path)

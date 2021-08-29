@@ -14,7 +14,7 @@ def verify_fasta_format(data_path):
         with open(file_path) as f:
             line_number = 0
             try:
-                line = f.readline()
+                line = f.readline()  # TODO .replace(",", "_")
                 line_number += 1
                 if not line:
                     return f'Illegal <a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a>. First line in "{file_name}" is empty.'
@@ -27,8 +27,8 @@ def verify_fasta_format(data_path):
                     line_number += 1
                     line = line.strip()
                     if not line:
-                        if not putative_end_of_file: # ignore trailing empty lines
-                            putative_end_of_file = line_number
+                        # if not putative_end_of_file: # ignore trailing empty lines
+                        #     putative_end_of_file = line_number
                         continue
                     if putative_end_of_file:  # non empty line after empty line
                         return f'Illegal <a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a>. Line {putative_end_of_file} in "{file_name}" is empty.'
