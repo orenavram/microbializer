@@ -1,8 +1,4 @@
-import os
-import sys
-if os.path.exists('/bioseq'):  # remote run
-    sys.path.insert(0, '/bioseq/microbializer/auxiliaries')
-    from pipeline_auxiliaries import load_header2sequences_dict
+from auxiliaries.pipeline_auxiliaries import load_header2sequences_dict
 
 def induce_sequence(aa_seq, dna_seq):
     result = ''
