@@ -11,7 +11,9 @@ def construct_table(all_reciprocal_hits_path, putative_orthologs_path, delimiter
     member_gene_to_strain_name_dict = {}
     group_name_to_member_genes = {}
     with open(all_reciprocal_hits_path) as f:
-        for line in f:
+        for i, line in enumerate(f):
+            if i % 1_000_000 == 0:
+                logger.info(f'Reciprocal pair number {i}')
             line_tokens = line.rstrip().split(delimiter)
             if 'bitscore' in line:
                 # new reciprocal hits file starts
