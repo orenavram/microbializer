@@ -96,7 +96,7 @@ def prepare_files_for_mcl(all_reciprocal_hits_path, putative_orthologs_path, sta
 
     logger.info('Loading relevant reciprocal hit scores to dictionary...')
     gene_pair_to_score_dict = load_reciprocal_hits_to_dictionary(all_reciprocal_hits_path, group_name_to_combinations, delimiter)
-    logger.info(f'All relevant reciprocal hits dictionary were loaded succesfully. Number of relevant gene pairs is {len(gene_pair_to_score_dict)}.')
+    logger.info(f'All relevant reciprocal hits were loaded successfully. Number of relevant gene pairs is {len(gene_pair_to_score_dict)}.')
 
     for group_name in group_name_to_combinations:
         # create input file for mcl

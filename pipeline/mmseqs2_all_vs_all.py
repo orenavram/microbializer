@@ -9,7 +9,7 @@ def too_many_trials(cmd, error_file_path):
           'Please try to re-submit your job in a few minutes or contact us for further information.'
     if os.path.exists('/bioseq'):  # remote run
         sys.path.insert(0, '/bioseq/microbializer/auxiliaries')
-        from pipeline_auxiliaries import fail
+        from auxiliaries.pipeline_auxiliaries import fail
         # get error_log path
         # e.g., from this aa_db1: /bioseq/data/results/microbializer/159375410340094617808216800611/outputs/02_dbs/SAL_BA5690AA_AS.scaffold_aa
         # into this: /bioseq/data/results/microbializer/159375410340094617808216800611/error.txt
