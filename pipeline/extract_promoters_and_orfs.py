@@ -1,8 +1,4 @@
 import os
-import sys
-if os.path.exists('/bioseq'):  # remote run
-    sys.path.insert(0, '/bioseq/microbializer/auxiliaries')
-    from pipeline_auxiliaries import wait_for_output_folder
 
 
 def get_genome_sequence(genome_path):
@@ -97,6 +93,6 @@ if __name__ == '__main__':
         logging.basicConfig(level=logging.INFO)
         logger = logging.getLogger('main')
 
-        wait_for_output_folder(os.path.split(args.output_path)[0])
+        # wait_for_output_folder(os.path.split(args.output_path)[0])
 
         extract_promoters_and_orfs(args.prodigal_orfs_path, args.genome_path, args.promoters_length, args.output_path)

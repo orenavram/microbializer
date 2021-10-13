@@ -1,8 +1,4 @@
 import os
-import sys
-if os.path.exists('/bioseq'):  # remote run
-    sys.path.insert(0, '/bioseq/microbializer/auxiliaries')
-    from pipeline_auxiliaries import wait_for_output_folder
 
 
 def fna_to_faa(nucleotide_path, protein_path):
@@ -45,6 +41,6 @@ if __name__ == '__main__':
         logging.basicConfig(level=logging.INFO)
         logger = logging.getLogger('main')
 
-        wait_for_output_folder(os.path.split(args.protein_path)[0])
+        # wait_for_output_folder(os.path.split(args.protein_path)[0])
 
         fna_to_faa(args.nucleotide_path, args.protein_path)
