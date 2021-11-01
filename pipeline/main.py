@@ -196,10 +196,10 @@ try:
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                     num_of_cmds_per_job=5,
-                                                     job_name_suffix='search_orfs',
-                                                     queue_name=args.queue_name,
-                                                     required_modules_as_list=[CONSTS.PRODIGAL])
+                                                   num_of_cmds_per_job=5,
+                                                   job_name_suffix='search_orfs',
+                                                   queue_name=args.queue_name,
+                                                   required_modules_as_list=[CONSTS.PRODIGAL])
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)
@@ -210,15 +210,25 @@ try:
 
 
     # make sure that all ORF files contain something....
-    for file in os.listdir(ORFs_dir):
+    missing_orfs = 0
+    error_msg = ''
+    for file in sorted(os.listdir(ORFs_dir)):
         try:
             with open(os.path.join(ORFs_dir, file), 'rb', 0) as orf_f, mmap.mmap(orf_f.fileno(), 0, access=mmap.ACCESS_READ) as s:
                 if s.find(b'>') > -1:
                     continue
         except:
-            error_msg = f'{CONSTS.WEBSERVER_NAME} could not find any ORFs in some of the genomes you provided (e.g., {os.path.splitext(file)[0]}). ' \
-                f'It is recommended to use files that contain at least 20K base pairs (each).'
-            fail(error_msg, error_file_path)
+            if not missing_orfs:
+                # add msg prefix when a genome without orfs detected for the first time
+                error_msg = f'{CONSTS.WEBSERVER_NAME} could not detect any ORFs in the following genomes:\n<br> '
+                missing_orfs = 1
+            # add genome-without-orfs name
+            error_msg += f'{os.path.splitext(file)[0]}\n<br>'
+
+    if missing_orfs:
+        error_msg += f'\n<br>Please remove them from the dataset and rerun the analysis. In general, it is recommended ' \
+            f'to use genomic files that contain at least 20K base pairs (each).'
+        fail(error_msg, error_file_path)
 
 
     # 3.  create_mmseqs2_DB.py
@@ -248,10 +258,10 @@ try:
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                     num_of_cmds_per_job=10,
-                                                     job_name_suffix='DB_creation',
-                                                     queue_name='pupkowebr',
-                                                     required_modules_as_list=[CONSTS.MMSEQS])
+                                                   num_of_cmds_per_job=10,
+                                                   job_name_suffix='DB_creation',
+                                                   queue_name='pupkowebr',
+                                                   required_modules_as_list=[CONSTS.MMSEQS])
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)
@@ -314,10 +324,10 @@ try:
                 all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                     num_of_cmds_per_job=100 if len(os.listdir(ORFs_dir)) > 25 else 5,
-                                                     job_name_suffix='rbh_analysis',
-                                                     queue_name='pupkowebr',
-                                                     required_modules_as_list=[CONSTS.MMSEQS])
+                                                   num_of_cmds_per_job=100 if len(os.listdir(ORFs_dir)) > 25 else 5,
+                                                   job_name_suffix='rbh_analysis',
+                                                   queue_name='pupkowebr',
+                                                   required_modules_as_list=[CONSTS.MMSEQS])
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)
@@ -361,9 +371,9 @@ try:
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                     num_of_cmds_per_job=100 if len(os.listdir(ORFs_dir)) > 100 else 50,
-                                                     job_name_suffix='hits_filtration',
-                                                     queue_name=args.queue_name)
+                                                   num_of_cmds_per_job=100 if len(os.listdir(ORFs_dir)) > 100 else 50,
+                                                   job_name_suffix='hits_filtration',
+                                                   queue_name=args.queue_name)
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)
@@ -448,9 +458,9 @@ try:
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                     num_of_cmds_per_job=25,  # *times* the number of clusters_to_prepare_per_job above. 250 in total per batch!
-                                                     job_name_suffix='mcl_preparation',
-                                                     queue_name=args.queue_name)
+                                                   num_of_cmds_per_job=25,  # *times* the number of clusters_to_prepare_per_job above. 250 in total per batch!
+                                                   job_name_suffix='mcl_preparation',
+                                                   queue_name=args.queue_name)
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)
@@ -483,10 +493,10 @@ try:
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                     num_of_cmds_per_job=100,
-                                                     job_name_suffix='mcl_execution',
-                                                     queue_name=args.queue_name,
-                                                     required_modules_as_list=[CONSTS.MCL])
+                                                   num_of_cmds_per_job=100,
+                                                   job_name_suffix='mcl_execution',
+                                                   queue_name=args.queue_name,
+                                                   required_modules_as_list=[CONSTS.MCL])
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)
@@ -519,9 +529,9 @@ try:
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                     num_of_cmds_per_job=100,
-                                                     job_name_suffix='clusters_verification',
-                                                     queue_name=args.queue_name)
+                                                   num_of_cmds_per_job=100,
+                                                   job_name_suffix='clusters_verification',
+                                                   queue_name=args.queue_name)
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)
@@ -614,9 +624,9 @@ try:
                 all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                     num_of_cmds_per_job=250,
-                                                     job_name_suffix='orfs_extraction',
-                                                     queue_name=args.queue_name)
+                                                   num_of_cmds_per_job=250,
+                                                   job_name_suffix='orfs_extraction',
+                                                   queue_name=args.queue_name)
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)
@@ -647,9 +657,9 @@ try:
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                     num_of_cmds_per_job=250,
-                                                     job_name_suffix='dna_translation',
-                                                     queue_name=args.queue_name)
+                                                   num_of_cmds_per_job=250,
+                                                   job_name_suffix='dna_translation',
+                                                   queue_name=args.queue_name)
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)
@@ -682,11 +692,11 @@ try:
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params,
-                                                     pipeline_step_tmp_dir,
-                                                     num_of_cmds_per_job=100,
-                                                     job_name_suffix='genes_alignment',
-                                                     queue_name=args.queue_name,
-                                                     required_modules_as_list=[CONSTS.MAFFT])
+                                                   pipeline_step_tmp_dir,
+                                                   num_of_cmds_per_job=100,
+                                                   job_name_suffix='genes_alignment',
+                                                   queue_name=args.queue_name,
+                                                   required_modules_as_list=[CONSTS.MAFFT])
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)
@@ -795,10 +805,10 @@ try:
             all_cmds_params.append(single_cmd_params)
 
         num_of_expected_orfs_results, example_cmd = submit_batch(script_path, all_cmds_params,
-                                                                   orfs_statistics_tmp_dir,
-                                                                   num_of_cmds_per_job=200,
-                                                                   job_name_suffix='orfs_statistics',
-                                                                   queue_name=args.queue_name)
+                                                                 orfs_statistics_tmp_dir,
+                                                                 num_of_cmds_per_job=200,
+                                                                 job_name_suffix='orfs_statistics',
+                                                                 queue_name=args.queue_name)
 
         # no need to wait now. Wait before plotting the statistics!
         write_to_file(done_file_path, '.')
@@ -830,10 +840,10 @@ try:
             all_cmds_params.append(single_cmd_params)
 
         num_of_expected_induced_results, example_cmd = submit_batch(script_path, all_cmds_params,
-                                                                      induced_tmp_dir,
-                                                                      num_of_cmds_per_job=250,
-                                                                      job_name_suffix='induce_msa',
-                                                                      queue_name=args.queue_name)
+                                                                    induced_tmp_dir,
+                                                                    num_of_cmds_per_job=250,
+                                                                    job_name_suffix='induce_msa',
+                                                                    queue_name=args.queue_name)
 
         # no need to wait now. Wait before moving the results dir!
         write_to_file(done_file_path, '.')
@@ -1411,9 +1421,4 @@ if status == 'is done':
             # remove intermediate results
             remove_path(path_to_remove)
 
-# remove data
-try:
-    remove_path(unzipped_data_path)
-except:
-    pass
 logger.info('Done.')
