@@ -335,9 +335,9 @@ def unpack_data(data_path, meta_output_dir, error_file_path):
         logger.info(f'first file in {unzipped_data_path} is:\n{file}')
         if os.path.isdir(os.path.join(unzipped_data_path, file)):
             data_path = os.path.join(unzipped_data_path, file)
-            file = [x for x in os.listdir(data_path) if not x.startswith(('_', '.'))][0]
-            if os.path.isdir(os.path.join(data_path, file)):
-                fail('More than a 2-levels folder...', error_file_path)
+            if not [x for x in os.listdir(data_path) if not x.startswith(('_', '.'))]:
+                fail(f'No input files were found in the archived folder.',
+                     error_file_path)
         else:
             data_path = unzipped_data_path
 
@@ -346,6 +346,13 @@ def unpack_data(data_path, meta_output_dir, error_file_path):
         file_path = os.path.join(data_path, file)
         if file_path.endswith('gz'):  # gunzip gz files in $data_path if any
             execute(f'gunzip -f "{file_path}"', process_is_string=True)
+
+    for file in os.listdir(data_path):
+        if os.path.isdir(os.path.join(data_path, file)):
+            fail(f'Please make sure to upload one archived folder containing (only) FASTA files '
+                 f'("{file}" is a folder).', error_file_path)
+        # make sure each fasta has writing permissions for downstream editing
+        os.chmod(os.path.join(data_path, file), 0o644)  # -rw-r--r--
 
     return data_path
 
