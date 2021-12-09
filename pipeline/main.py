@@ -220,14 +220,14 @@ try:
         except:
             if not missing_orfs:
                 # add msg prefix when a genome without orfs detected for the first time
-                error_msg = f'{CONSTS.WEBSERVER_NAME} could not detect any ORFs in the following genomes:\n<br> '
+                error_msg = f'{CONSTS.WEBSERVER_NAME} could not detect any ORFs in:\n<br> '
                 missing_orfs = 1
             # add genome-without-orfs name
             error_msg += f'{os.path.splitext(file)[0]}\n<br>'
 
     if missing_orfs:
-        error_msg += f'\n<br>Please remove them from the dataset and rerun the analysis. In general, it is recommended ' \
-            f'to use genomic files that contain at least 20K base pairs (each).'
+        error_msg += f'\n<br>Please remove the abovementioned from the dataset and re-submit your job. In general, ' \
+                     f'it is recommended to use genomic files that contain at least 20K base pairs (each).'
         fail(error_msg, error_file_path)
 
 
