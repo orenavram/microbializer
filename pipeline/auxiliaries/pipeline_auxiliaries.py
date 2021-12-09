@@ -348,11 +348,17 @@ def unpack_data(data_path, meta_output_dir, error_file_path):
             execute(f'gunzip -f "{file_path}"', process_is_string=True)
 
     for file in os.listdir(data_path):
-        if os.path.isdir(os.path.join(data_path, file)):
-            fail(f'Please make sure to upload one archived folder containing (only) FASTA files '
-                 f'("{file}" is a folder).', error_file_path)
-        # make sure each fasta has writing permissions for downstream editing
-        os.chmod(os.path.join(data_path, file), 0o644)  # -rw-r--r--
+        if not os.path.isdir(os.path.join(data_path, file)):
+            # make sure each fasta has writing permissions for downstream editing
+            os.chmod(os.path.join(data_path, file), 0o644)  # -rw-r--r--
+        else:
+            if file == '__MACOSX':
+                # happens too many times to mac users so i decided to assist in this case
+                logger.info('Removing __MACOSX file...')
+                shutil.rmtree(os.path.join(data_path, file))
+            else:
+                fail(f'Please make sure to upload one archived folder containing (only) FASTA files '
+                     f'("{file}" is a folder).', error_file_path)
 
     return data_path
 
