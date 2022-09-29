@@ -143,6 +143,29 @@ def write_cmds_file(cmds_file, parameters, run_number):
         f.write(f'{" ".join(["python", CONSTS.MAIN_SCRIPT, parameters])}\tmicrobializer_{run_number}')
 
 
+def cleanup_is_running(cgi_debug_path_f, queues = ('pupkolab', 'pupkoweb')):
+    for q in queues:
+        write_to_debug_file(cgi_debug_path_f, f'\nfor q in queues\n')
+        qstat = subprocess.Popen(('qstat', q), stdout=subprocess.PIPE)
+        write_to_debug_file(cgi_debug_path_f, f'\nqstat\n')
+        try:
+            subprocess.check_output(('grep', 'cleanup_microb'), stdin=qstat.stdout).decode()
+            write_to_debug_file(cgi_debug_path_f, f'\ncheck_output\n')
+            # grep didn't crash, i.e., a cleanup is currently running.
+            return True
+        except subprocess.CalledProcessError:
+            # grep returned nothing, i.e., no cleanup is currently running on this q.
+            pass  # Keep checking other queues...
+        except Exception as e:
+            write_to_debug_file(cgi_debug_path_f, f'except Exception as e')
+            write_to_debug_file(cgi_debug_path_f, f'\n{e.args[0]}\n')
+
+    # none of the queues is running cleanup (none of them returned True)
+    return False
+
+
+
+
 def run_cgi():
 
     # prints detailed error report on BROWSER when backend crashes
@@ -316,12 +339,14 @@ def run_cgi():
 
         # run periodical cleanup on the background...
         try:
+            # if not cleanup_is_running(cgi_debug_path_f):
             submission_cmd = f'{CONSTS.Q_SUBMITTER_PATH} {CONSTS.WEBSERVER_RESULTS_DIR}/cleanup_microbializer.cmds {CONSTS.WEBSERVER_RESULTS_DIR}'
-
             write_to_debug_file(cgi_debug_path_f, f'\nSUBMITTING CLEANUP:\n{submission_cmd}\n')
             subprocess.call(submission_cmd, shell=True)
-        except:
-            write_to_debug_file(cgi_debug_path_f, f'\n\n{"%"*50}\nFailed to fetch folders cleanup for some reason...')
+        except Exception as e:
+            write_to_debug_file(cgi_debug_path_f, f'\n\n{"%"*50}\n'
+                                                  f'Crashed when tried to fetch folders cleanup for some reason...\n'
+                                                  f'Error message: {e.args}')
 
         cgi_debug_path_f.close()
 
