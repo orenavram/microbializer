@@ -1,11 +1,7 @@
-import sys
-import os
-
 import argparse
 import mmap
 import pandas as pd
 from auxiliaries.file_writer import write_to_file
-from auxiliaries.email_sender import send_email
 from auxiliaries.input_verifications import verify_fasta_format
 from auxiliaries.pipeline_auxiliaries import *
 from plots_generator import *
@@ -148,7 +144,6 @@ try:
     # Input: (1) an input path for a fasta file with contigs/full genome
     # Output: overrides the original file without plasmids
     # Can be parallelized on cluster
-    # Prodigal ignores newlines in the middle of a sequence, namely, >bac1\nAAA\nAA\nTTT >bac1\nAAAAATTT will be analyzed identically.
     step_number = '01'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_drop_plasmids'
@@ -177,7 +172,7 @@ try:
     # Output: a fasta file where under each header, there’s a single gene.
     # Can be parallelized on cluster
     # Prodigal ignores newlines in the middle of a sequence, namely, >bac1\nAAA\nAA\nTTT >bac1\nAAAAATTT will be analyzed identically.
-    step_number = '02'
+    step_number = orfs_step_number = '02'  # using orfs_step_number for downstream analysis (extract promoter and gene sequences)
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_ORFs'
     script_path = os.path.join(args.src_dir, 'search_orfs.py')
@@ -766,7 +761,7 @@ try:
             else:
                 logger.info(f'Outgroup {args.outgroup} was specified but it is not one of the input species:\n'
                             f'{",".join(sorted(strains_names))}\nAn unrooted tree is going to be reconstructed')
-        if args.bootstrap == 'yes' and number_of_genomes < 120:  # allow bootstrap only for less than 120 genomes
+        if args.bootstrap == 'yes' and (number_of_genomes < 150 or 'oren' in args.email):  # allow bootstrap only for less than 150 genomes
             params += ['--num_of_bootstrap_iterations 100']
 
         submit_mini_batch(script_path, [params], phylogeny_tmp_dir,
@@ -1053,7 +1048,7 @@ if status == 'is done':
             for genome_file in os.listdir(data_path):
                 genome_path = os.path.join(data_path, genome_file)
                 genome_file_prefix = os.path.splitext(genome_file)[0]
-                orfs_path = os.path.join(ORFs_dir, f'{genome_file_prefix}.01_ORFs')
+                orfs_path = os.path.join(ORFs_dir, f'{genome_file_prefix}.{orfs_step_number}_ORFs')
                 output_prefix = os.path.join(pipeline_step_output_dir_21, f'{genome_file_prefix}.promoter_and_orf')
 
                 single_cmd_params = [genome_path, orfs_path, output_prefix,
