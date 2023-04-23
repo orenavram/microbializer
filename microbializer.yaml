@@ -1,0 +1,15 @@
+name: microbializer
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.8
+  - pandas=2.0.0
+  - numpy=1.24.3
+  - seaborn=0.12.2
+  - biopython=1.81
+  - raxml=8.2.12
+  - mafft=7.520
+  - prodigal=2.6.3
+  - mmseqs2=14.7e284
+  - mcl=14.137

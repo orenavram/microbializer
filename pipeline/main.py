@@ -1,11 +1,24 @@
 import argparse
 import mmap
 import pandas as pd
+import os
+import sys
+from time import time, sleep, ctime
+import shutil
+import logging
+import matplotlib.pyplot as plt
+import numpy as np
+
+from auxiliaries.email_sender import send_email
 from auxiliaries.file_writer import write_to_file
 from auxiliaries.input_verifications import verify_fasta_format
-from auxiliaries.pipeline_auxiliaries import *
-from plots_generator import *
+from auxiliaries.pipeline_auxiliaries import load_header2sequences_dict, measure_time, execute, wait_for_results, \
+    prepare_directories, fail, submit_mini_batch, submit_batch, remove_bootstrap_values, \
+    notify_admin, add_results_to_final_dir, remove_path, unpack_data, fix_illegal_chars_in_file_name, move_file
+from plots_generator import generate_boxplot, generate_bar_plot
 from html_editor import edit_success_html, edit_failure_html, edit_progress
+import CONSTANTS as CONSTS
+
 
 try:
     print(f'sys.path is\n{sys.path}')
