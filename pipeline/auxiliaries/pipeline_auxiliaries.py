@@ -2,7 +2,7 @@ import sys
 
 import CONSTANTS as CONSTS
 
-sys.path.append('/bioseq/bioSequence_scripts_and_constants/')  # ADD file_writer
+#sys.path.append('/bioseq/bioSequence_scripts_and_constants/')  # ADD file_writer
 
 import shutil
 import subprocess
@@ -10,7 +10,8 @@ import os
 import logging
 import tarfile
 from time import time, sleep, ctime
-from email_sender import send_email
+from .q_submitter_power import submit_cmds_from_file_to_q
+from .email_sender import send_email
 
 logger = logging.getLogger('main')  # use logger instead of printing
 
@@ -124,7 +125,7 @@ def submit_mini_batch(script_path, mini_batch_parameters_list, logs_dir, queue_n
                       new_line_delimiter='!@#', verbose=False, required_modules_as_list=None, num_of_cpus=1,
                       submit_as_a_job=True, done_file_is_needed=True,
                       q_submitter_script_path=CONSTS.Q_SUBMITTER_PATH,
-                      done_files_script_path='/bioseq/microbializer/pipeline/auxiliaries/file_writer.py'):
+                      done_files_script_path=os.path.join(CONSTS.PROJECT_ROOT_DIR, 'pipeline/auxiliaries/file_writer.py')):
     """
     :param script_path:
     :param mini_batch_parameters_list: a list of lists. each sublist corresponds to a single command and contain its parameters
@@ -141,15 +142,17 @@ def submit_mini_batch(script_path, mini_batch_parameters_list, logs_dir, queue_n
     :return: an example command to debug on the shell
     """
 
-    # COMMAND FOR LOADING RELEVANT MODULES
-    required_modules_as_str = 'python/python-anaconda3.6.5'
-    if required_modules_as_list:
-        # don't forget a space after the python module!!
-        required_modules_as_str += ' ' + ' '.join(required_modules_as_list)
+    shell_cmds_as_str = ''
+    if not CONSTS.V2_TEST:
+        # COMMAND FOR LOADING RELEVANT MODULES
+        required_modules_as_str = 'python/python-anaconda3.6.5'
+        if required_modules_as_list:
+            # don't forget a space after the python module!!
+            required_modules_as_str += ' ' + ' '.join(required_modules_as_list)
 
-    shell_cmds_as_str = f'module load {required_modules_as_str}'
-    shell_cmds_as_str += new_line_delimiter  # several commands that will be split to different lines
-                                             # (long lines with ";" are bad practice)
+        shell_cmds_as_str = f'module load {required_modules_as_str}'
+        shell_cmds_as_str += new_line_delimiter  # several commands that will be split to different lines
+                                                 # (long lines with ";" are bad practice)
 
     example_shell_cmd = ' '.join(['python', script_path, *[str(param) for param in mini_batch_parameters_list[0]]] + (['-v'] if verbose else [])) + ';'
     # PREPARING RELEVANT COMMANDS
@@ -173,7 +176,10 @@ def submit_mini_batch(script_path, mini_batch_parameters_list, logs_dir, queue_n
             f.write(f'{shell_cmds_as_str}\t{job_name}\n')  # ADDING THE JOB NAME
 
         job_cmd = [q_submitter_script_path, cmds_path, logs_dir, '-q', queue_name, '--cpu', str(num_of_cpus)]
-        execute(job_cmd)
+        if CONSTS.V2_TEST:
+            submit_cmds_from_file_to_q(cmds_path, logs_dir, queue_name, str(num_of_cpus))
+        else:
+            execute(job_cmd)
     else:
         # fetch directly on shell
         for shell_cmd in shell_cmds_as_str.split(new_line_delimiter):

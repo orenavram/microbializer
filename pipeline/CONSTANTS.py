@@ -4,13 +4,20 @@
 # this file should be saved as part of the pipeline and the cgi should import it rather than copy it twice! #
 #############################################################################################################
 
-import os
+import os.path
+
+V2_TEST = True
+V2_TEST_HOME_DIR = '/groups/pupko/yairshimony'
+V2_TEST_PROJECT_ROOT_DIR = os.path.join(V2_TEST_HOME_DIR, 'microbializer')
+PRODUCTION_PROJECT_ROOT_DIR = '/bioseq/microbializer'
+
+PROJECT_ROOT_DIR = V2_TEST_PROJECT_ROOT_DIR if V2_TEST else PRODUCTION_PROJECT_ROOT_DIR
 
 # constants to use when sending e-mails using the server admin's email address.
 ADMIN_EMAIL = 'TAU BioSequence <bioSequence@tauex.tau.ac.il>'
 SMTP_SERVER = 'mxout.tau.ac.il'
 
-OWNER_EMAIL = 'orenavram@gmail.com'
+OWNER_EMAIL = 'yairshimony@mail.tau.ac.il' if V2_TEST else 'orenavram@gmail.com'
 
 # general vars
 SERVERS_RESULTS_DIR = '/bioseq/data/results'
@@ -36,7 +43,8 @@ WEBSERVER_HTML_DIR = '/data/www/html/microbializer'
 
 WEBSERVER_RESULTS_URL = os.path.join(WEBSERVER_URL, 'results')
 
-Q_SUBMITTER_PATH = '/bioseq/bioSequence_scripts_and_constants/q_submitter_power.py'
+Q_SUBMITTER_PATH = os.path.join(PROJECT_ROOT_DIR, 'pipeline/auxiliaries/q_submitter_power.py') if V2_TEST else\
+    '/bioseq/bioSequence_scripts_and_constants/q_submitter_power.py'
 MAIN_SCRIPT = '/bioseq/microbializer/pipeline/main.py'
 SUBMISSIONS_LOG = '/bioseq/microbializer/submissions_log.txt'
 EMAIL_FILE_NAME = 'email.txt'

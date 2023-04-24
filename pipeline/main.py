@@ -26,17 +26,19 @@ try:
     start = time()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('contigs_dir', help='path to a folder with the genomic sequences. This folder may be zipped, as well the files in it.',
-                        type=lambda path: path.rstrip('/') if os.path.exists(path) else parser.error(f'{path} does not exist!'))
-    parser.add_argument('output_dir', help='directory where the output files will be written to',
-                        type=lambda path: path.rstrip('/'))
+    parser.add_argument('--contigs_dir', help='path to a folder with the genomic sequences. This folder may be zipped, as well the files in it.',
+                        type=lambda path: path.rstrip('/') if os.path.exists(path) else parser.error(f'{path} does not exist!'),
+                        default=os.path.join(CONSTS.V2_TEST_HOME_DIR, 'microbializer_test/mini_example'))
+    parser.add_argument('--output_dir', help='directory where the output files will be written to',
+                        type=lambda path: path.rstrip('/'),
+                        default=os.path.join(CONSTS.V2_TEST_HOME_DIR, 'microbializer_test/outputs'))
     parser.add_argument('--email', help='A notification will be sent once the pipeline is done',
                         default=CONSTS.OWNER_EMAIL)
     parser.add_argument('--identity_cutoff', default=80, type=lambda x: eval(x),
                         help='minimum required percent of identity level (lower values will be filtered out)')
     parser.add_argument('--e_value_cutoff', default=0.01, type=lambda x: eval(x), # if 0 <= eval(x) <= 100 else parser.error(f"Can't use {x} as percent!"),
                         help='maxmimum permitted e-value (0 <= e_value_cutoff <= 1; higher values will be filtered out).')
-    parser.add_argument('--core_minimal_percentage', default=99.9, type=lambda x: eval(x), # if 0 <= eval(x) <= 100 else parser.error(f"Can't use {x} as percent!"),
+    parser.add_argument('--core_minimal_percentage', default=100.0, type=lambda x: eval(x), # if 0 <= eval(x) <= 100 else parser.error(f"Can't use {x} as percent!"),
                         help='the minimum required percent of gene members that is needed to be considered a core gene. For example: (1) 100 means that for a gene to be considered core, all strains should have a member in the group.\n(2) 50 means that for a gene to be considered core, at least half of the strains should have a member in the group.\n(3) 0 means that every gene should be considered as a core gene.')
     parser.add_argument('--bootstrap', default='no', choices=['yes', 'no'],
                         help='whether or not to apply bootstrap procedure over the reconstructed species tree.')
@@ -49,11 +51,11 @@ try:
                         help='MSAs with fewer sequences will be ignore in the sweeps analysis.',
                         type=lambda x: int(x) if int(x) > 4 else parser.error(
                             f'Minimal number of sequences required for sweeps analysis is 5!'))
-    parser.add_argument('-q', '--queue_name', help='The cluster to which the job(s) will be submitted to', default='pupkotmpr')  # , choices=['pupkoweb', 'pupkowebr', 'pupkolab', 'pupkolabr', 'pupkotmp', 'pupkotmpr', 'itaym', 'lilach', 'bioseq', 'bental', 'oren.q', 'bioseq20.q'])
+    parser.add_argument('-q', '--queue_name', help='The cluster to which the job(s) will be submitted to', default='power-pupko')  # , choices=['pupkoweb', 'pupkowebr', 'pupkolab', 'pupkolabr', 'pupkotmp', 'pupkotmpr', 'itaym', 'lilach', 'bioseq', 'bental', 'oren.q', 'bioseq20.q'])
     parser.add_argument('--dummy_delimiter',
                         help='The queue does not "like" very long commands. A dummy delimiter is used to break each row into different commands of a single job',
                         default='!@#')
-    parser.add_argument('--src_dir', help='source code directory', type=lambda s: s.rstrip('/'), default='/bioseq/microbializer/pipeline')
+    parser.add_argument('--src_dir', help='source code directory', type=lambda s: s.rstrip('/'), default=os.path.join(CONSTS.PROJECT_ROOT_DIR, 'pipeline'))
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     args = parser.parse_args()
 
@@ -76,21 +78,27 @@ try:
     run_number = os.path.join(os.path.split(meta_output_dir)[1])
     logger.info(f'run_number is {run_number}')
 
-    output_html_path = os.path.join(meta_output_dir, CONSTS.RESULT_WEBPAGE_NAME)
-    logger.info(f'output_html_path is {output_html_path}')
+    if not CONSTS.V2_TEST:
+        output_html_path = os.path.join(meta_output_dir, CONSTS.RESULT_WEBPAGE_NAME)
+        logger.info(f'output_html_path is {output_html_path}')
 
-    with open(output_html_path) as f:
-        html_content = f.read()
-    html_content = html_content.replace('QUEUED', 'RUNNING')
-    if 'progress-bar-striped active' not in html_content:
-        html_content = html_content.replace('progress-bar-striped', 'progress-bar-striped active')
-    with open(output_html_path, 'w') as f:
-        f.write(html_content)
+        with open(output_html_path) as f:
+            html_content = f.read()
+        html_content = html_content.replace('QUEUED', 'RUNNING')
+        if 'progress-bar-striped active' not in html_content:
+            html_content = html_content.replace('progress-bar-striped', 'progress-bar-striped active')
+        with open(output_html_path, 'w') as f:
+            f.write(html_content)
 
-    output_url = os.path.join(CONSTS.WEBSERVER_RESULTS_URL, run_number, CONSTS.RESULT_WEBPAGE_NAME)
-    logger.info(f'output_url is {output_url}')
+        output_url = os.path.join(CONSTS.WEBSERVER_RESULTS_URL, run_number, CONSTS.RESULT_WEBPAGE_NAME)
+        logger.info(f'output_url is {output_url}')
 
-    meta_output_url = os.path.join(CONSTS.WEBSERVER_RESULTS_URL, run_number)
+        meta_output_url = os.path.join(CONSTS.WEBSERVER_RESULTS_URL, run_number)
+    else:
+        output_html_path = ''
+        meta_output_url = ''
+        output_url = ''
+
 
     tmp_dir = os.path.join(args.output_dir, 'tmp')
     logger.info(f'{ctime()}: Creating {tmp_dir}\n')
@@ -210,7 +218,7 @@ try:
                                                    required_modules_as_list=[CONSTS.PRODIGAL])
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
-                         num_of_batches, error_file_path)
+                         num_of_batches, error_file_path, email=args.email)
         write_to_file(done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
@@ -268,11 +276,11 @@ try:
         num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                    num_of_cmds_per_job=10,
                                                    job_name_suffix='DB_creation',
-                                                   queue_name='pupkowebr',
+                                                   queue_name=args.queue_name,
                                                    required_modules_as_list=[CONSTS.MMSEQS])
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
-                         num_of_batches, error_file_path)
+                         num_of_batches, error_file_path, email=args.email)
 
         write_to_file(done_file_path, '.')
     else:
@@ -334,11 +342,11 @@ try:
         num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                    num_of_cmds_per_job=100 if len(os.listdir(ORFs_dir)) > 25 else 5,
                                                    job_name_suffix='rbh_analysis',
-                                                   queue_name='pupkowebr',
+                                                   queue_name=args.queue_name,
                                                    required_modules_as_list=[CONSTS.MMSEQS])
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
-                         num_of_batches, error_file_path)
+                         num_of_batches, error_file_path, email=args.email)
 
         write_to_file(done_file_path, '.')
     else:
@@ -384,7 +392,7 @@ try:
                                                    queue_name=args.queue_name)
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
-                         num_of_batches, error_file_path)
+                         num_of_batches, error_file_path, email=args.email)
         write_to_file(done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
@@ -428,7 +436,7 @@ try:
                   putative_orthologs_table_path]
         submit_mini_batch(script_path, [params], pipeline_step_tmp_dir, args.queue_name, job_name=job_name)
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
-                         num_of_expected_results=1, error_file_path=error_file_path)
+                         num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
         write_to_file(done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
@@ -471,7 +479,7 @@ try:
                                                    queue_name=args.queue_name)
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
-                         num_of_batches, error_file_path)
+                         num_of_batches, error_file_path, email=args.email)
         write_to_file(done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
@@ -507,7 +515,7 @@ try:
                                                    required_modules_as_list=[CONSTS.MCL])
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
-                         num_of_batches, error_file_path)
+                         num_of_batches, error_file_path, email=args.email)
         write_to_file(done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
@@ -542,7 +550,7 @@ try:
                                                    queue_name=args.queue_name)
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
-                         num_of_batches, error_file_path)
+                         num_of_batches, error_file_path, email=args.email)
         write_to_file(done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
@@ -576,7 +584,7 @@ try:
                          num_of_expected_results=1, error_file_path=error_file_path,
                          error_message='No ortholog groups were detected in your dataset. Please try to lower '
                                        'the similarity parameters (see Advanced Options in the submission page) '
-                                       'and re-submit your job.')
+                                       'and re-submit your job.', email=args.email)
 
         write_to_file(done_file_path, '.')
     else:
@@ -637,7 +645,7 @@ try:
                                                    queue_name=args.queue_name)
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
-                         num_of_batches, error_file_path)
+                         num_of_batches, error_file_path, email=args.email)
         write_to_file(done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
@@ -670,7 +678,7 @@ try:
                                                    queue_name=args.queue_name)
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
-                         num_of_batches, error_file_path)
+                         num_of_batches, error_file_path, email=args.email)
 
         write_to_file(done_file_path, '.')
     else:
@@ -707,7 +715,7 @@ try:
                                                    required_modules_as_list=[CONSTS.MAFFT])
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
-                         num_of_batches, error_file_path)
+                         num_of_batches, error_file_path, email=args.email)
 
         write_to_file(done_file_path, '.')
     else:
@@ -742,7 +750,7 @@ try:
 
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
-                         num_of_expected_results=1, error_file_path=error_file_path)
+                         num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
         write_to_file(done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
@@ -902,7 +910,7 @@ try:
     if not os.path.exists(done_file_path):
 
         wait_for_results('extract_orfs_statistics.py', orfs_statistics_tmp_dir,
-                         num_of_expected_orfs_results, error_file_path=error_file_path, start=start_orf_stats)
+                         num_of_expected_orfs_results, error_file_path=error_file_path, start=start_orf_stats, email=args.email)
 
         logger.info('Concatenating orfs counts...')
         execute(f'cat {orfs_statistics_path}/*.orfs_count > {orfs_counts_frequency_file}', process_is_string=True)
@@ -1075,7 +1083,7 @@ if status == 'is done':
                                                          required_modules_as_list=[CONSTS.MAFFT])
 
             wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
-                             num_of_batches, error_file_path)
+                             num_of_batches, error_file_path, email=args.email)
 
             write_to_file(done_file_path, '.')
         else:
@@ -1130,7 +1138,7 @@ if status == 'is done':
                                                          queue_name=args.queue_name)
 
             wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
-                             num_of_batches, error_file_path)
+                             num_of_batches, error_file_path, email=args.email)
 
             write_to_file(done_file_path, '.')
         else:
@@ -1162,7 +1170,7 @@ if status == 'is done':
                                                          required_modules_as_list=[CONSTS.MAFFT])
 
             wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
-                             num_of_batches, error_file_path)
+                             num_of_batches, error_file_path, email=args.email)
 
             write_to_file(done_file_path, '.')
         else:
@@ -1200,7 +1208,7 @@ if status == 'is done':
                                                          job_name_suffix='adjust_tree', queue_name=args.queue_name)
 
             wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
-                             num_of_batches, error_file_path)
+                             num_of_batches, error_file_path, email=args.email)
 
             write_to_file(done_file_path, '.')
         else:
@@ -1233,7 +1241,7 @@ if status == 'is done':
                                                          job_name_suffix='fix_msa', queue_name=args.queue_name)
 
             wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
-                             num_of_batches, error_file_path)
+                             num_of_batches, error_file_path, email=args.email)
 
             write_to_file(done_file_path, '.')
         else:
@@ -1270,7 +1278,7 @@ if status == 'is done':
                                                          required_modules_as_list=[CONSTS.GCC])
 
             wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
-                             num_of_batches, error_file_path)
+                             num_of_batches, error_file_path, email=args.email)
 
             write_to_file(done_file_path, '.')
         else:
@@ -1309,7 +1317,7 @@ if status == 'is done':
                                                          num_of_cmds_per_job=100)
 
             wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
-                             num_of_batches, error_file_path)
+                             num_of_batches, error_file_path, email=args.email)
 
             write_to_file(done_file_path, '.')
         else:
