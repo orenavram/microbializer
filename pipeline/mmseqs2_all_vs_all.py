@@ -1,7 +1,7 @@
 import os
 import subprocess
-import time
 import sys
+import time
 
 
 def too_many_trials(cmd, error_file_path):

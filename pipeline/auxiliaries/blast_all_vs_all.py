@@ -1,10 +1,10 @@
 def blast_all_vs_all(program, query_seq, reference_DB, output_path):
-    '''
+    """
     input:  type of blast to run(blastn/blastp)
             fasta file of query genome
             blast DB file
     output: query_vs_reference blast results file
-    '''
+    """
     cmd = f'{program} -query {query_seq} -db {reference_DB} -out {output_path} -max_target_seqs 1 -max_hsps 1 -outfmt 6'
     logger.info(f'Calling:\n{cmd}')
     import subprocess

@@ -1,4 +1,3 @@
-#!/powerapps/share/centos7/Python-3.6.7/bin/python
 # -*- coding: utf-8 -*-
 """
 Created on Sun Oct 22 10:16:41 2017
@@ -6,14 +5,13 @@ Created on Sun Oct 22 10:16:41 2017
 @author: Oren
 """
 
-import os
 import argparse
 import logging
-
-logger = logging.getLogger('main')
-
+import os
 from subprocess import call
 import CONSTANTS as CONSTS
+
+logger = logging.getLogger('main')
 
 
 def generate_qsub_file(queue_name, tmp_dir, cmd, prefix_name, qsub_path, CPUs):
@@ -31,7 +29,7 @@ def generate_qsub_file(queue_name, tmp_dir, cmd, prefix_name, qsub_path, CPUs):
     qsub_file_content += f'echo job_name: {prefix_name}\n'
     qsub_file_content += f'echo $PBS_JOBID\n'
 
-    if CONSTS.V2_TEST:
+    if CONSTS.USE_CONDA:
         qsub_file_content += 'source ~/.bashrc\n'
         qsub_file_content += 'conda activate microbializer\n'
         qsub_file_content += 'export PATH=$CONDA_PREFIX/bin:$PATH\n'
@@ -75,7 +73,7 @@ def submit_cmds_from_file_to_q(cmds_file, tmp_dir, queue_name, CPUs, dummy_delim
                 # execute the job
                 # queue_name may contain more arguments, thus the string of the cmd is generated and raw cmd is called
 
-                if CONSTS.V2_TEST:
+                if CONSTS.TEST:
                     terminal_cmd = f'/opt/pbs/bin/qsub {qsub_path} {additional_params}'
                 else:
                     terminal_cmd = f'ssh power9login "/opt/pbs/bin/qsub {qsub_path} {additional_params}"'  # FIX by danny 5-1-2023

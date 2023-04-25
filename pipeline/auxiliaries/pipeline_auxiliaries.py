@@ -1,17 +1,13 @@
-
-
-import CONSTANTS as CONSTS
-
-# sys.path.append('/bioseq/bioSequence_scripts_and_constants/')  # ADD file_writer
-
+import logging
+import os
 import shutil
 import subprocess
-import os
-import logging
 import tarfile
 from time import time, sleep, ctime
-from .q_submitter_power import submit_cmds_from_file_to_q
+
+import CONSTANTS as CONSTS
 from .email_sender import send_email
+from .q_submitter_power import submit_cmds_from_file_to_q
 
 logger = logging.getLogger('main')  # use logger instead of printing
 
@@ -146,7 +142,7 @@ def submit_mini_batch(script_path, mini_batch_parameters_list, logs_dir, queue_n
     """
 
     shell_cmds_as_str = ''
-    if not CONSTS.V2_TEST:
+    if not CONSTS.USE_CONDA:
         # COMMAND FOR LOADING RELEVANT MODULES
         required_modules_as_str = 'python/python-anaconda3.6.5'
         if required_modules_as_list:
@@ -180,11 +176,7 @@ def submit_mini_batch(script_path, mini_batch_parameters_list, logs_dir, queue_n
         with open(cmds_path, 'w') as f:
             f.write(f'{shell_cmds_as_str}\t{job_name}\n')  # ADDING THE JOB NAME
 
-        job_cmd = [q_submitter_script_path, cmds_path, logs_dir, '-q', queue_name, '--cpu', str(num_of_cpus)]
-        if CONSTS.V2_TEST:
-            submit_cmds_from_file_to_q(cmds_path, logs_dir, queue_name, str(num_of_cpus))
-        else:
-            execute(job_cmd)
+        submit_cmds_from_file_to_q(cmds_path, logs_dir, queue_name, str(num_of_cpus))
     else:
         # fetch directly on shell
         for shell_cmd in shell_cmds_as_str.split(new_line_delimiter):
@@ -254,7 +246,7 @@ def remove_bootstrap_values(in_tree_path, out_tree_path):
         f.write(tree_as_str)
 
 
-def notify_admin(meta_output_dir, meta_output_url, run_number, CONSTS):
+def notify_admin(meta_output_dir, meta_output_url, run_number):
     email = 'NO_EMAIL'
     user_email_path = os.path.join(meta_output_dir, CONSTS.EMAIL_FILE_NAME)
     if os.path.exists(user_email_path):

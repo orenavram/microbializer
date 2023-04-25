@@ -10,7 +10,6 @@ import mmap
 import numpy as np
 import pandas as pd
 
-import CONSTANTS as CONSTS
 from auxiliaries.email_sender import send_email
 from auxiliaries.file_writer import write_to_file
 from auxiliaries.input_verifications import verify_fasta_format
@@ -18,6 +17,7 @@ from auxiliaries.pipeline_auxiliaries import load_header2sequences_dict, measure
     prepare_directories, fail, submit_mini_batch, submit_batch, remove_bootstrap_values, \
     notify_admin, add_results_to_final_dir, remove_path, unpack_data, fix_illegal_chars_in_file_name, move_file
 from html_editor import edit_success_html, edit_failure_html, edit_progress
+from auxiliaries import CONSTANTS as CONSTS
 from plots_generator import generate_boxplot, generate_bar_plot
 
 try:
@@ -1015,7 +1015,7 @@ try:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
 
     logger.info('Editing results html...')
-    edit_success_html(output_html_path, meta_output_dir, final_output_dir_name, run_number, CONSTS)
+    edit_success_html(output_html_path, meta_output_dir, final_output_dir_name, run_number)
 
     edit_progress(output_html_path, progress=100, active=False)
 
@@ -1037,10 +1037,10 @@ except Exception as e:
     logger.error(
         f'\n\n{"$" * 100}\n\n{error_msg}\n\n{fname}: {exc_type}, at line: {exc_tb.tb_lineno}\n\ne: {e}\n\n{"$" * 100}')
 
-    edit_failure_html(output_html_path, run_number, error_msg, CONSTS)
+    edit_failure_html(output_html_path, run_number, error_msg)
     edit_progress(output_html_path, active=False)
 
-    notify_admin(meta_output_dir, meta_output_url, run_number, CONSTS)
+    notify_admin(meta_output_dir, meta_output_url, run_number)
 
 end = time()
 

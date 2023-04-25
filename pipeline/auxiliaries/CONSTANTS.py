@@ -1,17 +1,16 @@
-#!/powerapps/share/centos7/python-anaconda3.6.5/bin/python
-
 #############################################################################################################
 # this file should be saved as part of the pipeline and the cgi should import it rather than copy it twice! #
 #############################################################################################################
 
 import os.path
 
-V2_TEST = True
+TEST = True
+USE_CONDA = True
 IGNORE_HTML = True
 CLEAN_OUTPUTS_AFTER_RUN = False
 
-PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer' if V2_TEST else '/bioseq/microbializer'
-OWNER_EMAIL = 'yairshimony@mail.tau.ac.il' if V2_TEST else 'orenavram@gmail.com'
+PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer' if TEST else '/bioseq/microbializer'
+OWNER_EMAIL = 'yairshimony@mail.tau.ac.il' if TEST else 'orenavram@gmail.com'
 
 # constants to use when sending e-mails using the server admin's email address.
 ADMIN_EMAIL = 'TAU BioSequence <bioSequence@tauex.tau.ac.il>'
@@ -41,8 +40,7 @@ WEBSERVER_HTML_DIR = '/data/www/html/microbializer'
 
 WEBSERVER_RESULTS_URL = os.path.join(WEBSERVER_URL, 'results')
 
-Q_SUBMITTER_PATH = os.path.join(PROJECT_ROOT_DIR, 'pipeline/auxiliaries/q_submitter_power.py') if V2_TEST else \
-    '/bioseq/bioSequence_scripts_and_constants/q_submitter_power.py'
+Q_SUBMITTER_PATH = os.path.join(PROJECT_ROOT_DIR, 'pipeline/auxiliaries/q_submitter_power.py')
 MAIN_SCRIPT = '/bioseq/microbializer/pipeline/main.py'
 SUBMISSIONS_LOG = '/bioseq/microbializer/submissions_log.txt'
 EMAIL_FILE_NAME = 'email.txt'

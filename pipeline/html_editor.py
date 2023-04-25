@@ -1,12 +1,11 @@
-import os
 import logging
+import os
+from auxiliaries import CONSTANTS as CONSTS
 
 logger = logging.getLogger('main')
 
-import CONSTANTS as CONSTS
 
-
-def add_closing_html_tags(html_path, CONSTS, run_number):
+def add_closing_html_tags(html_path, run_number):
     with open(html_path, 'a') as f:
         f.write(
             f'<hr>\n<h4 class=footer><p align=\'center\'>Questions and comments are welcome! Please '
@@ -30,8 +29,8 @@ def add_closing_html_tags(html_path, CONSTS, run_number):
         f.write(html_content)
 
 
-def get_html_string_of_restult(final_output_dir_name, meta_output_dir, end_of_str, figure_str_to_show_on_html='',
-                               raw_str_to_show_on_html='raw data', additional_text=''):
+def get_html_string_of_result(final_output_dir_name, meta_output_dir, end_of_str, figure_str_to_show_on_html='',
+                              raw_str_to_show_on_html='raw data', additional_text=''):
     result = '<tr><td>'
     raw_file_suffix = os.path.join(final_output_dir_name, end_of_str)
     if os.path.exists(os.path.join(meta_output_dir, raw_file_suffix)):
@@ -47,7 +46,7 @@ def get_html_string_of_restult(final_output_dir_name, meta_output_dir, end_of_st
     return result
 
 
-def edit_success_html(html_path, meta_output_dir, final_output_dir_name, run_number, CONSTS):
+def edit_success_html(html_path, meta_output_dir, final_output_dir_name, run_number):
     if CONSTS.IGNORE_HTML:
         return
 
@@ -81,31 +80,31 @@ def edit_success_html(html_path, meta_output_dir, final_output_dir_name, run_num
                      f'(<a href="https://microbializer.tau.ac.il/faq.html#no_tree" target="_blank">Why?</a>)\n' \
                      f'<br></td></tr>'
 
-    html_text += get_html_string_of_restult(final_output_dir_name,
-                                            meta_output_dir,
+    html_text += get_html_string_of_result(final_output_dir_name,
+                                           meta_output_dir,
                                             '19_groups_sizes_frequency/groups_sizes_frequency.txt',
-                                            figure_str_to_show_on_html='Orthologs groups size dispersion')
+                                           figure_str_to_show_on_html='Orthologs groups size dispersion')
 
-    html_text += get_html_string_of_restult(final_output_dir_name,
-                                            meta_output_dir,
+    html_text += get_html_string_of_result(final_output_dir_name,
+                                           meta_output_dir,
                                             '20_orfs_plots/orfs_counts.txt',
-                                            figure_str_to_show_on_html='ORFs per genome dispersion')
+                                           figure_str_to_show_on_html='ORFs per genome dispersion')
 
-    html_text += get_html_string_of_restult(final_output_dir_name,
-                                            meta_output_dir,
+    html_text += get_html_string_of_result(final_output_dir_name,
+                                           meta_output_dir,
                                             '20_orfs_plots/orfs_gc_contents.txt',
-                                            figure_str_to_show_on_html='GC content per genome dispersion')
+                                           figure_str_to_show_on_html='GC content per genome dispersion')
 
-    html_text += get_html_string_of_restult(final_output_dir_name,
-                                            meta_output_dir,
+    html_text += get_html_string_of_result(final_output_dir_name,
+                                           meta_output_dir,
                                             '11_final_table/final_orthologs_table.csv',
-                                            raw_str_to_show_on_html='Orthologs groups table')
+                                           raw_str_to_show_on_html='Orthologs groups table')
 
-    html_text += get_html_string_of_restult(final_output_dir_name,
-                                            meta_output_dir,
+    html_text += get_html_string_of_result(final_output_dir_name,
+                                           meta_output_dir,
                                             '11_final_table/phyletic_pattern.fas',
-                                            raw_str_to_show_on_html='Phyletic pattern',
-                                            additional_text='&nbsp;(Further analyze gain/loss dynamics with <a href="http://gloome.tau.ac.il/" target="_blank">GLOOME</a>)')
+                                           raw_str_to_show_on_html='Phyletic pattern',
+                                           additional_text='&nbsp;(Further analyze gain/loss dynamics with <a href="http://gloome.tau.ac.il/" target="_blank">GLOOME</a>)')
 
     html_text += f'</tbody></table>\n</div>\n'
 
@@ -116,7 +115,7 @@ def edit_success_html(html_path, meta_output_dir, final_output_dir_name, run_num
     add_closing_html_tags(html_path, CONSTS, run_number)
 
 
-def edit_failure_html(html_path, run_number, msg, CONSTS):
+def edit_failure_html(html_path, run_number, msg):
     if CONSTS.IGNORE_HTML:
         return
 

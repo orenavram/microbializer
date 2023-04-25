@@ -1,6 +1,7 @@
-import os
-import Bio.SeqUtils
 import logging
+import os
+
+import Bio.SeqUtils
 
 logger = logging.getLogger('main')
 
