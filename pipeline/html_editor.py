@@ -1,5 +1,6 @@
 import os
 import logging
+
 logger = logging.getLogger('main')
 
 import CONSTANTS as CONSTS
@@ -29,7 +30,8 @@ def add_closing_html_tags(html_path, CONSTS, run_number):
         f.write(html_content)
 
 
-def get_html_string_of_restult(final_output_dir_name, meta_output_dir, end_of_str, figure_str_to_show_on_html='', raw_str_to_show_on_html='raw data', additional_text=''):
+def get_html_string_of_restult(final_output_dir_name, meta_output_dir, end_of_str, figure_str_to_show_on_html='',
+                               raw_str_to_show_on_html='raw data', additional_text=''):
     result = '<tr><td>'
     raw_file_suffix = os.path.join(final_output_dir_name, end_of_str)
     if os.path.exists(os.path.join(meta_output_dir, raw_file_suffix)):
@@ -54,23 +56,25 @@ def edit_success_html(html_path, meta_output_dir, final_output_dir_name, run_num
         with open(html_path) as f:
             html_text = f.read()
         # The initial file exists (generate by the cgi) so we can read and parse it.
-        html_text = html_text.replace('RUNNING', 'FINISHED').replace(f'{CONSTS.WEBSERVER_NAME} is now processing your request. This page will be automatically updated every few seconds (until the job is done). You can also reload it manually. Once the job has finished, several links to the output files will appear below. ', '')
+        html_text = html_text.replace('RUNNING', 'FINISHED').replace(
+            f'{CONSTS.WEBSERVER_NAME} is now processing your request. This page will be automatically updated every few seconds (until the job is done). You can also reload it manually. Once the job has finished, several links to the output files will appear below. ',
+            '')
     except FileNotFoundError:
         logger.warning(f"Couldn't find html prefix at: {html_path}")
 
     html_text += f'<div class="container" style="{CONSTS.CONTAINER_STYLE}">\n' \
-        f'<h2>RESULTS:<h2>'\
-        f'<h3><b><a href=\'{final_output_dir_name}.zip\' target=\'_blank\'>Download zipped full results (textual & visual)</a></b></h3>' \
-        f'<table class="table">\n' \
-        f'<thead>\n' \
-        f'<tr><th><h3>Quick access to selected results:</h3></th></tr>\n' \
-        f'</thead>\n' \
-        f'<tbody>'
+                 f'<h2>RESULTS:<h2>' \
+                 f'<h3><b><a href=\'{final_output_dir_name}.zip\' target=\'_blank\'>Download zipped full results (textual & visual)</a></b></h3>' \
+                 f'<table class="table">\n' \
+                 f'<thead>\n' \
+                 f'<tr><th><h3>Quick access to selected results:</h3></th></tr>\n' \
+                 f'</thead>\n' \
+                 f'<tbody>'
 
     raw_file_suffix = os.path.join(final_output_dir_name, '16_species_phylogeny/final_species_tree.txt')
     if os.path.exists(os.path.join(meta_output_dir, raw_file_suffix)):
         html_text += f'<tr><td><a href="{CONSTS.WEBSERVER_URL}/PhyD3/view_tree.php?id={run_number}&f=newick" target="_blank">Interactive species tree</a> ;' \
-            f' (<a href="{raw_file_suffix}" target="_blank">raw data</a>)\n<br></td></tr>'
+                     f' (<a href="{raw_file_suffix}" target="_blank">raw data</a>)\n<br></td></tr>'
     else:
         html_text += f'<tr><td>' \
                      f'Species tree is not available for current analysis ' \
@@ -112,7 +116,6 @@ def edit_success_html(html_path, meta_output_dir, final_output_dir_name, run_num
     add_closing_html_tags(html_path, CONSTS, run_number)
 
 
-
 def edit_failure_html(html_path, run_number, msg, CONSTS):
     if CONSTS.IGNORE_HTML:
         return
@@ -122,16 +125,18 @@ def edit_failure_html(html_path, run_number, msg, CONSTS):
         with open(html_path) as f:
             html_text = f.read()
         # The initial file exists (generate by the cgi) so we can read and parse it.
-        html_text = html_text.replace('RUNNING', 'FAILED').replace(f'{CONSTS.WEBSERVER_NAME} is now processing your request. This page will be automatically updated every few seconds (until the job is done). You can also reload it manually. Once the job has finished, several links to the output files will appear below. ', '')
+        html_text = html_text.replace('RUNNING', 'FAILED').replace(
+            f'{CONSTS.WEBSERVER_NAME} is now processing your request. This page will be automatically updated every few seconds (until the job is done). You can also reload it manually. Once the job has finished, several links to the output files will appear below. ',
+            '')
     except FileNotFoundError:
         import logging
         logger = logging.getLogger('main')
         logger.warning(f"Couldn't find html prefix at: {html_path}")
 
-    html_text +=f'<div class="container" align="justify" style="{CONSTS.CONTAINER_STYLE}"><h3>\n' \
-                f'<font color="red">{msg}</font><br><br>' \
-                f'Please make sure your input is OK and then try to re-run your job or <a href="mailto:{CONSTS.ADMIN_EMAIL}?subject={CONSTS.WEBSERVER_NAME}%20Run%20Number:%20{run_number}">contact us</a> for further information' \
-                f'</h3></div>\n'
+    html_text += f'<div class="container" align="justify" style="{CONSTS.CONTAINER_STYLE}"><h3>\n' \
+                 f'<font color="red">{msg}</font><br><br>' \
+                 f'Please make sure your input is OK and then try to re-run your job or <a href="mailto:{CONSTS.ADMIN_EMAIL}?subject={CONSTS.WEBSERVER_NAME}%20Run%20Number:%20{run_number}">contact us</a> for further information' \
+                 f'</h3></div>\n'
 
     with open(html_path, 'w') as f:
         f.write(html_text)
@@ -152,7 +157,8 @@ def edit_progress(output_html_path, progress=None, active=True):
                     line = line.split('style')[0]  # <div class="progress-bar ... style="width:0%">\n
                     line += f'style="width:{progress}%">\n'
                 if not active:
-                    line = line.replace('progress-bar-striped active', 'progress-bar-striped')  # <div class="progress-bar progress-bar-striped active" ...
+                    line = line.replace('progress-bar-striped active',
+                                        'progress-bar-striped')  # <div class="progress-bar progress-bar-striped active" ...
             result += line
 
     with open(output_html_path, 'w') as f:

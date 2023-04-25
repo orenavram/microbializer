@@ -2,9 +2,10 @@
 
 """
 
+
 def reconstruct_msa(sequences_file_path, mode, output_file_path):
     import subprocess
-    #cmd = f'mafft-linsi --maxiterate {maxiterate} --localpair {sequences_file_path} > {output_file_path}'
+    # cmd = f'mafft-linsi --maxiterate {maxiterate} --localpair {sequences_file_path} > {output_file_path}'
 
     # --auto Automatically selects an appropriate strategy from L-INS-i, FFT-NS-i and FFT-NS-2, according to data size.
     # --amino/--nuc tells mafft that's an amino acid/nucleotide (respectively) msa. If you let it decide by itself, it
@@ -21,9 +22,11 @@ def reconstruct_msa(sequences_file_path, mode, output_file_path):
 
 if __name__ == '__main__':
     from sys import argv
+
     print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
 
     import argparse
+
     parser = argparse.ArgumentParser()
     parser.add_argument('sequences_file_path', help='path to a file with unaligned sequences')
     parser.add_argument('output_file_path', help='path to a file in which the aligned sequences will be written')
@@ -34,6 +37,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     import logging
+
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
     else:
@@ -41,5 +45,3 @@ if __name__ == '__main__':
     logger = logging.getLogger('main')
 
     reconstruct_msa(args.sequences_file_path, args.type, args.output_file_path)
-
-

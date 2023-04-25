@@ -26,11 +26,14 @@ def extract_orfs_statistics(orf_path, orfs_count_output_path, orfs_gc_output_pat
         with open(orfs_gc_output_path, 'w') as f:
             f.write(f'{num_of_GC / num_of_nucleotides}\n')
 
+
 if __name__ == '__main__':
     from sys import argv
+
     print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
 
     import argparse
+
     parser = argparse.ArgumentParser()
     parser.add_argument('orf_path', help='path to fasta file with orfs')
     parser.add_argument('orfs_count_output_path', help='where to write the number of orfs')
@@ -39,6 +42,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     import logging
+
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
     else:
@@ -46,4 +50,3 @@ if __name__ == '__main__':
     logger = logging.getLogger('main')
 
     extract_orfs_statistics(args.orf_path, args.orfs_count_output_path, args.orfs_gc_output_path)
-

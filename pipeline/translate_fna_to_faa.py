@@ -24,23 +24,26 @@ def fna_to_faa(nucleotide_path, protein_path):
 
 
 if __name__ == '__main__':
-        from sys import argv
-        print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
+    from sys import argv
 
-        import argparse
-        parser = argparse.ArgumentParser()
-        parser.add_argument('nucleotide_path',
-                            help='A path to a nucleotide fasta file',
-                            type=lambda path: path if os.path.exists(path) else parser.error(f'{path} does not exist!'))
-        parser.add_argument('protein_path', help='A path to which the translated dna will be written')
-                            # type=lambda path: path if os.path.exists(os.path.split(path)[0]) else
-                            # parser.error(f'output folder {os.path.split(path)[0]} does not exist!'))
-        args = parser.parse_args()
+    print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
 
-        import logging
-        logging.basicConfig(level=logging.INFO)
-        logger = logging.getLogger('main')
+    import argparse
 
-        # wait_for_output_folder(os.path.split(args.protein_path)[0])
+    parser = argparse.ArgumentParser()
+    parser.add_argument('nucleotide_path',
+                        help='A path to a nucleotide fasta file',
+                        type=lambda path: path if os.path.exists(path) else parser.error(f'{path} does not exist!'))
+    parser.add_argument('protein_path', help='A path to which the translated dna will be written')
+    # type=lambda path: path if os.path.exists(os.path.split(path)[0]) else
+    # parser.error(f'output folder {os.path.split(path)[0]} does not exist!'))
+    args = parser.parse_args()
 
-        fna_to_faa(args.nucleotide_path, args.protein_path)
+    import logging
+
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger('main')
+
+    # wait_for_output_folder(os.path.split(args.protein_path)[0])
+
+    fna_to_faa(args.nucleotide_path, args.protein_path)

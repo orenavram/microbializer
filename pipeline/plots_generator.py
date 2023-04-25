@@ -1,4 +1,5 @@
 import matplotlib
+
 matplotlib.use('Agg')
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,12 +10,12 @@ import pylab as pb
 
 def generate_boxplot(path_to_data, output_file_path, title='', xlabel='', ylabel='', dpi=300):
     data = np.loadtxt(path_to_data)
-    fig = plt.figure(figsize=(10,10))
+    fig = plt.figure(figsize=(10, 10))
 
     ax = sns.violinplot(data, inner=None, color='lavender', cut=5)
     # ax = sns.boxplot(data, color='lavender')
     sns.swarmplot(data, color='dodgerblue')
-    #ax.set_xlim(left=0)
+    # ax.set_xlim(left=0)
     ax.set_xlabel(f'{xlabel}', fontdict={'fontsize': 20})
     ax.set_ylabel(ylabel, fontdict={'fontsize': 20})
     ax.set_title(f'{title}', fontdict={'fontsize': 20})
@@ -39,7 +40,7 @@ def generate_bar_plot(path_to_data, output_file_path, xlabel='', ylabel='', dpi=
     ax = sns.countplot(data, color="C0")
     # ax.set_xticklabels(ax.get_xticklabels(), rotation=90)
 
-    visible_bins = max(1, len(np.unique(data))//20)
+    visible_bins = max(1, len(np.unique(data)) // 20)
     print(f'len(np.unique(data))={len(np.unique(data))}')
     for ind, label in enumerate(ax.get_xticklabels()):
         if ind % visible_bins == 0:  # every $visible_bins bins, label is kept
@@ -64,11 +65,13 @@ if __name__ == '__main__':
         f'/Users/Oren/Dropbox/Projects/Sweeps Project/microbilizer_web/data/{dataset_name}/19_groups_sizes_frequency/groups_sizes_frequency.txt',
         f'/Users/Oren/Dropbox/Projects/microbializerPower/html/pics/{dataset_name.split()[0]}_groups_sizes_frequency.png',
         xlabel='Orthologs group size', ylabel='Counts')
-    generate_boxplot(f'/Users/Oren/Dropbox/Projects/Sweeps Project/microbilizer_web/data/{dataset_name}/20_orfs_plots/orfs_gc_contents.txt',
-                      f'/Users/Oren/Dropbox/Projects/microbializerPower/html/pics/{dataset_name.split()[0]}_orfs_gc_contents.png',
-                     xlabel='GC content per genome')
-    generate_boxplot(f'/Users/Oren/Dropbox/Projects/Sweeps Project/microbilizer_web/data/{dataset_name}/20_orfs_plots/orfs_counts.txt',
-                      f'/Users/Oren/Dropbox/Projects/microbializerPower/html/pics/{dataset_name.split()[0]}_orfs_counts.png',
-                     xlabel='ORFs count per genome')
-    #generate_tree_plot('/Users/Oren/Dropbox/Projects/microbializer/output_examples/mock_output/17_species_phylogeny/final_species_tree.txt',
+    generate_boxplot(
+        f'/Users/Oren/Dropbox/Projects/Sweeps Project/microbilizer_web/data/{dataset_name}/20_orfs_plots/orfs_gc_contents.txt',
+        f'/Users/Oren/Dropbox/Projects/microbializerPower/html/pics/{dataset_name.split()[0]}_orfs_gc_contents.png',
+        xlabel='GC content per genome')
+    generate_boxplot(
+        f'/Users/Oren/Dropbox/Projects/Sweeps Project/microbilizer_web/data/{dataset_name}/20_orfs_plots/orfs_counts.txt',
+        f'/Users/Oren/Dropbox/Projects/microbializerPower/html/pics/{dataset_name.split()[0]}_orfs_counts.png',
+        xlabel='ORFs count per genome')
+    # generate_tree_plot('/Users/Oren/Dropbox/Projects/microbializer/output_examples/mock_output/17_species_phylogeny/final_species_tree.txt',
     #                  '/Users/Oren/Dropbox/Projects/microbializer/output_examples/mock_output/17_species_phylogeny/final_species_tree.png')

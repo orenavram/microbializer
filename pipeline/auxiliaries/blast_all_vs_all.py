@@ -12,23 +12,27 @@ def blast_all_vs_all(program, query_seq, reference_DB, output_path):
 
 
 if __name__ == '__main__':
-        from sys import argv
-        print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
+    from sys import argv
 
-        import argparse
-        parser = argparse.ArgumentParser()
-        parser.add_argument('query_fasta', help='path to query fasta file')
-        parser.add_argument('subject_db', help='path to subject blast DB file that will be created')
-        parser.add_argument('output_path', help='path to output file - will contain the blast results')
-        parser.add_argument('--blast_type', help='blast type to run (blastn/blastp)', default='blastn') #TODO: why not tblastx?
-        parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
-        args = parser.parse_args()
+    print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
 
-        import logging
-        if args.verbose:
-            logging.basicConfig(level=logging.DEBUG)
-        else:
-            logging.basicConfig(level=logging.INFO)
-        logger = logging.getLogger('main')
+    import argparse
 
-        blast_all_vs_all(args.blast_type, args.query_fasta, args.subject_db, args.output_path)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('query_fasta', help='path to query fasta file')
+    parser.add_argument('subject_db', help='path to subject blast DB file that will be created')
+    parser.add_argument('output_path', help='path to output file - will contain the blast results')
+    parser.add_argument('--blast_type', help='blast type to run (blastn/blastp)',
+                        default='blastn')  # TODO: why not tblastx?
+    parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
+    args = parser.parse_args()
+
+    import logging
+
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger('main')
+
+    blast_all_vs_all(args.blast_type, args.query_fasta, args.subject_db, args.output_path)

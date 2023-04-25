@@ -1,12 +1,13 @@
 import subprocess
 
+
 def create_blast_DB(reference_seq, dbtype, output_path):
-    '''
-    input:  sequnce to base the DB on
+    """
+    input:  sequence to base the DB on
             DB type (nucl/prot)
             path to output file
-    output: balst DB based on the reference sequence
-    '''
+    output: blast DB based on the reference sequence
+    """
     cmd = f'makeblastdb -in {reference_seq} -out {output_path} -dbtype {dbtype}'
     logger.info(f'Starting makeblastdb. Executed command is:\n{cmd}')
     subprocess.run(cmd, shell=True)
@@ -14,9 +15,11 @@ def create_blast_DB(reference_seq, dbtype, output_path):
 
 if __name__ == '__main__':
     from sys import argv
+
     print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
 
     import argparse
+
     parser = argparse.ArgumentParser()
     parser.add_argument('subject_fasta', help='path to subject fasta file')
     parser.add_argument('subject_db', help='path to subject blast DB file that will be created')
@@ -25,6 +28,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     import logging
+
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
     else:

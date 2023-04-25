@@ -46,12 +46,11 @@ def get_orthologs_group_sequences(orfs_dir, strain_name_to_ortholog_name, strain
                 result += f'>{strain}\n{ortholog_sequence}\n'
             else:
                 logger.error(f'Could not extract {strain_name_to_ortholog_name[strain]} ortholog of strain {strain} as '
-                            f'its ORFs file does not exist at {orfs_dir} (probably ORFs sequence extraction for was '
-                            f'failed due to multiple contigs in the corresponding genomic file. Try to grep "failed" '
-                            f'on ORFs extraction ER log files)')
+                             f'its ORFs file does not exist at {orfs_dir} (probably ORFs sequence extraction for was '
+                             f'failed due to multiple contigs in the corresponding genomic file. Try to grep "failed" '
+                             f'on ORFs extraction ER log files)')
 
     return result
-
 
 
 def extract_orfs(sequences_dir, final_table_header_line, cluster_members_line,
@@ -70,14 +69,16 @@ def extract_orfs(sequences_dir, final_table_header_line, cluster_members_line,
 
 if __name__ == '__main__':
     from sys import argv
+
     print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
 
     import argparse
+
     parser = argparse.ArgumentParser()
     parser.add_argument('sequences_dir', help='path to a directory with the bacterial gene sequences (aka ORFs)')
     parser.add_argument('final_table_header', help='string that is the header of the final table')
     parser.add_argument('cluster_members', help='string that is the cluster members that is handled'
-                                                 '(a row from the final orthologs table)')
+                                                '(a row from the final orthologs table)')
     parser.add_argument('cluster_name', help='the name of orthologs group being extracted')
     parser.add_argument('output_path', help='path to an output directory (aka orthologs sets sequences)')
     parser.add_argument('--delimiter', help='orthologs table delimiter', default=',')
@@ -85,6 +86,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     import logging
+
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
     else:

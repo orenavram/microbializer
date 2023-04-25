@@ -1,8 +1,8 @@
-import sys
+
 
 import CONSTANTS as CONSTS
 
-#sys.path.append('/bioseq/bioSequence_scripts_and_constants/')  # ADD file_writer
+# sys.path.append('/bioseq/bioSequence_scripts_and_constants/')  # ADD file_writer
 
 import shutil
 import subprocess
@@ -79,7 +79,8 @@ def wait_for_results(script_name, path, num_of_expected_results, error_file_path
     if num_of_expected_results == 0 and 'oren' not in email:
         if error_message:
             fail(error_message, error_file_path)
-        raise ValueError(f'\n{"#"*100}\nNumber of expected results is {num_of_expected_results}! Something went wrong in the previous analysis steps...\n{"#"*100}')
+        raise ValueError(
+            f'\n{"#" * 100}\nNumber of expected results is {num_of_expected_results}! Something went wrong in the previous analysis steps...\n{"#" * 100}')
     total_time = 0
     i = 0
     current_num_of_results = 0
@@ -95,10 +96,11 @@ def wait_for_results(script_name, path, num_of_expected_results, error_file_path
         total_time += time_to_wait
         i += 1
         if i % 5 == 0:  # print status every 5 cycles of $time_to_wait
-            logger.info(f'\t{measure_time(total_time)} have passed since started waiting ({num_of_expected_results} - {current_num_of_results} = {jobs_left} more files are still missing)')
+            logger.info(
+                f'\t{measure_time(total_time)} have passed since started waiting ({num_of_expected_results} - {current_num_of_results} = {jobs_left} more files are still missing)')
 
     end = time()
-    logger.info(f'Done waiting for:\n{script_name}\n(took {measure_time(int(end-start))}).\n')
+    logger.info(f'Done waiting for:\n{script_name}\n(took {measure_time(int(end - start))}).\n')
     assert not os.path.exists(error_file_path)
 
 
@@ -125,7 +127,8 @@ def submit_mini_batch(script_path, mini_batch_parameters_list, logs_dir, queue_n
                       new_line_delimiter='!@#', verbose=False, required_modules_as_list=None, num_of_cpus=1,
                       submit_as_a_job=True, done_file_is_needed=True,
                       q_submitter_script_path=CONSTS.Q_SUBMITTER_PATH,
-                      done_files_script_path=os.path.join(CONSTS.PROJECT_ROOT_DIR, 'pipeline/auxiliaries/file_writer.py')):
+                      done_files_script_path=os.path.join(CONSTS.PROJECT_ROOT_DIR,
+                                                          'pipeline/auxiliaries/file_writer.py')):
     """
     :param script_path:
     :param mini_batch_parameters_list: a list of lists. each sublist corresponds to a single command and contain its parameters
@@ -152,12 +155,14 @@ def submit_mini_batch(script_path, mini_batch_parameters_list, logs_dir, queue_n
 
         shell_cmds_as_str = f'module load {required_modules_as_str}'
         shell_cmds_as_str += new_line_delimiter  # several commands that will be split to different lines
-                                                 # (long lines with ";" are bad practice)
+        # (long lines with ";" are bad practice)
 
-    example_shell_cmd = ' '.join(['python', script_path, *[str(param) for param in mini_batch_parameters_list[0]]] + (['-v'] if verbose else [])) + ';'
+    example_shell_cmd = ' '.join(['python', script_path, *[str(param) for param in mini_batch_parameters_list[0]]] + (
+        ['-v'] if verbose else [])) + ';'
     # PREPARING RELEVANT COMMANDS
     for params in mini_batch_parameters_list:
-        shell_cmds_as_str += ' '.join(['python', script_path, *[str(param) for param in params]] + (['-v'] if verbose else [])) + ';'
+        shell_cmds_as_str += ' '.join(
+            ['python', script_path, *[str(param) for param in params]] + (['-v'] if verbose else [])) + ';'
         shell_cmds_as_str += new_line_delimiter
 
     if not job_name:
@@ -166,7 +171,7 @@ def submit_mini_batch(script_path, mini_batch_parameters_list, logs_dir, queue_n
     if done_file_is_needed:
         # GENERATE DONE FILE
         params = [os.path.join(logs_dir, job_name + '.done'), '']  # write an empty string (like "touch" command)
-        shell_cmds_as_str += ' '.join(['python', done_files_script_path, *params])+';'
+        shell_cmds_as_str += ' '.join(['python', done_files_script_path, *params]) + ';'
         shell_cmds_as_str += new_line_delimiter
 
     if submit_as_a_job:
@@ -234,8 +239,9 @@ def wait_for_output_folder(output_folder, max_waiting_time=300):
     while not os.path.exists(output_folder):
         logger.info(f'Waiting to {output_folder} to be generated... (waited {i} seconds)')
         i += 1
-        if i>max_waiting_time:
-            raise OSError(f'{output_folder} was not generated after {max_waiting_time} second. Failed to continue the analysis.')
+        if i > max_waiting_time:
+            raise OSError(
+                f'{output_folder} was not generated after {max_waiting_time} second. Failed to continue the analysis.')
         sleep(1)
 
 
@@ -267,9 +273,9 @@ def notify_admin(meta_output_dir, meta_output_url, run_number, CONSTS):
                receiver=CONSTS.OWNER_EMAIL,
                subject=f'{CONSTS.WEBSERVER_NAME} job {run_number} by {email} has been failed: ',
                content=f"{email}\n\n{os.path.join(meta_output_url, CONSTS.RESULT_WEBPAGE_NAME)}\n\n"
-               f"{os.path.join(meta_output_url, CONSTS.CGI_DEBUG_FILE_NAME)}\n\n"
-               f"{os.path.join(meta_output_url, error_log_path)}\n\n"
-               f"{os.path.join(meta_output_dir, error_log_path.replace('ER', 'OU'))}")
+                       f"{os.path.join(meta_output_url, CONSTS.CGI_DEBUG_FILE_NAME)}\n\n"
+                       f"{os.path.join(meta_output_url, error_log_path)}\n\n"
+                       f"{os.path.join(meta_output_dir, error_log_path.replace('ER', 'OU'))}")
 
 
 def add_results_to_final_dir(source, final_output_dir, copy=True):

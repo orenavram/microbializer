@@ -1,4 +1,3 @@
-
 def filter_rbh_results(query_vs_reference, output_path, precent_identity_cutoff,
                        e_value_cutoff, delimiter, names_delimiter):
     '''
@@ -13,19 +12,22 @@ def filter_rbh_results(query_vs_reference, output_path, precent_identity_cutoff,
     df = pd.read_csv(query_vs_reference, header=None, sep='\t', names=header.split())
     result = df[(df.pident >= precent_identity_cutoff) & (df.evalue <= e_value_cutoff)]
     splitted_header = header.split()
-    columns_to_write = splitted_header[:2]+splitted_header[-1:]
+    columns_to_write = splitted_header[:2] + splitted_header[-1:]
 
     # e.g., ..../outputs/04_blast_filtered/Sflexneri_5_8401_vs_Ssonnei_Ss046.05_reciprocal_hits
     file_name = os.path.split(query_vs_reference)[-1]
     strain1_name, strain2_name = os.path.splitext(file_name)[0].split(names_delimiter)
-    result.to_csv(output_path, sep=delimiter, index=False, header=[strain1_name, strain2_name, 'bitscore'], columns=columns_to_write)
+    result.to_csv(output_path, sep=delimiter, index=False, header=[strain1_name, strain2_name, 'bitscore'],
+                  columns=columns_to_write)
 
 
 if __name__ == '__main__':
     from sys import argv
+
     print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
 
     import argparse
+
     parser = argparse.ArgumentParser()
     parser.add_argument('blast_result', help='path to fasta genome file')
     parser.add_argument('output_path', help='path to output file')
@@ -38,6 +40,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     import logging
+
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
     else:
@@ -46,4 +49,3 @@ if __name__ == '__main__':
 
     filter_rbh_results(args.blast_result, args.output_path, args.identity_cutoff,
                        args.e_value_cutoff, args.delimiter, args.names_delimiter)
-

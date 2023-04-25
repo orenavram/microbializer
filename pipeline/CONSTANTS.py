@@ -41,7 +41,7 @@ WEBSERVER_HTML_DIR = '/data/www/html/microbializer'
 
 WEBSERVER_RESULTS_URL = os.path.join(WEBSERVER_URL, 'results')
 
-Q_SUBMITTER_PATH = os.path.join(PROJECT_ROOT_DIR, 'pipeline/auxiliaries/q_submitter_power.py') if V2_TEST else\
+Q_SUBMITTER_PATH = os.path.join(PROJECT_ROOT_DIR, 'pipeline/auxiliaries/q_submitter_power.py') if V2_TEST else \
     '/bioseq/bioSequence_scripts_and_constants/q_submitter_power.py'
 MAIN_SCRIPT = '/bioseq/microbializer/pipeline/main.py'
 SUBMISSIONS_LOG = '/bioseq/microbializer/submissions_log.txt'
@@ -50,7 +50,7 @@ CGI_DEBUG_FILE_NAME = 'cgi_debug.txt'
 RESULT_WEBPAGE_NAME = 'result.html'
 EXAMPLE_DATA_FILE_NAME = 'example_data.zip'
 
-#path to example data
+# path to example data
 EXAMPLE_DATA = os.path.join(WEBSERVER_HTML_DIR, EXAMPLE_DATA_FILE_NAME)
 
 WEBSERVER_JUMBOTRON = f'&nbsp;&nbsp;&nbsp;&nbsp;<span id="server-title">{WEBSERVER_NAME}</span>&nbsp;&nbsp;&nbsp;&nbsp;<span id="sub-title">{WEBSERVER_TITLE}</span>'

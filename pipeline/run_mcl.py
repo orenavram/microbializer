@@ -7,26 +7,24 @@ def mcl(input_file, output_file):
 
 
 if __name__ == '__main__':
-        from sys import argv
-        print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
+    from sys import argv
 
-        import argparse
-        parser = argparse.ArgumentParser()
-        parser.add_argument('input_file', help='path to an MCL input file')
-        parser.add_argument('output_file', help='path to which the MCL analysis will be written')
-        parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
-        args = parser.parse_args()
+    print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
 
-        import logging
-        if args.verbose:
-            logging.basicConfig(level=logging.DEBUG)
-        else:
-            logging.basicConfig(level=logging.INFO)
-        logger = logging.getLogger('main')
+    import argparse
 
-        mcl(args.input_file, args.output_file)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('input_file', help='path to an MCL input file')
+    parser.add_argument('output_file', help='path to which the MCL analysis will be written')
+    parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
+    args = parser.parse_args()
 
+    import logging
 
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger('main')
 
-
-
+    mcl(args.input_file, args.output_file)

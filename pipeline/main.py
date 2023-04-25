@@ -1,24 +1,24 @@
 import argparse
-import mmap
-import pandas as pd
+import logging
 import os
+import shutil
 import sys
 from time import time, sleep, ctime
-import shutil
-import logging
-import matplotlib.pyplot as plt
-import numpy as np
 
+import matplotlib.pyplot as plt
+import mmap
+import numpy as np
+import pandas as pd
+
+import CONSTANTS as CONSTS
 from auxiliaries.email_sender import send_email
 from auxiliaries.file_writer import write_to_file
 from auxiliaries.input_verifications import verify_fasta_format
 from auxiliaries.pipeline_auxiliaries import load_header2sequences_dict, measure_time, execute, wait_for_results, \
     prepare_directories, fail, submit_mini_batch, submit_batch, remove_bootstrap_values, \
     notify_admin, add_results_to_final_dir, remove_path, unpack_data, fix_illegal_chars_in_file_name, move_file
-from plots_generator import generate_boxplot, generate_bar_plot
 from html_editor import edit_success_html, edit_failure_html, edit_progress
-import CONSTANTS as CONSTS
-
+from plots_generator import generate_boxplot, generate_bar_plot
 
 try:
     print(f'sys.path is\n{sys.path}')
@@ -26,34 +26,50 @@ try:
     start = time()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--contigs_dir', help='path to a folder with the genomic sequences. This folder may be zipped, as well the files in it.',
-                        type=lambda path: path.rstrip('/') if os.path.exists(path) else parser.error(f'{path} does not exist!'))
+    parser.add_argument('--contigs_dir',
+                        help='path to a folder with the genomic sequences. This folder may be zipped, as well the files'
+                             ' in it.',
+                        type=lambda path: path.rstrip('/') if os.path.exists(path) else parser.error(
+                            f'{path} does not exist!'), required=True)
     parser.add_argument('--output_dir', help='directory where the output files will be written to',
-                        type=lambda path: path.rstrip('/'))
+                        type=lambda path: path.rstrip('/'), required=True)
     parser.add_argument('--email', help='A notification will be sent once the pipeline is done',
                         default=CONSTS.OWNER_EMAIL)
     parser.add_argument('--identity_cutoff', default=80, type=lambda x: eval(x),
                         help='minimum required percent of identity level (lower values will be filtered out)')
-    parser.add_argument('--e_value_cutoff', default=0.01, type=lambda x: eval(x), # if 0 <= eval(x) <= 100 else parser.error(f"Can't use {x} as percent!"),
-                        help='maxmimum permitted e-value (0 <= e_value_cutoff <= 1; higher values will be filtered out).')
-    parser.add_argument('--core_minimal_percentage', default=100.0, type=lambda x: eval(x), # if 0 <= eval(x) <= 100 else parser.error(f"Can't use {x} as percent!"),
-                        help='the minimum required percent of gene members that is needed to be considered a core gene. For example: (1) 100 means that for a gene to be considered core, all strains should have a member in the group.\n(2) 50 means that for a gene to be considered core, at least half of the strains should have a member in the group.\n(3) 0 means that every gene should be considered as a core gene.')
+    parser.add_argument('--e_value_cutoff', default=0.01, type=lambda x: eval(x),
+                        # if 0 <= eval(x) <= 100 else parser.error(f"Can't use {x} as percent!"),
+                        help='maxmimum permitted e-value (0 <= e_value_cutoff <= 1; higher values will be filtered'
+                             ' out).')
+    parser.add_argument('--core_minimal_percentage', default=100.0, type=lambda x: eval(x),
+                        # if 0 <= eval(x) <= 100 else parser.error(f"Can't use {x} as percent!"),
+                        help='the minimum required percent of gene members that is needed to be considered a core gene.'
+                             ' For example: (1) 100 means that for a gene to be considered core, all strains should '
+                             'have a member in the group.\n(2) 50 means that for a gene to be considered core, at least'
+                             ' half of the strains should have a member in the group.\n(3) 0 means that every gene '
+                             'should be considered as a core gene.')
     parser.add_argument('--bootstrap', default='no', choices=['yes', 'no'],
                         help='whether or not to apply bootstrap procedure over the reconstructed species tree.')
     parser.add_argument('--outgroup', default=None,
                         help='whether or not to root the species phylogeny.')
     parser.add_argument('--promoters_length', default=300,
                         help='How many basepairs upstream to the ATG will be used for the sweeps analysis',
-                        type=lambda x: int(x) if int(x) >= 0 else parser.error(f'Minimal number of upstream basepairs should be non-negative!'))
-    parser.add_argument('--minmal_number_of_sequences_allowed_for_sweeps_analysis', default=21,
+                        type=lambda x: int(x) if int(x) >= 0 else parser.error(
+                            f'Minimal number of upstream basepairs should be non-negative!'))
+    parser.add_argument('--minimal_number_of_sequences_allowed_for_sweeps_analysis', default=21,
                         help='MSAs with fewer sequences will be ignore in the sweeps analysis.',
                         type=lambda x: int(x) if int(x) > 4 else parser.error(
                             f'Minimal number of sequences required for sweeps analysis is 5!'))
-    parser.add_argument('-q', '--queue_name', help='The cluster to which the job(s) will be submitted to', default='power-pupko')  # , choices=['pupkoweb', 'pupkowebr', 'pupkolab', 'pupkolabr', 'pupkotmp', 'pupkotmpr', 'itaym', 'lilach', 'bioseq', 'bental', 'oren.q', 'bioseq20.q'])
+    # choices=['pupkoweb', 'pupkowebr', 'pupkolab', 'pupkolabr', 'pupkotmp', 'pupkotmpr', 'itaym', 'lilach',
+    # 'bioseq', 'bental', 'oren.q', 'bioseq20.q'])
+    parser.add_argument('-q', '--queue_name', help='The cluster to which the job(s) will be submitted to',
+                        default='power-pupko')
     parser.add_argument('--dummy_delimiter',
-                        help='The queue does not "like" very long commands. A dummy delimiter is used to break each row into different commands of a single job',
+                        help='The queue does not "like" very long commands. A dummy delimiter is used to break each row'
+                             ' into different commands of a single job',
                         default='!@#')
-    parser.add_argument('--src_dir', help='source code directory', type=lambda s: s.rstrip('/'), default=os.path.join(CONSTS.PROJECT_ROOT_DIR, 'pipeline'))
+    parser.add_argument('--src_dir', help='source code directory', type=lambda path: path.rstrip('/'),
+                        default=os.path.join(CONSTS.PROJECT_ROOT_DIR, 'pipeline'))
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     args = parser.parse_args()
 
@@ -97,7 +113,6 @@ try:
         meta_output_url = ''
         output_url = ''
 
-
     tmp_dir = os.path.join(args.output_dir, 'tmp')
     logger.info(f'{ctime()}: Creating {tmp_dir}\n')
     os.makedirs(tmp_dir, exist_ok=True)
@@ -126,7 +141,8 @@ try:
 
         filename_prefix = os.path.splitext(file_name)[0]
         if filename_prefix in filename_prefixes:
-            error_msg = f'Two (or more) of the uploaded geonmes contain the same name (prefix), e.g., {filename_prefix}. Please make sure each file name is unique.'
+            error_msg = f'Two (or more) of the uploaded geonmes contain the same name (prefix), ' \
+                        f'e.g., {filename_prefix}. Please make sure each file name is unique.'
             fail(error_msg, error_file_path)
         filename_prefixes.add(filename_prefix)
 
@@ -142,13 +158,17 @@ try:
     # check MINimal number of genomes
     min_number_of_genomes_to_analyze = 2
     if number_of_genomes < min_number_of_genomes_to_analyze:
-        error_msg = f'The dataset contains too few genomes ({CONSTS.WEBSERVER_NAME} does comparative analysis and thus needs at least 2 genomes).'
+        error_msg = f'The dataset contains too few genomes ({CONSTS.WEBSERVER_NAME} does comparative analysis and ' \
+                    f'thus needs at least 2 genomes).'
         fail(error_msg, error_file_path)
 
     # check MAXimal number of genomes
     max_number_of_genomes_to_analyze = 350
     if number_of_genomes > max_number_of_genomes_to_analyze and 'oren' not in args.email.lower():
-        error_msg = f'The dataset contains too many genomes. {CONSTS.WEBSERVER_NAME} allows analyzing up to {max_number_of_genomes_to_analyze} genomes due to the high resource consumption. However, upon request (and supervision), we do allow analyzing large datasets. Please contact us directly and we will do that for you.'
+        error_msg = f'The dataset contains too many genomes. {CONSTS.WEBSERVER_NAME} allows analyzing up to ' \
+                    f'{max_number_of_genomes_to_analyze} genomes due to the high resource consumption. However, ' \
+                    f'upon request (and supervision), we do allow analyzing large datasets. Please contact us ' \
+                    f'directly and we will do that for you.'
         fail(error_msg, error_file_path)
 
     # must be only after the spaces removal from the species names!!
@@ -156,7 +176,6 @@ try:
     if verification_error:
         remove_path(data_path)
         fail(verification_error, error_file_path)
-
 
     # TODO: add this option to the webpage (wishlist)
     # 1.	drop_plasmids.py
@@ -187,10 +206,12 @@ try:
     edit_progress(output_html_path, progress=5)
 
     # 2.	search_orfs.py
-    # Input: (1) an input path for a fasta file with contigs/full genome (2) an output file path (with a suffix as follows: i_genes.fasta. especially relevant for the wrapper).
+    # Input: (1) an input path for a fasta file with contigs/full genome (2) an output file path
+    #                (with a suffix as follows: i_genes.fasta. especially relevant for the wrapper).
     # Output: a fasta file where under each header, there’s a single gene.
     # Can be parallelized on cluster
-    # Prodigal ignores newlines in the middle of a sequence, namely, >bac1\nAAA\nAA\nTTT >bac1\nAAAAATTT will be analyzed identically.
+    # Prodigal ignores newlines in the middle of a sequence, namely, >bac1\nAAA\nAA\nTTT >bac1\nAAAAATTT will be
+    # analyzed identically.
     step_number = orfs_step_number = '02'  # using orfs_step_number for downstream analysis (extract promoter and gene sequences)
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_ORFs'
@@ -222,13 +243,13 @@ try:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
     edit_progress(output_html_path, progress=10)
 
-
     # make sure that all ORF files contain something....
     missing_orfs = 0
     error_msg = ''
     for file in sorted(os.listdir(ORFs_dir)):
         try:
-            with open(os.path.join(ORFs_dir, file), 'rb', 0) as orf_f, mmap.mmap(orf_f.fileno(), 0, access=mmap.ACCESS_READ) as s:
+            with open(os.path.join(ORFs_dir, file), 'rb', 0) as orf_f, mmap.mmap(orf_f.fileno(), 0,
+                                                                                 access=mmap.ACCESS_READ) as s:
                 if s.find(b'>') > -1:
                     continue
         except:
@@ -243,7 +264,6 @@ try:
         error_msg += f'\n<br>Please remove the abovementioned from the dataset and re-submit your job. In general, ' \
                      f'it is recommended to use genomic files that contain at least 20K base pairs (each).'
         fail(error_msg, error_file_path)
-
 
     # 3.  create_mmseqs2_DB.py
     # Input: path to gene file to create DB from
@@ -267,8 +287,8 @@ try:
 
             single_cmd_params = [file_path,
                                  output_prefix,
-                                 output_prefix, #instead of tmp_dir
-                                 '-t'] #translate to peptides # Should we let the user decide?
+                                 output_prefix,  # instead of tmp_dir
+                                 '-t']  # translate to peptides # Should we let the user decide?
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
@@ -290,7 +310,6 @@ try:
     # MMSEQS generates tons of intermediate files that abuse the inodes so they are deleted once the step is over!
     submit_mini_batch(os.path.join(args.src_dir, 'remove_tmp_folders.py'), [pipeline_step_tmp_dir],
                       pipeline_step_tmp_dir, args.queue_name, job_name='remove_dirs_from_tmp')
-
 
     # 4.	mmseqs2_all_vs_all.py
     # Input: (1) 2 input paths for 2 (different) genome files (query and target), g1 and g2
@@ -314,17 +333,18 @@ try:
             for db2 in os.listdir(ORFs_dir):
                 strain2_name = os.path.splitext(db2)[0]
 
-                logger.debug(f'{"#"*100}\nGot {strain1_name} and {strain2_name}')
+                logger.debug(f'{"#" * 100}\nGot {strain1_name} and {strain2_name}')
                 if strain1_name >= strain2_name:
                     logger.debug(f'Skipping {strain1_name} >= {strain2_name}')
-                    continue # no need to query strain against itself or a pair that was already seen
+                    continue  # no need to query strain against itself or a pair that was already seen
                 logger.info(f'Querying {strain1_name} against {strain2_name}')
 
                 query_aa_db = os.path.splitext(os.path.join(previous_pipeline_step_output_dir, db1))[0] + '_aa'
 
                 target_aa_db = os.path.splitext(os.path.join(previous_pipeline_step_output_dir, db2))[0] + '_aa'
 
-                aln_offsetted_db = os.path.join(pipeline_step_tmp_dir, f'{strain1_name}_vs_{strain2_name}.alnOffsettedDB')
+                aln_offsetted_db = os.path.join(pipeline_step_tmp_dir,
+                                                f'{strain1_name}_vs_{strain2_name}.alnOffsettedDB')
 
                 output_file_name = f'{strain1_name}_vs_{strain2_name}.m8'
                 output_file_path = os.path.join(pipeline_step_output_dir, output_file_name)
@@ -351,15 +371,17 @@ try:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
     edit_progress(output_html_path, progress=20)
 
-    # send a subjob that removes (now instead of at the end) all mmseqs intermediate *FOLDERS* (e.g., 3465136234521948 etc..) in tmp_dir
+    # send a subjob that removes (now instead of at the end) all mmseqs intermediate *FOLDERS*
+    # (e.g., 3465136234521948 etc..) in tmp_dir
     # does not remove (sge/cmds/log) files. only folders.
     submit_mini_batch(os.path.join(args.src_dir, 'remove_tmp_folders.py'), [previous_pipeline_step_output_dir],
                       pipeline_step_tmp_dir, args.queue_name, job_name='remove_m8_files')
 
-
     # 5.	filter_rbh_results.py
-    # Input: (1) a path for a i_vs_j.tsv file (2) an output path (with a suffix as follows: i_vs_j_filtered.tsv. especially relevant for the wrapper).
-    # Output: the same format of the input file containing only pairs that passed the filtration. For each row in the input file (pair of genes), apply the following filters:
+    # Input: (1) a path for a i_vs_j.tsv file (2) an output path (with a suffix as follows: i_vs_j_filtered.tsv.
+    #            especially relevant for the wrapper).
+    # Output: the same format of the input file containing only pairs that passed the filtration. For each row in
+    #         the input file (pair of genes), apply the following filters:
     # 1. at least X% similarity
     # 2. at least X% of the length
     # 3.# write each pair to the output file if it passed all the above filters.
@@ -380,7 +402,8 @@ try:
 
             single_cmd_params = [os.path.join(previous_pipeline_step_output_dir, blast_results_file),
                                  os.path.join(pipeline_step_output_dir, output_file_name),
-                                 f'--identity_cutoff {args.identity_cutoff/100}', # needs to be normaized between 0 and 1
+                                 f'--identity_cutoff {args.identity_cutoff / 100}',
+                                 # needs to be normaized between 0 and 1
                                  f'--e_value_cutoff {args.e_value_cutoff}']
             all_cmds_params.append(single_cmd_params)
 
@@ -395,7 +418,6 @@ try:
     else:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
     edit_progress(output_html_path, progress=25)
-
 
     # 6. concatenate_reciprocal_hits
     # Input: path to folder with all reciprocal hits files
@@ -414,7 +436,6 @@ try:
     else:
         logger.info(f'done file {all_reciprocal_hits_file} already exists.\nSkipping step...')
     edit_progress(output_html_path, progress=30)
-
 
     # 7.	construct_putative_orthologs_table.py
     # Input: (1) a path for a i_vs_j_reciprocal_hits.tsv file (2) a path for a putative orthologs file (with a single line).
@@ -440,7 +461,6 @@ try:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
     edit_progress(output_html_path, progress=35)
 
-
     # 8   prepare_files_for_mcl.py
     # Input: (1) a path for a concatenated all reciprocal hits file (2) a path for a putative orthologs file (3) a path for an output folder
     # Output: an input file for MCL for each putative orthologs group
@@ -458,11 +478,13 @@ try:
         with open(os.path.join(os.path.split(putative_orthologs_table_path)[0], 'num_of_putative_sets.txt')) as f:
             num_of_putative_sets = int(f.read())
         if num_of_putative_sets == 0:
-            error_msg = f'No putative ortholog groups were detected in your dataset. Please try to lower the similarity parameters (see Advanced Options in the submission page) and re-submit your job.'
+            error_msg = f'No putative ortholog groups were detected in your dataset. Please try to lower the ' \
+                        f'similarity parameters (see Advanced Options in the submission page) and re-submit your job.'
             fail(error_msg, error_file_path)
-        for i in range(1, num_of_putative_sets+1, clusters_to_prepare_per_job):
+        for i in range(1, num_of_putative_sets + 1, clusters_to_prepare_per_job):
             first_mcl = str(i)
-            last_mcl = str(min(i + clusters_to_prepare_per_job - 1, num_of_putative_sets))  # 1-10, 11-20, etc... for clusters_to_prepare_per_job=10
+            last_mcl = str(min(i + clusters_to_prepare_per_job - 1,
+                               num_of_putative_sets))  # 1-10, 11-20, etc... for clusters_to_prepare_per_job=10
 
             single_cmd_params = [all_reciprocal_hits_file,
                                  putative_orthologs_table_path,
@@ -472,7 +494,8 @@ try:
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                   num_of_cmds_per_job=25,  # *times* the number of clusters_to_prepare_per_job above. 250 in total per batch!
+                                                   num_of_cmds_per_job=25,
+                                                   # *times* the number of clusters_to_prepare_per_job above. 250 in total per batch!
                                                    job_name_suffix='mcl_preparation',
                                                    queue_name=args.queue_name)
 
@@ -482,7 +505,6 @@ try:
     else:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
     edit_progress(output_html_path, progress=40)
-
 
     # 9.	run_mcl.py
     # Input: (1) a path to an MCL input file (2) a path to MCL's output.
@@ -518,7 +540,6 @@ try:
     else:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
     edit_progress(output_html_path, progress=45)
-
 
     # 10.	verify_cluster.py
     # Input: (1) mcl analysis file (2) a path to which the file will be moved if relevant (3) optional: maximum number of clusters allowed [default=1]
@@ -589,7 +610,6 @@ try:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
     edit_progress(output_html_path, progress=55)
 
-
     # extract orthologs table header for sequence extraction later on
     with open(final_orthologs_table_file_path) as f:
         header_line = f.readline()
@@ -607,7 +627,6 @@ try:
     num_of_strains = len(strains_names)
     with open(num_of_strains_path, 'w') as f:
         f.write(f'{num_of_strains}\n')
-
 
     # 12.	extract_orfs.py
     # Input: (1) a row from the final orthologs table (2) a path for a directory where the genes files are at (3) a path for an output file.
@@ -627,12 +646,14 @@ try:
             for line in f:
                 first_delimiter_index = line.index(delimiter)
                 og_name = line[:first_delimiter_index]
-                cluster_members = line.rstrip()[first_delimiter_index+1:] #remove "OG_name"
+                cluster_members = line.rstrip()[first_delimiter_index + 1:]  # remove "OG_name"
                 output_file_name = og_name
 
                 single_cmd_params = [ORFs_dir,
-                                     f'"{final_table_header}"',  # should be flanked by quotes because it might contain spaces...
-                                     f'"{cluster_members}"',  # should be flanked by quotes because it might contain spaces...
+                                     f'"{final_table_header}"',
+                                     # should be flanked by quotes because it might contain spaces...
+                                     f'"{cluster_members}"',
+                                     # should be flanked by quotes because it might contain spaces...
                                      f'"{og_name}"',  # should be flanked by quotes because it might contain spaces...
                                      os.path.join(orthologs_dna_sequences_dir_path, f'{output_file_name}_dna.fas')]
                 all_cmds_params.append(single_cmd_params)
@@ -648,7 +669,6 @@ try:
     else:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
     edit_progress(output_html_path, progress=60)
-
 
     # 13.  translate_fna_to_faa.py
     # Input: path to fna file and an faa file
@@ -682,7 +702,6 @@ try:
     else:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
     edit_progress(output_html_path, progress=65)
-
 
     # 14.	align_orthologs_group.py
     # Input: (1) A path to an unaligned amino acid sequences file (2) An output file path
@@ -720,8 +739,7 @@ try:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
     edit_progress(output_html_path, progress=70)
 
-
-    #15.	extract aligned_core_proteome.py
+    # 15.	extract aligned_core_proteome.py
     step_number = '15'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_aligned_core_proteome'
@@ -746,14 +764,12 @@ try:
         submit_mini_batch(script_path, [params], pipeline_step_tmp_dir,
                           args.queue_name, job_name='core_proteome')
 
-
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
         write_to_file(done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
     edit_progress(output_html_path, progress=75)
-
 
     # 16.	reconstruct_species_phylogeny.py
     step_number = '16'
@@ -780,7 +796,8 @@ try:
             else:
                 logger.info(f'Outgroup {args.outgroup} was specified but it is not one of the input species:\n'
                             f'{",".join(sorted(strains_names))}\nAn unrooted tree is going to be reconstructed')
-        if args.bootstrap == 'yes' and (number_of_genomes < 150 or 'oren' in args.email):  # allow bootstrap only for less than 150 genomes
+        if args.bootstrap == 'yes' and (
+                number_of_genomes < 150 or 'oren' in args.email):  # allow bootstrap only for less than 150 genomes
             params += ['--num_of_bootstrap_iterations 100']
 
         submit_mini_batch(script_path, [params], phylogeny_tmp_dir,
@@ -793,7 +810,6 @@ try:
     else:
         logger.info(f'Raw tree file {phylogenetic_raw_tree_path} already exists.\nSkipping step...')
     edit_progress(output_html_path, progress=80)
-
 
     # 17.	extract_orfs_statistics.py
     # Input: (1) A path to ORFs file (2) An output path to ORFs counts (3) An output path to GC content
@@ -829,7 +845,6 @@ try:
     else:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
 
-
     # 18.	induce_dna_msa_by_aa_msa.py
     # Input: (1) An aa alignment (2) An unaligned dna file (3) An output file path
     # Output: write the codon alignment induced by the aa alignment to the output file
@@ -848,7 +863,7 @@ try:
         for og_file in os.listdir(aa_alignments_path):
             aa_alignment_path = os.path.join(aa_alignments_path, og_file)
             dna_unaligned_path = os.path.join(orthologs_dna_sequences_dir_path, og_file.replace('aa_mafft', 'dna'))
-            dna_induced_alignment_path = os.path.join(dna_alignments_path, og_file.replace('aa_mafft','dna_induced'))
+            dna_induced_alignment_path = os.path.join(dna_alignments_path, og_file.replace('aa_mafft', 'dna_induced'))
 
             single_cmd_params = [aa_alignment_path, dna_unaligned_path, dna_induced_alignment_path]
             all_cmds_params.append(single_cmd_params)
@@ -863,7 +878,6 @@ try:
         write_to_file(done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
-
 
     # 19.	extract_groups_sizes_frequency
     step_number = '19'
@@ -886,7 +900,8 @@ try:
 
         groups_sizes_frequency_raw_file_path = groups_sizes_frequency_file_prefix + '.txt'
         with open(groups_sizes_frequency_raw_file_path, 'w') as f:
-            f.write('\n'.join(group_sizes)) #f.write('\n'.join([f'{size},{group_size_to_counts_dict[size]}' for size in group_size_to_counts_dict]))
+            f.write('\n'.join(
+                group_sizes))  # f.write('\n'.join([f'{size},{group_size_to_counts_dict[size]}' for size in group_size_to_counts_dict]))
 
         groups_sizes_frequency_png_file_path = groups_sizes_frequency_file_prefix + '.png'
         generate_bar_plot(groups_sizes_frequency_raw_file_path, groups_sizes_frequency_png_file_path,
@@ -895,7 +910,6 @@ try:
         write_to_file(done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
-
 
     # 20.	plot_orfs_statistics
     step_number = '20'
@@ -908,7 +922,8 @@ try:
     if not os.path.exists(done_file_path):
 
         wait_for_results('extract_orfs_statistics.py', orfs_statistics_tmp_dir,
-                         num_of_expected_orfs_results, error_file_path=error_file_path, start=start_orf_stats, email=args.email)
+                         num_of_expected_orfs_results, error_file_path=error_file_path, start=start_orf_stats,
+                         email=args.email)
 
         logger.info('Concatenating orfs counts...')
         execute(f'cat {orfs_statistics_path}/*.orfs_count > {orfs_counts_frequency_file}', process_is_string=True)
@@ -917,7 +932,7 @@ try:
         execute(f'cat {orfs_statistics_path}/*.gc_content > {orfs_gc_content_file}', process_is_string=True)
 
         # No need to wait...
-        logger.info('Ploting violines...')
+        logger.info('Plotting violins...')
         orfs_counts_frequency_png_file_path = orfs_counts_frequency_file.replace('txt', 'png')
         generate_boxplot(orfs_counts_frequency_file, orfs_counts_frequency_png_file_path,
                          xlabel='\nORF count per genome', dpi=300)
@@ -931,9 +946,8 @@ try:
         logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
     edit_progress(output_html_path, progress=85)
 
-
     # Final step_number: gather relevant results, zip them together and update html file
-    logger.info(f'FINAL STEP: {"_"*100}')
+    logger.info(f'FINAL STEP: {"_" * 100}')
     final_output_dir_name = f'{CONSTS.WEBSERVER_NAME}_{run_number}_outputs'
     final_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, final_output_dir_name)
     done_file_path = os.path.join(done_files_dir, f'{final_output_dir_name}.txt')
@@ -1020,7 +1034,8 @@ except Exception as e:
 
     exc_type, exc_obj, exc_tb = sys.exc_info()
     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-    logger.error(f'\n\n{"$" * 100}\n\n{error_msg}\n\n{fname}: {exc_type}, at line: {exc_tb.tb_lineno}\n\ne: {e}\n\n{"$" * 100}')
+    logger.error(
+        f'\n\n{"$" * 100}\n\n{error_msg}\n\n{fname}: {exc_type}, at line: {exc_tb.tb_lineno}\n\ne: {e}\n\n{"$" * 100}')
 
     edit_failure_html(output_html_path, run_number, error_msg, CONSTS)
     edit_progress(output_html_path, active=False)
@@ -1031,17 +1046,17 @@ end = time()
 
 msg = f'M1CR0B1AL1Z3R pipeline {status}'
 if status == 'is done':
-    msg += f' (Took {measure_time(int(end-start))}).\nResults can be found at {output_url}.\nPlease note that the results will be kept in the server for three months.'
+    msg += f' (Took {measure_time(int(end - start))}).\nResults can be found at {output_url}.\nPlease note that the results will be kept in the server for three months.'
 else:
     msg += f'. For further information please visit: {output_url}'
 logger.info(msg)
 
 logger.info(f'Sending a notification email to {args.email}')
 try:
-    send_email('mxout.tau.ac.il', 'TAU BioSequence <bioSequence@tauex.tau.ac.il>', args.email, subject=f'{CONSTS.WEBSERVER_NAME} run number {run_number} {status}.', content=msg)
+    send_email('mxout.tau.ac.il', 'TAU BioSequence <bioSequence@tauex.tau.ac.il>', args.email,
+               subject=f'{CONSTS.WEBSERVER_NAME} run number {run_number} {status}.', content=msg)
 except:
     logger.error(f'\nFailed sending notification to {args.email}\n')
-
 
 logger.info('Cleaning up...')
 if status == 'is done':
@@ -1049,7 +1064,7 @@ if status == 'is done':
     if 'oren' in args.email:
 
         logger.info('\n\n\n')
-        logger.info('#'*100)
+        logger.info('#' * 100)
         logger.info('Executing additional modules for Sweeps analysis...')
         # 21.	extract_promoters_and_orfs
         # Input: (1) A path to a genome (2) Prodigal output file with ORFs coordinates
@@ -1075,10 +1090,10 @@ if status == 'is done':
                 all_cmds_params.append(single_cmd_params)
 
             num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                         num_of_cmds_per_job=5,
-                                                         job_name_suffix='promoter_gene_alignment',
-                                                         queue_name=args.queue_name,
-                                                         required_modules_as_list=[CONSTS.MAFFT])
+                                                       num_of_cmds_per_job=5,
+                                                       job_name_suffix='promoter_gene_alignment',
+                                                       queue_name=args.queue_name,
+                                                       required_modules_as_list=[CONSTS.MAFFT])
 
             wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                              num_of_batches, error_file_path, email=args.email)
@@ -1096,7 +1111,8 @@ if status == 'is done':
         step_name = f'{step_number}_orthologs_groups_dna_sequences'
         script_path = os.path.join(args.src_dir, 'extract_orfs.py')
         pipeline_step_output_dir_22, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, step_name)
-        assert os.path.exists(pipeline_step_output_dir_22), f'Failed to create output folder. {pipeline_step_output_dir_22} does not exist!'
+        assert os.path.exists(
+            pipeline_step_output_dir_22), f'Failed to create output folder. {pipeline_step_output_dir_22} does not exist!'
         done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
         if not os.path.exists(done_file_path):
             with open(final_orthologs_table_file_path) as f:
@@ -1111,29 +1127,33 @@ if status == 'is done':
                     cluster_members = line.rstrip()[first_delimiter_index + 1:]  # remove "OG_name"
 
                     number_of_sequences_in_cluster = sum(1 for member in cluster_members.split(delimiter) if member)
-                    if number_of_sequences_in_cluster < args.minmal_number_of_sequences_allowed_for_sweeps_analysis:
+                    if number_of_sequences_in_cluster < args.minimal_number_of_sequences_allowed_for_sweeps_analysis:
                         # ignore msa that contains less than the minimal allowed sequences for sweeps analysis
-                        logger.info(f'Orthologs group #{og_name} contains {number_of_sequences_in_cluster} members and thus '
-                                    f'will not be included in the sweeps analysis (at least '
-                                    f'{args.minmal_number_of_sequences_allowed_for_sweeps_analysis} '
-                                    f'members are required)')
+                        logger.info(
+                            f'Orthologs group #{og_name} contains {number_of_sequences_in_cluster} members and thus '
+                            f'will not be included in the sweeps analysis (at least '
+                            f'{args.minimal_number_of_sequences_allowed_for_sweeps_analysis} '
+                            f'members are required)')
                         continue
 
                     logger.debug(f'Orthologs group #{og_name} contains {number_of_sequences_in_cluster} sequences and'
-                                f' thus will be included in the sweeps analysis')
+                                 f' thus will be included in the sweeps analysis')
                     og_sequences_path = os.path.join(pipeline_step_output_dir_22, f'{og_name}_dna.fas')
 
                     single_cmd_params = [pipeline_step_output_dir_21,
-                                         f'"{final_table_header}"',  # should be flanked by quotes because it might contain spaces...
-                                         f'"{cluster_members}"',  # should be flanked by quotes because it might contain spaces...
-                                         f'"{og_name}"',  # should be flanked by quotes because it might contain spaces...
+                                         f'"{final_table_header}"',
+                                         # should be flanked by quotes because it might contain spaces...
+                                         f'"{cluster_members}"',
+                                         # should be flanked by quotes because it might contain spaces...
+                                         f'"{og_name}"',
+                                         # should be flanked by quotes because it might contain spaces...
                                          og_sequences_path]
                     all_cmds_params.append(single_cmd_params)
 
             num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                         num_of_cmds_per_job=100,
-                                                         job_name_suffix='extract_sequences',
-                                                         queue_name=args.queue_name)
+                                                       num_of_cmds_per_job=100,
+                                                       job_name_suffix='extract_sequences',
+                                                       queue_name=args.queue_name)
 
             wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                              num_of_batches, error_file_path, email=args.email)
@@ -1141,7 +1161,6 @@ if status == 'is done':
             write_to_file(done_file_path, '.')
         else:
             logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
-
 
         # 23.	align_orthologs_group.py
         # Input: (1) A path to an unaligned sequences file (2) An output file path
@@ -1163,9 +1182,10 @@ if status == 'is done':
                 all_cmds_params.append(single_cmd_params)
 
             num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                         num_of_cmds_per_job=100,
-                                                         job_name_suffix='align_promoter_and_gene', queue_name=args.queue_name,
-                                                         required_modules_as_list=[CONSTS.MAFFT])
+                                                       num_of_cmds_per_job=100,
+                                                       job_name_suffix='align_promoter_and_gene',
+                                                       queue_name=args.queue_name,
+                                                       required_modules_as_list=[CONSTS.MAFFT])
 
             wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                              num_of_batches, error_file_path, email=args.email)
@@ -1178,7 +1198,7 @@ if status == 'is done':
         # Input: (1) A path to an MSA file to which the tree should be adjusted
         #        (2) A path to a species tree that contains (at least) all the species in the input MSA
         #        (3) A path to a folder in which a txt file (with the same name as the msa_file) will be created. All the species that do not appear in the msa (and thus will be removed) will be written to the file that was created',
-        #        (4) A path to a file in which the prunned tree will be written
+        #        (4) A path to a file in which the pruned tree will be written
         # Output: an adjusted tree per msa at (4)
         step_number = '24'
         logger.info(f'Step {step_number}: {"_" * 100}')
@@ -1188,8 +1208,10 @@ if status == 'is done':
         done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
         if not os.path.exists(done_file_path):
             logger.info('Removing bootstrap values from tree...')
-            phylogenetic_raw_tree_path = phylogenetic_raw_tree_path.replace('outputs', final_output_dir_name)  # the tree was moved to the final dir..
-            phylogenetic_raw_tree_path_without_bootstrap_values = phylogenetic_raw_tree_path.replace('.txt', '_no_bootstrap.txt')
+            phylogenetic_raw_tree_path = phylogenetic_raw_tree_path.replace('outputs',
+                                                                            final_output_dir_name)  # the tree was moved to the final dir..
+            phylogenetic_raw_tree_path_without_bootstrap_values = phylogenetic_raw_tree_path.replace('.txt',
+                                                                                                     '_no_bootstrap.txt')
             remove_bootstrap_values(phylogenetic_raw_tree_path, phylogenetic_raw_tree_path_without_bootstrap_values)
 
             logger.info('Pruning trees...')
@@ -1198,12 +1220,13 @@ if status == 'is done':
                 msa_path = os.path.join(pipeline_step_output_dir_23, msa_file)
                 pruned_tree_path = os.path.join(pipeline_step_output_dir_24, msa_file.replace('.fas', '.tree'))
 
-                single_cmd_params = [msa_path, phylogenetic_raw_tree_path_without_bootstrap_values, pipeline_step_tmp_dir, pruned_tree_path]
+                single_cmd_params = [msa_path, phylogenetic_raw_tree_path_without_bootstrap_values,
+                                     pipeline_step_tmp_dir, pruned_tree_path]
                 all_cmds_params.append(single_cmd_params)
 
             num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                         num_of_cmds_per_job=100,
-                                                         job_name_suffix='adjust_tree', queue_name=args.queue_name)
+                                                       num_of_cmds_per_job=100,
+                                                       job_name_suffix='adjust_tree', queue_name=args.queue_name)
 
             wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                              num_of_batches, error_file_path, email=args.email)
@@ -1226,7 +1249,6 @@ if status == 'is done':
             script_path = f'/bioseq/sincopa/fix_msa.py'
             all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
             for msa_file in os.listdir(pipeline_step_output_dir_23):
-
                 # preparing parameters
                 msa_path = os.path.join(pipeline_step_output_dir_23, msa_file)
                 fixed_msa_output_path = os.path.join(pipeline_step_output_dir_25, msa_file)
@@ -1235,8 +1257,8 @@ if status == 'is done':
                 all_cmds_params.append(single_cmd_params)
 
             num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                         num_of_cmds_per_job=250,
-                                                         job_name_suffix='fix_msa', queue_name=args.queue_name)
+                                                       num_of_cmds_per_job=250,
+                                                       job_name_suffix='fix_msa', queue_name=args.queue_name)
 
             wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                              num_of_batches, error_file_path, email=args.email)
@@ -1260,7 +1282,6 @@ if status == 'is done':
             script_path = f'/bioseq/sincopa/compute_homoplasy.py'
             all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
             for msa_file in os.listdir(pipeline_step_output_dir_23):
-
                 # preparing parameters
                 fixed_msa_path = os.path.join(pipeline_step_output_dir_25, msa_file)
                 tree_path = os.path.join(pipeline_step_output_dir_24, msa_file.replace('fas', 'tree'))
@@ -1271,9 +1292,9 @@ if status == 'is done':
                 all_cmds_params.append(single_cmd_params)
 
             num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                         job_name_suffix='homoplasy', queue_name=args.queue_name,
-                                                         num_of_cmds_per_job=50,
-                                                         required_modules_as_list=[CONSTS.GCC])
+                                                       job_name_suffix='homoplasy', queue_name=args.queue_name,
+                                                       num_of_cmds_per_job=50,
+                                                       required_modules_as_list=[CONSTS.GCC])
 
             wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                              num_of_batches, error_file_path, email=args.email)
@@ -1298,7 +1319,6 @@ if status == 'is done':
             script_path = f'/bioseq/sincopa/compute_sweeps_score.py'
             all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
             for fixed_msa_file in os.listdir(pipeline_step_output_dir_25):
-
                 # preparing parameters
                 fixed_msa_path = os.path.join(pipeline_step_output_dir_25, fixed_msa_file)
                 homoplasy_path = os.path.join(pipeline_step_output_dir_26, fixed_msa_file.replace('fas', 'homoplasy'))
@@ -1311,8 +1331,8 @@ if status == 'is done':
                 all_cmds_params.append(single_cmd_params)
 
             num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                         job_name_suffix='sweeps', queue_name=args.queue_name,
-                                                         num_of_cmds_per_job=100)
+                                                       job_name_suffix='sweeps', queue_name=args.queue_name,
+                                                       num_of_cmds_per_job=100)
 
             wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                              num_of_batches, error_file_path, email=args.email)
@@ -1323,7 +1343,6 @@ if status == 'is done':
 
         # 28. analyse sweeps
         # Input: a path to a folder with sweeps score files
-
         # Output: concatenated csv file with all the analysis metadata
         # CANNOT be parallelized on cluster
         step_number = '28'
@@ -1349,7 +1368,8 @@ if status == 'is done':
 
             df = pd.read_csv(sweeps_summary_path)
 
-            df.sort_values(by=['max_score', 'number_of_sequences', 'centrality', 'msa_length'], ascending=False, inplace=True)
+            df.sort_values(by=['max_score', 'number_of_sequences', 'centrality', 'msa_length'], ascending=False,
+                           inplace=True)
             df.to_csv(sorted_sweeps_summary_path, index=False)
 
             run_number2species = {'159716760987322741064374127401': 'C. trachomatis, r/m=0.66',
@@ -1366,7 +1386,7 @@ if status == 'is done':
 
                 fig = plt.figure()
                 plt.title(f'{column}\n({run_number2species.get(run_number, "unrecognized species")})')
-                plt.hist(df[column], bins=50)  #TODO: density=True
+                plt.hist(df[column], bins=50)  # TODO: density=True
                 fig.savefig(f'{sweeps_analysis_dir}/{column}.png', dpi=500, bbox_inches='tight')
                 plt.close()
                 fig = plt.figure()
@@ -1375,40 +1395,48 @@ if status == 'is done':
                 fig.savefig(f'{sweeps_analysis_dir}/{column}_smooth.png', dpi=500, bbox_inches='tight')
                 plt.close()
                 fig = plt.figure()
-                percentile = 10/100
-                plt.title(f'{column} (top {int(percentile*100)}%)\n({run_number2species.get(run_number, "unrecognized species")})')
-                df[column][df[column] >= df[column].quantile(1-percentile)].plot.kde()
-                fig.savefig(f'{sweeps_analysis_dir}/{column}_smooth_top_{percentile*100}_percentile.png', dpi=500, bbox_inches='tight')
+                percentile = 10 / 100
+                plt.title(
+                    f'{column} (top {int(percentile * 100)}%)\n({run_number2species.get(run_number, "unrecognized species")})')
+                df[column][df[column] >= df[column].quantile(1 - percentile)].plot.kde()
+                fig.savefig(f'{sweeps_analysis_dir}/{column}_smooth_top_{percentile * 100}_percentile.png', dpi=500,
+                            bbox_inches='tight')
                 plt.close()
                 fig = plt.figure()
-                percentile = 20/100
-                plt.title(f'{column} (top {int(percentile*100)}%)\n({run_number2species.get(run_number, "unrecognized species")})')
-                df[column][df[column] >= df[column].quantile(1-percentile)].plot.kde()
-                fig.savefig(f'{sweeps_analysis_dir}/{column}_smooth_top_{percentile*100}_percentile.png', dpi=500, bbox_inches='tight')
+                percentile = 20 / 100
+                plt.title(
+                    f'{column} (top {int(percentile * 100)}%)\n({run_number2species.get(run_number, "unrecognized species")})')
+                df[column][df[column] >= df[column].quantile(1 - percentile)].plot.kde()
+                fig.savefig(f'{sweeps_analysis_dir}/{column}_smooth_top_{percentile * 100}_percentile.png', dpi=500,
+                            bbox_inches='tight')
                 plt.close()
                 fig = plt.figure()
-                percentile = 5/1000
-                plt.title(f'{column} ({percentile} trimmed)\n({run_number2species.get(run_number, "unrecognized species")})')
+                percentile = 5 / 1000
+                plt.title(
+                    f'{column} ({percentile} trimmed)\n({run_number2species.get(run_number, "unrecognized species")})')
                 plt.hist(np.sort(df[column])[int(len(df) * percentile): len(df) - int(len(df) * percentile)], bins=50)
                 fig.savefig(f'{sweeps_analysis_dir}/{column}_trimmed.png', dpi=500, bbox_inches='tight')
                 plt.close()
                 fig = plt.figure()
-                percentile = 1/100
-                plt.title(f'{column} (top {int(percentile*100)}%)\n({run_number2species.get(run_number, "unrecognized species")})')
+                percentile = 1 / 100
+                plt.title(
+                    f'{column} (top {int(percentile * 100)}%)\n({run_number2species.get(run_number, "unrecognized species")})')
                 plt.hist(np.sort(df[column])[len(df) - int(len(df) * percentile):], bins=30)
-                fig.savefig(f'{sweeps_analysis_dir}/{column}_top_{percentile*100}_percentile.png', dpi=500, bbox_inches='tight')
+                fig.savefig(f'{sweeps_analysis_dir}/{column}_top_{percentile * 100}_percentile.png', dpi=500,
+                            bbox_inches='tight')
                 plt.close()
                 fig = plt.figure()
-                percentile = 5/100
-                plt.title(f'{column} (top {int(percentile*100)}%)\n({run_number2species.get(run_number, "unrecognized species")})')
+                percentile = 5 / 100
+                plt.title(
+                    f'{column} (top {int(percentile * 100)}%)\n({run_number2species.get(run_number, "unrecognized species")})')
                 plt.hist(np.sort(df[column])[len(df) - int(len(df) * percentile):], bins=30)
-                fig.savefig(f'{sweeps_analysis_dir}/{column}_top_{percentile*100}_percentile.png', dpi=500, bbox_inches='tight')
+                fig.savefig(f'{sweeps_analysis_dir}/{column}_top_{percentile * 100}_percentile.png', dpi=500,
+                            bbox_inches='tight')
                 plt.close()
 
             # No need to wait...
         else:
             logger.info(f'done file {sorted_sweeps_summary_path} already exists.\nSkipping step...')
-
 
         # preventing folder's deletion (output dir is being deleted
         # logger.info(f'Moving {pipeline_step_output_dir_24} TO {os.path.join(meta_output_dir, step_name)}')
@@ -1431,7 +1459,6 @@ if status == 'is done':
                                 '15_aligned_core_proteome',
                                 '17_orfs_statistics',
                                 '18_induce_dna_msa_by_aa_msa']]:
-
             # remove intermediate results
             remove_path(path_to_remove)
 

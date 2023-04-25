@@ -28,6 +28,7 @@ Output:
 
 import os
 
+
 def load_reciprocal_hits_to_dictionary(all_reciprocal_hits_path, group_name_to_pair_combinations, delimiter):
     gene_pair_to_score = {}
     with open(all_reciprocal_hits_path) as f:
@@ -95,12 +96,15 @@ def prepare_files_for_mcl(all_reciprocal_hits_path, putative_orthologs_path, sta
             group_name_to_combinations[group_name] = set(combinations(og_members, 2))
 
     logger.info('Loading relevant reciprocal hit scores to dictionary...')
-    gene_pair_to_score_dict = load_reciprocal_hits_to_dictionary(all_reciprocal_hits_path, group_name_to_combinations, delimiter)
-    logger.info(f'All relevant reciprocal hits were loaded successfully. Number of relevant gene pairs is {len(gene_pair_to_score_dict)}.')
+    gene_pair_to_score_dict = load_reciprocal_hits_to_dictionary(all_reciprocal_hits_path, group_name_to_combinations,
+                                                                 delimiter)
+    logger.info(
+        f'All relevant reciprocal hits were loaded successfully. Number of relevant gene pairs is {len(gene_pair_to_score_dict)}.')
 
     for group_name in group_name_to_combinations:
         # create input file for mcl
-        text_to_mcl_file = generate_text_to_mcl_input_file(gene_pair_to_score_dict, group_name_to_combinations[group_name])
+        text_to_mcl_file = generate_text_to_mcl_input_file(gene_pair_to_score_dict,
+                                                           group_name_to_combinations[group_name])
         mcl_file_path = os.path.join(output_path, group_name + '.mcl_input')
 
         with open(mcl_file_path, 'w') as mcl_f:
@@ -109,12 +113,15 @@ def prepare_files_for_mcl(all_reciprocal_hits_path, putative_orthologs_path, sta
 
 if __name__ == '__main__':
     from sys import argv
+
     print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
 
     import argparse
+
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('all_reciprocal_hits_path', help='path to a file with all the reciprocal hits files concatenated')
+    parser.add_argument('all_reciprocal_hits_path',
+                        help='path to a file with all the reciprocal hits files concatenated')
     parser.add_argument('putative_orthologs_path', help='path to a file with the putative orthologs sets')
     parser.add_argument('start', help='first ortholog set to prepare', type=int)
     parser.add_argument('end', help='last ortholog set to prepare', type=int)
@@ -124,6 +131,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     import logging
+
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
     else:

@@ -1,20 +1,21 @@
 from auxiliaries.pipeline_auxiliaries import load_header2sequences_dict
 
+
 def induce_sequence(aa_seq, dna_seq):
     result = ''
     dna_i = 0
     for aa_i in range(len(aa_seq)):
         if aa_seq[aa_i] == '-':
-            result += '-'*3
+            result += '-' * 3
         else:
-            result += dna_seq[dna_i:dna_i+3]
+            result += dna_seq[dna_i:dna_i + 3]
             dna_i += 3
 
     # TODO: remove this checkup
-    if len(aa_seq)*3 != len(result):
-        logger.error('$'*80)
+    if len(aa_seq) * 3 != len(result):
+        logger.error('$' * 80)
         logger.error('len(aa_seq)*3 != len(result)')
-        logger.error(f'{len(aa_seq)*3} != {len(result)}')
+        logger.error(f'{len(aa_seq) * 3} != {len(result)}')
     # # fill with trailing gaps so each induced dna sequence is of the same length
     # result += (len(aa_seq)*3-len(result))*'-'
     return result
@@ -23,7 +24,6 @@ def induce_sequence(aa_seq, dna_seq):
 def induce_msa(aa_msa_path, dna_ms_path, output_path):
     og_name_to_aa = load_header2sequences_dict(aa_msa_path)
     og_name_to_dna = load_header2sequences_dict(dna_ms_path)
-
 
     result = ''
     with open(dna_ms_path) as f:
@@ -39,9 +39,11 @@ def induce_msa(aa_msa_path, dna_ms_path, output_path):
 
 if __name__ == '__main__':
     from sys import argv
+
     print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
 
     import argparse
+
     parser = argparse.ArgumentParser()
     parser.add_argument('aa_msa_path', help='path to a file with aligned proteins')
     parser.add_argument('dna_ms_path', help='path to a file with unaligned dna sequences')
@@ -50,6 +52,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     import logging
+
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
     else:
@@ -57,5 +60,3 @@ if __name__ == '__main__':
     logger = logging.getLogger('main')
 
     induce_msa(args.aa_msa_path, args.dna_ms_path, args.output_path)
-
-

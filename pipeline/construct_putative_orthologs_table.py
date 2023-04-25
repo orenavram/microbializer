@@ -24,7 +24,6 @@ def construct_table(all_reciprocal_hits_path, putative_orthologs_path, delimiter
                 gene1_was_seen = gene1 in member_gene_to_strain_name_dict
                 gene2_was_seen = gene2 in member_gene_to_strain_name_dict
 
-
                 if not gene1_was_seen and not gene2_was_seen:
                     # non of the two genes was seen before
                     # update strain name
@@ -67,7 +66,8 @@ def construct_table(all_reciprocal_hits_path, putative_orthologs_path, delimiter
                     if group1 == group2:
                         # groups are already merged
                         continue
-                    min_group, max_group = sorted([group1, group2], key=lambda gene: (member_gene_to_strain_name_dict[gene], member_gene_to_group_name[gene]))
+                    min_group, max_group = sorted([group1, group2], key=lambda gene: (
+                    member_gene_to_strain_name_dict[gene], member_gene_to_group_name[gene]))
                     # remove max_group from dictionary
                     max_group_members = group_name_to_member_genes.pop(max_group)
                     # merge groups
@@ -81,7 +81,7 @@ def construct_table(all_reciprocal_hits_path, putative_orthologs_path, delimiter
     with open(os.path.join(putative_orthologs_prefix, 'num_of_strains.txt'), 'w') as f:
         f.write(f'{len(sorted_strains)}\n')
 
-    header = delimiter.join(['OG_name']+sorted_strains) + '\n'
+    header = delimiter.join(['OG_name'] + sorted_strains) + '\n'
     result = ''
     number_of_putative_sets = 0
     result += header
@@ -94,7 +94,7 @@ def construct_table(all_reciprocal_hits_path, putative_orthologs_path, delimiter
         for member in current_group:
             strain = member_gene_to_strain_name_dict[member]
             strain_to_member[strain] = member
-        result += delimiter.join([group]+[strain_to_member[strain] for strain in sorted_strains]) + '\n'
+        result += delimiter.join([group] + [strain_to_member[strain] for strain in sorted_strains]) + '\n'
         number_of_putative_sets += 1
 
     with open(putative_orthologs_path, 'w') as f:
@@ -106,18 +106,23 @@ def construct_table(all_reciprocal_hits_path, putative_orthologs_path, delimiter
 
 if __name__ == '__main__':
     from sys import argv
+
     print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
 
     import argparse
+
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('all_reciprocal_hits_path', help='path to a file with all the reciprocal hits files concatenated')
-    parser.add_argument('putative_orthologs_path', help='path to an output file in which the putative orthologs table will be written')
+    parser.add_argument('all_reciprocal_hits_path',
+                        help='path to a file with all the reciprocal hits files concatenated')
+    parser.add_argument('putative_orthologs_path',
+                        help='path to an output file in which the putative orthologs table will be written')
     parser.add_argument('--delimiter', help='delimiter for the input and output files', default=',')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     args = parser.parse_args()
 
     import logging
+
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
     else:

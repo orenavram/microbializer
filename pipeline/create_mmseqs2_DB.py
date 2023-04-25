@@ -17,13 +17,13 @@ def too_many_trials(cmd, error_file_path):
 
 
 def create_mmseq2_DB(fasta_path, output_path, tmp_path, translate, convert2fasta, verbosity_level, cpus=1):
-    '''
+    """
     input:  sequnce to base the DB on
             DB type (nucl/prot)
             path to output file
     output: mmseqs2 DB based on the reference sequence
-    '''
-    #for more details see: mmseqs createdb -h
+    """
+    # for more details see: mmseqs createdb -h
     import subprocess
     import os
     import time
@@ -32,7 +32,7 @@ def create_mmseq2_DB(fasta_path, output_path, tmp_path, translate, convert2fasta
     while not os.path.exists(tmp_path):
         logger.info(f'Iteration #{i}: createdb. Result should be at {tmp_path}')
         # control verbosity level by -v [3] param ; verbosity levels: 0=nothing, 1: +errors, 2: +warnings, 3: +info
-        cmd = f'mmseqs createdb {fasta_path} {tmp_path} -v {verbosity_level}'# --dont-split-seq-by-len'
+        cmd = f'mmseqs createdb {fasta_path} {tmp_path} -v {verbosity_level}'  # --dont-split-seq-by-len'
         logger.info(f'Starting mmseqs createdb. Executed command is:\n{cmd}')
         subprocess.run(cmd, shell=True)
         i += 1
@@ -47,7 +47,7 @@ def create_mmseq2_DB(fasta_path, output_path, tmp_path, translate, convert2fasta
             logger.info(f'Iteration #{i}: translatenucs. Result should be at {tmp_path}_aa')
             # translate dna db to aa db
             cmd = f'mmseqs translatenucs {tmp_path} {tmp_path}_aa -v {verbosity_level} ' \
-            f'--threads {cpus}'  # default number of threads is 4. If the wrapper did not allocated enough threads the process will crash.
+                  f'--threads {cpus}'  # default number of threads is 4. If the wrapper did not allocated enough threads the process will crash.
             logger.info(f'Translating dna DB to amino acids. Executed command is:\n{cmd}')
             subprocess.run(cmd, shell=True)
             i += 1
@@ -69,7 +69,9 @@ def create_mmseq2_DB(fasta_path, output_path, tmp_path, translate, convert2fasta
                 too_many_trials('mmseqs convert2fasta', error_file_path)
             time.sleep(1)
 
-        intermediate_files = [f'{tmp_path}{suffix}' for suffix in ['', '_aa', '_aa.dbtype', '_aa_h', '_aa_h.dbtype', '_aa_h.index', '_aa.index', '.dbtype', '_h', '_h.dbtype', '_h.index', '.index', '.lookup']]
+        intermediate_files = [f'{tmp_path}{suffix}' for suffix in
+                              ['', '_aa', '_aa.dbtype', '_aa_h', '_aa_h.dbtype', '_aa_h.index', '_aa.index', '.dbtype',
+                               '_h', '_h.dbtype', '_h.index', '.index', '.lookup']]
         # each pair generates 13 intermidiate files!!! lot's of junk once finished
         for file in intermediate_files:
             os.remove(file)
@@ -77,20 +79,23 @@ def create_mmseq2_DB(fasta_path, output_path, tmp_path, translate, convert2fasta
 
 if __name__ == '__main__':
     from sys import argv
+
     print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
 
     import argparse
+
     parser = argparse.ArgumentParser()
     parser.add_argument('input_fasta', help='path to input fasta file')
     parser.add_argument('output_prefix', help='path prefix for the DB file(s)')
     parser.add_argument('tmp_prefix', help='path prefix for the tmp file(s)')
-    #parser.add_argument('--dbtype', help='database type for creating blast DB', default='nucl')
+    # parser.add_argument('--dbtype', help='database type for creating blast DB', default='nucl')
     parser.add_argument('-t', '--translate', help='whether to translate the dna to aa', action='store_true')
     parser.add_argument('-c', '--convert2fasta', help='whether to convert the dbs to fasta', action='store_true')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     args = parser.parse_args()
 
     import logging
+
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
     else:

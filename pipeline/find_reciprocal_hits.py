@@ -37,10 +37,11 @@ def find_reciprocal_hits(blast_out1, blast_out2, output_path, delimiter):
             # sanity check that reciprocal bitscores are identical
             bitscore2 = query2_val[1]
             if eval(bitscore1) != eval(bitscore2):
-                logger.info(f'bitscores of {query1} and {query2} are different!!\n{bitscore1} in {blast_out1}\n{bitscore2} in {blast_out2}')
+                logger.info(
+                    f'bitscores of {query1} and {query2} are different!!\n{bitscore1} in {blast_out1}\n{bitscore2} in {blast_out2}')
 
-            #assert eval(bitscore1) == eval(bitscore2), f'bitscores of {query1} and {query2} are different!!\n{bitscore1} in {blast_out1}\n{bitscore2} in {blast_out2}'
-            #bitscore is not symmetrical: https://www.bioinformatics.org/pipermail/biodevelopers/2007-January/000749.html
+            # assert eval(bitscore1) == eval(bitscore2), f'bitscores of {query1} and {query2} are different!!\n{bitscore1} in {blast_out1}\n{bitscore2} in {blast_out2}'
+            # bitscore is not symmetrical: https://www.bioinformatics.org/pipermail/biodevelopers/2007-January/000749.html
 
     with open(output_path, 'w') as f:
         f.write(result)
@@ -49,9 +50,11 @@ def find_reciprocal_hits(blast_out1, blast_out2, output_path, delimiter):
 
 if __name__ == '__main__':
     from sys import argv
+
     print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
 
     import argparse
+
     parser = argparse.ArgumentParser()
     parser.add_argument('blast_result1', help='path to blast result file of seq1 vs seq2')
     parser.add_argument('blast_result2', help='path to blast result file of seq2 vs seq1')
@@ -61,6 +64,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     import logging
+
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
     else:

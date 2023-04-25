@@ -1,11 +1,14 @@
 import os
 import Bio.SeqUtils
 import logging
+
 logger = logging.getLogger('main')
+
 
 def verify_fasta_format(data_path):
     Bio.SeqUtils.IUPACData.ambiguous_dna_letters += 'U-'
-    legal_chars = set(Bio.SeqUtils.IUPACData.ambiguous_dna_letters.lower() + Bio.SeqUtils.IUPACData.ambiguous_dna_letters)
+    legal_chars = set(
+        Bio.SeqUtils.IUPACData.ambiguous_dna_letters.lower() + Bio.SeqUtils.IUPACData.ambiguous_dna_letters)
     for file_name in os.listdir(data_path):
         if file_name.endswith('zip') or file_name.endswith('gz') or file_name.endswith('rar'):
             return f'{file_name} is a binary file (rather than textual). Please upload your genomes as text files (such as fas or fna).'
@@ -34,7 +37,7 @@ def verify_fasta_format(data_path):
                         return f'Illegal <a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a>. Line {putative_end_of_file} in "{file_name}" is empty.'
                     if line.startswith('>'):
                         if previous_line_was_header:
-                            return f'Illegal <a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a>. "{file_name}" contains an empty record. Both lines {line_number-1} and {line_number} start with ">".'
+                            return f'Illegal <a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a>. "{file_name}" contains an empty record. Both lines {line_number - 1} and {line_number} start with ">".'
                         else:
                             previous_line_was_header = True
                             curated_content += f'>{strain_name}_{line[1:]}\n'.replace("|", "_")
