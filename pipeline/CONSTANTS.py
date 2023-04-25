@@ -7,17 +7,15 @@
 import os.path
 
 V2_TEST = True
-V2_TEST_HOME_DIR = '/groups/pupko/yairshimony'
-V2_TEST_PROJECT_ROOT_DIR = os.path.join(V2_TEST_HOME_DIR, 'microbializer')
-PRODUCTION_PROJECT_ROOT_DIR = '/bioseq/microbializer'
+IGNORE_HTML = True
+CLEAN_OUTPUTS_AFTER_RUN = False
 
-PROJECT_ROOT_DIR = V2_TEST_PROJECT_ROOT_DIR if V2_TEST else PRODUCTION_PROJECT_ROOT_DIR
+PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer' if V2_TEST else '/bioseq/microbializer'
+OWNER_EMAIL = 'yairshimony@mail.tau.ac.il' if V2_TEST else 'orenavram@gmail.com'
 
 # constants to use when sending e-mails using the server admin's email address.
 ADMIN_EMAIL = 'TAU BioSequence <bioSequence@tauex.tau.ac.il>'
 SMTP_SERVER = 'mxout.tau.ac.il'
-
-OWNER_EMAIL = 'yairshimony@mail.tau.ac.il' if V2_TEST else 'orenavram@gmail.com'
 
 # general vars
 SERVERS_RESULTS_DIR = '/bioseq/data/results'

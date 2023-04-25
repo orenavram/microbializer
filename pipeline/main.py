@@ -27,11 +27,9 @@ try:
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--contigs_dir', help='path to a folder with the genomic sequences. This folder may be zipped, as well the files in it.',
-                        type=lambda path: path.rstrip('/') if os.path.exists(path) else parser.error(f'{path} does not exist!'),
-                        default=os.path.join(CONSTS.V2_TEST_HOME_DIR, 'microbializer_test/mini_example'))
+                        type=lambda path: path.rstrip('/') if os.path.exists(path) else parser.error(f'{path} does not exist!'))
     parser.add_argument('--output_dir', help='directory where the output files will be written to',
-                        type=lambda path: path.rstrip('/'),
-                        default=os.path.join(CONSTS.V2_TEST_HOME_DIR, 'microbializer_test/outputs'))
+                        type=lambda path: path.rstrip('/'))
     parser.add_argument('--email', help='A notification will be sent once the pipeline is done',
                         default=CONSTS.OWNER_EMAIL)
     parser.add_argument('--identity_cutoff', default=80, type=lambda x: eval(x),
@@ -78,7 +76,7 @@ try:
     run_number = os.path.join(os.path.split(meta_output_dir)[1])
     logger.info(f'run_number is {run_number}')
 
-    if not CONSTS.V2_TEST:
+    if not CONSTS.IGNORE_HTML:
         output_html_path = os.path.join(meta_output_dir, CONSTS.RESULT_WEBPAGE_NAME)
         logger.info(f'output_html_path is {output_html_path}')
 
@@ -1420,7 +1418,7 @@ if status == 'is done':
         # except FileExistsError:
         #     pass
 
-    if run_number.lower() != 'example' and 'oren' not in args.email:
+    if run_number.lower() != 'example' and 'oren' not in args.email and CONSTS.CLEAN_OUTPUTS_AFTER_RUN:
 
         # remove intermediate results (including tmp_dir)
         remove_path(args.output_dir)

@@ -46,7 +46,7 @@ def get_html_string_of_restult(final_output_dir_name, meta_output_dir, end_of_st
 
 
 def edit_success_html(html_path, meta_output_dir, final_output_dir_name, run_number, CONSTS):
-    if CONSTS.V2_TEST:
+    if CONSTS.IGNORE_HTML:
         return
 
     html_text = ''
@@ -114,7 +114,7 @@ def edit_success_html(html_path, meta_output_dir, final_output_dir_name, run_num
 
 
 def edit_failure_html(html_path, run_number, msg, CONSTS):
-    if CONSTS.V2_TEST:
+    if CONSTS.IGNORE_HTML:
         return
 
     html_text = ''
@@ -141,7 +141,7 @@ def edit_failure_html(html_path, run_number, msg, CONSTS):
 
 
 def edit_progress(output_html_path, progress=None, active=True):
-    if CONSTS.V2_TEST:
+    if CONSTS.IGNORE_HTML:
         return
 
     result = ''
