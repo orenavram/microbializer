@@ -1,6 +1,6 @@
 import logging
 import os
-from auxiliaries import CONSTANTS as CONSTS
+from auxiliaries import consts
 
 logger = logging.getLogger('main')
 
@@ -10,21 +10,21 @@ def add_closing_html_tags(html_path, run_number):
         f.write(
             f'<hr>\n<h4 class=footer><p align=\'center\'>Questions and comments are welcome! Please '
             f'<span class="admin_link">'
-            f'<a href="mailto:{CONSTS.ADMIN_EMAIL}?subject={CONSTS.WEBSERVER_NAME}%20Run%20Number%20{run_number}">contact us</a>'
+            f'<a href="mailto:{consts.ADMIN_EMAIL}?subject={consts.WEBSERVER_NAME}%20Run%20Number%20{run_number}">contact us</a>'
             f'</span></p></h4>\n'
             f'<div id="bottom_links" align="center"><span class="bottom_link">'
-            f'<a href="{CONSTS.WEBSERVER_URL}/" target="_blank">Home</a>'
-            f'&nbsp;|&nbsp<a href="{CONSTS.WEBSERVER_URL}/overview.html" target="_blank">Overview</a>\n'
+            f'<a href="{consts.WEBSERVER_URL}/" target="_blank">Home</a>'
+            f'&nbsp;|&nbsp<a href="{consts.WEBSERVER_URL}/overview.html" target="_blank">Overview</a>\n'
             f'</span>\n'
             f'<br><br><br>\n</body>\n</html>\n')
         f.flush()
 
     # Must be after flushing all previous data. Otherwise it might refresh during the writing.. :(
     from time import sleep
-    sleep(2 * CONSTS.RELOAD_INTERVAL)
+    sleep(2 * consts.RELOAD_INTERVAL)
     with open(html_path) as f:
         html_content = f.read()
-    html_content = html_content.replace(CONSTS.RELOAD_TAGS, f'<!--{CONSTS.RELOAD_TAGS}-->')
+    html_content = html_content.replace(consts.RELOAD_TAGS, f'<!--{consts.RELOAD_TAGS}-->')
     with open(html_path, 'w') as f:
         f.write(html_content)
 
@@ -47,7 +47,7 @@ def get_html_string_of_result(final_output_dir_name, meta_output_dir, end_of_str
 
 
 def edit_success_html(html_path, meta_output_dir, final_output_dir_name, run_number):
-    if CONSTS.IGNORE_HTML:
+    if consts.IGNORE_HTML:
         return
 
     html_text = ''
@@ -56,12 +56,12 @@ def edit_success_html(html_path, meta_output_dir, final_output_dir_name, run_num
             html_text = f.read()
         # The initial file exists (generate by the cgi) so we can read and parse it.
         html_text = html_text.replace('RUNNING', 'FINISHED').replace(
-            f'{CONSTS.WEBSERVER_NAME} is now processing your request. This page will be automatically updated every few seconds (until the job is done). You can also reload it manually. Once the job has finished, several links to the output files will appear below. ',
+            f'{consts.WEBSERVER_NAME} is now processing your request. This page will be automatically updated every few seconds (until the job is done). You can also reload it manually. Once the job has finished, several links to the output files will appear below. ',
             '')
     except FileNotFoundError:
         logger.warning(f"Couldn't find html prefix at: {html_path}")
 
-    html_text += f'<div class="container" style="{CONSTS.CONTAINER_STYLE}">\n' \
+    html_text += f'<div class="container" style="{consts.CONTAINER_STYLE}">\n' \
                  f'<h2>RESULTS:<h2>' \
                  f'<h3><b><a href=\'{final_output_dir_name}.zip\' target=\'_blank\'>Download zipped full results (textual & visual)</a></b></h3>' \
                  f'<table class="table">\n' \
@@ -72,7 +72,7 @@ def edit_success_html(html_path, meta_output_dir, final_output_dir_name, run_num
 
     raw_file_suffix = os.path.join(final_output_dir_name, '16_species_phylogeny/final_species_tree.txt')
     if os.path.exists(os.path.join(meta_output_dir, raw_file_suffix)):
-        html_text += f'<tr><td><a href="{CONSTS.WEBSERVER_URL}/PhyD3/view_tree.php?id={run_number}&f=newick" target="_blank">Interactive species tree</a> ;' \
+        html_text += f'<tr><td><a href="{consts.WEBSERVER_URL}/PhyD3/view_tree.php?id={run_number}&f=newick" target="_blank">Interactive species tree</a> ;' \
                      f' (<a href="{raw_file_suffix}" target="_blank">raw data</a>)\n<br></td></tr>'
     else:
         html_text += f'<tr><td>' \
@@ -112,11 +112,11 @@ def edit_success_html(html_path, meta_output_dir, final_output_dir_name, run_num
         f.write(html_text)
         f.flush()
 
-    add_closing_html_tags(html_path, CONSTS, run_number)
+    add_closing_html_tags(html_path, run_number)
 
 
 def edit_failure_html(html_path, run_number, msg):
-    if CONSTS.IGNORE_HTML:
+    if consts.IGNORE_HTML:
         return
 
     html_text = ''
@@ -125,27 +125,27 @@ def edit_failure_html(html_path, run_number, msg):
             html_text = f.read()
         # The initial file exists (generate by the cgi) so we can read and parse it.
         html_text = html_text.replace('RUNNING', 'FAILED').replace(
-            f'{CONSTS.WEBSERVER_NAME} is now processing your request. This page will be automatically updated every few seconds (until the job is done). You can also reload it manually. Once the job has finished, several links to the output files will appear below. ',
+            f'{consts.WEBSERVER_NAME} is now processing your request. This page will be automatically updated every few seconds (until the job is done). You can also reload it manually. Once the job has finished, several links to the output files will appear below. ',
             '')
     except FileNotFoundError:
         import logging
         logger = logging.getLogger('main')
         logger.warning(f"Couldn't find html prefix at: {html_path}")
 
-    html_text += f'<div class="container" align="justify" style="{CONSTS.CONTAINER_STYLE}"><h3>\n' \
+    html_text += f'<div class="container" align="justify" style="{consts.CONTAINER_STYLE}"><h3>\n' \
                  f'<font color="red">{msg}</font><br><br>' \
-                 f'Please make sure your input is OK and then try to re-run your job or <a href="mailto:{CONSTS.ADMIN_EMAIL}?subject={CONSTS.WEBSERVER_NAME}%20Run%20Number:%20{run_number}">contact us</a> for further information' \
+                 f'Please make sure your input is OK and then try to re-run your job or <a href="mailto:{consts.ADMIN_EMAIL}?subject={consts.WEBSERVER_NAME}%20Run%20Number:%20{run_number}">contact us</a> for further information' \
                  f'</h3></div>\n'
 
     with open(html_path, 'w') as f:
         f.write(html_text)
         f.flush()
 
-    add_closing_html_tags(html_path, CONSTS, run_number)
+    add_closing_html_tags(html_path, run_number)
 
 
 def edit_progress(output_html_path, progress=None, active=True):
-    if CONSTS.IGNORE_HTML:
+    if consts.IGNORE_HTML:
         return
 
     result = ''

@@ -10,7 +10,7 @@ from random import randint
 import sys
 sys.path.insert(0, '/bioseq/microbializer/pipeline/')  # for CONSTANTS and auxiliaries
 
-import CONSTANTS as CONSTS
+from auxiliaries import consts
 from auxiliaries.pipeline_auxiliaries import fix_illegal_chars_in_file_name
 from auxiliaries.email_sender import send_email
 
@@ -44,10 +44,10 @@ def write_html_prefix(output_path, run_number):
         <meta http-equiv="expires" content="0" />
         <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
         <meta http-equiv="pragma" content="no-cache" />
-        {CONSTS.RELOAD_TAGS}
+        {consts.RELOAD_TAGS}
     
-        <title>{CONSTS.WEBSERVER_NAME} Job #{run_number}</title>
-        <link rel="shortcut icon" type="image/x-icon" href="{CONSTS.WEBSERVER_URL}/pics/logo.gif" />
+        <title>{consts.WEBSERVER_NAME} Job #{run_number}</title>
+        <link rel="shortcut icon" type="image/x-icon" href="{consts.WEBSERVER_URL}/pics/logo.gif" />
     
         <meta charset="utf-8">
         <!--<meta name="viewport" content="width=device-width, initial-scale=1">-->
@@ -56,7 +56,7 @@ def write_html_prefix(output_path, run_number):
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
         <link rel="stylesheet" href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css">
     
-        <link rel="stylesheet" href="{CONSTS.WEBSERVER_URL}/css/general.css">
+        <link rel="stylesheet" href="{consts.WEBSERVER_URL}/css/general.css">
         <link rel="stylesheet" href="../webpage/css/general.css">
     
         </head><body>
@@ -67,9 +67,9 @@ def write_html_prefix(output_path, run_number):
                         <div class="col-md-1">
                         </div>
                         <div class="col-md-10">
-                            <span id="server-title">{CONSTS.WEBSERVER_NAME}</span>
-                            <img src="{CONSTS.WEBSERVER_URL}/pics/logo.gif" id="nav_bar_image" class="img-rounded">
-                            <br><span id="sub-title">{CONSTS.WEBSERVER_TITLE}</span>
+                            <span id="server-title">{consts.WEBSERVER_NAME}</span>
+                            <img src="{consts.WEBSERVER_URL}/pics/logo.gif" id="nav_bar_image" class="img-rounded">
+                            <br><span id="sub-title">{consts.WEBSERVER_TITLE}</span>
                         </div>
                     </div>
                 </div>       
@@ -77,18 +77,18 @@ def write_html_prefix(output_path, run_number):
         </nav>
         <div id="behind-nav-bar-results">
         </div>
-        <br><br><div class="container" style="font-size: 17px; {CONSTS.CONTAINER_STYLE}"  align="justify"><br> 
+        <br><br><div class="container" style="font-size: 17px; {consts.CONTAINER_STYLE}"  align="justify"><br> 
         <H1 align=center>Job Status: <FONT color='red'>\nQUEUED\n</FONT></h1>
         <br>
-        {CONSTS.PROGRESS_BAR_TAG}
-        {CONSTS.WEBSERVER_NAME} is now processing your request. This page will be automatically updated every few seconds (until the job is done). You can also reload it manually. Once the job has finished, several links to the output files will appear below. A link to this page was sent to your email in case you wish to view these results at a later time without recalculating them. Please note that the results will be kept in the server for three months.
+        {consts.PROGRESS_BAR_TAG}
+        {consts.WEBSERVER_NAME} is now processing your request. This page will be automatically updated every few seconds (until the job is done). You can also reload it manually. Once the job has finished, several links to the output files will appear below. A link to this page was sent to your email in case you wish to view these results at a later time without recalculating them. Please note that the results will be kept in the server for three months.
         <br><br></div>''')
         output_path_f.flush()
 
 
 def write_running_parameters_to_html(output_path, identity_cutoff, e_value_cutoff, core_minimal_percentage, bootstrap, outgroup, job_title, original_file_name):
     with open(output_path, 'a') as output_path_f:
-        output_path_f.write(f'<div class="container" style="{CONSTS.CONTAINER_STYLE}">')
+        output_path_f.write(f'<div class="container" style="{consts.CONTAINER_STYLE}">')
 
         # optional param row
         if job_title != '':
@@ -140,7 +140,7 @@ def write_cmds_file(cmds_file, parameters, run_number):
     with open(cmds_file, 'w') as f:
         f.write(f'module load {required_modules};')
         f.write(new_line_delimiter)
-        f.write(f'{" ".join(["python", CONSTS.MAIN_SCRIPT, parameters])}\tmicrobializer_{run_number}')
+        f.write(f'{" ".join(["python", consts.MAIN_SCRIPT, parameters])}\tmicrobializer_{run_number}')
 
 
 def cleanup_is_running(cgi_debug_path_f, queues = ('pupkolab', 'pupkoweb')):
@@ -178,18 +178,18 @@ def run_cgi():
     # adding 20 random digits to prevent users see data that are not their's
     run_number = str(round(time())) + str(randint(10 ** 19, 10 ** 20 - 1))
     # run_number = 'test'
-    output_url = f'{CONSTS.WEBSERVER_RESULTS_URL}/{run_number}/{CONSTS.RESULT_WEBPAGE_NAME}'
+    output_url = f'{consts.WEBSERVER_RESULTS_URL}/{run_number}/{consts.RESULT_WEBPAGE_NAME}'
 
     if form['example_page'].value == 'yes':
         run_number = 'example_data'
-        output_url = os.path.join(f'{CONSTS.WEBSERVER_URL}/{run_number}/{CONSTS.RESULT_WEBPAGE_NAME}')
+        output_url = os.path.join(f'{consts.WEBSERVER_URL}/{run_number}/{consts.RESULT_WEBPAGE_NAME}')
 
     # creating working directory
-    wd = os.path.join(CONSTS.WEBSERVER_RESULTS_DIR, run_number)
+    wd = os.path.join(consts.WEBSERVER_RESULTS_DIR, run_number)
     os.makedirs(wd, exist_ok=True)
 
-    output_path = os.path.join(wd, CONSTS.RESULT_WEBPAGE_NAME)
-    cgi_debug_path = os.path.join(wd, CONSTS.CGI_DEBUG_FILE_NAME)
+    output_path = os.path.join(wd, consts.RESULT_WEBPAGE_NAME)
+    cgi_debug_path = os.path.join(wd, consts.CGI_DEBUG_FILE_NAME)
 
     page_is_ready = os.path.exists(output_path)
     if not page_is_ready:
@@ -206,12 +206,12 @@ def run_cgi():
         exit()
 
     # Send me a notification email every time there's a new request
-    send_email(smtp_server=CONSTS.SMTP_SERVER,
-               sender=CONSTS.ADMIN_EMAIL,
-               receiver=f'{CONSTS.OWNER_EMAIL}',
-               subject=f'{CONSTS.WEBSERVER_NAME} - A new job has been submitted: {run_number}',
-               content=f"{os.path.join(CONSTS.WEBSERVER_RESULTS_URL, run_number, CONSTS.CGI_DEBUG_FILE_NAME)}\n"
-                       f"{os.path.join(CONSTS.WEBSERVER_RESULTS_URL, run_number, CONSTS.RESULT_WEBPAGE_NAME)}")
+    send_email(smtp_server=consts.SMTP_SERVER,
+               sender=consts.ADMIN_EMAIL,
+               receiver=f'{consts.OWNER_EMAIL}',
+               subject=f'{consts.WEBSERVER_NAME} - A new job has been submitted: {run_number}',
+               content=f"{os.path.join(consts.WEBSERVER_RESULTS_URL, run_number, consts.CGI_DEBUG_FILE_NAME)}\n"
+                       f"{os.path.join(consts.WEBSERVER_RESULTS_URL, run_number, consts.RESULT_WEBPAGE_NAME)}")
 
     try:
         cgi_debug_path_f = open(cgi_debug_path,'w')
@@ -261,11 +261,11 @@ def run_cgi():
                 data_f.write(data)
             write_to_debug_file(cgi_debug_path_f, f'Uploaded data was saved to disk successfully\n')
         else:  # example data
-            original_file_name = file_name = CONSTS.EXAMPLE_DATA_FILE_NAME
+            original_file_name = file_name = consts.EXAMPLE_DATA_FILE_NAME
             data_path = os.path.join(wd, file_name)
-            write_to_debug_file(cgi_debug_path_f, f'Copying example data FROM {CONSTS.EXAMPLE_DATA} TO {data_path}\n')
+            write_to_debug_file(cgi_debug_path_f, f'Copying example data FROM {consts.EXAMPLE_DATA} TO {data_path}\n')
             try:
-                shutil.copy(CONSTS.EXAMPLE_DATA, data_path)
+                shutil.copy(consts.EXAMPLE_DATA, data_path)
                 write_to_debug_file(cgi_debug_path_f, f'File was copied successfully to {data_path}\n\n')
             except IOError as e:
                 write_to_debug_file(cgi_debug_path_f, f'{"#" * 50}\nFailed to copy for example data due to the following reason:\n{e.args[0]}\n{"#" * 50}\n')
@@ -304,14 +304,14 @@ def run_cgi():
 
         job_id_file = os.path.join(wd, 'job_id.txt')
         # simple command when using shebang header
-        submission_cmd = f'{CONSTS.Q_SUBMITTER_PATH} {cmds_file} {wd} -q {queue_name} --verbose > {job_id_file}'
+        submission_cmd = f'{consts.Q_SUBMITTER_PATH} {cmds_file} {wd} -q {queue_name} --verbose > {job_id_file}'
 
         write_to_debug_file(cgi_debug_path_f, f'\nSUBMITTING JOB TO QUEUE:\n{submission_cmd}\n')
         if not page_is_ready:
             subprocess.call(submission_cmd, shell=True)
 
         if email != '':
-            with open(os.path.join(wd, CONSTS.EMAIL_FILE_NAME), 'a') as email_f:
+            with open(os.path.join(wd, consts.EMAIL_FILE_NAME), 'a') as email_f:
                 email_f.write(f'{email}\n')
 
             job_name = f"Job title: {job_title}\n" if job_title else ''
@@ -323,14 +323,14 @@ def run_cgi():
                                    f"Apply bootstrap procedure: {bootstrap.upper()}\n" \
                                    f"Outgroup: {outgroup}\n\n" \
                                    f"Once the analysis will be ready, we will let you know! " \
-                                   f"Meanwhile, you can track the progress of your job at:\n{os.path.join(CONSTS.WEBSERVER_RESULTS_URL, run_number, CONSTS.RESULT_WEBPAGE_NAME)}\n\n"
+                                   f"Meanwhile, you can track the progress of your job at:\n{os.path.join(consts.WEBSERVER_RESULTS_URL, run_number, consts.RESULT_WEBPAGE_NAME)}\n\n"
 
             # Send the user a notification email for their submission
             try:
-                send_email(smtp_server=CONSTS.SMTP_SERVER,
-                           sender=CONSTS.ADMIN_EMAIL,
+                send_email(smtp_server=consts.SMTP_SERVER,
+                           sender=consts.ADMIN_EMAIL,
                            receiver=f'{email}',
-                           subject=f'{CONSTS.WEBSERVER_NAME} - Your job has been submitted! (Run number: {run_number})',
+                           subject=f'{consts.WEBSERVER_NAME} - Your job has been submitted! (Run number: {run_number})',
                            content=notification_content)
             except:
                 write_to_debug_file(cgi_debug_path_f, f'\nFailed sending notification to {email}\n')
@@ -340,7 +340,7 @@ def run_cgi():
         # run periodical cleanup on the background...
         try:
             # if not cleanup_is_running(cgi_debug_path_f):
-            submission_cmd = f'{CONSTS.Q_SUBMITTER_PATH} {CONSTS.WEBSERVER_RESULTS_DIR}/cleanup_microbializer.cmds {CONSTS.WEBSERVER_RESULTS_DIR}'
+            submission_cmd = f'{consts.Q_SUBMITTER_PATH} {consts.WEBSERVER_RESULTS_DIR}/cleanup_microbializer.cmds {consts.WEBSERVER_RESULTS_DIR}'
             write_to_debug_file(cgi_debug_path_f, f'\nSUBMITTING CLEANUP:\n{submission_cmd}\n')
             subprocess.call(submission_cmd, shell=True)
         except Exception as e:
@@ -351,16 +351,16 @@ def run_cgi():
         cgi_debug_path_f.close()
 
     except Exception as e:
-        msg = f'{CONSTS.WEBSERVER_NAME} could not save your data 😞<br>\n' \
+        msg = f'{consts.WEBSERVER_NAME} could not save your data 😞<br>\n' \
               'Most likely because your data contain non <a href="http://www.asciitable.com/" target="_blank">ASCII characters</a>.'
         with open(output_path) as f:
             html_content = f.read()
         html_content = html_content.replace('QUEUED', 'FAILED')
         html_content = html_content.replace(' active', '')
         html_content += f'<br><br><br>' \
-                        f'<div class="container" style="{CONSTS.CONTAINER_STYLE}"><h3>' \
+                        f'<div class="container" style="{consts.CONTAINER_STYLE}"><h3>' \
                         f'<font color="red">{msg}</font><br><br>' \
-                        f'Please try to re-run your job in a few minutes or <a href="mailto:{CONSTS.ADMIN_EMAIL}?subject={CONSTS.WEBSERVER_NAME}%20Run%20Number%20{run_number}">contact us</a> for further information' \
+                        f'Please try to re-run your job in a few minutes or <a href="mailto:{consts.ADMIN_EMAIL}?subject={consts.WEBSERVER_NAME}%20Run%20Number%20{run_number}">contact us</a> for further information' \
                         f'</h3></div><br><br>\n</body>\n</html>\n'
         with open(output_path, 'w') as f:
             f.write(html_content)
@@ -375,26 +375,26 @@ def run_cgi():
             email = form['email'].value.strip() if form['email'].value.strip() else 'NO_EMAIL'
         except:
             email = 'NO_EMAIL'
-        send_email(smtp_server=CONSTS.SMTP_SERVER,
-                   sender=CONSTS.ADMIN_EMAIL,
-                   receiver=f'{CONSTS.OWNER_EMAIL}',
-                   subject=f'{CONSTS.WEBSERVER_NAME} job {run_number} by {email} has been failed!',
-                   content=f"{email}\n\n{os.path.join(CONSTS.WEBSERVER_RESULTS_URL, run_number, CONSTS.RESULT_WEBPAGE_NAME)}\n"
-                           f"\n{os.path.join(CONSTS.WEBSERVER_RESULTS_URL, run_number, CONSTS.CGI_DEBUG_FILE_NAME)}")
+        send_email(smtp_server=consts.SMTP_SERVER,
+                   sender=consts.ADMIN_EMAIL,
+                   receiver=f'{consts.OWNER_EMAIL}',
+                   subject=f'{consts.WEBSERVER_NAME} job {run_number} by {email} has been failed!',
+                   content=f"{email}\n\n{os.path.join(consts.WEBSERVER_RESULTS_URL, run_number, consts.RESULT_WEBPAGE_NAME)}\n"
+                           f"\n{os.path.join(consts.WEBSERVER_RESULTS_URL, run_number, consts.CGI_DEBUG_FILE_NAME)}")
 
-        # logger.info(f'Waiting {2*CONSTS.RELOAD_INTERVAL} seconds to remove html refreshing headers...')
+        # logger.info(f'Waiting {2*consts.RELOAD_INTERVAL} seconds to remove html refreshing headers...')
         # Must be after flushing all previous data. Otherwise it might refresh during the writing.. :(
         from time import sleep
 
-        sleep(2 * CONSTS.RELOAD_INTERVAL)
+        sleep(2 * consts.RELOAD_INTERVAL)
         with open(output_path) as f:
             html_content = f.read()
-        html_content = html_content.replace(CONSTS.RELOAD_TAGS, f'<!--{CONSTS.RELOAD_TAGS}-->')
+        html_content = html_content.replace(consts.RELOAD_TAGS, f'<!--{consts.RELOAD_TAGS}-->')
         with open(output_path, 'w') as f:
             f.write(html_content)
 
     # logging submission
-    with open(CONSTS.SUBMISSIONS_LOG, 'a') as f:
+    with open(consts.SUBMISSIONS_LOG, 'a') as f:
         f.write(f'{email}\t{run_number}\t{ctime()}\n')
 
     with open(cgi_debug_path, 'a') as f:  # for cgi debugging

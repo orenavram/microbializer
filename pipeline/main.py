@@ -17,7 +17,7 @@ from auxiliaries.pipeline_auxiliaries import load_header2sequences_dict, measure
     prepare_directories, fail, submit_mini_batch, submit_batch, remove_bootstrap_values, \
     notify_admin, add_results_to_final_dir, remove_path, unpack_data, fix_illegal_chars_in_file_name, move_file
 from html_editor import edit_success_html, edit_failure_html, edit_progress
-from auxiliaries import CONSTANTS as CONSTS
+from auxiliaries import consts
 from plots_generator import generate_boxplot, generate_bar_plot
 
 try:
@@ -34,7 +34,7 @@ try:
     parser.add_argument('--output_dir', help='directory where the output files will be written to',
                         type=lambda path: path.rstrip('/'), required=True)
     parser.add_argument('--email', help='A notification will be sent once the pipeline is done',
-                        default=CONSTS.OWNER_EMAIL)
+                        default=consts.OWNER_EMAIL)
     parser.add_argument('--identity_cutoff', default=80, type=lambda x: eval(x),
                         help='minimum required percent of identity level (lower values will be filtered out)')
     parser.add_argument('--e_value_cutoff', default=0.01, type=lambda x: eval(x),
@@ -69,7 +69,7 @@ try:
                              ' into different commands of a single job',
                         default='!@#')
     parser.add_argument('--src_dir', help='source code directory', type=lambda path: path.rstrip('/'),
-                        default=os.path.join(CONSTS.PROJECT_ROOT_DIR, 'pipeline'))
+                        default=os.path.join(consts.PROJECT_ROOT_DIR, 'pipeline'))
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     args = parser.parse_args()
 
@@ -92,8 +92,8 @@ try:
     run_number = os.path.join(os.path.split(meta_output_dir)[1])
     logger.info(f'run_number is {run_number}')
 
-    if not CONSTS.IGNORE_HTML:
-        output_html_path = os.path.join(meta_output_dir, CONSTS.RESULT_WEBPAGE_NAME)
+    if not consts.IGNORE_HTML:
+        output_html_path = os.path.join(meta_output_dir, consts.RESULT_WEBPAGE_NAME)
         logger.info(f'output_html_path is {output_html_path}')
 
         with open(output_html_path) as f:
@@ -104,10 +104,10 @@ try:
         with open(output_html_path, 'w') as f:
             f.write(html_content)
 
-        output_url = os.path.join(CONSTS.WEBSERVER_RESULTS_URL, run_number, CONSTS.RESULT_WEBPAGE_NAME)
+        output_url = os.path.join(consts.WEBSERVER_RESULTS_URL, run_number, consts.RESULT_WEBPAGE_NAME)
         logger.info(f'output_url is {output_url}')
 
-        meta_output_url = os.path.join(CONSTS.WEBSERVER_RESULTS_URL, run_number)
+        meta_output_url = os.path.join(consts.WEBSERVER_RESULTS_URL, run_number)
     else:
         output_html_path = ''
         meta_output_url = ''
@@ -158,14 +158,14 @@ try:
     # check MINimal number of genomes
     min_number_of_genomes_to_analyze = 2
     if number_of_genomes < min_number_of_genomes_to_analyze:
-        error_msg = f'The dataset contains too few genomes ({CONSTS.WEBSERVER_NAME} does comparative analysis and ' \
+        error_msg = f'The dataset contains too few genomes ({consts.WEBSERVER_NAME} does comparative analysis and ' \
                     f'thus needs at least 2 genomes).'
         fail(error_msg, error_file_path)
 
     # check MAXimal number of genomes
     max_number_of_genomes_to_analyze = 350
     if number_of_genomes > max_number_of_genomes_to_analyze and 'oren' not in args.email.lower():
-        error_msg = f'The dataset contains too many genomes. {CONSTS.WEBSERVER_NAME} allows analyzing up to ' \
+        error_msg = f'The dataset contains too many genomes. {consts.WEBSERVER_NAME} allows analyzing up to ' \
                     f'{max_number_of_genomes_to_analyze} genomes due to the high resource consumption. However, ' \
                     f'upon request (and supervision), we do allow analyzing large datasets. Please contact us ' \
                     f'directly and we will do that for you.'
@@ -234,7 +234,7 @@ try:
                                                    num_of_cmds_per_job=5,
                                                    job_name_suffix='search_orfs',
                                                    queue_name=args.queue_name,
-                                                   required_modules_as_list=[CONSTS.PRODIGAL])
+                                                   required_modules_as_list=[consts.PRODIGAL])
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
@@ -255,7 +255,7 @@ try:
         except:
             if not missing_orfs:
                 # add msg prefix when a genome without orfs detected for the first time
-                error_msg = f'{CONSTS.WEBSERVER_NAME} could not detect any ORFs in:\n<br> '
+                error_msg = f'{consts.WEBSERVER_NAME} could not detect any ORFs in:\n<br> '
                 missing_orfs = 1
             # add genome-without-orfs name
             error_msg += f'{os.path.splitext(file)[0]}\n<br>'
@@ -295,7 +295,7 @@ try:
                                                    num_of_cmds_per_job=10,
                                                    job_name_suffix='DB_creation',
                                                    queue_name=args.queue_name,
-                                                   required_modules_as_list=[CONSTS.MMSEQS])
+                                                   required_modules_as_list=[consts.MMSEQS])
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
@@ -361,7 +361,7 @@ try:
                                                    num_of_cmds_per_job=100 if len(os.listdir(ORFs_dir)) > 25 else 5,
                                                    job_name_suffix='rbh_analysis',
                                                    queue_name=args.queue_name,
-                                                   required_modules_as_list=[CONSTS.MMSEQS])
+                                                   required_modules_as_list=[consts.MMSEQS])
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
@@ -532,7 +532,7 @@ try:
                                                    num_of_cmds_per_job=100,
                                                    job_name_suffix='mcl_execution',
                                                    queue_name=args.queue_name,
-                                                   required_modules_as_list=[CONSTS.MCL])
+                                                   required_modules_as_list=[consts.MCL])
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
@@ -729,7 +729,7 @@ try:
                                                    num_of_cmds_per_job=100,
                                                    job_name_suffix='genes_alignment',
                                                    queue_name=args.queue_name,
-                                                   required_modules_as_list=[CONSTS.MAFFT])
+                                                   required_modules_as_list=[consts.MAFFT])
 
         wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
@@ -802,7 +802,7 @@ try:
 
         submit_mini_batch(script_path, [params], phylogeny_tmp_dir,
                           args.queue_name, job_name='tree_reconstruction',
-                          required_modules_as_list=[CONSTS.RAXML], num_of_cpus=num_of_cpus)
+                          required_modules_as_list=[consts.RAXML], num_of_cpus=num_of_cpus)
         # no need to wait now. Wait before plotting the tree!
         # Still, in order to get more than one thread, allow few seconds to the subjobs to be submitted
         # (before the next batch is submitted and pounds the cluster)
@@ -948,7 +948,7 @@ try:
 
     # Final step_number: gather relevant results, zip them together and update html file
     logger.info(f'FINAL STEP: {"_" * 100}')
-    final_output_dir_name = f'{CONSTS.WEBSERVER_NAME}_{run_number}_outputs'
+    final_output_dir_name = f'{consts.WEBSERVER_NAME}_{run_number}_outputs'
     final_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, final_output_dir_name)
     done_file_path = os.path.join(done_files_dir, f'{final_output_dir_name}.txt')
     if not os.path.exists(done_file_path):
@@ -1025,7 +1025,7 @@ except Exception as e:
     status = 'was failed'
     logger = logging.getLogger('main')  # use logger instead of printing
 
-    error_msg = f'{CONSTS.WEBSERVER_NAME} failed :('
+    error_msg = f'{consts.WEBSERVER_NAME} failed :('
     if os.path.exists(error_file_path):
         with open(error_file_path) as error_f:
             error_txt = error_f.read()
@@ -1054,7 +1054,7 @@ logger.info(msg)
 logger.info(f'Sending a notification email to {args.email}')
 try:
     send_email('mxout.tau.ac.il', 'TAU BioSequence <bioSequence@tauex.tau.ac.il>', args.email,
-               subject=f'{CONSTS.WEBSERVER_NAME} run number {run_number} {status}.', content=msg)
+               subject=f'{consts.WEBSERVER_NAME} run number {run_number} {status}.', content=msg)
 except:
     logger.error(f'\nFailed sending notification to {args.email}\n')
 
@@ -1093,7 +1093,7 @@ if status == 'is done':
                                                        num_of_cmds_per_job=5,
                                                        job_name_suffix='promoter_gene_alignment',
                                                        queue_name=args.queue_name,
-                                                       required_modules_as_list=[CONSTS.MAFFT])
+                                                       required_modules_as_list=[consts.MAFFT])
 
             wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                              num_of_batches, error_file_path, email=args.email)
@@ -1185,7 +1185,7 @@ if status == 'is done':
                                                        num_of_cmds_per_job=100,
                                                        job_name_suffix='align_promoter_and_gene',
                                                        queue_name=args.queue_name,
-                                                       required_modules_as_list=[CONSTS.MAFFT])
+                                                       required_modules_as_list=[consts.MAFFT])
 
             wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                              num_of_batches, error_file_path, email=args.email)
@@ -1294,7 +1294,7 @@ if status == 'is done':
             num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                        job_name_suffix='homoplasy', queue_name=args.queue_name,
                                                        num_of_cmds_per_job=50,
-                                                       required_modules_as_list=[CONSTS.GCC])
+                                                       required_modules_as_list=[consts.GCC])
 
             wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                              num_of_batches, error_file_path, email=args.email)
@@ -1446,7 +1446,7 @@ if status == 'is done':
         # except FileExistsError:
         #     pass
 
-    if run_number.lower() != 'example' and 'oren' not in args.email and CONSTS.CLEAN_OUTPUTS_AFTER_RUN:
+    if run_number.lower() != 'example' and 'oren' not in args.email and consts.CLEAN_OUTPUTS_AFTER_RUN:
 
         # remove intermediate results (including tmp_dir)
         remove_path(args.output_dir)

@@ -9,6 +9,9 @@ USE_CONDA = True
 IGNORE_HTML = True
 CLEAN_OUTPUTS_AFTER_RUN = False
 
+# mmseqs command work only on specific machines and this queue navigates only to them
+QUEUE_FOR_MMSEQS_COMMANDS = 'pupkowebr'
+
 PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer' if TEST else '/bioseq/microbializer'
 OWNER_EMAIL = 'yairshimony@mail.tau.ac.il' if TEST else 'orenavram@gmail.com'
 

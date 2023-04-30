@@ -5,7 +5,7 @@ import subprocess
 import tarfile
 from time import time, sleep, ctime
 
-import CONSTANTS as CONSTS
+from . import consts
 from .email_sender import send_email
 from .q_submitter_power import submit_cmds_from_file_to_q
 
@@ -122,8 +122,7 @@ def fail(error_msg, error_file_path):
 def submit_mini_batch(script_path, mini_batch_parameters_list, logs_dir, queue_name, job_name='',
                       new_line_delimiter='!@#', verbose=False, required_modules_as_list=None, num_of_cpus=1,
                       submit_as_a_job=True, done_file_is_needed=True,
-                      q_submitter_script_path=CONSTS.Q_SUBMITTER_PATH,
-                      done_files_script_path=os.path.join(CONSTS.PROJECT_ROOT_DIR,
+                      done_files_script_path=os.path.join(consts.PROJECT_ROOT_DIR,
                                                           'pipeline/auxiliaries/file_writer.py')):
     """
     :param script_path:
@@ -131,7 +130,6 @@ def submit_mini_batch(script_path, mini_batch_parameters_list, logs_dir, queue_n
     :param logs_dir:
     :param job_name:
     :param queue_name:
-    :param q_submitter_script_path: leave it as is
     :param new_line_delimiter: leave it as is
     :param verbose:
     :param required_modules_as_list: a list of strings containing module names that should be loaded before running
@@ -142,7 +140,7 @@ def submit_mini_batch(script_path, mini_batch_parameters_list, logs_dir, queue_n
     """
 
     shell_cmds_as_str = ''
-    if not CONSTS.USE_CONDA:
+    if not consts.USE_CONDA:
         # COMMAND FOR LOADING RELEVANT MODULES
         required_modules_as_str = 'python/python-anaconda3.6.5'
         if required_modules_as_list:
@@ -187,7 +185,7 @@ def submit_mini_batch(script_path, mini_batch_parameters_list, logs_dir, queue_n
 
 def submit_batch(script_path, batch_parameters_list, logs_dir, job_name_suffix='', queue_name='pupkolabr',
                  num_of_cmds_per_job=1, new_line_delimiter='!@#', required_modules_as_list=None, num_of_cpus=1,
-                 q_submitter_script_path=CONSTS.Q_SUBMITTER_PATH):
+                 q_submitter_script_path=consts.Q_SUBMITTER_PATH):
     """
     :param script_path:
     :param batch_parameters_list: a list of lists. each sublist corresponds to a single command and contain its parameters
@@ -214,8 +212,7 @@ def submit_batch(script_path, batch_parameters_list, logs_dir, job_name_suffix='
         example_cmd_from_last_mini_batch = submit_mini_batch(script_path, mini_batch_parameters_list, logs_dir,
                                                              queue_name, f'{num_of_mini_batches}_{job_name_suffix}',
                                                              new_line_delimiter, verbose=False, num_of_cpus=num_of_cpus,
-                                                             required_modules_as_list=required_modules_as_list,
-                                                             q_submitter_script_path=q_submitter_script_path)
+                                                             required_modules_as_list=required_modules_as_list)
         logger.info(f'Example command from current batch:\n{example_cmd_from_last_mini_batch}')
         num_of_mini_batches += 1
 
@@ -248,7 +245,7 @@ def remove_bootstrap_values(in_tree_path, out_tree_path):
 
 def notify_admin(meta_output_dir, meta_output_url, run_number):
     email = 'NO_EMAIL'
-    user_email_path = os.path.join(meta_output_dir, CONSTS.EMAIL_FILE_NAME)
+    user_email_path = os.path.join(meta_output_dir, consts.EMAIL_FILE_NAME)
     if os.path.exists(user_email_path):
         with open(user_email_path) as f:
             email = f.read().rstrip()
@@ -260,12 +257,12 @@ def notify_admin(meta_output_dir, meta_output_url, run_number):
         error_log_path = os.path.join(meta_output_dir, f'{job_id_on_qstat}.ER')
         # TODO: change to ER url and add reading permissions
     # Send me a notification email every time there's a failure
-    send_email(smtp_server=CONSTS.SMTP_SERVER,
-               sender=CONSTS.ADMIN_EMAIL,
-               receiver=CONSTS.OWNER_EMAIL,
-               subject=f'{CONSTS.WEBSERVER_NAME} job {run_number} by {email} has been failed: ',
-               content=f"{email}\n\n{os.path.join(meta_output_url, CONSTS.RESULT_WEBPAGE_NAME)}\n\n"
-                       f"{os.path.join(meta_output_url, CONSTS.CGI_DEBUG_FILE_NAME)}\n\n"
+    send_email(smtp_server=consts.SMTP_SERVER,
+               sender=consts.ADMIN_EMAIL,
+               receiver=consts.OWNER_EMAIL,
+               subject=f'{consts.WEBSERVER_NAME} job {run_number} by {email} has been failed: ',
+               content=f"{email}\n\n{os.path.join(meta_output_url, consts.RESULT_WEBPAGE_NAME)}\n\n"
+                       f"{os.path.join(meta_output_url, consts.CGI_DEBUG_FILE_NAME)}\n\n"
                        f"{os.path.join(meta_output_url, error_log_path)}\n\n"
                        f"{os.path.join(meta_output_dir, error_log_path.replace('ER', 'OU'))}")
 
@@ -318,7 +315,7 @@ def unpack_data(data_path, meta_output_dir, error_file_path):
         except Exception as e:
             logger.info(e)
             remove_path(data_path)
-            fail(f'{CONSTS.WEBSERVER_NAME} failed to decompress your data. Please make sure all your FASTA files names '
+            fail(f'{consts.WEBSERVER_NAME} failed to decompress your data. Please make sure all your FASTA files names '
                  f'do contain only dashes, dots, and alphanumeric characters (a-z, A-Z, 0-9). Other characters such as '
                  f'parenthesis, pipes, slashes, are not allowed. Please also make sure your archived file format is legal (either a '
                  f'<a href="https://support.microsoft.com/en-us/help/14200/windows-compress-uncompress-zip-files" target="_blank">.zip</a> file or a '
@@ -386,5 +383,5 @@ def move_file(folder, file_name, new_file_name, error_file_path):
         os.rename(os.path.join(folder, file_name), os.path.join(folder, new_file_name))
         file_name = new_file_name
     except:
-        error_msg = f'One (or more) file name(s) contain illegal character such as parenthesis, pipes, or slashes.<br>\nIn order to avoid downstream parsing errors, {CONSTS.WEBSERVER_NAME} automatically replaces these spaces with dashes. For some reason, the replacement for {file_name} failed. Please make sure all your input files names contain only dashes, dots, and alphanumeric characters (a-z, A-Z, 0-9) and re-submit your job.'
+        error_msg = f'One (or more) file name(s) contain illegal character such as parenthesis, pipes, or slashes.<br>\nIn order to avoid downstream parsing errors, {consts.WEBSERVER_NAME} automatically replaces these spaces with dashes. For some reason, the replacement for {file_name} failed. Please make sure all your input files names contain only dashes, dots, and alphanumeric characters (a-z, A-Z, 0-9) and re-submit your job.'
         fail(error_msg, error_file_path)
