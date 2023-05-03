@@ -150,6 +150,10 @@ def submit_mini_batch(script_path, mini_batch_parameters_list, logs_dir, queue_n
         shell_cmds_as_str = f'module load {required_modules_as_str}'
         shell_cmds_as_str += new_line_delimiter  # several commands that will be split to different lines
         # (long lines with ";" are bad practice)
+    else:
+        shell_cmds_as_str += f'source ~/.bashrc{new_line_delimiter}'
+        shell_cmds_as_str += f'conda activate microbializer{new_line_delimiter}'
+        shell_cmds_as_str += f'export PATH=$CONDA_PREFIX/bin:$PATH{new_line_delimiter}'
 
     example_shell_cmd = ' '.join(['python', script_path, *[str(param) for param in mini_batch_parameters_list[0]]] + (
         ['-v'] if verbose else [])) + ';'

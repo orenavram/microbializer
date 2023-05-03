@@ -28,12 +28,6 @@ def generate_qsub_file(queue_name, tmp_dir, cmd, prefix_name, qsub_path, CPUs):
     qsub_file_content += f'hostname\n'
     qsub_file_content += f'echo job_name: {prefix_name}\n'
     qsub_file_content += f'echo $PBS_JOBID\n'
-
-    if consts.USE_CONDA:
-        qsub_file_content += 'source ~/.bashrc\n'
-        qsub_file_content += 'conda activate microbializer\n'
-        qsub_file_content += 'export PATH=$CONDA_PREFIX/bin:$PATH\n'
-
     qsub_file_content += f'{cmd}\n'
     with open(qsub_path, 'w') as f_qsub:  # write the job
         f_qsub.write(qsub_file_content)
