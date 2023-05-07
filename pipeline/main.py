@@ -13,12 +13,12 @@ import pandas as pd
 from auxiliaries.email_sender import send_email
 from auxiliaries.file_writer import write_to_file
 from auxiliaries.input_verifications import verify_fasta_format
-from auxiliaries.pipeline_auxiliaries import load_header2sequences_dict, measure_time, execute, wait_for_results, \
+from auxiliaries.pipeline_auxiliaries import measure_time, execute, wait_for_results, \
     prepare_directories, fail, submit_mini_batch, submit_batch, remove_bootstrap_values, \
     notify_admin, add_results_to_final_dir, remove_path, unpack_data, fix_illegal_chars_in_file_name, move_file
-from html_editor import edit_success_html, edit_failure_html, edit_progress
+from auxiliaries.html_editor import edit_success_html, edit_failure_html, edit_progress
 from auxiliaries import consts
-from plots_generator import generate_boxplot, generate_bar_plot
+from auxiliaries.plots_generator import generate_boxplot, generate_bar_plot
 
 try:
     print(f'sys.path is\n{sys.path}')
@@ -312,7 +312,7 @@ try:
     # send a subjob that removes all mmseqs intermediate *FOLDERS* (e.g., 3465136234521948 etc..) in tmp_dir
     # does not remove (sge/cmds/log) files. only folders.
     # MMSEQS generates tons of intermediate files that abuse the inodes so they are deleted once the step is over!
-    submit_mini_batch(os.path.join(args.src_dir, 'remove_tmp_folders.py'), [pipeline_step_tmp_dir],
+    submit_mini_batch(os.path.join(args.src_dir, 'auxiliaries/remove_tmp_folders.py'), [pipeline_step_tmp_dir],
                       pipeline_step_tmp_dir, args.queue_name, job_name='remove_dirs_from_tmp')
 
     # 4.	mmseqs2_all_vs_all.py
@@ -378,7 +378,7 @@ try:
     # send a subjob that removes (now instead of at the end) all mmseqs intermediate *FOLDERS*
     # (e.g., 3465136234521948 etc..) in tmp_dir
     # does not remove (sge/cmds/log) files. only folders.
-    submit_mini_batch(os.path.join(args.src_dir, 'remove_tmp_folders.py'), [previous_pipeline_step_output_dir],
+    submit_mini_batch(os.path.join(args.src_dir, 'auxiliaries/remove_tmp_folders.py'), [previous_pipeline_step_output_dir],
                       pipeline_step_tmp_dir, args.queue_name, job_name='remove_m8_files')
 
     # 5.	filter_rbh_results.py

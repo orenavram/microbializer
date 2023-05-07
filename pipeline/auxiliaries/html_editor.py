@@ -1,6 +1,6 @@
 import logging
 import os
-from auxiliaries import consts
+from . import consts
 
 logger = logging.getLogger('main')
 
