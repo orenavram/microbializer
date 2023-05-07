@@ -52,6 +52,8 @@ try:
                         help='whether or not to apply bootstrap procedure over the reconstructed species tree.')
     parser.add_argument('--outgroup', default=None,
                         help='whether or not to root the species phylogeny.')
+    parser.add_argument('--filter_out_plasmids', default=False,
+                        help='whether or not to filter out plasmids from the input files')
     parser.add_argument('--promoters_length', default=300,
                         help='How many basepairs upstream to the ATG will be used for the sweeps analysis',
                         type=lambda x: int(x) if int(x) >= 0 else parser.error(
@@ -177,33 +179,36 @@ try:
         remove_path(data_path)
         fail(verification_error, error_file_path)
 
-    # TODO: add this option to the webpage (wishlist)
     # 1.	drop_plasmids.py
     # Input: (1) an input path for a fasta file with contigs/full genome
     # Output: overrides the original file without plasmids
     # Can be parallelized on cluster
-    step_number = '01'
-    logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_drop_plasmids'
-    if 'oren' in args.email:
-        for fasta_file in os.listdir(data_path):
-            logger.info(f'Removing plasmids from {fasta_file}...')
-            fasta_path = os.path.join(data_path, fasta_file)
-            header2sequences_dict = load_header2sequences_dict(fasta_path)
-            for fasta_header in list(header2sequences_dict.keys()):
-                if 'plasmid' in fasta_header:
-                    logger.info(f'Dropping plasmid sequence {fasta_header}')
-                    header2sequences_dict.pop(fasta_header)
+    if args.filter_out_plasmids:
+        step_number = '01'
+        logger.info(f'Step {step_number}: {"_" * 100}')
+        step_name = f'{step_number}_drop_plasmids'
+        script_path = os.path.join(args.src_dir, 'drop_plasmids.py')
+        filtered_inputs_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, step_name)
+        done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+        if not os.path.exists(done_file_path):
+            logger.info('Filtering plasmids out...')
+            all_cmds_params = []
+            for fasta_file in os.listdir(data_path):
+                single_cmd_params = [os.path.join(data_path, fasta_file), os.path.join(filtered_inputs_dir, fasta_file)]
+                all_cmds_params.append(single_cmd_params)
 
-            if not header2sequences_dict:
-                logger.info(f'No records left for {fasta_file} (probably contained only plasmids)')
-                continue
+            num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
+                                                       num_of_cmds_per_job=5,
+                                                       job_name_suffix='drop_plasmids',
+                                                       queue_name=args.queue_name)
 
-            with open(fasta_path, 'w') as f:
-                for fasta_header in header2sequences_dict:
-                    f.write(f'>{fasta_header}\n{header2sequences_dict[fasta_header]}\n')
-
-    edit_progress(output_html_path, progress=5)
+            wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+                             num_of_batches, error_file_path, email=args.email)
+            write_to_file(done_file_path, '.')
+        else:
+            logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
+        data_path = filtered_inputs_dir
+        edit_progress(output_html_path, progress=5)
 
     # 2.	search_orfs.py
     # Input: (1) an input path for a fasta file with contigs/full genome (2) an output file path
@@ -224,7 +229,6 @@ try:
         for fasta_file in os.listdir(data_path):
             fasta_file_prefix = os.path.splitext(fasta_file)[0]
             output_file_name = f'{fasta_file_prefix}.{step_name}'
-            output_coord_name = f'{fasta_file_prefix}.gene_coordinates'  # path to translated sequences file
 
             single_cmd_params = [f'"{os.path.join(data_path, fasta_file)}"',
                                  os.path.join(ORFs_dir, output_file_name)]
