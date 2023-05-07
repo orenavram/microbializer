@@ -193,7 +193,7 @@ try:
         if not os.path.exists(done_file_path):
             logger.info('Filtering plasmids out...')
             all_cmds_params = []
-            for fasta_file in os.listdir(filtered_inputs_dir):
+            for fasta_file in os.listdir(data_path):
                 single_cmd_params = [os.path.join(data_path, fasta_file), os.path.join(filtered_inputs_dir, fasta_file)]
                 all_cmds_params.append(single_cmd_params)
 

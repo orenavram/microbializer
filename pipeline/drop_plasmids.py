@@ -42,4 +42,3 @@ if __name__ == '__main__':
     logger = logging.getLogger('main')
 
     filter_out_plasmids(args.genome_path, args.output_path)
-
