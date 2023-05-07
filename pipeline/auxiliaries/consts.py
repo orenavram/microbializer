@@ -24,6 +24,7 @@ SERVERS_RESULTS_DIR = '/bioseq/data/results'
 SERVERS_LOGS_DIR = '/bioseq/data/logs'
 RELOAD_INTERVAL = 5
 RELOAD_TAGS = f'<META HTTP-EQUIV="REFRESH" CONTENT="{RELOAD_INTERVAL}"/>'
+CSV_DELIMITER = ','
 
 # relevant modules
 GCC = 'gcc/gcc-6.2.0'
