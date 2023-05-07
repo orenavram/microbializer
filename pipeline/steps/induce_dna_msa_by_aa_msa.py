@@ -1,4 +1,4 @@
-from auxiliaries.pipeline_auxiliaries import load_header2sequences_dict
+from ..auxiliaries.pipeline_auxiliaries import load_header2sequences_dict
 
 
 def induce_sequence(aa_seq, dna_seq):

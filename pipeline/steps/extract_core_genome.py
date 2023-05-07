@@ -1,6 +1,6 @@
 import os
 
-from auxiliaries.pipeline_auxiliaries import load_header2sequences_dict
+from ..auxiliaries.pipeline_auxiliaries import load_header2sequences_dict
 
 
 def is_core_gene(strain_to_gene_dict, num_of_strains, core_minimal_percentage):

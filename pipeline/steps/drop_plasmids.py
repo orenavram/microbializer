@@ -2,7 +2,7 @@ import sys
 import argparse
 import logging
 
-from auxiliaries.pipeline_auxiliaries import load_header2sequences_dict
+from ..auxiliaries.pipeline_auxiliaries import load_header2sequences_dict
 
 
 def filter_out_plasmids(input_genome_path, output_genome_path):
