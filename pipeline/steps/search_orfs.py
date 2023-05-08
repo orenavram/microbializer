@@ -1,7 +1,18 @@
 import subprocess
+import sys
+from sys import argv
+import argparse
+import logging
+import os
 
 
-def find_genes(genome, output_path):
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
+
+from auxiliaries.pipeline_auxiliaries import get_job_logger
+
+
+def find_genes(logger, genome, output_path):
     """
         input:path to fasta file with prokaryotic genome to be analyzed
         output: protein-coding gene prediction for input genome
@@ -15,24 +26,16 @@ def find_genes(genome, output_path):
 
 
 if __name__ == '__main__':
-    from sys import argv
-
     print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
 
-    import argparse
-
     parser = argparse.ArgumentParser()
+    parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('genome_path', help='path to fasta genome file')
     parser.add_argument('output_path', help='path to output file')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     args = parser.parse_args()
 
-    import logging
+    level = logging.DEBUG if args.verbose else logging.INFO
+    logger = get_job_logger(args.logs_dir, level)
 
-    if args.verbose:
-        logging.basicConfig(level=logging.DEBUG)
-    else:
-        logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger('main')
-
-    find_genes(args.genome_path, args.output_path)
+    find_genes(logger, args.genome_path, args.output_path)

@@ -1,10 +1,17 @@
-"""
+from sys import argv
+import argparse
+import logging
+import subprocess
+import os
+import sys
 
-"""
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
+
+from auxiliaries.pipeline_auxiliaries import get_job_logger
 
 
-def reconstruct_msa(sequences_file_path, mode, output_file_path):
-    import subprocess
+def reconstruct_msa(logger, sequences_file_path, mode, output_file_path):
     # cmd = f'mafft-linsi --maxiterate {maxiterate} --localpair {sequences_file_path} > {output_file_path}'
 
     # --auto Automatically selects an appropriate strategy from L-INS-i, FFT-NS-i and FFT-NS-2, according to data size.
@@ -21,13 +28,10 @@ def reconstruct_msa(sequences_file_path, mode, output_file_path):
 
 
 if __name__ == '__main__':
-    from sys import argv
-
     print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
 
-    import argparse
-
     parser = argparse.ArgumentParser()
+    parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('sequences_file_path', help='path to a file with unaligned sequences')
     parser.add_argument('output_file_path', help='path to a file in which the aligned sequences will be written')
     parser.add_argument('--type', choices=['amino', 'nuc'], default='amino',
@@ -36,12 +40,7 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     args = parser.parse_args()
 
-    import logging
+    level = logging.DEBUG if args.verbose else logging.INFO
+    logger = get_job_logger(args.logs_dir, level)
 
-    if args.verbose:
-        logging.basicConfig(level=logging.DEBUG)
-    else:
-        logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger('main')
-
-    reconstruct_msa(args.sequences_file_path, args.type, args.output_file_path)
+    reconstruct_msa(logger, args.sequences_file_path, args.type, args.output_file_path)

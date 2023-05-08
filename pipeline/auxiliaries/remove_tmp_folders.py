@@ -1,6 +1,16 @@
-def remove_dirs_from_tmp_dir(tmp_dir):
-    import shutil
-    import os
+from sys import argv
+import argparse
+import shutil
+import os
+import sys
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
+
+from auxiliaries.pipeline_auxiliaries import get_job_logger
+
+
+def remove_dirs_from_tmp_dir(logger, tmp_dir):
     for file in os.listdir(tmp_dir):
         folder = os.path.join(tmp_dir, file)
         if os.path.isdir(folder):
@@ -9,19 +19,13 @@ def remove_dirs_from_tmp_dir(tmp_dir):
 
 
 if __name__ == '__main__':
-    from sys import argv
-
     print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
 
-    import argparse
-
     parser = argparse.ArgumentParser()
+    parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('tmp_dir', help='A path from which all folders will be removed')
     args = parser.parse_args()
 
-    import logging
+    logger = get_job_logger(args.logs_dir)
 
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger('main')
-
-    remove_dirs_from_tmp_dir(args.tmp_dir)
+    remove_dirs_from_tmp_dir(logger, args.tmp_dir)

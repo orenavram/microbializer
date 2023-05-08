@@ -26,7 +26,17 @@ Output:
 
 """
 
+from sys import argv
+import argparse
+import logging
+from itertools import combinations
 import os
+import sys
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
+
+from auxiliaries.pipeline_auxiliaries import get_job_logger
 
 
 def load_reciprocal_hits_to_dictionary(all_reciprocal_hits_path, group_name_to_pair_combinations, delimiter):
@@ -47,7 +57,7 @@ def load_reciprocal_hits_to_dictionary(all_reciprocal_hits_path, group_name_to_p
     return gene_pair_to_score
 
 
-def generate_text_to_mcl_input_file(gene_pair_to_score_dict, gene_pairs):
+def generate_text_to_mcl_input_file(logger, gene_pair_to_score_dict, gene_pairs):
     first_non_existing_pair = True
     text_to_mcl_file = ''
     logger.debug(f'gene_pair_to_score_dict content is:\n{gene_pair_to_score_dict}')
@@ -72,8 +82,7 @@ def generate_text_to_mcl_input_file(gene_pair_to_score_dict, gene_pairs):
     return text_to_mcl_file
 
 
-def prepare_files_for_mcl(all_reciprocal_hits_path, putative_orthologs_path, start, end, output_path, delimiter):
-    from itertools import combinations
+def prepare_files_for_mcl(logger, all_reciprocal_hits_path, putative_orthologs_path, start, end, output_path, delimiter):
     group_name_to_combinations = {}
     with open(putative_orthologs_path) as f:
         line_number = 0
@@ -103,7 +112,7 @@ def prepare_files_for_mcl(all_reciprocal_hits_path, putative_orthologs_path, sta
 
     for group_name in group_name_to_combinations:
         # create input file for mcl
-        text_to_mcl_file = generate_text_to_mcl_input_file(gene_pair_to_score_dict,
+        text_to_mcl_file = generate_text_to_mcl_input_file(logger, gene_pair_to_score_dict,
                                                            group_name_to_combinations[group_name])
         mcl_file_path = os.path.join(output_path, group_name + '.mcl_input')
 
@@ -112,14 +121,10 @@ def prepare_files_for_mcl(all_reciprocal_hits_path, putative_orthologs_path, sta
 
 
 if __name__ == '__main__':
-    from sys import argv
-
     print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
 
-    import argparse
-
     parser = argparse.ArgumentParser()
-
+    parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('all_reciprocal_hits_path',
                         help='path to a file with all the reciprocal hits files concatenated')
     parser.add_argument('putative_orthologs_path', help='path to a file with the putative orthologs sets')
@@ -130,13 +135,8 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     args = parser.parse_args()
 
-    import logging
+    level = logging.DEBUG if args.verbose else logging.INFO
+    logger = get_job_logger(args.logs_dir, level)
 
-    if args.verbose:
-        logging.basicConfig(level=logging.DEBUG)
-    else:
-        logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger('main')
-
-    prepare_files_for_mcl(args.all_reciprocal_hits_path, args.putative_orthologs_path,
+    prepare_files_for_mcl(logger, args.all_reciprocal_hits_path, args.putative_orthologs_path,
                           args.start, args.end, args.output_path, args.delimiter)

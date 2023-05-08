@@ -1,7 +1,16 @@
-from ..auxiliaries.pipeline_auxiliaries import load_header2sequences_dict
+import sys
+import os
+from sys import argv
+import argparse
+import logging
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
+
+from auxiliaries.pipeline_auxiliaries import load_header2sequences_dict, get_job_logger
 
 
-def induce_sequence(aa_seq, dna_seq):
+def induce_sequence(logger, aa_seq, dna_seq):
     result = ''
     dna_i = 0
     for aa_i in range(len(aa_seq)):
@@ -21,7 +30,7 @@ def induce_sequence(aa_seq, dna_seq):
     return result
 
 
-def induce_msa(aa_msa_path, dna_ms_path, output_path):
+def induce_msa(logger, aa_msa_path, dna_ms_path, output_path):
     og_name_to_aa = load_header2sequences_dict(aa_msa_path)
     og_name_to_dna = load_header2sequences_dict(dna_ms_path)
 
@@ -30,7 +39,7 @@ def induce_msa(aa_msa_path, dna_ms_path, output_path):
         for line in f:
             if line.startswith('>'):
                 og_name = line.lstrip('>').rstrip()
-                induced_dna_sequence = induce_sequence(og_name_to_aa[og_name], og_name_to_dna[og_name])
+                induced_dna_sequence = induce_sequence(logger, og_name_to_aa[og_name], og_name_to_dna[og_name])
                 result += f'>{og_name}\n{induced_dna_sequence}\n'
 
     with open(output_path, 'w') as f:
@@ -38,25 +47,17 @@ def induce_msa(aa_msa_path, dna_ms_path, output_path):
 
 
 if __name__ == '__main__':
-    from sys import argv
-
     print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
 
-    import argparse
-
     parser = argparse.ArgumentParser()
+    parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('aa_msa_path', help='path to a file with aligned proteins')
     parser.add_argument('dna_ms_path', help='path to a file with unaligned dna sequences')
     parser.add_argument('output_path', help='path to a file in which the induced dna alignment will be written')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     args = parser.parse_args()
 
-    import logging
+    level = logging.DEBUG if args.verbose else logging.INFO
+    logger = get_job_logger(args.logs_dir, level)
 
-    if args.verbose:
-        logging.basicConfig(level=logging.DEBUG)
-    else:
-        logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger('main')
-
-    induce_msa(args.aa_msa_path, args.dna_ms_path, args.output_path)
+    induce_msa(logger, args.aa_msa_path, args.dna_ms_path, args.output_path)

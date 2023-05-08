@@ -1,21 +1,26 @@
-"""
+import subprocess
+from sys import argv
+import argparse
+import logging
+import os
+import sys
 
-"""
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
+
+from auxiliaries.pipeline_auxiliaries import get_job_logger
 
 
 # python /bioseq/microbializer/pipeline/reconstruct_species_phylogeny.py /bioseq/data/results/microbializer/155542823177458857633443576357/outputs/15_aligned_core_proteome/aligned_core_proteome.fas /bioseq/data/results/microbializer/155542823177458857633443576357/outputs/16_species_phylogeny/species_tree.txt --model PROTGAMMAILG --num_of_bootstrap_iterations 100 --cpu 3 --num_of_bootstrap_iterations 5 --root
 
-
-def generate_phylogenetic_tree(msa_path, phylogenetic_tree_path, seed, model, outgroup, num_of_bootstrap_iterations,
+def generate_phylogenetic_tree(logger, msa_path, phylogenetic_tree_path, seed, model, outgroup, num_of_bootstrap_iterations,
                                num_of_cpus):
-    import os
     wd, final_tree_name = os.path.split(phylogenetic_tree_path)
 
     intermediate_tree_path = os.path.join(wd, f'RAxML_result.{final_tree_name}')
     # phylogenetic_tree_name = 'unrooted_species_tree.txt'
     # rooted_phylogenetic_tree_name = 'rooted_species_tree.txt'
 
-    import subprocess
     # e.g.: raxmlHPC-PTHREADS-SSE3 -m PROTGAMMAILG -p 12345 -s /bioseq/data/results/microbializer/155542823177458857633443576357/outputs/15_aligned_core_proteome/aligned_core_proteome.fas -n unrooted_species_tree.txt -w /bioseq/data/results/microbializer/155542823177458857633443576357/outputs/16_species_phylogeny -T 3 -f a -x 12345 -N 5
     cmd = f'raxmlHPC-PTHREADS-SSE3 -m {model} -p {seed} -s {msa_path} -n {final_tree_name} -w {wd} -T {num_of_cpus}'
     if outgroup:
@@ -48,13 +53,10 @@ def generate_phylogenetic_tree(msa_path, phylogenetic_tree_path, seed, model, ou
 
 
 if __name__ == '__main__':
-    from sys import argv
-
     print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
 
-    import argparse
-
     parser = argparse.ArgumentParser()
+    parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('msa_path', help='path to a multiple sequence alignment file')
     parser.add_argument('phylogenetic_raw_tree_path',
                         help='path to an output file in which the phylogenetic tree will be written')
@@ -70,13 +72,8 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     args = parser.parse_args()
 
-    import logging
+    level = logging.DEBUG if args.verbose else logging.INFO
+    logger = get_job_logger(args.logs_dir, level)
 
-    if args.verbose:
-        logging.basicConfig(level=logging.DEBUG)
-    else:
-        logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger('main')
-
-    generate_phylogenetic_tree(args.msa_path, args.phylogenetic_raw_tree_path, args.seed,
+    generate_phylogenetic_tree(logger, args.msa_path, args.phylogenetic_raw_tree_path, args.seed,
                                args.model, args.outgroup, args.num_of_bootstrap_iterations, args.cpu)

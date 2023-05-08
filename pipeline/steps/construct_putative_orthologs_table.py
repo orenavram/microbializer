@@ -4,9 +4,18 @@ script_name.py /Users/Oren/Dropbox/Projects/microbializer/mock_output/all_recip_
 """
 
 import os
+from sys import argv
+import argparse
+import logging
+import sys
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
+
+from auxiliaries.pipeline_auxiliaries import get_job_logger
 
 
-def construct_table(all_reciprocal_hits_path, putative_orthologs_path, delimiter):
+def construct_table(logger, all_reciprocal_hits_path, putative_orthologs_path, delimiter):
     member_gene_to_group_name = {}
     member_gene_to_strain_name_dict = {}
     group_name_to_member_genes = {}
@@ -105,14 +114,10 @@ def construct_table(all_reciprocal_hits_path, putative_orthologs_path, delimiter
 
 
 if __name__ == '__main__':
-    from sys import argv
-
     print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
 
-    import argparse
-
     parser = argparse.ArgumentParser()
-
+    parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('all_reciprocal_hits_path',
                         help='path to a file with all the reciprocal hits files concatenated')
     parser.add_argument('putative_orthologs_path',
@@ -121,12 +126,7 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     args = parser.parse_args()
 
-    import logging
+    level = logging.DEBUG if args.verbose else logging.INFO
+    logger = get_job_logger(args.logs_dir, level)
 
-    if args.verbose:
-        logging.basicConfig(level=logging.DEBUG)
-    else:
-        logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger('main')
-
-    construct_table(args.all_reciprocal_hits_path, args.putative_orthologs_path, args.delimiter)
+    construct_table(logger, args.all_reciprocal_hits_path, args.putative_orthologs_path, args.delimiter)
