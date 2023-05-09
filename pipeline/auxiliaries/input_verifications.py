@@ -1,12 +1,8 @@
-import logging
 import os
-
 import Bio.SeqUtils
 
-logger = logging.getLogger('main')
 
-
-def verify_fasta_format(data_path):
+def verify_fasta_format(logger, data_path):
     Bio.SeqUtils.IUPACData.ambiguous_dna_letters += 'U-'
     legal_chars = set(
         Bio.SeqUtils.IUPACData.ambiguous_dna_letters.lower() + Bio.SeqUtils.IUPACData.ambiguous_dna_letters)

@@ -1,4 +1,14 @@
 import os
+import Bio.Seq
+from sys import argv
+import argparse
+import sys
+import logging
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
+
+from auxiliaries.pipeline_auxiliaries import get_job_logger
 
 
 def get_genome_sequence(genome_path):
@@ -14,7 +24,6 @@ def get_genome_sequence(genome_path):
 
 
 def get_sequence(genome, genome_len, start, stop, reverse_complement, promoters_length):
-    import Bio.Seq
     if reverse_complement == '-1':
         stop = stop + promoters_length
         if start < stop:
@@ -36,7 +45,7 @@ def get_sequence(genome, genome_len, start, stop, reverse_complement, promoters_
     return sequence
 
 
-def extract_promoters_and_orfs(prodigal_orfs_path, genome_path, promoters_length, output_path):
+def extract_promoters_and_orfs(logger, prodigal_orfs_path, genome_path, promoters_length, output_path):
     genome = get_genome_sequence(genome_path)
     genome_len = len(genome)
     logger.info(f'Genome length is: {genome_len}')
@@ -69,13 +78,11 @@ def extract_promoters_and_orfs(prodigal_orfs_path, genome_path, promoters_length
 
 
 if __name__ == '__main__':
-    from sys import argv
-
-    print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
-
-    import argparse
+    script_run_message = f'Starting command is: {" ".join(argv)}'
+    print(script_run_message)
 
     parser = argparse.ArgumentParser()
+    parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('genome_path',
                         help='A path to a genome from which promoters and orfs should be extracted',
                         type=lambda path: path if os.path.exists(path) else parser.error(f'{path} does not exist!'))
@@ -88,13 +95,16 @@ if __name__ == '__main__':
     parser.add_argument('--promoters_length',
                         help='How much bases upstream to the ORF should be extracted',
                         type=int, default=300)
+    parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     args = parser.parse_args()
 
-    import logging
-
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger('main')
+    level = logging.DEBUG if args.verbose else logging.INFO
+    logger = get_job_logger(args.logs_dir, level)
 
     # wait_for_output_folder(os.path.split(args.output_path)[0])
 
-    extract_promoters_and_orfs(args.prodigal_orfs_path, args.genome_path, args.promoters_length, args.output_path)
+    logger.info(script_run_message)
+    try:
+        extract_promoters_and_orfs(logger, args.prodigal_orfs_path, args.genome_path, args.promoters_length, args.output_path)
+    except Exception as e:
+        logger.exception(f'Error in {os.path.basename(__file__)}')

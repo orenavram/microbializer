@@ -3,7 +3,8 @@ import logging
 import os
 import shutil
 import sys
-from time import time, sleep, ctime
+from time import time, sleep
+import traceback
 
 import matplotlib.pyplot as plt
 import mmap
@@ -74,9 +75,22 @@ def get_arguments():
     return args
 
 
-def prepare_pipeline_framework(args, logger):
-    logger.info(f'{ctime()}: Creating {args.output_dir}\n')
+def prepare_pipeline_framework(args):
     os.makedirs(args.output_dir, exist_ok=True)
+
+    level = logging.DEBUG if args.verbose else logging.INFO
+    if consts.LOG_IN_SEPARATE_FILES:
+        logging.basicConfig(filename=os.path.join(args.output_dir, 'main_log.txt'),
+                            filemode='a',
+                            format=consts.LOG_MESSAGE_FORMAT,
+                            level=level)
+    else:
+        logging.basicConfig(format=consts.LOG_MESSAGE_FORMAT,
+                            level=level)
+    logger = logging.getLogger('main')
+
+    logger.info(args)
+    logger.info(f'Created output_dir in: {args.output_dir}')
 
     meta_output_dir = os.path.join(os.path.split(args.output_dir)[0])
     logger.info(f'meta_output_dir is: {meta_output_dir}')
@@ -108,29 +122,34 @@ def prepare_pipeline_framework(args, logger):
         meta_output_url = ''
 
     tmp_dir = os.path.join(args.output_dir, 'tmp')
-    logger.info(f'{ctime()}: Creating {tmp_dir}\n')
+    logger.info(f'Creating tmp_dir in: {tmp_dir}')
     os.makedirs(tmp_dir, exist_ok=True)
 
     done_files_dir = os.path.join(args.output_dir, 'done')
-    logger.info(f'{ctime()}: Creating {done_files_dir}\n')
+    logger.info(f'Creating done_files_dir in: {done_files_dir}')
     os.makedirs(done_files_dir, exist_ok=True)
 
-    return meta_output_dir, error_file_path, run_number, output_html_path, output_url, meta_output_url, tmp_dir, \
-        done_files_dir
+    return logger, meta_output_dir, error_file_path, run_number, output_html_path, output_url, meta_output_url, \
+        tmp_dir, done_files_dir
 
 
 def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path):
-    data_path = args.contigs_dir
+    if consts.TEST:
+        data_path = os.path.join(args.output_dir, 'inputs')
+        shutil.copytree(args.contigs_dir, data_path)
+    else:
+        data_path = args.contigs_dir
+
     logger.info(f'data_path is: {data_path}')
 
     # extract zip and detect data folder
-    data_path = unpack_data(data_path, meta_output_dir, error_file_path)
+    data_path = unpack_data(logger, data_path, meta_output_dir, error_file_path)
 
     for system_file in os.listdir(data_path):
         if system_file.startswith(('.', '_')):
             system_file_path = os.path.join(data_path, system_file)
             logger.warning(f'Removing system file: {system_file_path}')
-            remove_path(system_file_path)
+            remove_path(logger, system_file_path)
 
     # have to be AFTER system files removal (in the weird case a file name starts with a space)
     filename_prefixes = set()
@@ -140,24 +159,24 @@ def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path
         if filename_prefix in filename_prefixes:
             error_msg = f'Two (or more) of the uploaded geonmes contain the same name (prefix), ' \
                         f'e.g., {filename_prefix}. Please make sure each file name is unique.'
-            fail(error_msg, error_file_path)
+            fail(logger, error_msg, error_file_path)
         filename_prefixes.add(filename_prefix)
 
-        new_file_name = fix_illegal_chars_in_file_name(file_name)
+        new_file_name = fix_illegal_chars_in_file_name(logger, file_name)
         if file_name != new_file_name:
             # illegal character in file name were found
-            move_file(data_path, file_name, new_file_name, error_file_path)
+            move_file(logger, data_path, file_name, new_file_name, error_file_path)
 
     number_of_genomes = len(os.listdir(data_path))
     logger.info(f'Number of genomes to analyze is {number_of_genomes}')
-    logger.info(f'data_path contains the following {number_of_genomes} files:\n{os.listdir(data_path)}')
+    logger.info(f'data_path contains the following {number_of_genomes} files: {os.listdir(data_path)}')
 
     # check MINimal number of genomes
     min_number_of_genomes_to_analyze = 2
     if number_of_genomes < min_number_of_genomes_to_analyze:
         error_msg = f'The dataset contains too few genomes ({consts.WEBSERVER_NAME} does comparative analysis and ' \
                     f'thus needs at least 2 genomes).'
-        fail(error_msg, error_file_path)
+        fail(logger, error_msg, error_file_path)
 
     # check MAXimal number of genomes
     max_number_of_genomes_to_analyze = 350
@@ -166,13 +185,13 @@ def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path
                     f'{max_number_of_genomes_to_analyze} genomes due to the high resource consumption. However, ' \
                     f'upon request (and supervision), we do allow analyzing large datasets. Please contact us ' \
                     f'directly and we will do that for you.'
-        fail(error_msg, error_file_path)
+        fail(logger, error_msg, error_file_path)
 
     # must be only after the spaces removal from the species names!!
-    verification_error = verify_fasta_format(data_path)
+    verification_error = verify_fasta_format(logger, data_path)
     if verification_error:
-        remove_path(data_path)
-        fail(verification_error, error_file_path)
+        remove_path(logger, data_path)
+        fail(logger, verification_error, error_file_path)
 
     return data_path, number_of_genomes
 
@@ -188,25 +207,27 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
         logger.info(f'Step {step_number}: {"_" * 100}')
         step_name = f'{step_number}_drop_plasmids'
         script_path = os.path.join(args.src_dir, 'steps/drop_plasmids.py')
-        filtered_inputs_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, step_name)
+        filtered_inputs_dir, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
         done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
         if not os.path.exists(done_file_path):
             logger.info('Filtering plasmids out...')
             all_cmds_params = []
             for fasta_file in os.listdir(data_path):
-                single_cmd_params = [os.path.join(data_path, fasta_file), os.path.join(filtered_inputs_dir, fasta_file)]
+                single_cmd_params = [pipeline_step_tmp_dir,
+                                     os.path.join(data_path, fasta_file),
+                                     os.path.join(filtered_inputs_dir, fasta_file)]
                 all_cmds_params.append(single_cmd_params)
 
-            num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
+            num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                        num_of_cmds_per_job=5,
                                                        job_name_suffix='drop_plasmids',
                                                        queue_name=args.queue_name)
 
-            wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+            wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                              num_of_batches, error_file_path, email=args.email)
-            write_to_file(done_file_path, '.')
+            write_to_file(logger, done_file_path, '.')
         else:
-            logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
+            logger.info(f'done file {done_file_path} already exists. Skipping step...')
         data_path = filtered_inputs_dir
         edit_progress(output_html_path, progress=5)
 
@@ -221,7 +242,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_ORFs'
     script_path = os.path.join(args.src_dir, 'steps/search_orfs.py')
-    orfs_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, step_name)
+    orfs_dir, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Extracting ORFs...')
@@ -230,21 +251,21 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
             fasta_file_prefix = os.path.splitext(fasta_file)[0]
             output_file_name = f'{fasta_file_prefix}.{step_name}'
 
-            single_cmd_params = [f'"{os.path.join(data_path, fasta_file)}"',
+            single_cmd_params = [pipeline_step_tmp_dir, f'"{os.path.join(data_path, fasta_file)}"',
                                  os.path.join(orfs_dir, output_file_name)]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                    num_of_cmds_per_job=5,
                                                    job_name_suffix='search_orfs',
                                                    queue_name=args.queue_name,
                                                    required_modules_as_list=[consts.PRODIGAL])
 
-        wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
-        write_to_file(done_file_path, '.')
+        write_to_file(logger, done_file_path, '.')
     else:
-        logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=10)
 
     # make sure that all ORF files contain something....
@@ -267,7 +288,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
     if missing_orfs:
         error_msg += f'\n<br>Please remove the abovementioned from the dataset and re-submit your job. In general, ' \
                      f'it is recommended to use genomic files that contain at least 20K base pairs (each).'
-        fail(error_msg, error_file_path)
+        fail(logger, error_msg, error_file_path)
 
     # 3.  create_mmseqs2_DB.py
     # Input: path to gene file to create DB from
@@ -278,7 +299,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
     previous_pipeline_step_output_dir = orfs_dir
     step_name = f'{step_number}_dbs'
     script_path = os.path.join(args.src_dir, 'steps/create_mmseqs2_DB.py')
-    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, step_name)
+    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Creating DBs...')
@@ -289,31 +310,33 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
             output_file_name = f'{fasta_file_prefix}'
             output_prefix = os.path.join(pipeline_step_output_dir, output_file_name)
 
-            single_cmd_params = [file_path,
+            single_cmd_params = [pipeline_step_tmp_dir,
+                                 file_path,
                                  output_prefix,
                                  output_prefix,  # instead of tmp_dir
                                  '-t']  # translate to peptides # Should we let the user decide?
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                    num_of_cmds_per_job=10,
                                                    job_name_suffix='DB_creation',
-                                                   queue_name=args.queue_name,
+                                                   queue_name=consts.QUEUE_FOR_MMSEQS_COMMANDS,
                                                    required_modules_as_list=[consts.MMSEQS])
 
-        wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
-        write_to_file(done_file_path, '.')
+        write_to_file(logger, done_file_path, '.')
     else:
-        logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=15)
 
     # send a subjob that removes all mmseqs intermediate *FOLDERS* (e.g., 3465136234521948 etc..) in tmp_dir
     # does not remove (sge/cmds/log) files. only folders.
     # MMSEQS generates tons of intermediate files that abuse the inodes so they are deleted once the step is over!
-    submit_mini_batch(os.path.join(args.src_dir, 'auxiliaries/remove_tmp_folders.py'), [pipeline_step_tmp_dir],
-                      pipeline_step_tmp_dir, args.queue_name, job_name='remove_dirs_from_tmp')
+    submit_mini_batch(logger, os.path.join(args.src_dir, 'auxiliaries/remove_tmp_folders.py'),
+                      [[pipeline_step_tmp_dir, pipeline_step_tmp_dir]], pipeline_step_tmp_dir, args.queue_name,
+                      job_name='remove_dirs_from_tmp')
 
     # 4.	mmseqs2_all_vs_all.py
     # Input: (1) 2 input paths for 2 (different) genome files (query and target), g1 and g2
@@ -326,7 +349,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
     previous_pipeline_step_output_dir = pipeline_step_output_dir
     step_name = f'{step_number}_all_vs_all_analysis'
     script_path = os.path.join(args.src_dir, 'steps/mmseqs2_all_vs_all.py')
-    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, step_name)
+    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info(f'Querying all VS all (using mmseqs2)...')
@@ -352,7 +375,8 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
                 output_file_name = f'{strain1_name}_vs_{strain2_name}.m8'
                 output_file_path = os.path.join(pipeline_step_output_dir, output_file_name)
 
-                single_cmd_params = [query_aa_db,
+                single_cmd_params = [pipeline_step_tmp_dir,
+                                     query_aa_db,
                                      target_aa_db,
                                      aln_offsetted_db,
                                      f'{pipeline_step_tmp_dir}/{strain1_name}_vs_{strain2_name}',
@@ -360,25 +384,25 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
 
                 all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                    num_of_cmds_per_job=100 if len(os.listdir(orfs_dir)) > 25 else 5,
                                                    job_name_suffix='rbh_analysis',
-                                                   queue_name=args.queue_name,
+                                                   queue_name=consts.QUEUE_FOR_MMSEQS_COMMANDS,
                                                    required_modules_as_list=[consts.MMSEQS])
 
-        wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
-        write_to_file(done_file_path, '.')
+        write_to_file(logger, done_file_path, '.')
     else:
-        logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=20)
 
     # send a subjob that removes (now instead of at the end) all mmseqs intermediate *FOLDERS*
     # (e.g., 3465136234521948 etc..) in tmp_dir
     # does not remove (sge/cmds/log) files. only folders.
-    submit_mini_batch(os.path.join(args.src_dir, 'auxiliaries/remove_tmp_folders.py'),
-                      [previous_pipeline_step_output_dir],
+    submit_mini_batch(logger, os.path.join(args.src_dir, 'auxiliaries/remove_tmp_folders.py'),
+                      [[pipeline_step_tmp_dir, previous_pipeline_step_output_dir]],
                       pipeline_step_tmp_dir, args.queue_name, job_name='remove_m8_files')
 
     # 5.	filter_rbh_results.py
@@ -395,7 +419,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
     previous_pipeline_step_output_dir = pipeline_step_output_dir
     step_name = f'{step_number}_blast_filtered'
     script_path = os.path.join(args.src_dir, 'steps/filter_rbh_results.py')
-    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, step_name)
+    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Filtering all vs all results...\n')
@@ -404,23 +428,24 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
             fasta_file_prefix = os.path.splitext(blast_results_file)[0]
             output_file_name = f'{fasta_file_prefix}.{step_name}'
 
-            single_cmd_params = [os.path.join(previous_pipeline_step_output_dir, blast_results_file),
+            single_cmd_params = [pipeline_step_tmp_dir,
+                                 os.path.join(previous_pipeline_step_output_dir, blast_results_file),
                                  os.path.join(pipeline_step_output_dir, output_file_name),
                                  f'--identity_cutoff {args.identity_cutoff / 100}',
                                  # needs to be normalized between 0 and 1
                                  f'--e_value_cutoff {args.e_value_cutoff}']
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                    num_of_cmds_per_job=100 if len(os.listdir(orfs_dir)) > 100 else 50,
                                                    job_name_suffix='hits_filtration',
                                                    queue_name=args.queue_name)
 
-        wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
-        write_to_file(done_file_path, '.')
+        write_to_file(logger, done_file_path, '.')
     else:
-        logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=25)
 
     # 6. concatenate_reciprocal_hits
@@ -433,12 +458,12 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
     if not os.path.exists(all_reciprocal_hits_file):
         logger.info('Concatenating reciprocal hits...')
         for filtered_hits_file in os.listdir(pipeline_step_output_dir):
-            execute(f'cat {pipeline_step_output_dir}/{filtered_hits_file} >> {all_reciprocal_hits_file}',
+            execute(logger, f'cat {pipeline_step_output_dir}/{filtered_hits_file} >> {all_reciprocal_hits_file}',
                     process_is_string=True)
         # avoid cat {pipeline_step_output_dir}/* because arguments list might be too long!
         # No need to wait...
     else:
-        logger.info(f'done file {all_reciprocal_hits_file} already exists.\nSkipping step...')
+        logger.info(f'done file {all_reciprocal_hits_file} already exists. Skipping step...')
     edit_progress(output_html_path, progress=30)
 
     # 7.	construct_putative_orthologs_table.py
@@ -449,20 +474,21 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_putative_table'
     script_path = os.path.join(args.src_dir, 'steps/construct_putative_orthologs_table.py')
-    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, step_name)
+    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
     putative_orthologs_table_path = os.path.join(pipeline_step_output_dir, 'putative_orthologs_table.txt')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Constructing putative orthologs table...')
         job_name = os.path.split(script_path)[-1]
-        params = [all_reciprocal_hits_file,
+        params = [pipeline_step_tmp_dir,
+                  all_reciprocal_hits_file,
                   putative_orthologs_table_path]
-        submit_mini_batch(script_path, [params], pipeline_step_tmp_dir, args.queue_name, job_name=job_name)
-        wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, args.queue_name, job_name=job_name)
+        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
-        write_to_file(done_file_path, '.')
+        write_to_file(logger, done_file_path, '.')
     else:
-        logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=35)
 
     # 8   prepare_files_for_mcl.py
@@ -473,7 +499,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_mcl_input_files'
     script_path = os.path.join(args.src_dir, 'steps/prepare_files_for_mcl.py')
-    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, step_name)
+    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Preparing files for MCL...')
@@ -484,30 +510,31 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
         if num_of_putative_sets == 0:
             error_msg = f'No putative ortholog groups were detected in your dataset. Please try to lower the ' \
                         f'similarity parameters (see Advanced Options in the submission page) and re-submit your job.'
-            fail(error_msg, error_file_path)
+            fail(logger, error_msg, error_file_path)
         for i in range(1, num_of_putative_sets + 1, clusters_to_prepare_per_job):
             first_mcl = str(i)
             last_mcl = str(min(i + clusters_to_prepare_per_job - 1,
                                num_of_putative_sets))  # 1-10, 11-20, etc... for clusters_to_prepare_per_job=10
 
-            single_cmd_params = [all_reciprocal_hits_file,
+            single_cmd_params = [pipeline_step_tmp_dir,
+                                 all_reciprocal_hits_file,
                                  putative_orthologs_table_path,
                                  first_mcl,
                                  last_mcl,
                                  pipeline_step_output_dir]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                    num_of_cmds_per_job=25,
                                                    # *times* the number of clusters_to_prepare_per_job above. 250 in total per batch!
                                                    job_name_suffix='mcl_preparation',
                                                    queue_name=args.queue_name)
 
-        wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
-        write_to_file(done_file_path, '.')
+        write_to_file(logger, done_file_path, '.')
     else:
-        logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=40)
 
     # 9.	run_mcl.py
@@ -519,7 +546,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
     previous_pipeline_step_output_dir = pipeline_step_output_dir
     step_name = f'{step_number}_mcl_analysis'
     script_path = os.path.join(args.src_dir, 'steps/run_mcl.py')
-    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, step_name)
+    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Executing MCL...')
@@ -528,21 +555,22 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
             putative_orthologs_group_prefix = os.path.splitext(putative_orthologs_group)[0]
             output_file_name = f'{putative_orthologs_group_prefix}.{step_name}'
 
-            single_cmd_params = [f'"{os.path.join(previous_pipeline_step_output_dir, putative_orthologs_group)}"',
+            single_cmd_params = [pipeline_step_tmp_dir,
+                                 f'"{os.path.join(previous_pipeline_step_output_dir, putative_orthologs_group)}"',
                                  f'"{os.path.join(pipeline_step_output_dir, output_file_name)}"']
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                    num_of_cmds_per_job=100,
                                                    job_name_suffix='mcl_execution',
                                                    queue_name=args.queue_name,
                                                    required_modules_as_list=[consts.MCL])
 
-        wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
-        write_to_file(done_file_path, '.')
+        write_to_file(logger, done_file_path, '.')
     else:
-        logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=45)
 
     # 10.	verify_cluster.py
@@ -554,7 +582,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
     previous_pipeline_step_output_dir = pipeline_step_output_dir
     step_name = f'{step_number}_verified_clusters'
     script_path = os.path.join(args.src_dir, 'steps/verify_cluster.py')
-    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, step_name)
+    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Verifying clusters...')
@@ -563,20 +591,21 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
             putative_orthologs_group_prefix = os.path.splitext(putative_orthologs_group)[0]
             job_name = os.path.split(putative_orthologs_group_prefix)[-1]
 
-            single_cmd_params = [f'"{os.path.join(previous_pipeline_step_output_dir, putative_orthologs_group)}"',
+            single_cmd_params = [pipeline_step_tmp_dir,
+                                 f'"{os.path.join(previous_pipeline_step_output_dir, putative_orthologs_group)}"',
                                  f'"{os.path.join(pipeline_step_output_dir, putative_orthologs_group)}"']
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                    num_of_cmds_per_job=100,
                                                    job_name_suffix='clusters_verification',
                                                    queue_name=args.queue_name)
 
-        wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
-        write_to_file(done_file_path, '.')
+        write_to_file(logger, done_file_path, '.')
     else:
-        logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=50)
 
     logger.info(f'A total of {len(os.listdir(previous_pipeline_step_output_dir))} clusters were verified.')
@@ -591,27 +620,28 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
     previous_pipeline_step_output_dir = pipeline_step_output_dir
     step_name = f'{step_number}_final_table'
     script_path = os.path.join(args.src_dir, 'steps/construct_final_orthologs_table.py')
-    final_orthologs_table_path, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, step_name)
+    final_orthologs_table_path, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
     final_orthologs_table_file_path = os.path.join(final_orthologs_table_path, 'final_orthologs_table.csv')
     phyletic_patterns_path = os.path.join(final_orthologs_table_path, 'phyletic_pattern.fas')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Constructing final orthologs table...')
         job_name = os.path.split(final_orthologs_table_file_path)[-1]
-        params = [putative_orthologs_table_path,
+        params = [pipeline_step_tmp_dir,
+                  putative_orthologs_table_path,
                   previous_pipeline_step_output_dir,
                   final_orthologs_table_file_path,
                   phyletic_patterns_path]
-        submit_mini_batch(script_path, [params], pipeline_step_tmp_dir, args.queue_name, job_name=job_name)
-        wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, args.queue_name, job_name=job_name)
+        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path,
                          error_message='No ortholog groups were detected in your dataset. Please try to lower '
                                        'the similarity parameters (see Advanced Options in the submission page) '
                                        'and re-submit your job.', email=args.email)
 
-        write_to_file(done_file_path, '.')
+        write_to_file(logger, done_file_path, '.')
     else:
-        logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=55)
 
     # extract orthologs table header for sequence extraction later on
@@ -639,7 +669,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orthologs_groups_dna_sequences'
     script_path = os.path.join(args.src_dir, 'steps/extract_orfs.py')
-    orthologs_dna_sequences_dir_path, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, step_name)
+    orthologs_dna_sequences_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Extracting orthologs groups sequences according to final orthologs table...')
@@ -653,7 +683,8 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
                 cluster_members = line.rstrip()[first_delimiter_index + 1:]  # remove "OG_name"
                 output_file_name = og_name
 
-                single_cmd_params = [orfs_dir,
+                single_cmd_params = [pipeline_step_tmp_dir,
+                                     orfs_dir,
                                      f'"{final_table_header}"',
                                      # should be flanked by quotes because it might contain spaces...
                                      f'"{cluster_members}"',
@@ -662,16 +693,16 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
                                      os.path.join(orthologs_dna_sequences_dir_path, f'{output_file_name}_dna.fas')]
                 all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                    num_of_cmds_per_job=250,
                                                    job_name_suffix='orfs_extraction',
                                                    queue_name=args.queue_name)
 
-        wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
-        write_to_file(done_file_path, '.')
+        write_to_file(logger, done_file_path, '.')
     else:
-        logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=60)
 
     # 13.  translate_fna_to_faa.py
@@ -682,7 +713,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orthologs_groups_aa_sequences'
     script_path = os.path.join(args.src_dir, 'steps/translate_fna_to_faa.py')
-    orthologs_aa_sequences_dir_path, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, step_name)
+    orthologs_aa_sequences_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Translating orthologs groups sequences...')
@@ -691,20 +722,20 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
             file_path = os.path.join(orthologs_dna_sequences_dir_path, fasta_file)
             output_path = os.path.join(orthologs_aa_sequences_dir_path, fasta_file.replace('_dna.fas', '_aa.fas'))
 
-            single_cmd_params = [file_path, output_path]
+            single_cmd_params = [pipeline_step_tmp_dir, file_path, output_path]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                    num_of_cmds_per_job=250,
                                                    job_name_suffix='dna_translation',
                                                    queue_name=args.queue_name)
 
-        wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
-        write_to_file(done_file_path, '.')
+        write_to_file(logger, done_file_path, '.')
     else:
-        logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=65)
 
     # 14.	align_orthologs_group.py
@@ -715,7 +746,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_aligned_aa_orthologs_groups'
     script_path = os.path.join(args.src_dir, 'steps/align_orthologs_group.py')
-    aa_alignments_path, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, step_name)
+    aa_alignments_path, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Aligning orthologs groups...')
@@ -725,22 +756,22 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
             og_file_prefix = os.path.splitext(og_file)[0]
             alignment_path = os.path.join(aa_alignments_path, f'{og_file_prefix}_mafft.fas')
 
-            single_cmd_params = [og_path, alignment_path]
+            single_cmd_params = [pipeline_step_tmp_dir, og_path, alignment_path]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params,
                                                    pipeline_step_tmp_dir,
                                                    num_of_cmds_per_job=100,
                                                    job_name_suffix='genes_alignment',
                                                    queue_name=args.queue_name,
                                                    required_modules_as_list=[consts.MAFFT])
 
-        wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
-        write_to_file(done_file_path, '.')
+        write_to_file(logger, done_file_path, '.')
     else:
-        logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=70)
 
     # 15.	extract aligned_core_proteome.py
@@ -748,7 +779,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_aligned_core_proteome'
     script_path = os.path.join(args.src_dir, 'steps/extract_core_genome.py')
-    aligned_core_proteome_path, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, step_name)
+    aligned_core_proteome_path, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     aligned_core_proteome_file_path = os.path.join(aligned_core_proteome_path, 'aligned_core_proteome.fas')
     core_ogs_names_file_path = os.path.join(aligned_core_proteome_path, 'core_ortholog_groups_names.txt')
@@ -759,20 +790,21 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
     if not os.path.exists(done_file_path):
         logger.info('Extracting aligned core proteome...')
 
-        params = [aa_alignments_path, num_of_strains, strains_names_path,
+        params = [pipeline_step_tmp_dir,
+                  aa_alignments_path, num_of_strains, strains_names_path,
                   aligned_core_proteome_file_path,
                   core_ogs_names_file_path,
                   core_length_file_path,
                   number_of_core_members,
                   f'--core_minimal_percentage {args.core_minimal_percentage}']  # how many members induce a core group?
-        submit_mini_batch(script_path, [params], pipeline_step_tmp_dir,
+        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir,
                           args.queue_name, job_name='core_proteome')
 
-        wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
-        write_to_file(done_file_path, '.')
+        write_to_file(logger, done_file_path, '.')
     else:
-        logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=75)
 
     # 16.	reconstruct_species_phylogeny.py
@@ -780,7 +812,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_species_phylogeny'
     script_path = os.path.join(args.src_dir, 'steps/reconstruct_species_phylogeny.py')
-    phylogeny_path, phylogeny_tmp_dir = prepare_directories(args.output_dir, tmp_dir, step_name)
+    phylogeny_path, phylogeny_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
     phylogenetic_raw_tree_path = os.path.join(phylogeny_path, 'final_species_tree.txt')
     start_tree = time()
     if not os.path.exists(phylogenetic_raw_tree_path):
@@ -791,7 +823,8 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
         else:
             # better not to use more than 10 cpus, routinely, when running on pupkoweb
             num_of_cpus = 10
-        params = [aligned_core_proteome_file_path,
+        params = [phylogeny_tmp_dir,
+                  aligned_core_proteome_file_path,
                   phylogenetic_raw_tree_path,
                   f'--cpu {num_of_cpus}']
         if args.outgroup:
@@ -804,7 +837,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
                 number_of_genomes < 150 or 'oren' in args.email):  # allow bootstrap only for less than 150 genomes
             params += ['--num_of_bootstrap_iterations 100']
 
-        submit_mini_batch(script_path, [params], phylogeny_tmp_dir,
+        submit_mini_batch(logger, script_path, [params], phylogeny_tmp_dir,
                           args.queue_name, job_name='tree_reconstruction',
                           required_modules_as_list=[consts.RAXML], num_of_cpus=num_of_cpus)
         # no need to wait now. Wait before plotting the tree!
@@ -812,7 +845,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
         # (before the next batch is submitted and pounds the cluster)
         sleep(60)
     else:
-        logger.info(f'Raw tree file {phylogenetic_raw_tree_path} already exists.\nSkipping step...')
+        logger.info(f'Raw tree file {phylogenetic_raw_tree_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=80)
 
     # 17.	extract_orfs_statistics.py
@@ -823,7 +856,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orfs_statistics'
     script_path = os.path.join(args.src_dir, 'steps/extract_orfs_statistics.py')
-    orfs_statistics_path, orfs_statistics_tmp_dir = prepare_directories(args.output_dir, tmp_dir, step_name)
+    orfs_statistics_path, orfs_statistics_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     start_orf_stats = time()
     if not os.path.exists(done_file_path):
@@ -835,19 +868,19 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
             orfs_count_output_path = os.path.join(orfs_statistics_path, f'{strain_name}.orfs_count')
             gc_content_output_path = os.path.join(orfs_statistics_path, f'{strain_name}.gc_content')
 
-            single_cmd_params = [orf_path, orfs_count_output_path, gc_content_output_path]
+            single_cmd_params = [orfs_statistics_tmp_dir, orf_path, orfs_count_output_path, gc_content_output_path]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_expected_orfs_results, example_cmd = submit_batch(script_path, all_cmds_params,
+        num_of_expected_orfs_results, example_cmd = submit_batch(logger, script_path, all_cmds_params,
                                                                  orfs_statistics_tmp_dir,
                                                                  num_of_cmds_per_job=200,
                                                                  job_name_suffix='orfs_statistics',
                                                                  queue_name=args.queue_name)
 
         # no need to wait now. Wait before plotting the statistics!
-        write_to_file(done_file_path, '.')
+        write_to_file(logger, done_file_path, '.')
     else:
-        logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
     # 18.	induce_dna_msa_by_aa_msa.py
     # Input: (1) An aa alignment (2) An unaligned dna file (3) An output file path
@@ -858,7 +891,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
     step_name = f'{step_number}_induce_dna_msa_by_aa_msa'
     script_path = os.path.join(args.src_dir, 'steps/induce_dna_msa_by_aa_msa.py')
     num_of_expected_induced_results = 0
-    dna_alignments_path, induced_tmp_dir = prepare_directories(args.output_dir, tmp_dir, step_name)
+    dna_alignments_path, induced_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     start_induced = time()
     if not os.path.exists(done_file_path):
@@ -869,25 +902,25 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
             dna_unaligned_path = os.path.join(orthologs_dna_sequences_dir_path, og_file.replace('aa_mafft', 'dna'))
             dna_induced_alignment_path = os.path.join(dna_alignments_path, og_file.replace('aa_mafft', 'dna_induced'))
 
-            single_cmd_params = [aa_alignment_path, dna_unaligned_path, dna_induced_alignment_path]
+            single_cmd_params = [induced_tmp_dir, aa_alignment_path, dna_unaligned_path, dna_induced_alignment_path]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_expected_induced_results, example_cmd = submit_batch(script_path, all_cmds_params,
+        num_of_expected_induced_results, example_cmd = submit_batch(logger, script_path, all_cmds_params,
                                                                     induced_tmp_dir,
                                                                     num_of_cmds_per_job=250,
                                                                     job_name_suffix='induce_msa',
                                                                     queue_name=args.queue_name)
 
         # no need to wait now. Wait before moving the results dir!
-        write_to_file(done_file_path, '.')
+        write_to_file(logger, done_file_path, '.')
     else:
-        logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
     # 19.	extract_groups_sizes_frequency
     step_number = '19'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_groups_sizes_frequency'
-    group_sizes_path, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, step_name)
+    group_sizes_path, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
     groups_sizes_frequency_file_prefix = os.path.join(group_sizes_path, 'groups_sizes_frequency')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
@@ -911,29 +944,29 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
         generate_bar_plot(groups_sizes_frequency_raw_file_path, groups_sizes_frequency_png_file_path,
                           xlabel='Orthologous group size', ylabel='Count')
 
-        write_to_file(done_file_path, '.')
+        write_to_file(logger, done_file_path, '.')
     else:
-        logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
     # 20.	plot_orfs_statistics
     step_number = '20'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orfs_plots'
-    orfs_plots_path, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, step_name)
+    orfs_plots_path, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
     orfs_counts_frequency_file = os.path.join(orfs_plots_path, 'orfs_counts.txt')
     orfs_gc_content_file = os.path.join(orfs_plots_path, 'orfs_gc_contents.txt')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
 
-        wait_for_results('extract_orfs_statistics.py', orfs_statistics_tmp_dir,
+        wait_for_results(logger, 'extract_orfs_statistics.py', orfs_statistics_tmp_dir,
                          num_of_expected_orfs_results, error_file_path=error_file_path, start=start_orf_stats,
                          email=args.email)
 
         logger.info('Concatenating orfs counts...')
-        execute(f'cat {orfs_statistics_path}/*.orfs_count > {orfs_counts_frequency_file}', process_is_string=True)
+        execute(logger, f'cat {orfs_statistics_path}/*.orfs_count > {orfs_counts_frequency_file}', process_is_string=True)
 
         logger.info('Concatenating orfs gc contents...')
-        execute(f'cat {orfs_statistics_path}/*.gc_content > {orfs_gc_content_file}', process_is_string=True)
+        execute(logger, f'cat {orfs_statistics_path}/*.gc_content > {orfs_gc_content_file}', process_is_string=True)
 
         # No need to wait...
         logger.info('Plotting violins...')
@@ -945,59 +978,59 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
         generate_boxplot(orfs_gc_content_file, orfs_gc_content_png_file_path,
                          xlabel='\nGC content per genome', dpi=300)
 
-        write_to_file(done_file_path, '.')
+        write_to_file(logger, done_file_path, '.')
     else:
-        logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=85)
 
     # Final step_number: gather relevant results, zip them together and update html file
     logger.info(f'FINAL STEP: {"_" * 100}')
     final_output_dir_name = f'{consts.WEBSERVER_NAME}_{run_number}_outputs'
-    final_output_dir, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, final_output_dir_name)
+    final_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, final_output_dir_name)
     done_file_path = os.path.join(done_files_dir, f'{final_output_dir_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Gathering results to final output dir...')
 
         # move ORFs folder
-        add_results_to_final_dir(orfs_dir, final_output_dir, copy=True)
+        add_results_to_final_dir(logger, orfs_dir, final_output_dir, copy=True)
 
         # move orthologs table
-        add_results_to_final_dir(final_orthologs_table_path, final_output_dir, copy=True)
+        add_results_to_final_dir(logger, final_orthologs_table_path, final_output_dir, copy=True)
 
         # move unaligned dna sequences
-        add_results_to_final_dir(orthologs_dna_sequences_dir_path, final_output_dir)
+        add_results_to_final_dir(logger, orthologs_dna_sequences_dir_path, final_output_dir)
 
         # move unaligned aa sequences
-        add_results_to_final_dir(orthologs_aa_sequences_dir_path, final_output_dir)
+        add_results_to_final_dir(logger, orthologs_aa_sequences_dir_path, final_output_dir)
 
         # move aligned aa sequences
-        add_results_to_final_dir(aa_alignments_path, final_output_dir)
+        add_results_to_final_dir(logger, aa_alignments_path, final_output_dir)
 
         # move core proteome dir
-        add_results_to_final_dir(aligned_core_proteome_path, final_output_dir)
+        add_results_to_final_dir(logger, aligned_core_proteome_path, final_output_dir)
 
         # move groups sizes
-        add_results_to_final_dir(group_sizes_path, final_output_dir)
+        add_results_to_final_dir(logger, group_sizes_path, final_output_dir)
 
         # move orfs statistics
-        add_results_to_final_dir(orfs_statistics_path, final_output_dir)
+        add_results_to_final_dir(logger, orfs_statistics_path, final_output_dir)
 
         # move orfs plot
-        add_results_to_final_dir(orfs_plots_path, final_output_dir)
+        add_results_to_final_dir(logger, orfs_plots_path, final_output_dir)
 
         if num_of_expected_induced_results > 0:  # can be 0 when re-running
-            wait_for_results('induce_dna_msa_by_aa_msa.py', induced_tmp_dir,
+            wait_for_results(logger, 'induce_dna_msa_by_aa_msa.py', induced_tmp_dir,
                              num_of_expected_results=num_of_expected_induced_results,
                              error_file_path=error_file_path, start=start_induced, email=args.email)
         # move induced dna sequences
-        add_results_to_final_dir(dna_alignments_path, final_output_dir)
+        add_results_to_final_dir(logger, dna_alignments_path, final_output_dir)
 
         # wait for the raw tree here
-        wait_for_results('reconstruct_species_phylogeny.py', phylogeny_tmp_dir,
+        wait_for_results(logger, 'reconstruct_species_phylogeny.py', phylogeny_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path,
                          start=start_tree, email=args.email)
         # move species tree dir
-        add_results_to_final_dir(phylogeny_path, final_output_dir)
+        add_results_to_final_dir(logger, phylogeny_path, final_output_dir)
 
         edit_progress(output_html_path, progress=98)
 
@@ -1014,12 +1047,12 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
         except shutil.Error as e:
             logger.error(e.args[0])
 
-        write_to_file(done_file_path, '.')
+        write_to_file(logger, done_file_path, '.')
     else:
-        logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
     logger.info('Editing results html...')
-    edit_success_html(output_html_path, meta_output_dir, final_output_dir_name, run_number)
+    edit_success_html(logger, output_html_path, meta_output_dir, final_output_dir_name, run_number)
 
     edit_progress(output_html_path, progress=100, active=False)
 
@@ -1027,9 +1060,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
         final_output_dir_name
 
 
-def report_error_in_main_pipeline_to_admin(e, meta_output_dir, error_file_path, run_number, output_html_path, meta_output_url):
-    logger = logging.getLogger('main')  # use logger instead of printing
-
+def report_error_in_main_pipeline_to_admin(logger, e, meta_output_dir, error_file_path, run_number, output_html_path, meta_output_url):
     error_msg = f'{consts.WEBSERVER_NAME} failed :('
     if os.path.exists(error_file_path):
         with open(error_file_path) as error_f:
@@ -1039,10 +1070,10 @@ def report_error_in_main_pipeline_to_admin(e, meta_output_dir, error_file_path, 
 
     exc_type, exc_obj, exc_tb = sys.exc_info()
     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-    logger.error(
-        f'\n\n{"$" * 100}\n\n{error_msg}\n\n{fname}: {exc_type}, at line: {exc_tb.tb_lineno}\n\ne: {e}\n\n{"$" * 100}')
+    logger.error(f'\n\n{"$" * 100}\n\n{error_msg}\n\n{fname}: {exc_type}, at line: {exc_tb.tb_lineno}\n\n'
+                 f'e: {e}\n\n{traceback.format_exc()}\n\n{"$" * 100}')
 
-    edit_failure_html(output_html_path, run_number, error_msg)
+    edit_failure_html(logger, output_html_path, run_number, error_msg)
     edit_progress(output_html_path, active=False)
 
     notify_admin(meta_output_dir, meta_output_url, run_number)
@@ -1079,7 +1110,7 @@ def run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, 
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_extract_promoters_and_orfs'
     script_path = os.path.join(args.src_dir, 'steps/extract_promoters_and_orfs.py')
-    pipeline_step_output_dir_21, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, step_name)
+    pipeline_step_output_dir_21, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Extracting promoters...')
@@ -1090,22 +1121,22 @@ def run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, 
             orfs_path = os.path.join(orfs_dir, f'{genome_file_prefix}.{orfs_step_number}_ORFs')
             output_prefix = os.path.join(pipeline_step_output_dir_21, f'{genome_file_prefix}.promoter_and_orf')
 
-            single_cmd_params = [genome_path, orfs_path, output_prefix,
+            single_cmd_params = [pipeline_step_tmp_dir, genome_path, orfs_path, output_prefix,
                                  f'--promoters_length {args.promoters_length}']  # (optional)
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                    num_of_cmds_per_job=5,
                                                    job_name_suffix='promoter_gene_alignment',
                                                    queue_name=args.queue_name,
                                                    required_modules_as_list=[consts.MAFFT])
 
-        wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
-        write_to_file(done_file_path, '.')
+        write_to_file(logger, done_file_path, '.')
     else:
-        logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
     # 22.	extract_orfs.py
     # Input: (1) a row from the final orthologs table (2) a path for a directory where the genes files are at (3) a path for an output file.
@@ -1115,7 +1146,7 @@ def run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, 
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orthologs_groups_dna_sequences'
     script_path = os.path.join(args.src_dir, 'steps/extract_orfs.py')
-    pipeline_step_output_dir_22, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, step_name)
+    pipeline_step_output_dir_22, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
     assert os.path.exists(
         pipeline_step_output_dir_22), f'Failed to create output folder. {pipeline_step_output_dir_22} does not exist!'
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
@@ -1146,7 +1177,8 @@ def run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, 
                              f' thus will be included in the sweeps analysis')
                 og_sequences_path = os.path.join(pipeline_step_output_dir_22, f'{og_name}_dna.fas')
 
-                single_cmd_params = [pipeline_step_output_dir_21,
+                single_cmd_params = [pipeline_step_tmp_dir,
+                                     pipeline_step_output_dir_21,
                                      f'"{final_table_header}"',
                                      # should be flanked by quotes because it might contain spaces...
                                      f'"{cluster_members}"',
@@ -1156,17 +1188,17 @@ def run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, 
                                      og_sequences_path]
                 all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                    num_of_cmds_per_job=100,
                                                    job_name_suffix='extract_sequences',
                                                    queue_name=args.queue_name)
 
-        wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
-        write_to_file(done_file_path, '.')
+        write_to_file(logger, done_file_path, '.')
     else:
-        logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
     # 23.	align_orthologs_group.py
     # Input: (1) A path to an unaligned sequences file (2) An output file path
@@ -1175,7 +1207,7 @@ def run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, 
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_aligned_dna_orthologs_groups_with_promoter'
     script_path = os.path.join(args.src_dir, 'steps/align_orthologs_group.py')
-    pipeline_step_output_dir_23, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, step_name)
+    pipeline_step_output_dir_23, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Aligning orthologs groups...')
@@ -1184,21 +1216,21 @@ def run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, 
             og_path = os.path.join(pipeline_step_output_dir_22, og_file)
             alignment_path = os.path.join(pipeline_step_output_dir_23, og_file.replace('.fas', '_mafft.fas'))
 
-            single_cmd_params = [og_path, alignment_path, '--type nuc']
+            single_cmd_params = [pipeline_step_tmp_dir, og_path, alignment_path, '--type nuc']
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                    num_of_cmds_per_job=100,
                                                    job_name_suffix='align_promoter_and_gene',
                                                    queue_name=args.queue_name,
                                                    required_modules_as_list=[consts.MAFFT])
 
-        wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
-        write_to_file(done_file_path, '.')
+        write_to_file(logger, done_file_path, '.')
     else:
-        logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
     # 24.	adjust_tree_to_msa.py
     # Input: (1) A path to an MSA file to which the tree should be adjusted
@@ -1210,7 +1242,7 @@ def run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, 
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_prunned_trees'
     script_path = f'/bioseq/sincopa/adjust_tree_to_msa.py'
-    pipeline_step_output_dir_24, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, step_name)
+    pipeline_step_output_dir_24, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Removing bootstrap values from tree...')
@@ -1226,20 +1258,20 @@ def run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, 
             msa_path = os.path.join(pipeline_step_output_dir_23, msa_file)
             pruned_tree_path = os.path.join(pipeline_step_output_dir_24, msa_file.replace('.fas', '.tree'))
 
-            single_cmd_params = [msa_path, phylogenetic_raw_tree_path_without_bootstrap_values,
+            single_cmd_params = [pipeline_step_tmp_dir, msa_path, phylogenetic_raw_tree_path_without_bootstrap_values,
                                  pipeline_step_tmp_dir, pruned_tree_path]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                    num_of_cmds_per_job=100,
                                                    job_name_suffix='adjust_tree', queue_name=args.queue_name)
 
-        wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
-        write_to_file(done_file_path, '.')
+        write_to_file(logger, done_file_path, '.')
     else:
-        logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
     # 25.	fix_msa.py
     # Input: (1) A path to an MSA file that (might) contain too few genomes and/or
@@ -1249,7 +1281,7 @@ def run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, 
     step_number = '25'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_fixed_dna_msa'
-    pipeline_step_output_dir_25, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, step_name)
+    pipeline_step_output_dir_25, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         script_path = f'/bioseq/sincopa/fix_msa.py'
@@ -1259,19 +1291,19 @@ def run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, 
             msa_path = os.path.join(pipeline_step_output_dir_23, msa_file)
             fixed_msa_output_path = os.path.join(pipeline_step_output_dir_25, msa_file)
 
-            single_cmd_params = [msa_path, fixed_msa_output_path]
+            single_cmd_params = [pipeline_step_tmp_dir, msa_path, fixed_msa_output_path]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                    num_of_cmds_per_job=250,
                                                    job_name_suffix='fix_msa', queue_name=args.queue_name)
 
-        wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
-        write_to_file(done_file_path, '.')
+        write_to_file(logger, done_file_path, '.')
     else:
-        logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
     # 26.	compute_homoplasy.py
     # Input: (1) A path to an MSA file without ambiguous characters (only 'a', 'c', 'g', 't', and '-' are allowed)
@@ -1282,7 +1314,7 @@ def run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, 
     step_number = '26'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_homoplasy'
-    pipeline_step_output_dir_26, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, step_name)
+    pipeline_step_output_dir_26, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         script_path = f'/bioseq/sincopa/compute_homoplasy.py'
@@ -1294,20 +1326,20 @@ def run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, 
             control_path = os.path.join(pipeline_step_tmp_dir, msa_file.replace('fas', 'control'))
             output_path = os.path.join(pipeline_step_output_dir_26, msa_file.replace('fas', 'homoplasy'))
 
-            single_cmd_params = [fixed_msa_path, tree_path, control_path, output_path]
+            single_cmd_params = [pipeline_step_tmp_dir, fixed_msa_path, tree_path, control_path, output_path]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                    job_name_suffix='homoplasy', queue_name=args.queue_name,
                                                    num_of_cmds_per_job=50,
                                                    required_modules_as_list=[consts.GCC])
 
-        wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
-        write_to_file(done_file_path, '.')
+        write_to_file(logger, done_file_path, '.')
     else:
-        logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
     # 27.	compute_sweeps_score.py
     # Input: (1) A path to an MSA file to be analyzed
@@ -1318,7 +1350,7 @@ def run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, 
     step_number = '27'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_sweeps_scores_computation'
-    pipeline_step_output_dir_27, pipeline_step_tmp_dir = prepare_directories(args.output_dir, tmp_dir, step_name)
+    pipeline_step_output_dir_27, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     window_size = 50
     if not os.path.exists(done_file_path):
@@ -1332,20 +1364,20 @@ def run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, 
             output_meta_path = os.path.join(pipeline_step_output_dir_27, fixed_msa_file.replace('fas', 'csv'))
             output_plot_path = os.path.join(pipeline_step_output_dir_27, fixed_msa_file.replace('fas', 'png'))
 
-            single_cmd_params = [fixed_msa_path, homoplasy_path, output_scores_path,
+            single_cmd_params = [pipeline_step_tmp_dir, fixed_msa_path, homoplasy_path, output_scores_path,
                                  output_meta_path, output_plot_path, window_size]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                    job_name_suffix='sweeps', queue_name=args.queue_name,
                                                    num_of_cmds_per_job=100)
 
-        wait_for_results(os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
-        write_to_file(done_file_path, '.')
+        write_to_file(logger, done_file_path, '.')
     else:
-        logger.info(f'done file {done_file_path} already exists.\nSkipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
     # 28. analyse sweeps
     # Input: a path to a folder with sweeps score files
@@ -1370,7 +1402,7 @@ def run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, 
             f.write(f'{header}\n')
 
         # add content
-        execute(f'cat {pipeline_step_output_dir_27}/*csv >> {sweeps_summary_path}', process_is_string=True)
+        execute(logger, f'cat {pipeline_step_output_dir_27}/*csv >> {sweeps_summary_path}', process_is_string=True)
 
         df = pd.read_csv(sweeps_summary_path)
 
@@ -1442,7 +1474,7 @@ def run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, 
 
         # No need to wait...
     else:
-        logger.info(f'done file {sorted_sweeps_summary_path} already exists.\nSkipping step...')
+        logger.info(f'done file {sorted_sweeps_summary_path} already exists. Skipping step...')
 
     # preventing folder's deletion (output dir is being deleted
     # logger.info(f'Moving {pipeline_step_output_dir_24} TO {os.path.join(meta_output_dir, step_name)}')
@@ -1457,7 +1489,7 @@ def cleanup_results(args, logger, meta_output_dir, final_output_dir_name):
     logger.info('Cleaning up...')
 
     # remove intermediate results (including tmp_dir)
-    remove_path(args.output_dir)
+    remove_path(logger, args.output_dir)
 
     # remove raw data from the server
     for path_to_remove in [os.path.join(meta_output_dir, final_output_dir_name, x) for x in
@@ -1468,21 +1500,14 @@ def cleanup_results(args, logger, meta_output_dir, final_output_dir_name):
                             '17_orfs_statistics',
                             '18_induce_dna_msa_by_aa_msa']]:
         # remove intermediate results
-        remove_path(path_to_remove)
+        remove_path(logger, path_to_remove)
 
 
 def main(args):
     start_time = time()
 
-    if args.verbose:
-        logging.basicConfig(level=logging.DEBUG)
-    else:
-        logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger('main')
-
-    logger.info(args)
-    meta_output_dir, error_file_path, run_number, output_html_path, output_url, meta_output_url, tmp_dir, \
-        done_files_dir = prepare_pipeline_framework(args, logger)
+    logger, meta_output_dir, error_file_path, run_number, output_html_path, output_url, meta_output_url, tmp_dir, \
+        done_files_dir = prepare_pipeline_framework(args)
 
     try:
         data_path, number_of_genomes = prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path)
@@ -1493,7 +1518,7 @@ def main(args):
         status = 'is done'
     except Exception as e:
         status = 'was failed'
-        report_error_in_main_pipeline_to_admin(e, meta_output_dir, error_file_path, run_number, output_html_path,
+        report_error_in_main_pipeline_to_admin(logger, e, meta_output_dir, error_file_path, run_number, output_html_path,
                                                meta_output_url)
 
     total_time = int(time() - start_time)

@@ -1,9 +1,20 @@
+from sys import argv
+import argparse
+import logging
+import os
+import sys
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
+
+from auxiliaries.pipeline_auxiliaries import get_job_logger
+
+
 def get_verified_clusters_set(verified_clusters_path):
-    import os
     return set([os.path.splitext(file)[0] for file in os.listdir(verified_clusters_path)])
 
 
-def finalize_table(putative_orthologs_path, verified_clusters_path, finalized_table_path, phyletic_patterns_path,
+def finalize_table(logger, putative_orthologs_path, verified_clusters_path, finalized_table_path, phyletic_patterns_path,
                    delimiter):
     verified_clusters_set = get_verified_clusters_set(verified_clusters_path)
     logger.info(f'verified_clusters_set:\n{verified_clusters_set}')
@@ -45,13 +56,11 @@ def finalize_table(putative_orthologs_path, verified_clusters_path, finalized_ta
 
 
 if __name__ == '__main__':
-    from sys import argv
-
-    print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
-
-    import argparse
+    script_run_message = f'Starting command is: {" ".join(argv)}'
+    print(script_run_message)
 
     parser = argparse.ArgumentParser()
+    parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('putative_orthologs_path', help='path to a file with the putative orthologs sets')
     parser.add_argument('verified_clusters_path', help='path to a directory with the verified clusters')
     parser.add_argument('finalized_table_path', help='path to an output file in which the final table will be written')
@@ -61,13 +70,13 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     args = parser.parse_args()
 
-    import logging
+    level = logging.DEBUG if args.verbose else logging.INFO
+    logger = get_job_logger(args.logs_dir, level)
 
-    if args.verbose:
-        logging.basicConfig(level=logging.DEBUG)
-    else:
-        logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger('main')
+    logger.info(script_run_message)
+    try:
+        finalize_table(logger, args.putative_orthologs_path, args.verified_clusters_path,
+                       args.finalized_table_path, args.phyletic_patterns_path, args.delimiter)
+    except Exception as e:
+        logger.exception(f'Error in {os.path.basename(__file__)}')
 
-    finalize_table(args.putative_orthologs_path, args.verified_clusters_path,
-                   args.finalized_table_path, args.phyletic_patterns_path, args.delimiter)

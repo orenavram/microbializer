@@ -1,8 +1,17 @@
 import os
+from sys import argv
+import argparse
+import logging
+import Bio.Seq
+import sys
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
+
+from auxiliaries.pipeline_auxiliaries import get_job_logger
 
 
-def fna_to_faa(nucleotide_path, protein_path):
-    import Bio.Seq
+def fna_to_faa(logger, nucleotide_path, protein_path):
     with open(nucleotide_path) as f:
         result = ''
         previous_protein = ''
@@ -24,26 +33,27 @@ def fna_to_faa(nucleotide_path, protein_path):
 
 
 if __name__ == '__main__':
-    from sys import argv
-
-    print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
-
-    import argparse
+    script_run_message = f'Starting command is: {" ".join(argv)}'
+    print(script_run_message)
 
     parser = argparse.ArgumentParser()
+    parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('nucleotide_path',
                         help='A path to a nucleotide fasta file',
                         type=lambda path: path if os.path.exists(path) else parser.error(f'{path} does not exist!'))
     parser.add_argument('protein_path', help='A path to which the translated dna will be written')
+    parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     # type=lambda path: path if os.path.exists(os.path.split(path)[0]) else
     # parser.error(f'output folder {os.path.split(path)[0]} does not exist!'))
     args = parser.parse_args()
 
-    import logging
-
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger('main')
+    level = logging.DEBUG if args.verbose else logging.INFO
+    logger = get_job_logger(args.logs_dir, level)
 
     # wait_for_output_folder(os.path.split(args.protein_path)[0])
 
-    fna_to_faa(args.nucleotide_path, args.protein_path)
+    logger.info(script_run_message)
+    try:
+        fna_to_faa(logger, args.nucleotide_path, args.protein_path)
+    except Exception as e:
+        logger.exception(f'Error in {os.path.basename(__file__)}')

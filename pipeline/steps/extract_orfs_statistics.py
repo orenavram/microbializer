@@ -1,4 +1,16 @@
-def extract_orfs_statistics(orf_path, orfs_count_output_path, orfs_gc_output_path):
+from sys import argv
+import argparse
+import logging
+import os
+import sys
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
+
+from auxiliaries.pipeline_auxiliaries import get_job_logger
+
+
+def extract_orfs_statistics(logger, orf_path, orfs_count_output_path, orfs_gc_output_path):
     num_of_nucleotides = 0
     num_of_GC = 0
     orfs_count = -1
@@ -28,25 +40,22 @@ def extract_orfs_statistics(orf_path, orfs_count_output_path, orfs_gc_output_pat
 
 
 if __name__ == '__main__':
-    from sys import argv
-
-    print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
-
-    import argparse
+    script_run_message = f'Starting command is: {" ".join(argv)}'
+    print(script_run_message)
 
     parser = argparse.ArgumentParser()
+    parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('orf_path', help='path to fasta file with orfs')
     parser.add_argument('orfs_count_output_path', help='where to write the number of orfs')
     parser.add_argument('orfs_gc_output_path', help='where to write the gc content')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     args = parser.parse_args()
 
-    import logging
+    level = logging.DEBUG if args.verbose else logging.INFO
+    logger = get_job_logger(args.logs_dir, level)
 
-    if args.verbose:
-        logging.basicConfig(level=logging.DEBUG)
-    else:
-        logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger('main')
-
-    extract_orfs_statistics(args.orf_path, args.orfs_count_output_path, args.orfs_gc_output_path)
+    logger.info(script_run_message)
+    try:
+        extract_orfs_statistics(logger, args.orf_path, args.orfs_count_output_path, args.orfs_gc_output_path)
+    except Exception as e:
+        logger.exception(f'Error in {os.path.basename(__file__)}')

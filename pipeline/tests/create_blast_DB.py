@@ -1,7 +1,10 @@
 import subprocess
+from sys import argv
+import argparse
+import logging
 
 
-def create_blast_DB(reference_seq, dbtype, output_path):
+def create_blast_DB(logger, reference_seq, dbtype, output_path):
     """
     input:  sequence to base the DB on
             DB type (nucl/prot)
@@ -14,11 +17,7 @@ def create_blast_DB(reference_seq, dbtype, output_path):
 
 
 if __name__ == '__main__':
-    from sys import argv
-
     print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
-
-    import argparse
 
     parser = argparse.ArgumentParser()
     parser.add_argument('subject_fasta', help='path to subject fasta file')
@@ -27,12 +26,10 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     args = parser.parse_args()
 
-    import logging
-
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger('main')
 
-    create_blast_DB(args.subject_fasta, args.dbtype, args.subject_db)
+    create_blast_DB(logger, args.subject_fasta, args.dbtype, args.subject_db)

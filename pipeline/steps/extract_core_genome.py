@@ -1,13 +1,20 @@
 import os
+import sys
+from sys import argv
+import argparse
+import logging
 
-from ..auxiliaries.pipeline_auxiliaries import load_header2sequences_dict
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
+
+from auxiliaries.pipeline_auxiliaries import load_header2sequences_dict, get_job_logger
 
 
 def is_core_gene(strain_to_gene_dict, num_of_strains, core_minimal_percentage):
     return len(strain_to_gene_dict) / num_of_strains >= core_minimal_percentage / 100
 
 
-def update_core_genome(strain_to_core_genome_dict, strain_to_gene_dict, current_gene_length):
+def update_core_genome(logger, strain_to_core_genome_dict, strain_to_gene_dict, current_gene_length):
     for strain in strain_to_core_genome_dict:
         if strain in strain_to_gene_dict:
             logger.debug(f'{strain} has homolog in current og. Updating its core genome')
@@ -17,7 +24,7 @@ def update_core_genome(strain_to_core_genome_dict, strain_to_gene_dict, current_
             strain_to_core_genome_dict[strain] += '-' * current_gene_length
 
 
-def extract_core_genome(alignments_path, num_of_strains, core_length_path, strains_names_path, core_genome_path,
+def extract_core_genome(logger, alignments_path, num_of_strains, core_length_path, strains_names_path, core_genome_path,
                         core_ogs_names_path, number_of_core_members, core_minimal_percentage):
     with open(strains_names_path) as f:
         strains_names = f.read().rstrip().split('\n')
@@ -30,7 +37,7 @@ def extract_core_genome(alignments_path, num_of_strains, core_length_path, strai
         if is_core_gene(strain_to_gene_dict, num_of_strains, core_minimal_percentage):
             logger.info(
                 f'Adding to core genome: {og_file} ({len(strain_to_gene_dict)}/{num_of_strains} >= {core_minimal_percentage}%)')
-            update_core_genome(strain_to_core_genome_dict, strain_to_gene_dict, current_gene_length)
+            update_core_genome(logger, strain_to_core_genome_dict, strain_to_gene_dict, current_gene_length)
             core_ogs.append(og_file.split('_')[1])  # e.g., og_2655_aa_mafft.fas
         else:
             logger.info(
@@ -60,13 +67,11 @@ def extract_core_genome(alignments_path, num_of_strains, core_length_path, strai
 
 
 if __name__ == '__main__':
-    from sys import argv
-
-    print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
-
-    import argparse
+    script_run_message = f'Starting command is: {" ".join(argv)}'
+    print(script_run_message)
 
     parser = argparse.ArgumentParser()
+    parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('aa_alignments_path',
                         help='path to a folder where each file is a multiple sequences fasta file')
     parser.add_argument('num_of_strains', help='number of strains in the data', type=int)
@@ -82,14 +87,13 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     args = parser.parse_args()
 
-    import logging
+    level = logging.DEBUG if args.verbose else logging.INFO
+    logger = get_job_logger(args.logs_dir, level)
 
-    if args.verbose:
-        logging.basicConfig(level=logging.DEBUG)
-    else:
-        logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger('main')
-
-    extract_core_genome(args.aa_alignments_path, args.num_of_strains, args.core_length_path,
-                        args.strains_names_path, args.core_genome_path, args.core_ogs_names_path,
-                        args.number_of_core_members, args.core_minimal_percentage)
+    logger.info(script_run_message)
+    try:
+        extract_core_genome(logger, args.aa_alignments_path, args.num_of_strains, args.core_length_path,
+                            args.strains_names_path, args.core_genome_path, args.core_ogs_names_path,
+                            args.number_of_core_members, args.core_minimal_percentage)
+    except Exception as e:
+        logger.exception(f'Error in {os.path.basename(__file__)}')

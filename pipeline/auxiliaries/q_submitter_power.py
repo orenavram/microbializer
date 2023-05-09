@@ -11,10 +11,8 @@ import os
 from subprocess import call
 from . import consts
 
-logger = logging.getLogger('main')
 
-
-def generate_qsub_file(queue_name, tmp_dir, cmd, prefix_name, qsub_path, CPUs):
+def generate_qsub_file(logger, queue_name, tmp_dir, cmd, prefix_name, qsub_path, CPUs):
     """compose qsub_file content and fetches it"""
     qsub_file_content = '#!/bin/bash -x\n'  # 'old bash: #!/bin/tcsh -x\n'
     qsub_file_content += '#PBS -S /bin/bash\n'  # '#PBS -S /bin/tcsh\n'
@@ -41,7 +39,7 @@ def generate_qsub_file(queue_name, tmp_dir, cmd, prefix_name, qsub_path, CPUs):
     logger.debug('#' * 80)
 
 
-def submit_cmds_from_file_to_q(cmds_file, tmp_dir, queue_name, CPUs, dummy_delimiter='!@#', start=0, end=float('inf'),
+def submit_cmds_from_file_to_q(logger, cmds_file, tmp_dir, queue_name, CPUs, dummy_delimiter='!@#', start=0, end=float('inf'),
                                additional_params=''):
     logger.debug('-> Jobs will be submitted to ' + queue_name + '\'s queue')
     logger.debug('-> out, err and pbs files will be written to:\n' + tmp_dir + '/')
@@ -62,7 +60,7 @@ def submit_cmds_from_file_to_q(cmds_file, tmp_dir, queue_name, CPUs, dummy_delim
                 cmd = cmd.replace(dummy_delimiter, '\n')
                 qsub_path = os.path.join(tmp_dir, prefix_name + '.pbs')  # path to job
 
-                generate_qsub_file(queue_name, tmp_dir, cmd, prefix_name, qsub_path, CPUs)
+                generate_qsub_file(logger, queue_name, tmp_dir, cmd, prefix_name, qsub_path, CPUs)
 
                 # execute the job
                 # queue_name may contain more arguments, thus the string of the cmd is generated and raw cmd is called
@@ -108,12 +106,13 @@ if __name__ == '__main__':
     else:
         logging.basicConfig(level=logging.INFO)
 
+    logger = logging.getLogger('main')
     logger.debug(f'args = {args}')
 
     if not os.path.exists(args.tmp_dir):
         logger.debug(f'{args.tmp_dir} does not exist. Creating tmp path...')
         os.makedirs(args.tmp_dir, exist_ok=True)
 
-    submit_cmds_from_file_to_q(args.cmds_file, args.tmp_dir, args.queue_name, args.cpu, args.dummy_delimiter,
+    submit_cmds_from_file_to_q(logger, args.cmds_file, args.tmp_dir, args.queue_name, args.cpu, args.dummy_delimiter,
                                args.start, args.end, args.additional_params)
     # print(args.cmds_file, args.tmp_dir, args.queue_name, args.cpu, args.verbose, args.start, args.end)

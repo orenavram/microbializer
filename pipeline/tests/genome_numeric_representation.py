@@ -2,6 +2,7 @@ import logging
 import datetime
 import sys
 import os
+import argparse
 
 
 def get_genes_info_dicts(fasta_path, delimiter=' # ', gene_index=0, orientation_index=3):
@@ -92,7 +93,7 @@ def remove_non_core_genes(genome_name_to_gene_name_to_location, genome_name_to_g
     return genome_name_to_genes_with_orthologs, ref_gene_to_OGs, core_genome_size
 
 
-def get_genome_numeric_representation(orthologs_table_path, ORFs_dir_path, output_path, output_delimiter=','):
+def get_genome_numeric_representation(logger, orthologs_table_path, ORFs_dir_path, output_path, output_delimiter=','):
     logger.info(f'{datetime.datetime.now()}: starting to run...')
 
     with open(orthologs_table_path) as f:
@@ -136,8 +137,6 @@ def get_genome_numeric_representation(orthologs_table_path, ORFs_dir_path, outpu
 if __name__ == '__main__':
     print(f'Starting {sys.argv[0]}. Executed command is:\n{" ".join(sys.argv)}')
 
-    import argparse
-
     parser = argparse.ArgumentParser()
     parser.add_argument('orthologs_table_path', help='A path to an ortholog table (step 11 of microbializer)')
     parser.add_argument('ORFs_dir_path', help='A path to a ORF directory (step 01 of microbializer)')
@@ -151,4 +150,4 @@ if __name__ == '__main__':
         logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger('main')
 
-    get_genome_numeric_representation(args.orthologs_table_path, args.ORFs_dir_path.rstrip('/'), args.output_path)
+    get_genome_numeric_representation(logger, args.orthologs_table_path, args.ORFs_dir_path.rstrip('/'), args.output_path)

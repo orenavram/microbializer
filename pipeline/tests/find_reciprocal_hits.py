@@ -3,6 +3,9 @@ script_name.py /Users/Oren/Dropbox/Projects/microbializer/mock_output/04_blast_f
 '''
 
 import os
+from sys import argv
+import argparse
+import logging
 
 
 def parse_blast_results_to_dictionary(blast_out):
@@ -17,7 +20,7 @@ def parse_blast_results_to_dictionary(blast_out):
     return query_to_hit_and_bitscore_dict
 
 
-def find_reciprocal_hits(blast_out1, blast_out2, output_path, delimiter):
+def find_reciprocal_hits(logger, blast_out1, blast_out2, output_path, delimiter):
     output_file_name = os.path.split(output_path)[1]
     strain1, strain2 = os.path.splitext(output_file_name)[0].split('_vs_')
     result = delimiter.join([strain1, strain2, 'bitscore']) + '\n'
@@ -49,11 +52,7 @@ def find_reciprocal_hits(blast_out1, blast_out2, output_path, delimiter):
 
 
 if __name__ == '__main__':
-    from sys import argv
-
     print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
-
-    import argparse
 
     parser = argparse.ArgumentParser()
     parser.add_argument('blast_result1', help='path to blast result file of seq1 vs seq2')
@@ -63,12 +62,10 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     args = parser.parse_args()
 
-    import logging
-
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger('main')
 
-    find_reciprocal_hits(args.blast_result1, args.blast_result2, args.output_path, args.delimiter)
+    find_reciprocal_hits(logger, args.blast_result1, args.blast_result2, args.output_path, args.delimiter)

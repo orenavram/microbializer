@@ -1,11 +1,15 @@
 import sys
 import argparse
 import logging
+import os
 
-from ..auxiliaries.pipeline_auxiliaries import load_header2sequences_dict
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
+
+from auxiliaries.pipeline_auxiliaries import load_header2sequences_dict, get_job_logger
 
 
-def filter_out_plasmids(input_genome_path, output_genome_path):
+def filter_out_plasmids(logger, input_genome_path, output_genome_path):
     """
         input_genome_path: path to an input fasta file with prokaryotic genome
         output_genome_path: path to a filtered genome without plasmids
@@ -27,18 +31,21 @@ def filter_out_plasmids(input_genome_path, output_genome_path):
 
 
 if __name__ == '__main__':
-    print(f'Starting {sys.argv[0]}. Executed command is:\n{" ".join(sys.argv)}')
+    script_run_message = f'Starting command is: {" ".join(argv)}'
+    print(script_run_message)
 
     parser = argparse.ArgumentParser()
+    parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('genome_path', help='path to fasta genome file')
     parser.add_argument('output_path', help='path to output file - which is the input file without plasmids')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     args = parser.parse_args()
 
-    if args.verbose:
-        logging.basicConfig(level=logging.DEBUG)
-    else:
-        logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger('main')
+    level = logging.DEBUG if args.verbose else logging.INFO
+    logger = get_job_logger(args.logs_dir, level)
 
-    filter_out_plasmids(args.genome_path, args.output_path)
+    logger.info(script_run_message)
+    try:
+        filter_out_plasmids(logger, args.genome_path, args.output_path)
+    except Exception as e:
+        logger.exception(f'Error in {os.path.basename(__file__)}')

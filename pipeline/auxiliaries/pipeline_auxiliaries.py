@@ -1,15 +1,14 @@
-import logging
 import os
 import shutil
 import subprocess
 import tarfile
-from time import time, sleep, ctime
+from time import time, sleep
+import re
+import logging
 
 from . import consts
 from .email_sender import send_email
 from .q_submitter_power import submit_cmds_from_file_to_q
-
-logger = logging.getLogger('main')  # use logger instead of printing
 
 
 def load_header2sequences_dict(fasta_path, get_length=False, upper_sequence=False):
@@ -60,21 +59,21 @@ def measure_time(total):
         return f'{seconds} seconds'
 
 
-def execute(process, process_is_string=False):
+def execute(logger, process, process_is_string=False):
     process_str = process if process_is_string else ' '.join(str(token) for token in process)
     logger.info(f'Calling (process_is_string == {process_is_string}):\n{process_str}')
     subprocess.run(process, shell=process_is_string)
 
 
-def wait_for_results(script_name, path, num_of_expected_results, error_file_path, suffix='done',
+def wait_for_results(logger, script_name, path, num_of_expected_results, error_file_path, suffix='done',
                      time_to_wait=10, start=0, error_message=None, email=None):
     """waits until path contains num_of_expected_results $suffix files"""
     if not start:
         start = time()
-    logger.info(f'Waiting for {script_name}...\nContinues when {num_of_expected_results} results will be in:\n{path}')
+    logger.info(f'Waiting for {script_name}... Continues when {num_of_expected_results} results will be in: {path}')
     if num_of_expected_results == 0 and 'oren' not in email:
         if error_message:
-            fail(error_message, error_file_path)
+            fail(logger, error_message, error_file_path)
         raise ValueError(
             f'\n{"#" * 100}\nNumber of expected results is {num_of_expected_results}! Something went wrong in the previous analysis steps...\n{"#" * 100}')
     total_time = 0
@@ -96,34 +95,33 @@ def wait_for_results(script_name, path, num_of_expected_results, error_file_path
                 f'\t{measure_time(total_time)} have passed since started waiting ({num_of_expected_results} - {current_num_of_results} = {jobs_left} more files are still missing)')
 
     end = time()
-    logger.info(f'Done waiting for:\n{script_name}\n(took {measure_time(int(end - start))}).\n')
+    logger.info(f'Done waiting for: {script_name} (took {measure_time(int(end - start))}).')
     assert not os.path.exists(error_file_path)
 
 
-def prepare_directories(outputs_dir_prefix, tmp_dir_prefix, dir_name):
+def prepare_directories(logger, outputs_dir_prefix, tmp_dir_prefix, dir_name):
     outputs_dir = os.path.join(outputs_dir_prefix, dir_name)
-    logger.info(f'{ctime()}: Creating {outputs_dir}\n')
+    logger.info(f'Creating {outputs_dir}')
     os.makedirs(outputs_dir, exist_ok=True)
 
     tmp_dir = os.path.join(tmp_dir_prefix, dir_name)
-    logger.info(f'{ctime()}: Creating {tmp_dir}\n')
+    logger.info(f'Creating {tmp_dir}')
     os.makedirs(tmp_dir, exist_ok=True)
 
     return outputs_dir, tmp_dir
 
 
-def fail(error_msg, error_file_path):
+def fail(logger, error_msg, error_file_path):
     logger.error(error_msg)
     with open(error_file_path, 'w') as error_f:
         error_f.write(error_msg + '\n')
     raise ValueError(error_msg)
 
 
-def submit_mini_batch(script_path, mini_batch_parameters_list, logs_dir, queue_name, job_name='',
+def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir, queue_name, job_name='',
                       new_line_delimiter='!@#', verbose=False, required_modules_as_list=None, num_of_cpus=1,
                       submit_as_a_job=True, done_file_is_needed=True,
-                      done_files_script_path=os.path.join(consts.PROJECT_ROOT_DIR,
-                                                          'pipeline/auxiliaries/file_writer.py')):
+                      done_files_script_path=os.path.join(consts.PROJECT_ROOT_DIR, 'pipeline/auxiliaries/file_writer.py')):
     """
     :param script_path:
     :param mini_batch_parameters_list: a list of lists. each sublist corresponds to a single command and contain its parameters
@@ -152,6 +150,7 @@ def submit_mini_batch(script_path, mini_batch_parameters_list, logs_dir, queue_n
         # (long lines with ";" are bad practice)
     else:
         shell_cmds_as_str += f'source ~/.bashrc{new_line_delimiter}'
+        #shell_cmds_as_str += f'source ~/miniconda3/etc/profile.d/conda.sh{new_line_delimiter}'
         shell_cmds_as_str += f'conda activate microbializer{new_line_delimiter}'
         shell_cmds_as_str += f'export PATH=$CONDA_PREFIX/bin:$PATH{new_line_delimiter}'
 
@@ -168,7 +167,7 @@ def submit_mini_batch(script_path, mini_batch_parameters_list, logs_dir, queue_n
 
     if done_file_is_needed:
         # GENERATE DONE FILE
-        params = [os.path.join(logs_dir, job_name + '.done'), '']  # write an empty string (like "touch" command)
+        params = [logs_dir, os.path.join(logs_dir, job_name + '.done'), '']  # write an empty string (like "touch" command)
         shell_cmds_as_str += ' '.join(['python', done_files_script_path, *params]) + ';'
         shell_cmds_as_str += new_line_delimiter
 
@@ -178,16 +177,16 @@ def submit_mini_batch(script_path, mini_batch_parameters_list, logs_dir, queue_n
         with open(cmds_path, 'w') as f:
             f.write(f'{shell_cmds_as_str}\t{job_name}\n')  # ADDING THE JOB NAME
 
-        submit_cmds_from_file_to_q(cmds_path, logs_dir, queue_name, str(num_of_cpus))
+        submit_cmds_from_file_to_q(logger, cmds_path, logs_dir, queue_name, str(num_of_cpus))
     else:
         # fetch directly on shell
         for shell_cmd in shell_cmds_as_str.split(new_line_delimiter):
-            execute(shell_cmd, process_is_string=True)
+            execute(logger, shell_cmd, process_is_string=True)
 
     return example_shell_cmd
 
 
-def submit_batch(script_path, batch_parameters_list, logs_dir, job_name_suffix='', queue_name='pupkolabr',
+def submit_batch(logger, script_path, batch_parameters_list, logs_dir, job_name_suffix='', queue_name='pupkolabr',
                  num_of_cmds_per_job=1, new_line_delimiter='!@#', required_modules_as_list=None, num_of_cpus=1,
                  q_submitter_script_path=consts.Q_SUBMITTER_PATH):
     """
@@ -213,21 +212,18 @@ def submit_batch(script_path, batch_parameters_list, logs_dir, job_name_suffix='
 
     for i in range(0, len(batch_parameters_list), num_of_cmds_per_job):
         mini_batch_parameters_list = batch_parameters_list[i: i + num_of_cmds_per_job]
-        example_cmd_from_last_mini_batch = submit_mini_batch(script_path, mini_batch_parameters_list, logs_dir,
-                                                             queue_name, f'{num_of_mini_batches}_{job_name_suffix}',
+        mini_batch_job_name = f'{num_of_mini_batches}_{job_name_suffix}'
+        example_cmd_from_last_mini_batch = submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir,
+                                                             queue_name, mini_batch_job_name,
                                                              new_line_delimiter, verbose=False, num_of_cpus=num_of_cpus,
                                                              required_modules_as_list=required_modules_as_list)
-        logger.info(f'Example command from current batch:\n{example_cmd_from_last_mini_batch}')
+        logger.info(f'Example command from batch {mini_batch_job_name}:\n{example_cmd_from_last_mini_batch}')
         num_of_mini_batches += 1
 
     return num_of_mini_batches, example_cmd_from_last_mini_batch
 
 
-if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
-
-
-def wait_for_output_folder(output_folder, max_waiting_time=300):
+def wait_for_output_folder(logger, output_folder, max_waiting_time=300):
     i = 0
     while not os.path.exists(output_folder):
         logger.info(f'Waiting to {output_folder} to be generated... (waited {i} seconds)')
@@ -241,7 +237,7 @@ def wait_for_output_folder(output_folder, max_waiting_time=300):
 def remove_bootstrap_values(in_tree_path, out_tree_path):
     with open(in_tree_path) as f:
         tree_as_str = f.read()
-    import re
+
     tree_as_str = re.sub('\)\d+:', '):', tree_as_str)
     with open(out_tree_path, 'w') as f:
         f.write(tree_as_str)
@@ -271,7 +267,7 @@ def notify_admin(meta_output_dir, meta_output_url, run_number):
                        f"{os.path.join(meta_output_dir, error_log_path.replace('ER', 'OU'))}")
 
 
-def add_results_to_final_dir(source, final_output_dir, copy=True):
+def add_results_to_final_dir(logger, source, final_output_dir, copy=True):
     dest = os.path.join(final_output_dir, os.path.split(source)[1])
 
     try:
@@ -287,7 +283,7 @@ def add_results_to_final_dir(source, final_output_dir, copy=True):
     return dest
 
 
-def remove_path(path_to_remove):
+def remove_path(logger, path_to_remove):
     logger.info(f'Removing {path_to_remove} ...')
     try:
         shutil.rmtree(path_to_remove)  # maybe it's a folder
@@ -299,7 +295,7 @@ def remove_path(path_to_remove):
         pass
 
 
-def unpack_data(data_path, meta_output_dir, error_file_path):
+def unpack_data(logger, data_path, meta_output_dir, error_file_path):
     if not os.path.isdir(data_path):
         unzipped_data_path = os.path.join(meta_output_dir, 'data')
         try:
@@ -311,15 +307,15 @@ def unpack_data(data_path, meta_output_dir, error_file_path):
                 # data_path = data_path.split('.tar')[0] # e.g., /groups/pupko/orenavr2/microbializer/example_data.tar.gz
                 # logger.info(f'Updated data_path is:\n{data_path}')
             elif data_path.endswith('.gz'):  # gunzip gz file
-                execute(f'gunzip -f "{data_path}"', process_is_string=True)
+                execute(logger, f'gunzip -f "{data_path}"', process_is_string=True)
                 unzipped_data_path = data_path[:-3]  # trim the ".gz"
             else:
                 logger.info('UnZIPing')
                 shutil.unpack_archive(data_path, extract_dir=unzipped_data_path)  # unzip tar folder to parent dir
         except Exception as e:
             logger.info(e)
-            remove_path(data_path)
-            fail(f'{consts.WEBSERVER_NAME} failed to decompress your data. Please make sure all your FASTA files names '
+            remove_path(logger, data_path)
+            fail(logger, f'{consts.WEBSERVER_NAME} failed to decompress your data. Please make sure all your FASTA files names '
                  f'do contain only dashes, dots, and alphanumeric characters (a-z, A-Z, 0-9). Other characters such as '
                  f'parenthesis, pipes, slashes, are not allowed. Please also make sure your archived file format is legal (either a '
                  f'<a href="https://support.microsoft.com/en-us/help/14200/windows-compress-uncompress-zip-files" target="_blank">.zip</a> file or a '
@@ -331,26 +327,26 @@ def unpack_data(data_path, meta_output_dir, error_file_path):
         # logger.info(f'Updated data_path is:\n{data_path}')
 
         if not os.path.exists(unzipped_data_path):
-            fail(f'Failed to unzip {os.path.split(data_path)[-1]} (maybe it is empty?)', error_file_path)
+            fail(logger, f'Failed to unzip {os.path.split(data_path)[-1]} (maybe it is empty?)', error_file_path)
 
         if not os.path.isdir(unzipped_data_path):
-            fail('Archived file content is not a folder', error_file_path)
+            fail(logger, 'Archived file content is not a folder', error_file_path)
 
         file = [x for x in os.listdir(unzipped_data_path) if not x.startswith(('_', '.'))][0]
         logger.info(f'first file in {unzipped_data_path} is:\n{file}')
         if os.path.isdir(os.path.join(unzipped_data_path, file)):
             data_path = os.path.join(unzipped_data_path, file)
             if not [x for x in os.listdir(data_path) if not x.startswith(('_', '.'))]:
-                fail(f'No input files were found in the archived folder.',
+                fail(logger, f'No input files were found in the archived folder.',
                      error_file_path)
         else:
             data_path = unzipped_data_path
 
-    logger.info(f'Updated data_path is:\n{data_path}')
+    logger.info(f'Updated data_path is: {data_path}')
     for file in os.listdir(data_path):
         file_path = os.path.join(data_path, file)
         if file_path.endswith('gz'):  # gunzip gz files in $data_path if any
-            execute(f'gunzip -f "{file_path}"', process_is_string=True)
+            execute(logger, f'gunzip -f "{file_path}"', process_is_string=True)
 
     for file in os.listdir(data_path):
         if not os.path.isdir(os.path.join(data_path, file)):
@@ -362,13 +358,13 @@ def unpack_data(data_path, meta_output_dir, error_file_path):
                 logger.info('Removing __MACOSX file...')
                 shutil.rmtree(os.path.join(data_path, file))
             else:
-                fail(f'Please make sure to upload one archived folder containing (only) FASTA files '
+                fail(logger, f'Please make sure to upload one archived folder containing (only) FASTA files '
                      f'("{file}" is a folder).', error_file_path)
 
     return data_path
 
 
-def fix_illegal_chars_in_file_name(file_name, illegal_chars='\\|( );,\xa0'):
+def fix_illegal_chars_in_file_name(logger, file_name, illegal_chars='\\|( );,\xa0'):
     new_file_name = file_name
     for char in illegal_chars:
         if char in new_file_name:
@@ -377,7 +373,7 @@ def fix_illegal_chars_in_file_name(file_name, illegal_chars='\\|( );,\xa0'):
     return new_file_name
 
 
-def move_file(folder, file_name, new_file_name, error_file_path):
+def move_file(logger, folder, file_name, new_file_name, error_file_path):
     # a name replacement was applied. move the file to its new name.
     try:
         logger.info(f'Renaming file path from:\n'
@@ -388,4 +384,21 @@ def move_file(folder, file_name, new_file_name, error_file_path):
         file_name = new_file_name
     except:
         error_msg = f'One (or more) file name(s) contain illegal character such as parenthesis, pipes, or slashes.<br>\nIn order to avoid downstream parsing errors, {consts.WEBSERVER_NAME} automatically replaces these spaces with dashes. For some reason, the replacement for {file_name} failed. Please make sure all your input files names contain only dashes, dots, and alphanumeric characters (a-z, A-Z, 0-9) and re-submit your job.'
-        fail(error_msg, error_file_path)
+        fail(logger, error_msg, error_file_path)
+
+
+def get_job_logger(log_file_dir, level=logging.INFO):
+    job_name = os.environ[consts.JOB_NAME_ENVIRONMENT_VARIABLE]
+    job_id = os.environ[consts.JOB_ID_ENVIRONMENT_VARIABLE]
+
+    if consts.LOG_IN_SEPARATE_FILES and job_name and job_id:
+        logging.basicConfig(filename=os.path.join(log_file_dir, f'{job_name}_{job_id}_log.txt'),
+                            filemode='a',
+                            format=consts.LOG_MESSAGE_FORMAT,
+                            level=level)
+    else:
+        logging.basicConfig(format=consts.LOG_MESSAGE_FORMAT,
+                            level=level)
+
+    logger = logging.getLogger('main')
+    return logger

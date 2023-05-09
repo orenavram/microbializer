@@ -3,6 +3,15 @@ script_name.py /Users/Oren/Dropbox/Projects/microbializer/mock_output/01_ORFs "G
 """
 
 import os
+from sys import argv
+import argparse
+import logging
+import sys
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
+
+from auxiliaries.pipeline_auxiliaries import get_job_logger
 
 
 def get_sequence_by_ortholog_name(fasta_path, ortholog_name):
@@ -28,7 +37,7 @@ def get_sequence_by_ortholog_name(fasta_path, ortholog_name):
     raise ValueError(f'{ortholog_name} does not exist in {fasta_path}!')
 
 
-def get_orthologs_group_sequences(orfs_dir, strain_name_to_ortholog_name, strains):
+def get_orthologs_group_sequences(logger, orfs_dir, strain_name_to_ortholog_name, strains):
     result = ''
 
     strain_to_strain_orfs_path_dict = {}
@@ -53,12 +62,12 @@ def get_orthologs_group_sequences(orfs_dir, strain_name_to_ortholog_name, strain
     return result
 
 
-def extract_orfs(sequences_dir, final_table_header_line, cluster_members_line,
+def extract_orfs(logger, sequences_dir, final_table_header_line, cluster_members_line,
                  cluster_name, output_path, delimiter):
     strains = final_table_header_line.rstrip().split(delimiter)
     cluster_members = cluster_members_line.rstrip().split(delimiter)
     strain_name_to_ortholog_name = dict(zip(strains, cluster_members))
-    orthologs_sequences = get_orthologs_group_sequences(sequences_dir, strain_name_to_ortholog_name, strains)
+    orthologs_sequences = get_orthologs_group_sequences(logger, sequences_dir, strain_name_to_ortholog_name, strains)
     if not orthologs_sequences:
         logger.error(f'Failed to extract any sequence for {cluster_name}.')
         return
@@ -68,13 +77,11 @@ def extract_orfs(sequences_dir, final_table_header_line, cluster_members_line,
 
 
 if __name__ == '__main__':
-    from sys import argv
-
-    print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
-
-    import argparse
+    script_run_message = f'Starting command is: {" ".join(argv)}'
+    print(script_run_message)
 
     parser = argparse.ArgumentParser()
+    parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('sequences_dir', help='path to a directory with the bacterial gene sequences (aka ORFs)')
     parser.add_argument('final_table_header', help='string that is the header of the final table')
     parser.add_argument('cluster_members', help='string that is the cluster members that is handled'
@@ -85,13 +92,12 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     args = parser.parse_args()
 
-    import logging
+    level = logging.DEBUG if args.verbose else logging.INFO
+    logger = get_job_logger(args.logs_dir, level)
 
-    if args.verbose:
-        logging.basicConfig(level=logging.DEBUG)
-    else:
-        logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger('main')
-
-    extract_orfs(args.sequences_dir, args.final_table_header, args.cluster_members,
-                 args.cluster_name, args.output_path, args.delimiter)
+    logger.info(script_run_message)
+    try:
+        extract_orfs(logger, args.sequences_dir, args.final_table_header, args.cluster_members,
+                     args.cluster_name, args.output_path, args.delimiter)
+    except Exception as e:
+        logger.exception(f'Error in {os.path.basename(__file__)}')

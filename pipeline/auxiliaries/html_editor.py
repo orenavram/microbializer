@@ -1,8 +1,6 @@
-import logging
 import os
 from . import consts
-
-logger = logging.getLogger('main')
+from time import sleep
 
 
 def add_closing_html_tags(html_path, run_number):
@@ -20,7 +18,6 @@ def add_closing_html_tags(html_path, run_number):
         f.flush()
 
     # Must be after flushing all previous data. Otherwise it might refresh during the writing.. :(
-    from time import sleep
     sleep(2 * consts.RELOAD_INTERVAL)
     with open(html_path) as f:
         html_content = f.read()
@@ -46,7 +43,7 @@ def get_html_string_of_result(final_output_dir_name, meta_output_dir, end_of_str
     return result
 
 
-def edit_success_html(html_path, meta_output_dir, final_output_dir_name, run_number):
+def edit_success_html(logger, html_path, meta_output_dir, final_output_dir_name, run_number):
     if consts.IGNORE_HTML:
         return
 
@@ -115,7 +112,7 @@ def edit_success_html(html_path, meta_output_dir, final_output_dir_name, run_num
     add_closing_html_tags(html_path, run_number)
 
 
-def edit_failure_html(html_path, run_number, msg):
+def edit_failure_html(logger, html_path, run_number, msg):
     if consts.IGNORE_HTML:
         return
 
@@ -128,8 +125,6 @@ def edit_failure_html(html_path, run_number, msg):
             f'{consts.WEBSERVER_NAME} is now processing your request. This page will be automatically updated every few seconds (until the job is done). You can also reload it manually. Once the job has finished, several links to the output files will appear below. ',
             '')
     except FileNotFoundError:
-        import logging
-        logger = logging.getLogger('main')
         logger.warning(f"Couldn't find html prefix at: {html_path}")
 
     html_text += f'<div class="container" align="justify" style="{consts.CONTAINER_STYLE}"><h3>\n' \
