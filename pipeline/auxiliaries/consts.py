@@ -8,6 +8,7 @@ TEST = True
 USE_CONDA = True
 IGNORE_HTML = True
 CLEAN_OUTPUTS_AFTER_RUN = False
+LOG_IN_SEPARATE_FILES = True
 
 # mmseqs command work only on specific machines and this queue navigates only to them
 MMSEQS_REQUIRED_MEMORY = '60gb'

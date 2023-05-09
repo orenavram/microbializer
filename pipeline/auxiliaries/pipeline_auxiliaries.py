@@ -391,7 +391,7 @@ def get_job_logger(log_file_dir, level=logging.INFO):
     job_name = os.environ[consts.JOB_NAME_ENVIRONMENT_VARIABLE]
     job_id = os.environ[consts.JOB_ID_ENVIRONMENT_VARIABLE]
 
-    if job_name and job_id:
+    if consts.LOG_IN_SEPARATE_FILES and job_name and job_id:
         logging.basicConfig(filename=os.path.join(log_file_dir, f'{job_name}_{job_id}_log.txt'),
                             filemode='a',
                             format=consts.LOG_MESSAGE_FORMAT,

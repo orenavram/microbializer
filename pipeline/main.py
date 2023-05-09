@@ -78,15 +78,15 @@ def get_arguments():
 def prepare_pipeline_framework(args):
     os.makedirs(args.output_dir, exist_ok=True)
 
-    if args.verbose:
-        level = logging.DEBUG
+    level = logging.DEBUG if args.verbose else logging.INFO
+    if consts.LOG_IN_SEPARATE_FILES:
+        logging.basicConfig(filename=os.path.join(args.output_dir, 'main_log.txt'),
+                            filemode='a',
+                            format=consts.LOG_MESSAGE_FORMAT,
+                            level=level)
     else:
-        level = logging.INFO
-
-    logging.basicConfig(filename=os.path.join(args.output_dir, 'main_log.txt'),
-                        filemode='a',
-                        format=consts.LOG_MESSAGE_FORMAT,
-                        level=level)
+        logging.basicConfig(format=consts.LOG_MESSAGE_FORMAT,
+                            level=level)
     logger = logging.getLogger('main')
 
     logger.info(args)
@@ -134,7 +134,12 @@ def prepare_pipeline_framework(args):
 
 
 def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path):
-    data_path = args.contigs_dir
+    if consts.TEST:
+        data_path = os.path.join(args.output_dir, 'inputs')
+        shutil.copytree(args.contigs_dir, data_path)
+    else:
+        data_path = args.contigs_dir
+
     logger.info(f'data_path is: {data_path}')
 
     # extract zip and detect data folder
