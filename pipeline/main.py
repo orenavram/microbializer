@@ -315,9 +315,8 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                    num_of_cmds_per_job=10,
                                                    job_name_suffix='DB_creation',
-                                                   queue_name=args.queue_name,
-                                                   required_modules_as_list=[consts.MMSEQS],
-                                                   high_memory_node=False)
+                                                   queue_name=consts.QUEUE_FOR_MMSEQS_COMMANDS,
+                                                   required_modules_as_list=[consts.MMSEQS])
 
         wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
@@ -331,7 +330,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
     # does not remove (sge/cmds/log) files. only folders.
     # MMSEQS generates tons of intermediate files that abuse the inodes so they are deleted once the step is over!
     submit_mini_batch(logger, os.path.join(args.src_dir, 'auxiliaries/remove_tmp_folders.py'),
-                      [pipeline_step_tmp_dir, pipeline_step_tmp_dir], pipeline_step_tmp_dir, args.queue_name,
+                      [[pipeline_step_tmp_dir, pipeline_step_tmp_dir]], pipeline_step_tmp_dir, args.queue_name,
                       job_name='remove_dirs_from_tmp')
 
     # 4.	mmseqs2_all_vs_all.py
@@ -383,7 +382,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                    num_of_cmds_per_job=100 if len(os.listdir(orfs_dir)) > 25 else 5,
                                                    job_name_suffix='rbh_analysis',
-                                                   queue_name=args.queue_name,
+                                                   queue_name=consts.QUEUE_FOR_MMSEQS_COMMANDS,
                                                    required_modules_as_list=[consts.MMSEQS])
 
         wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
@@ -398,7 +397,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
     # (e.g., 3465136234521948 etc..) in tmp_dir
     # does not remove (sge/cmds/log) files. only folders.
     submit_mini_batch(logger, os.path.join(args.src_dir, 'auxiliaries/remove_tmp_folders.py'),
-                      [pipeline_step_tmp_dir, previous_pipeline_step_output_dir],
+                      [[pipeline_step_tmp_dir, previous_pipeline_step_output_dir]],
                       pipeline_step_tmp_dir, args.queue_name, job_name='remove_m8_files')
 
     # 5.	filter_rbh_results.py
@@ -476,7 +475,8 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
     if not os.path.exists(done_file_path):
         logger.info('Constructing putative orthologs table...')
         job_name = os.path.split(script_path)[-1]
-        params = [all_reciprocal_hits_file,
+        params = [pipeline_step_tmp_dir,
+                  all_reciprocal_hits_file,
                   putative_orthologs_table_path]
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, args.queue_name, job_name=job_name)
         wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
@@ -622,7 +622,8 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
     if not os.path.exists(done_file_path):
         logger.info('Constructing final orthologs table...')
         job_name = os.path.split(final_orthologs_table_file_path)[-1]
-        params = [putative_orthologs_table_path,
+        params = [pipeline_step_tmp_dir,
+                  putative_orthologs_table_path,
                   previous_pipeline_step_output_dir,
                   final_orthologs_table_file_path,
                   phyletic_patterns_path]
@@ -784,7 +785,8 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
     if not os.path.exists(done_file_path):
         logger.info('Extracting aligned core proteome...')
 
-        params = [aa_alignments_path, num_of_strains, strains_names_path,
+        params = [pipeline_step_tmp_dir,
+                  aa_alignments_path, num_of_strains, strains_names_path,
                   aligned_core_proteome_file_path,
                   core_ogs_names_file_path,
                   core_length_file_path,
@@ -816,7 +818,8 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
         else:
             # better not to use more than 10 cpus, routinely, when running on pupkoweb
             num_of_cpus = 10
-        params = [aligned_core_proteome_file_path,
+        params = [phylogeny_tmp_dir,
+                  aligned_core_proteome_file_path,
                   phylogenetic_raw_tree_path,
                   f'--cpu {num_of_cpus}']
         if args.outgroup:

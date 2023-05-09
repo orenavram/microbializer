@@ -12,14 +12,12 @@ from subprocess import call
 from . import consts
 
 
-def generate_qsub_file(logger, queue_name, tmp_dir, cmd, prefix_name, qsub_path, CPUs, high_memory_node=False):
+def generate_qsub_file(logger, queue_name, tmp_dir, cmd, prefix_name, qsub_path, CPUs):
     """compose qsub_file content and fetches it"""
     qsub_file_content = '#!/bin/bash -x\n'  # 'old bash: #!/bin/tcsh -x\n'
     qsub_file_content += '#PBS -S /bin/bash\n'  # '#PBS -S /bin/tcsh\n'
     if int(CPUs) > 1:
         qsub_file_content += f'#PBS -l ncpus={CPUs}\n'
-    if high_memory_node:
-        qsub_file_content += f'#PBS -l mem=60gb,pvmem=60gb,vmem=60gb\n'
     qsub_file_content += f'#PBS -q {queue_name}@power9\n'
     qsub_file_content += f'#PBS -N {prefix_name}\n'
     qsub_file_content += f'#PBS -e {tmp_dir}\n'  # error log
@@ -42,7 +40,7 @@ def generate_qsub_file(logger, queue_name, tmp_dir, cmd, prefix_name, qsub_path,
 
 
 def submit_cmds_from_file_to_q(logger, cmds_file, tmp_dir, queue_name, CPUs, dummy_delimiter='!@#', start=0, end=float('inf'),
-                               additional_params='', high_memory_node=False):
+                               additional_params=''):
     logger.debug('-> Jobs will be submitted to ' + queue_name + '\'s queue')
     logger.debug('-> out, err and pbs files will be written to:\n' + tmp_dir + '/')
     logger.debug('-> Jobs are based on cmds ' + str(start) + ' to ' + str(end) + ' (excluding) from:\n' + cmds_file)
@@ -62,7 +60,7 @@ def submit_cmds_from_file_to_q(logger, cmds_file, tmp_dir, queue_name, CPUs, dum
                 cmd = cmd.replace(dummy_delimiter, '\n')
                 qsub_path = os.path.join(tmp_dir, prefix_name + '.pbs')  # path to job
 
-                generate_qsub_file(logger, queue_name, tmp_dir, cmd, prefix_name, qsub_path, CPUs, high_memory_node)
+                generate_qsub_file(logger, queue_name, tmp_dir, cmd, prefix_name, qsub_path, CPUs)
 
                 # execute the job
                 # queue_name may contain more arguments, thus the string of the cmd is generated and raw cmd is called
