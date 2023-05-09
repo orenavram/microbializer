@@ -53,7 +53,8 @@ def generate_phylogenetic_tree(logger, msa_path, phylogenetic_tree_path, seed, m
 
 
 if __name__ == '__main__':
-    print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
+    script_run_message = f'Starting command is: {" ".join(argv)}'
+    print(script_run_message)
 
     parser = argparse.ArgumentParser()
     parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
@@ -75,5 +76,9 @@ if __name__ == '__main__':
     level = logging.DEBUG if args.verbose else logging.INFO
     logger = get_job_logger(args.logs_dir, level)
 
-    generate_phylogenetic_tree(logger, args.msa_path, args.phylogenetic_raw_tree_path, args.seed,
-                               args.model, args.outgroup, args.num_of_bootstrap_iterations, args.cpu)
+    logger.info(script_run_message)
+    try:
+        generate_phylogenetic_tree(logger, args.msa_path, args.phylogenetic_raw_tree_path, args.seed,
+                                   args.model, args.outgroup, args.num_of_bootstrap_iterations, args.cpu)
+    except Exception as e:
+        logger.exception(f'Error in {os.path.basename(__file__)}')

@@ -31,7 +31,8 @@ def filter_out_plasmids(logger, input_genome_path, output_genome_path):
 
 
 if __name__ == '__main__':
-    print(f'Starting {sys.argv[0]}. Executed command is:\n{" ".join(sys.argv)}')
+    script_run_message = f'Starting command is: {" ".join(argv)}'
+    print(script_run_message)
 
     parser = argparse.ArgumentParser()
     parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
@@ -43,4 +44,8 @@ if __name__ == '__main__':
     level = logging.DEBUG if args.verbose else logging.INFO
     logger = get_job_logger(args.logs_dir, level)
 
-    filter_out_plasmids(logger, args.genome_path, args.output_path)
+    logger.info(script_run_message)
+    try:
+        filter_out_plasmids(logger, args.genome_path, args.output_path)
+    except Exception as e:
+        logger.exception(f'Error in {os.path.basename(__file__)}')

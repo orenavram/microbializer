@@ -82,7 +82,8 @@ def create_mmseq2_DB(logger, fasta_path, output_path, tmp_path, translate, conve
 
 
 if __name__ == '__main__':
-    print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
+    script_run_message = f'Starting command is: {" ".join(argv)}'
+    print(script_run_message)
 
     parser = argparse.ArgumentParser()
     parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
@@ -98,5 +99,9 @@ if __name__ == '__main__':
     level = logging.DEBUG if args.verbose else logging.INFO
     logger = get_job_logger(args.logs_dir, level)
 
-    create_mmseq2_DB(logger, args.input_fasta, args.output_prefix, args.tmp_prefix,
-                     args.translate, args.convert2fasta, 3 if args.verbose else 1)
+    logger.info(script_run_message)
+    try:
+        create_mmseq2_DB(logger, args.input_fasta, args.output_prefix, args.tmp_prefix,
+                         args.translate, args.convert2fasta, 3 if args.verbose else 1)
+    except Exception as e:
+        logger.exception(f'Error in {os.path.basename(__file__)}')

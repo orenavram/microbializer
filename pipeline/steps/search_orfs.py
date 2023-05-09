@@ -16,7 +16,7 @@ def find_genes(logger, genome, output_path):
     """
         input:path to fasta file with prokaryotic genome to be analyzed
         output: protein-coding gene prediction for input genome
-        """
+    """
     # segments = list(SeqIO.parse(genome, 'fasta'))
     # length = sum(len(segment) for segment in segments)
     # module load prodigal/prodigal-2.6.3
@@ -26,7 +26,8 @@ def find_genes(logger, genome, output_path):
 
 
 if __name__ == '__main__':
-    print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
+    script_run_message = f'Starting command is: {" ".join(argv)}'
+    print(script_run_message)
 
     parser = argparse.ArgumentParser()
     parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
@@ -38,4 +39,8 @@ if __name__ == '__main__':
     level = logging.DEBUG if args.verbose else logging.INFO
     logger = get_job_logger(args.logs_dir, level)
 
-    find_genes(logger, args.genome_path, args.output_path)
+    logger.info(script_run_message)
+    try:
+        find_genes(logger, args.genome_path, args.output_path)
+    except Exception as e:
+        logger.exception(f'Error in {os.path.basename(__file__)}')

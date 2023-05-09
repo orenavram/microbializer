@@ -78,7 +78,8 @@ def extract_promoters_and_orfs(logger, prodigal_orfs_path, genome_path, promoter
 
 
 if __name__ == '__main__':
-    print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
+    script_run_message = f'Starting command is: {" ".join(argv)}'
+    print(script_run_message)
 
     parser = argparse.ArgumentParser()
     parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
@@ -102,4 +103,8 @@ if __name__ == '__main__':
 
     # wait_for_output_folder(os.path.split(args.output_path)[0])
 
-    extract_promoters_and_orfs(logger, args.prodigal_orfs_path, args.genome_path, args.promoters_length, args.output_path)
+    logger.info(script_run_message)
+    try:
+        extract_promoters_and_orfs(logger, args.prodigal_orfs_path, args.genome_path, args.promoters_length, args.output_path)
+    except Exception as e:
+        logger.exception(f'Error in {os.path.basename(__file__)}')

@@ -68,7 +68,8 @@ def search_all_vs_all(logger, aa_db1, aa_db2, aln_offsetted_db, tmp_dir, m8_outf
 
 
 if __name__ == '__main__':
-    print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
+    script_run_message = f'Starting command is: {" ".join(argv)}'
+    print(script_run_message)
 
     parser = argparse.ArgumentParser()
     parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
@@ -83,5 +84,9 @@ if __name__ == '__main__':
     level = logging.DEBUG if args.verbose else logging.INFO
     logger = get_job_logger(args.logs_dir, level)
 
-    search_all_vs_all(logger, args.aa_db1, args.aa_db2, args.aln_offsetted_db,
-                      args.tmp_dir, args.output_path, 3 if args.verbose else 1)
+    logger.info(script_run_message)
+    try:
+        search_all_vs_all(logger, args.aa_db1, args.aa_db2, args.aln_offsetted_db,
+                          args.tmp_dir, args.output_path, 3 if args.verbose else 1)
+    except Exception as e:
+        logger.exception(f'Error in {os.path.basename(__file__)}')

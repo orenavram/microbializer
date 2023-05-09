@@ -56,7 +56,8 @@ def finalize_table(logger, putative_orthologs_path, verified_clusters_path, fina
 
 
 if __name__ == '__main__':
-    print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
+    script_run_message = f'Starting command is: {" ".join(argv)}'
+    print(script_run_message)
 
     parser = argparse.ArgumentParser()
     parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
@@ -72,5 +73,10 @@ if __name__ == '__main__':
     level = logging.DEBUG if args.verbose else logging.INFO
     logger = get_job_logger(args.logs_dir, level)
 
-    finalize_table(logger, args.putative_orthologs_path, args.verified_clusters_path,
-                   args.finalized_table_path, args.phyletic_patterns_path, args.delimiter)
+    logger.info(script_run_message)
+    try:
+        finalize_table(logger, args.putative_orthologs_path, args.verified_clusters_path,
+                       args.finalized_table_path, args.phyletic_patterns_path, args.delimiter)
+    except Exception as e:
+        logger.exception(f'Error in {os.path.basename(__file__)}')
+

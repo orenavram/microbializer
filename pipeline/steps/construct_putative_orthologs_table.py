@@ -114,7 +114,8 @@ def construct_table(logger, all_reciprocal_hits_path, putative_orthologs_path, d
 
 
 if __name__ == '__main__':
-    print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
+    script_run_message = f'Starting command is: {" ".join(argv)}'
+    print(script_run_message)
 
     parser = argparse.ArgumentParser()
     parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
@@ -129,4 +130,8 @@ if __name__ == '__main__':
     level = logging.DEBUG if args.verbose else logging.INFO
     logger = get_job_logger(args.logs_dir, level)
 
-    construct_table(logger, args.all_reciprocal_hits_path, args.putative_orthologs_path, args.delimiter)
+    logger.info(script_run_message)
+    try:
+        construct_table(logger, args.all_reciprocal_hits_path, args.putative_orthologs_path, args.delimiter)
+    except Exception as e:
+        logger.exception(f'Error in {os.path.basename(__file__)}')

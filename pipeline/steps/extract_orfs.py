@@ -77,7 +77,8 @@ def extract_orfs(logger, sequences_dir, final_table_header_line, cluster_members
 
 
 if __name__ == '__main__':
-    print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
+    script_run_message = f'Starting command is: {" ".join(argv)}'
+    print(script_run_message)
 
     parser = argparse.ArgumentParser()
     parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
@@ -94,5 +95,9 @@ if __name__ == '__main__':
     level = logging.DEBUG if args.verbose else logging.INFO
     logger = get_job_logger(args.logs_dir, level)
 
-    extract_orfs(logger, args.sequences_dir, args.final_table_header, args.cluster_members,
-                 args.cluster_name, args.output_path, args.delimiter)
+    logger.info(script_run_message)
+    try:
+        extract_orfs(logger, args.sequences_dir, args.final_table_header, args.cluster_members,
+                     args.cluster_name, args.output_path, args.delimiter)
+    except Exception as e:
+        logger.exception(f'Error in {os.path.basename(__file__)}')

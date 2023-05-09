@@ -12,8 +12,8 @@ LOG_IN_SEPARATE_FILES = True
 
 # mmseqs command work only on specific machines and this queue navigates only to them
 MMSEQS_REQUIRED_MEMORY = '60gb'
-QUEUE_FOR_MMSEQS_COMMANDS = 'pupkolab'
 USE_DIFFERENT_QUEUE_FOR_MMSEQS = True
+QUEUE_FOR_MMSEQS_COMMANDS = 'pupkolab'
 
 # logging consts
 JOB_NAME_ENVIRONMENT_VARIABLE = 'PBS_JOBNAME'

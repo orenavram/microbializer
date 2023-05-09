@@ -67,7 +67,8 @@ def extract_core_genome(logger, alignments_path, num_of_strains, core_length_pat
 
 
 if __name__ == '__main__':
-    print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
+    script_run_message = f'Starting command is: {" ".join(argv)}'
+    print(script_run_message)
 
     parser = argparse.ArgumentParser()
     parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
@@ -89,6 +90,10 @@ if __name__ == '__main__':
     level = logging.DEBUG if args.verbose else logging.INFO
     logger = get_job_logger(args.logs_dir, level)
 
-    extract_core_genome(logger, args.aa_alignments_path, args.num_of_strains, args.core_length_path,
-                        args.strains_names_path, args.core_genome_path, args.core_ogs_names_path,
-                        args.number_of_core_members, args.core_minimal_percentage)
+    logger.info(script_run_message)
+    try:
+        extract_core_genome(logger, args.aa_alignments_path, args.num_of_strains, args.core_length_path,
+                            args.strains_names_path, args.core_genome_path, args.core_ogs_names_path,
+                            args.number_of_core_members, args.core_minimal_percentage)
+    except Exception as e:
+        logger.exception(f'Error in {os.path.basename(__file__)}')

@@ -33,7 +33,8 @@ def fna_to_faa(logger, nucleotide_path, protein_path):
 
 
 if __name__ == '__main__':
-    print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
+    script_run_message = f'Starting command is: {" ".join(argv)}'
+    print(script_run_message)
 
     parser = argparse.ArgumentParser()
     parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
@@ -51,4 +52,8 @@ if __name__ == '__main__':
 
     # wait_for_output_folder(os.path.split(args.protein_path)[0])
 
-    fna_to_faa(logger, args.nucleotide_path, args.protein_path)
+    logger.info(script_run_message)
+    try:
+        fna_to_faa(logger, args.nucleotide_path, args.protein_path)
+    except Exception as e:
+        logger.exception(f'Error in {os.path.basename(__file__)}')

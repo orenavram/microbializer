@@ -40,7 +40,8 @@ def extract_orfs_statistics(logger, orf_path, orfs_count_output_path, orfs_gc_ou
 
 
 if __name__ == '__main__':
-    print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
+    script_run_message = f'Starting command is: {" ".join(argv)}'
+    print(script_run_message)
 
     parser = argparse.ArgumentParser()
     parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
@@ -53,4 +54,8 @@ if __name__ == '__main__':
     level = logging.DEBUG if args.verbose else logging.INFO
     logger = get_job_logger(args.logs_dir, level)
 
-    extract_orfs_statistics(logger, args.orf_path, args.orfs_count_output_path, args.orfs_gc_output_path)
+    logger.info(script_run_message)
+    try:
+        extract_orfs_statistics(logger, args.orf_path, args.orfs_count_output_path, args.orfs_gc_output_path)
+    except Exception as e:
+        logger.exception(f'Error in {os.path.basename(__file__)}')
