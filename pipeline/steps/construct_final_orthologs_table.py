@@ -8,6 +8,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger
+from auxiliaries import consts
 
 
 def get_verified_clusters_set(verified_clusters_path):
@@ -66,7 +67,7 @@ if __name__ == '__main__':
     parser.add_argument('finalized_table_path', help='path to an output file in which the final table will be written')
     parser.add_argument('phyletic_patterns_path',
                         help='path to an output file in which the phyletic patterns fasta will be written')
-    parser.add_argument('--delimiter', help='delimiter for the putative orthologs table', default=',')
+    parser.add_argument('--delimiter', help='delimiter for the putative orthologs table', default=consts.CSV_DELIMITER)
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     args = parser.parse_args()
 

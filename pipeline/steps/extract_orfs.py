@@ -12,6 +12,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger
+from auxiliaries import consts
 
 
 def get_sequence_by_ortholog_name(fasta_path, ortholog_name):
@@ -88,7 +89,7 @@ if __name__ == '__main__':
                                                 '(a row from the final orthologs table)')
     parser.add_argument('cluster_name', help='the name of orthologs group being extracted')
     parser.add_argument('output_path', help='path to an output directory (aka orthologs sets sequences)')
-    parser.add_argument('--delimiter', help='orthologs table delimiter', default=',')
+    parser.add_argument('--delimiter', help='orthologs table delimiter', default=consts.CSV_DELIMITER)
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     args = parser.parse_args()
 

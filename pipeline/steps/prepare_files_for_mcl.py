@@ -132,7 +132,7 @@ if __name__ == '__main__':
     parser.add_argument('start', help='first ortholog set to prepare', type=int)
     parser.add_argument('end', help='last ortholog set to prepare', type=int)
     parser.add_argument('output_path', help='a folder in which the input files for mcl will be written')
-    parser.add_argument('--delimiter', help='delimiter for the input and output files', default=',')
+    parser.add_argument('--delimiter', help='delimiter for the input and output files', default=consts.CSV_DELIMITER)
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     args = parser.parse_args()
 
