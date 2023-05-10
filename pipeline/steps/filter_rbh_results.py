@@ -9,6 +9,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger
+from auxiliaries import consts
 
 
 def filter_rbh_results(logger, query_vs_reference, output_path, precent_identity_cutoff,
@@ -44,7 +45,7 @@ if __name__ == '__main__':
     parser.add_argument('output_path', help='path to output file')
     parser.add_argument('--identity_cutoff', help='path to translated sequences', type=float)
     parser.add_argument('--e_value_cutoff', help='path to translated sequences', type=float)
-    parser.add_argument('--delimiter', help='orthologs table delimiter', default=',')
+    parser.add_argument('--delimiter', help='orthologs table delimiter', default=consts.CSV_DELIMITER)
     parser.add_argument('--names_delimiter', help='delimiter between the to species names', default='_vs_')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     args = parser.parse_args()

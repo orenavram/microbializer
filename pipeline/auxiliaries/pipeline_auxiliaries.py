@@ -388,8 +388,8 @@ def move_file(logger, folder, file_name, new_file_name, error_file_path):
 
 
 def get_job_logger(log_file_dir, level=logging.INFO):
-    job_name = os.environ[consts.JOB_NAME_ENVIRONMENT_VARIABLE]
-    job_id = os.environ[consts.JOB_ID_ENVIRONMENT_VARIABLE]
+    job_name = os.environ.get(consts.JOB_NAME_ENVIRONMENT_VARIABLE, None)
+    job_id = os.environ.get(consts.JOB_ID_ENVIRONMENT_VARIABLE, None)
 
     if consts.LOG_IN_SEPARATE_FILES and job_name and job_id:
         logging.basicConfig(filename=os.path.join(log_file_dir, f'{job_name}_{job_id}_log.txt'),

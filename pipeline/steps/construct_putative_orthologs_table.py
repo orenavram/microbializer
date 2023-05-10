@@ -13,6 +13,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger
+from auxiliaries import consts
 
 
 def construct_table(logger, all_reciprocal_hits_path, putative_orthologs_path, delimiter):
@@ -123,7 +124,7 @@ if __name__ == '__main__':
                         help='path to a file with all the reciprocal hits files concatenated')
     parser.add_argument('putative_orthologs_path',
                         help='path to an output file in which the putative orthologs table will be written')
-    parser.add_argument('--delimiter', help='delimiter for the input and output files', default=',')
+    parser.add_argument('--delimiter', help='delimiter for the input and output files', default=consts.CSV_DELIMITER)
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     args = parser.parse_args()
 
