@@ -136,7 +136,7 @@ def prepare_pipeline_framework(args):
 def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path):
     if consts.TEST:
         data_path = os.path.join(args.output_dir, 'inputs')
-        shutil.copytree(args.contigs_dir, data_path)
+        shutil.copytree(args.contigs_dir, data_path, dirs_exist_ok=True)
     else:
         data_path = args.contigs_dir
 
@@ -848,6 +848,27 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
         logger.info(f'Raw tree file {phylogenetic_raw_tree_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=80)
 
+    # 16b.	genome_numeric_representation.py
+    step_number = '16b'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_genome_numeric_representation'
+    script_path = os.path.join(args.src_dir, 'steps/genome_numeric_representation.py')
+    numeric_representation_output_dir, numeric_representation_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
+    core_genome_numeric_representation_file_path = os.path.join(numeric_representation_output_dir, 'core_genome_numeric_representation.txt')
+    start_numeric_representation = time()
+    if not os.path.exists(core_genome_numeric_representation_file_path):
+        params = [numeric_representation_tmp_dir,
+                  final_orthologs_table_file_path,
+                  orfs_dir,
+                  core_genome_numeric_representation_file_path]
+        submit_mini_batch(logger, script_path, [params], numeric_representation_tmp_dir,
+                          args.queue_name, job_name='numeric_representation')
+
+        # no need to wait now. Wait before moving the results dir!
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+    edit_progress(output_html_path, progress=90)
+
     # 17.	extract_orfs_statistics.py
     # Input: (1) A path to ORFs file (2) An output path to ORFs counts (3) An output path to GC content
     # Output: write the number of ORFs and GC content to the output files (respectively)
@@ -957,7 +978,6 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
     orfs_gc_content_file = os.path.join(orfs_plots_path, 'orfs_gc_contents.txt')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
-
         wait_for_results(logger, 'extract_orfs_statistics.py', orfs_statistics_tmp_dir,
                          num_of_expected_orfs_results, error_file_path=error_file_path, start=start_orf_stats,
                          email=args.email)
@@ -1031,6 +1051,14 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
                          start=start_tree, email=args.email)
         # move species tree dir
         add_results_to_final_dir(logger, phylogeny_path, final_output_dir)
+
+        # wait for numeric representation here
+        wait_for_results(logger, 'genome_numeric_representation.py', numeric_representation_tmp_dir,
+                         num_of_expected_results=1, error_file_path=error_file_path,
+                         start=start_numeric_representation, email=args.email)
+
+        # move numeric representation dir
+        add_results_to_final_dir(logger, numeric_representation_output_dir, final_output_dir)
 
         edit_progress(output_html_path, progress=98)
 
