@@ -134,12 +134,9 @@ def prepare_pipeline_framework(args):
 
 
 def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path):
-    if consts.TEST:
-        data_path = os.path.join(args.output_dir, 'inputs')
-        shutil.copytree(args.contigs_dir, data_path, dirs_exist_ok=True)
-    else:
-        data_path = args.contigs_dir
-
+    # copies input contigs_dir because we edit the files and want to keep the input directory as is
+    data_path = os.path.join(args.output_dir, 'inputs')
+    shutil.copytree(args.contigs_dir, data_path, dirs_exist_ok=True)
     logger.info(f'data_path is: {data_path}')
 
     # extract zip and detect data folder
