@@ -51,11 +51,11 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('aa_msa_path', help='path to a file with aligned proteins')
     parser.add_argument('dna_ms_path', help='path to a file with unaligned dna sequences')
     parser.add_argument('output_path', help='path to a file in which the induced dna alignment will be written')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
+    parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     args = parser.parse_args()
 
     level = logging.DEBUG if args.verbose else logging.INFO

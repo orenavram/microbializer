@@ -31,12 +31,12 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('input_file', help='path to an MCL analysis file')
     parser.add_argument('output_file',
                         help='path to which the MCL analysis will be moved if clustering criterion was met')
     parser.add_argument('--clustering-criterion', help='maximal number of clusters allowed', type=int, default=1)
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
+    parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     args = parser.parse_args()
 
     level = logging.DEBUG if args.verbose else logging.INFO

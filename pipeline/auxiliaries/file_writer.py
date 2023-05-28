@@ -21,9 +21,9 @@ if __name__ == '__main__':
     # This block will be executed only when you run it as your main program.
     # If this module is being imported from another script, this block won't be executed, however the function will be available...
     parser = argparse.ArgumentParser()
-    parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('file_path', help='A path to a file to write to')
     parser.add_argument('--content', help='The content that will be written to the file', default='')
+    parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     args = parser.parse_args()
 
     logger = get_job_logger(args.logs_dir)

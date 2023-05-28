@@ -37,20 +37,16 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('nucleotide_path',
                         help='A path to a nucleotide fasta file',
                         type=lambda path: path if os.path.exists(path) else parser.error(f'{path} does not exist!'))
     parser.add_argument('protein_path', help='A path to which the translated dna will be written')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
-    # type=lambda path: path if os.path.exists(os.path.split(path)[0]) else
-    # parser.error(f'output folder {os.path.split(path)[0]} does not exist!'))
+    parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     args = parser.parse_args()
 
     level = logging.DEBUG if args.verbose else logging.INFO
     logger = get_job_logger(args.logs_dir, level)
-
-    # wait_for_output_folder(os.path.split(args.protein_path)[0])
 
     logger.info(script_run_message)
     try:

@@ -86,7 +86,6 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('input_fasta', help='path to input fasta file')
     parser.add_argument('output_prefix', help='path prefix for the DB file(s)')
     parser.add_argument('tmp_prefix', help='path prefix for the tmp file(s)')
@@ -94,6 +93,7 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--translate', help='whether to translate the dna to aa', action='store_true')
     parser.add_argument('-c', '--convert2fasta', help='whether to convert the dbs to fasta', action='store_true')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
+    parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     args = parser.parse_args()
 
     level = logging.DEBUG if args.verbose else logging.INFO

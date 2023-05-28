@@ -210,8 +210,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
             logger.info('Filtering plasmids out...')
             all_cmds_params = []
             for fasta_file in os.listdir(data_path):
-                single_cmd_params = [pipeline_step_tmp_dir,
-                                     os.path.join(data_path, fasta_file),
+                single_cmd_params = [os.path.join(data_path, fasta_file),
                                      os.path.join(filtered_inputs_dir, fasta_file)]
                 all_cmds_params.append(single_cmd_params)
 
@@ -248,7 +247,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
             fasta_file_prefix = os.path.splitext(fasta_file)[0]
             output_file_name = f'{fasta_file_prefix}.{step_name}'
 
-            single_cmd_params = [pipeline_step_tmp_dir, f'"{os.path.join(data_path, fasta_file)}"',
+            single_cmd_params = [f'"{os.path.join(data_path, fasta_file)}"',
                                  os.path.join(orfs_dir, output_file_name)]
             all_cmds_params.append(single_cmd_params)
 
@@ -307,8 +306,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
             output_file_name = f'{fasta_file_prefix}'
             output_prefix = os.path.join(pipeline_step_output_dir, output_file_name)
 
-            single_cmd_params = [pipeline_step_tmp_dir,
-                                 file_path,
+            single_cmd_params = [file_path,
                                  output_prefix,
                                  output_prefix,  # instead of tmp_dir
                                  '-t']  # translate to peptides # Should we let the user decide?
@@ -332,7 +330,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
     # does not remove (sge/cmds/log) files. only folders.
     # MMSEQS generates tons of intermediate files that abuse the inodes so they are deleted once the step is over!
     submit_mini_batch(logger, os.path.join(args.src_dir, 'auxiliaries/remove_tmp_folders.py'),
-                      [[pipeline_step_tmp_dir, pipeline_step_tmp_dir]], pipeline_step_tmp_dir, args.queue_name,
+                      [[pipeline_step_tmp_dir]], pipeline_step_tmp_dir, args.queue_name,
                       job_name='remove_dirs_from_tmp')
 
     # 4.	mmseqs2_all_vs_all.py
@@ -372,8 +370,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
                 output_file_name = f'{strain1_name}_vs_{strain2_name}.m8'
                 output_file_path = os.path.join(pipeline_step_output_dir, output_file_name)
 
-                single_cmd_params = [pipeline_step_tmp_dir,
-                                     query_aa_db,
+                single_cmd_params = [query_aa_db,
                                      target_aa_db,
                                      aln_offsetted_db,
                                      f'{pipeline_step_tmp_dir}/{strain1_name}_vs_{strain2_name}',
@@ -399,7 +396,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
     # (e.g., 3465136234521948 etc..) in tmp_dir
     # does not remove (sge/cmds/log) files. only folders.
     submit_mini_batch(logger, os.path.join(args.src_dir, 'auxiliaries/remove_tmp_folders.py'),
-                      [[pipeline_step_tmp_dir, previous_pipeline_step_output_dir]],
+                      [[previous_pipeline_step_output_dir]],
                       pipeline_step_tmp_dir, args.queue_name, job_name='remove_m8_files')
 
     # 5.	filter_rbh_results.py
@@ -425,8 +422,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
             fasta_file_prefix = os.path.splitext(blast_results_file)[0]
             output_file_name = f'{fasta_file_prefix}.{step_name}'
 
-            single_cmd_params = [pipeline_step_tmp_dir,
-                                 os.path.join(previous_pipeline_step_output_dir, blast_results_file),
+            single_cmd_params = [os.path.join(previous_pipeline_step_output_dir, blast_results_file),
                                  os.path.join(pipeline_step_output_dir, output_file_name),
                                  f'--identity_cutoff {args.identity_cutoff / 100}',
                                  # needs to be normalized between 0 and 1
@@ -477,8 +473,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
     if not os.path.exists(done_file_path):
         logger.info('Constructing putative orthologs table...')
         job_name = os.path.split(script_path)[-1]
-        params = [pipeline_step_tmp_dir,
-                  all_reciprocal_hits_file,
+        params = [all_reciprocal_hits_file,
                   putative_orthologs_table_path]
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, args.queue_name, job_name=job_name)
         wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
@@ -513,8 +508,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
             last_mcl = str(min(i + clusters_to_prepare_per_job - 1,
                                num_of_putative_sets))  # 1-10, 11-20, etc... for clusters_to_prepare_per_job=10
 
-            single_cmd_params = [pipeline_step_tmp_dir,
-                                 all_reciprocal_hits_file,
+            single_cmd_params = [all_reciprocal_hits_file,
                                  putative_orthologs_table_path,
                                  first_mcl,
                                  last_mcl,
@@ -552,8 +546,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
             putative_orthologs_group_prefix = os.path.splitext(putative_orthologs_group)[0]
             output_file_name = f'{putative_orthologs_group_prefix}.{step_name}'
 
-            single_cmd_params = [pipeline_step_tmp_dir,
-                                 f'"{os.path.join(previous_pipeline_step_output_dir, putative_orthologs_group)}"',
+            single_cmd_params = [f'"{os.path.join(previous_pipeline_step_output_dir, putative_orthologs_group)}"',
                                  f'"{os.path.join(pipeline_step_output_dir, output_file_name)}"']
             all_cmds_params.append(single_cmd_params)
 
@@ -588,8 +581,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
             putative_orthologs_group_prefix = os.path.splitext(putative_orthologs_group)[0]
             job_name = os.path.split(putative_orthologs_group_prefix)[-1]
 
-            single_cmd_params = [pipeline_step_tmp_dir,
-                                 f'"{os.path.join(previous_pipeline_step_output_dir, putative_orthologs_group)}"',
+            single_cmd_params = [f'"{os.path.join(previous_pipeline_step_output_dir, putative_orthologs_group)}"',
                                  f'"{os.path.join(pipeline_step_output_dir, putative_orthologs_group)}"']
             all_cmds_params.append(single_cmd_params)
 
@@ -624,8 +616,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
     if not os.path.exists(done_file_path):
         logger.info('Constructing final orthologs table...')
         job_name = os.path.split(final_orthologs_table_file_path)[-1]
-        params = [pipeline_step_tmp_dir,
-                  putative_orthologs_table_path,
+        params = [putative_orthologs_table_path,
                   previous_pipeline_step_output_dir,
                   final_orthologs_table_file_path,
                   phyletic_patterns_path]
@@ -680,8 +671,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
                 cluster_members = line.rstrip()[first_delimiter_index + 1:]  # remove "OG_name"
                 output_file_name = og_name
 
-                single_cmd_params = [pipeline_step_tmp_dir,
-                                     orfs_dir,
+                single_cmd_params = [orfs_dir,
                                      f'"{final_table_header}"',
                                      # should be flanked by quotes because it might contain spaces...
                                      f'"{cluster_members}"',
@@ -719,7 +709,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
             file_path = os.path.join(orthologs_dna_sequences_dir_path, fasta_file)
             output_path = os.path.join(orthologs_aa_sequences_dir_path, fasta_file.replace('_dna.fas', '_aa.fas'))
 
-            single_cmd_params = [pipeline_step_tmp_dir, file_path, output_path]
+            single_cmd_params = [file_path, output_path]
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
@@ -753,7 +743,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
             og_file_prefix = os.path.splitext(og_file)[0]
             alignment_path = os.path.join(aa_alignments_path, f'{og_file_prefix}_mafft.fas')
 
-            single_cmd_params = [pipeline_step_tmp_dir, og_path, alignment_path]
+            single_cmd_params = [og_path, alignment_path]
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params,
@@ -787,8 +777,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
     if not os.path.exists(done_file_path):
         logger.info('Extracting aligned core proteome...')
 
-        params = [pipeline_step_tmp_dir,
-                  aa_alignments_path, num_of_strains, strains_names_path,
+        params = [aa_alignments_path, num_of_strains, strains_names_path,
                   aligned_core_proteome_file_path,
                   core_ogs_names_file_path,
                   core_length_file_path,
@@ -820,8 +809,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
         else:
             # better not to use more than 10 cpus, routinely, when running on pupkoweb
             num_of_cpus = 10
-        params = [phylogeny_tmp_dir,
-                  aligned_core_proteome_file_path,
+        params = [aligned_core_proteome_file_path,
                   phylogenetic_raw_tree_path,
                   f'--cpu {num_of_cpus}']
         if args.outgroup:
@@ -854,8 +842,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
     core_genome_numeric_representation_file_path = os.path.join(numeric_representation_output_dir, 'core_genome_numeric_representation.txt')
     start_numeric_representation = time()
     if not os.path.exists(core_genome_numeric_representation_file_path):
-        params = [numeric_representation_tmp_dir,
-                  final_orthologs_table_file_path,
+        params = [final_orthologs_table_file_path,
                   orfs_dir,
                   core_genome_numeric_representation_file_path]
         submit_mini_batch(logger, script_path, [params], numeric_representation_tmp_dir,
@@ -886,7 +873,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
             orfs_count_output_path = os.path.join(orfs_statistics_path, f'{strain_name}.orfs_count')
             gc_content_output_path = os.path.join(orfs_statistics_path, f'{strain_name}.gc_content')
 
-            single_cmd_params = [orfs_statistics_tmp_dir, orf_path, orfs_count_output_path, gc_content_output_path]
+            single_cmd_params = [orf_path, orfs_count_output_path, gc_content_output_path]
             all_cmds_params.append(single_cmd_params)
 
         num_of_expected_orfs_results, example_cmd = submit_batch(logger, script_path, all_cmds_params,
@@ -920,7 +907,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
             dna_unaligned_path = os.path.join(orthologs_dna_sequences_dir_path, og_file.replace('aa_mafft', 'dna'))
             dna_induced_alignment_path = os.path.join(dna_alignments_path, og_file.replace('aa_mafft', 'dna_induced'))
 
-            single_cmd_params = [induced_tmp_dir, aa_alignment_path, dna_unaligned_path, dna_induced_alignment_path]
+            single_cmd_params = [aa_alignment_path, dna_unaligned_path, dna_induced_alignment_path]
             all_cmds_params.append(single_cmd_params)
 
         num_of_expected_induced_results, example_cmd = submit_batch(logger, script_path, all_cmds_params,
@@ -1146,7 +1133,7 @@ def run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, 
             orfs_path = os.path.join(orfs_dir, f'{genome_file_prefix}.{orfs_step_number}_ORFs')
             output_prefix = os.path.join(pipeline_step_output_dir_21, f'{genome_file_prefix}.promoter_and_orf')
 
-            single_cmd_params = [pipeline_step_tmp_dir, genome_path, orfs_path, output_prefix,
+            single_cmd_params = [genome_path, orfs_path, output_prefix,
                                  f'--promoters_length {args.promoters_length}']  # (optional)
             all_cmds_params.append(single_cmd_params)
 
@@ -1202,8 +1189,7 @@ def run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, 
                              f' thus will be included in the sweeps analysis')
                 og_sequences_path = os.path.join(pipeline_step_output_dir_22, f'{og_name}_dna.fas')
 
-                single_cmd_params = [pipeline_step_tmp_dir,
-                                     pipeline_step_output_dir_21,
+                single_cmd_params = [pipeline_step_output_dir_21,
                                      f'"{final_table_header}"',
                                      # should be flanked by quotes because it might contain spaces...
                                      f'"{cluster_members}"',
@@ -1241,7 +1227,7 @@ def run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, 
             og_path = os.path.join(pipeline_step_output_dir_22, og_file)
             alignment_path = os.path.join(pipeline_step_output_dir_23, og_file.replace('.fas', '_mafft.fas'))
 
-            single_cmd_params = [pipeline_step_tmp_dir, og_path, alignment_path, '--type nuc']
+            single_cmd_params = [og_path, alignment_path, '--type nuc']
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
@@ -1283,7 +1269,7 @@ def run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, 
             msa_path = os.path.join(pipeline_step_output_dir_23, msa_file)
             pruned_tree_path = os.path.join(pipeline_step_output_dir_24, msa_file.replace('.fas', '.tree'))
 
-            single_cmd_params = [pipeline_step_tmp_dir, msa_path, phylogenetic_raw_tree_path_without_bootstrap_values,
+            single_cmd_params = [msa_path, phylogenetic_raw_tree_path_without_bootstrap_values,
                                  pipeline_step_tmp_dir, pruned_tree_path]
             all_cmds_params.append(single_cmd_params)
 
@@ -1316,7 +1302,7 @@ def run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, 
             msa_path = os.path.join(pipeline_step_output_dir_23, msa_file)
             fixed_msa_output_path = os.path.join(pipeline_step_output_dir_25, msa_file)
 
-            single_cmd_params = [pipeline_step_tmp_dir, msa_path, fixed_msa_output_path]
+            single_cmd_params = [msa_path, fixed_msa_output_path]
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
@@ -1351,7 +1337,7 @@ def run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, 
             control_path = os.path.join(pipeline_step_tmp_dir, msa_file.replace('fas', 'control'))
             output_path = os.path.join(pipeline_step_output_dir_26, msa_file.replace('fas', 'homoplasy'))
 
-            single_cmd_params = [pipeline_step_tmp_dir, fixed_msa_path, tree_path, control_path, output_path]
+            single_cmd_params = [fixed_msa_path, tree_path, control_path, output_path]
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
@@ -1389,7 +1375,7 @@ def run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, 
             output_meta_path = os.path.join(pipeline_step_output_dir_27, fixed_msa_file.replace('fas', 'csv'))
             output_plot_path = os.path.join(pipeline_step_output_dir_27, fixed_msa_file.replace('fas', 'png'))
 
-            single_cmd_params = [pipeline_step_tmp_dir, fixed_msa_path, homoplasy_path, output_scores_path,
+            single_cmd_params = [fixed_msa_path, homoplasy_path, output_scores_path,
                                  output_meta_path, output_plot_path, window_size]
             all_cmds_params.append(single_cmd_params)
 

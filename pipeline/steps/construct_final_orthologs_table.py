@@ -61,7 +61,6 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('putative_orthologs_path', help='path to a file with the putative orthologs sets')
     parser.add_argument('verified_clusters_path', help='path to a directory with the verified clusters')
     parser.add_argument('finalized_table_path', help='path to an output file in which the final table will be written')
@@ -69,6 +68,7 @@ if __name__ == '__main__':
                         help='path to an output file in which the phyletic patterns fasta will be written')
     parser.add_argument('--delimiter', help='delimiter for the putative orthologs table', default=consts.CSV_DELIMITER)
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
+    parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     args = parser.parse_args()
 
     level = logging.DEBUG if args.verbose else logging.INFO

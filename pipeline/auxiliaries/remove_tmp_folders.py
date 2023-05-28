@@ -22,8 +22,8 @@ if __name__ == '__main__':
     print(f'Starting {argv[0]}. Executed command is:\n{" ".join(argv)}')
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('tmp_dir', help='A path from which all folders will be removed')
+    parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     args = parser.parse_args()
 
     logger = get_job_logger(args.logs_dir)

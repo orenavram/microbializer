@@ -119,13 +119,13 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('all_reciprocal_hits_path',
                         help='path to a file with all the reciprocal hits files concatenated')
     parser.add_argument('putative_orthologs_path',
                         help='path to an output file in which the putative orthologs table will be written')
     parser.add_argument('--delimiter', help='delimiter for the input and output files', default=consts.CSV_DELIMITER)
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
+    parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     args = parser.parse_args()
 
     level = logging.DEBUG if args.verbose else logging.INFO

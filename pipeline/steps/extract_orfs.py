@@ -82,7 +82,6 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('sequences_dir', help='path to a directory with the bacterial gene sequences (aka ORFs)')
     parser.add_argument('final_table_header', help='string that is the header of the final table')
     parser.add_argument('cluster_members', help='string that is the cluster members that is handled'
@@ -91,6 +90,7 @@ if __name__ == '__main__':
     parser.add_argument('output_path', help='path to an output directory (aka orthologs sets sequences)')
     parser.add_argument('--delimiter', help='orthologs table delimiter', default=consts.CSV_DELIMITER)
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
+    parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     args = parser.parse_args()
 
     level = logging.DEBUG if args.verbose else logging.INFO

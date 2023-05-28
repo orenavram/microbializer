@@ -152,11 +152,11 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('orthologs_table_path', help='A path to an ortholog table (step 11 of microbializer)')
     parser.add_argument('ORFs_dir_path', help='A path to a ORF directory (step 01 of microbializer)')
     parser.add_argument('output_path', help='A path to which the numeric core genomes will be written')
     parser.add_argument('-v', '--verbose', action='store_true', help='Increase output verbosity')
+    parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     args = parser.parse_args()
 
     level = logging.DEBUG if args.verbose else logging.INFO

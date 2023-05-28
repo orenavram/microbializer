@@ -57,7 +57,6 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('msa_path', help='path to a multiple sequence alignment file')
     parser.add_argument('phylogenetic_raw_tree_path',
                         help='path to an output file in which the phylogenetic tree will be written')
@@ -71,6 +70,7 @@ if __name__ == '__main__':
     parser.add_argument('--cpu', choices=[str(i) for i in range(1, 29)], default='1',
                         help='How many CPUs will be used? (for running in parallel mode). For further details see:\nhttps://support.nesi.org.nz/hc/en-gb/articles/115001854444-RAxML#parallel-versions')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
+    parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     args = parser.parse_args()
 
     level = logging.DEBUG if args.verbose else logging.INFO

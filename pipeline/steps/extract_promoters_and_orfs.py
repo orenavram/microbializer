@@ -82,7 +82,6 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('genome_path',
                         help='A path to a genome from which promoters and orfs should be extracted',
                         type=lambda path: path if os.path.exists(path) else parser.error(f'{path} does not exist!'))
@@ -96,6 +95,7 @@ if __name__ == '__main__':
                         help='How much bases upstream to the ORF should be extracted',
                         type=int, default=300)
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
+    parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     args = parser.parse_args()
 
     level = logging.DEBUG if args.verbose else logging.INFO

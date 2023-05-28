@@ -72,13 +72,13 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('aa_db1', help='path to an aa DB')
     parser.add_argument('aa_db2', help='path to another aa DB')
     parser.add_argument('aln_offsetted_db', help='path to mmseqs2 offsetted alignment DB')
     parser.add_argument('tmp_dir', help='a path to write mmseqs internal files')
     parser.add_argument('output_path', help='path to which the results will be written (blast m8 format)')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
+    parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     args = parser.parse_args()
 
     level = logging.DEBUG if args.verbose else logging.INFO

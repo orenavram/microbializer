@@ -32,13 +32,13 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('sequences_file_path', help='path to a file with unaligned sequences')
     parser.add_argument('output_file_path', help='path to a file in which the aligned sequences will be written')
     parser.add_argument('--type', choices=['amino', 'nuc'], default='amino',
                         help="amino/nuc tells mafft that's an amino acid/nucleotide (respectively) msa")
     # parser.add_argument('--maxiterate', help='number for MAFFT maxiterate parameter', default=1000, type=int)
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
+    parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     args = parser.parse_args()
 
     level = logging.DEBUG if args.verbose else logging.INFO

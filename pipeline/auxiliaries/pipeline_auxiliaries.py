@@ -159,7 +159,8 @@ def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir,
     # PREPARING RELEVANT COMMANDS
     for params in mini_batch_parameters_list:
         shell_cmds_as_str += ' '.join(
-            ['python', script_path, *[str(param) for param in params]] + (['-v'] if verbose else [])) + ';'
+            ['python', script_path, *[str(param) for param in params]] +
+            (['-v'] if verbose else []) + [f'--logs_dir {logs_dir}']) + ';'
         shell_cmds_as_str += new_line_delimiter
 
     if not job_name:
@@ -167,9 +168,13 @@ def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir,
 
     if done_file_is_needed:
         # GENERATE DONE FILE
-        params = [logs_dir, os.path.join(logs_dir, job_name + '.done'), '']  # write an empty string (like "touch" command)
+        params = [os.path.join(logs_dir, job_name + '.done'), '', f'--logs_dir {logs_dir}']  # write an empty string (like "touch" command)
         shell_cmds_as_str += ' '.join(['python', done_files_script_path, *params]) + ';'
         shell_cmds_as_str += new_line_delimiter
+
+    # add time log to job
+    shell_cmds_as_str += 'qstat -f $PBS_JOBID@power9 | grep -Eo -m 1 "[0-9]{2}:[0-9]{2}:[0-9]{2}"'
+    shell_cmds_as_str += new_line_delimiter
 
     if submit_as_a_job:
         # WRITING CMDS FILE

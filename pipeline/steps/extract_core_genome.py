@@ -71,7 +71,6 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('aa_alignments_path',
                         help='path to a folder where each file is a multiple sequences fasta file')
     parser.add_argument('num_of_strains', help='number of strains in the data', type=int)
@@ -85,6 +84,7 @@ if __name__ == '__main__':
     parser.add_argument('--core_minimal_percentage', type=float, default=100.0,
                         help='number that represents the required percent that is needed to be considered a core gene. For example: (1) 100 means that for a gene to be considered core, all strains should have a member in the group.\n(2) 50 means that for a gene to be considered core, at least half of the strains should have a member in the group.\n(3) 0 means that every gene should be considered as a core gene.')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
+    parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     args = parser.parse_args()
 
     level = logging.DEBUG if args.verbose else logging.INFO

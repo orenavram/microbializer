@@ -40,7 +40,6 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('blast_result', help='path to fasta genome file')
     parser.add_argument('output_path', help='path to output file')
     parser.add_argument('--identity_cutoff', help='path to translated sequences', type=float)
@@ -48,6 +47,7 @@ if __name__ == '__main__':
     parser.add_argument('--delimiter', help='orthologs table delimiter', default=consts.CSV_DELIMITER)
     parser.add_argument('--names_delimiter', help='delimiter between the to species names', default='_vs_')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
+    parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     args = parser.parse_args()
 
     level = logging.DEBUG if args.verbose else logging.INFO
