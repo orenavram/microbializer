@@ -4,6 +4,7 @@ channels:
   - bioconda
 dependencies:
   - python=3.8
+  - jupyterlab=4.0.0
   - pandas=2.0.0
   - numpy=1.24.3
   - seaborn=0.12.2

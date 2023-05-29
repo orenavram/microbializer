@@ -99,10 +99,12 @@ def wait_for_results(logger, times_logger, script_name, path, num_of_expected_re
     total_time_waited = measure_time(int(end - start))
     logger.info(f'Done waiting for: {script_name} (took {total_time_waited}).')
 
-    cput_sum, walltime_sum = get_jobs_cummulative_time(path)
+    cput_sum, walltime_sum, log_files_without_times = get_jobs_cummulative_time(path)
     times_logger.info(f'Step {script_name} took {total_time_waited}. '
                       f'There were {num_of_expected_results} jobs and '
-                      f'cumulatively they took {cput_sum} cputime and {walltime_sum} wallclock time.')
+                      f'cumulatively they took {cput_sum} cputime and {walltime_sum} wallclock time. ' +
+                      (f'Times are not complete since files {log_files_without_times} do not have times records'
+                       if log_files_without_times else ''))
 
     assert not os.path.exists(error_file_path)
 
@@ -114,19 +116,30 @@ def get_jobs_cummulative_time(path):
 
     cput_sum = timedelta()
     walltime_sum = timedelta()
+    log_files_without_times = []
     for log_file_name in log_files:
-        with open(os.path.join(path, log_file_name), 'r') as log_file:
+        log_file_full_path = os.path.join(path, log_file_name)
+        with open(log_file_full_path, 'r') as log_file:
             content = log_file.read()
-            cput_string = pattern_for_cput.search(content).group(1)
+            cput_string_match = pattern_for_cput.search(content)
+            if not cput_string_match:
+                log_files_without_times.append(log_file_full_path)
+                continue
+            cput_string = cput_string_match.group(1)
             cput_datetime = datetime.strptime(cput_string, "%H:%M:%S")
             cput = timedelta(hours=cput_datetime.hour, minutes=cput_datetime.minute, seconds=cput_datetime.second)
             cput_sum += cput
-            walltime_string = pattern_for_walltime.search(content).group(1)
+
+            walltime_string_match = pattern_for_walltime.search(content)
+            if not walltime_string_match:
+                log_files_without_times.append(log_file_full_path)
+                continue
+            walltime_string = walltime_string_match.group(1)
             walltime_datetime = datetime.strptime(walltime_string, "%H:%M:%S")
             walltime = timedelta(hours=walltime_datetime.hour, minutes=walltime_datetime.minute, seconds=walltime_datetime.second)
             walltime_sum += walltime
 
-    return cput_sum, walltime_sum
+    return cput_sum, walltime_sum, log_files_without_times
 
 
 def prepare_directories(logger, outputs_dir_prefix, tmp_dir_prefix, dir_name):
