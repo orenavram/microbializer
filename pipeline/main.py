@@ -846,15 +846,16 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     script_path = os.path.join(args.src_dir, 'steps/genome_numeric_representation.py')
     numeric_representation_output_dir, numeric_representation_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
     core_genome_numeric_representation_file_path = os.path.join(numeric_representation_output_dir, 'core_genome_numeric_representation.txt')
-    start_numeric_representation = time()
-    if not os.path.exists(core_genome_numeric_representation_file_path):
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
         params = [final_orthologs_table_file_path,
                   orfs_dir,
                   core_genome_numeric_representation_file_path]
         submit_mini_batch(logger, script_path, [params], numeric_representation_tmp_dir,
                           args.queue_name, job_name='numeric_representation')
 
-        # no need to wait now. Wait before moving the results dir!
+        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], numeric_representation_tmp_dir,
+                         num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=90)
@@ -1041,11 +1042,6 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
                          start=start_tree, email=args.email)
         # move species tree dir
         add_results_to_final_dir(logger, phylogeny_path, final_output_dir)
-
-        # wait for numeric representation here
-        wait_for_results(logger, times_logger, 'genome_numeric_representation.py', numeric_representation_tmp_dir,
-                         num_of_expected_results=1, error_file_path=error_file_path,
-                         start=start_numeric_representation, email=args.email)
 
         # move numeric representation dir
         add_results_to_final_dir(logger, numeric_representation_output_dir, final_output_dir)
