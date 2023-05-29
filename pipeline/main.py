@@ -79,15 +79,21 @@ def prepare_pipeline_framework(args):
     os.makedirs(args.output_dir, exist_ok=True)
 
     level = logging.DEBUG if args.verbose else logging.INFO
-    if consts.LOG_IN_SEPARATE_FILES:
-        logging.basicConfig(filename=os.path.join(args.output_dir, 'main_log.txt'),
-                            filemode='a',
-                            format=consts.LOG_MESSAGE_FORMAT,
-                            level=level)
-    else:
-        logging.basicConfig(format=consts.LOG_MESSAGE_FORMAT,
-                            level=level)
+    logging.basicConfig(format=consts.LOG_MESSAGE_FORMAT,
+                        level=level)
     logger = logging.getLogger('main')
+    times_logger = logging.getLogger('times')
+
+    if consts.LOG_IN_SEPARATE_FILES:
+        formatter = logging.Formatter(consts.LOG_MESSAGE_FORMAT)
+
+        main_file_handler = logging.FileHandler(os.path.join(args.output_dir, 'main_log.txt'))
+        main_file_handler.setFormatter(formatter)
+        logger.addHandler(main_file_handler)
+
+        times_file_handler = logging.FileHandler(os.path.join(args.output_dir, 'times_log.txt'))
+        times_file_handler.setFormatter(formatter)
+        times_logger.addHandler(times_file_handler)
 
     logger.info(args)
     logger.info(f'Created output_dir in: {args.output_dir}')
@@ -129,7 +135,7 @@ def prepare_pipeline_framework(args):
     logger.info(f'Creating done_files_dir in: {done_files_dir}')
     os.makedirs(done_files_dir, exist_ok=True)
 
-    return logger, meta_output_dir, error_file_path, run_number, output_html_path, output_url, meta_output_url, \
+    return logger, times_logger, meta_output_dir, error_file_path, run_number, output_html_path, output_url, meta_output_url, \
         tmp_dir, done_files_dir
 
 
@@ -193,7 +199,7 @@ def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path
     return data_path, number_of_genomes
 
 
-def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number, output_html_path, tmp_dir,
+def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_path, run_number, output_html_path, tmp_dir,
                       done_files_dir, data_path, number_of_genomes):
     # 1.	drop_plasmids.py
     # Input: (1) an input path for a fasta file with contigs/full genome
@@ -257,7 +263,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
                                                    queue_name=args.queue_name,
                                                    required_modules_as_list=[consts.PRODIGAL])
 
-        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
         write_to_file(logger, done_file_path, '.')
     else:
@@ -318,7 +324,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
                                                    queue_name=consts.QUEUE_FOR_MMSEQS_COMMANDS,
                                                    required_modules_as_list=[consts.MMSEQS])
 
-        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
         write_to_file(logger, done_file_path, '.')
@@ -384,7 +390,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
                                                    queue_name=consts.QUEUE_FOR_MMSEQS_COMMANDS,
                                                    required_modules_as_list=[consts.MMSEQS])
 
-        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
         write_to_file(logger, done_file_path, '.')
@@ -434,7 +440,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
                                                    job_name_suffix='hits_filtration',
                                                    queue_name=args.queue_name)
 
-        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
         write_to_file(logger, done_file_path, '.')
     else:
@@ -476,7 +482,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
         params = [all_reciprocal_hits_file,
                   putative_orthologs_table_path]
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, args.queue_name, job_name=job_name)
-        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
         write_to_file(logger, done_file_path, '.')
     else:
@@ -521,7 +527,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
                                                    job_name_suffix='mcl_preparation',
                                                    queue_name=args.queue_name)
 
-        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
         write_to_file(logger, done_file_path, '.')
     else:
@@ -556,7 +562,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
                                                    queue_name=args.queue_name,
                                                    required_modules_as_list=[consts.MCL])
 
-        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
         write_to_file(logger, done_file_path, '.')
     else:
@@ -590,7 +596,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
                                                    job_name_suffix='clusters_verification',
                                                    queue_name=args.queue_name)
 
-        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
         write_to_file(logger, done_file_path, '.')
     else:
@@ -621,7 +627,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
                   final_orthologs_table_file_path,
                   phyletic_patterns_path]
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, args.queue_name, job_name=job_name)
-        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path,
                          error_message='No ortholog groups were detected in your dataset. Please try to lower '
                                        'the similarity parameters (see Advanced Options in the submission page) '
@@ -685,7 +691,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
                                                    job_name_suffix='orfs_extraction',
                                                    queue_name=args.queue_name)
 
-        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
         write_to_file(logger, done_file_path, '.')
     else:
@@ -717,7 +723,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
                                                    job_name_suffix='dna_translation',
                                                    queue_name=args.queue_name)
 
-        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
         write_to_file(logger, done_file_path, '.')
@@ -753,7 +759,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
                                                    queue_name=args.queue_name,
                                                    required_modules_as_list=[consts.MAFFT])
 
-        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
         write_to_file(logger, done_file_path, '.')
@@ -786,7 +792,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir,
                           args.queue_name, job_name='core_proteome')
 
-        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
         write_to_file(logger, done_file_path, '.')
     else:
@@ -962,7 +968,7 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
     orfs_gc_content_file = os.path.join(orfs_plots_path, 'orfs_gc_contents.txt')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
-        wait_for_results(logger, 'extract_orfs_statistics.py', orfs_statistics_tmp_dir,
+        wait_for_results(logger, times_logger, 'extract_orfs_statistics.py', orfs_statistics_tmp_dir,
                          num_of_expected_orfs_results, error_file_path=error_file_path, start=start_orf_stats,
                          email=args.email)
 
@@ -1023,21 +1029,21 @@ def run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number
         add_results_to_final_dir(logger, orfs_plots_path, final_output_dir)
 
         if num_of_expected_induced_results > 0:  # can be 0 when re-running
-            wait_for_results(logger, 'induce_dna_msa_by_aa_msa.py', induced_tmp_dir,
+            wait_for_results(logger, times_logger, 'induce_dna_msa_by_aa_msa.py', induced_tmp_dir,
                              num_of_expected_results=num_of_expected_induced_results,
                              error_file_path=error_file_path, start=start_induced, email=args.email)
         # move induced dna sequences
         add_results_to_final_dir(logger, dna_alignments_path, final_output_dir)
 
         # wait for the raw tree here
-        wait_for_results(logger, 'reconstruct_species_phylogeny.py', phylogeny_tmp_dir,
+        wait_for_results(logger, times_logger, 'reconstruct_species_phylogeny.py', phylogeny_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path,
                          start=start_tree, email=args.email)
         # move species tree dir
         add_results_to_final_dir(logger, phylogeny_path, final_output_dir)
 
         # wait for numeric representation here
-        wait_for_results(logger, 'genome_numeric_representation.py', numeric_representation_tmp_dir,
+        wait_for_results(logger, times_logger, 'genome_numeric_representation.py', numeric_representation_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path,
                          start=start_numeric_representation, email=args.email)
 
@@ -1108,7 +1114,7 @@ def report_main_pipeline_result_to_user(args, logger, status, total_time, output
         logger.error(f'\nFailed sending notification to {args.email}\n')
 
 
-def run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, done_files_dir, data_path, orfs_dir,
+def run_pipeline_extensions(args, logger, times_logger, error_file_path, run_number, tmp_dir, done_files_dir, data_path, orfs_dir,
                             orfs_step_number, final_orthologs_table_file_path, phylogenetic_raw_tree_path,
                             final_output_dir_name):
     logger.info('\n\n\n')
@@ -1143,7 +1149,7 @@ def run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, 
                                                    queue_name=args.queue_name,
                                                    required_modules_as_list=[consts.MAFFT])
 
-        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
         write_to_file(logger, done_file_path, '.')
@@ -1204,7 +1210,7 @@ def run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, 
                                                    job_name_suffix='extract_sequences',
                                                    queue_name=args.queue_name)
 
-        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
         write_to_file(logger, done_file_path, '.')
@@ -1236,7 +1242,7 @@ def run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, 
                                                    queue_name=args.queue_name,
                                                    required_modules_as_list=[consts.MAFFT])
 
-        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
         write_to_file(logger, done_file_path, '.')
@@ -1277,7 +1283,7 @@ def run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, 
                                                    num_of_cmds_per_job=100,
                                                    job_name_suffix='adjust_tree', queue_name=args.queue_name)
 
-        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
         write_to_file(logger, done_file_path, '.')
@@ -1309,7 +1315,7 @@ def run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, 
                                                    num_of_cmds_per_job=250,
                                                    job_name_suffix='fix_msa', queue_name=args.queue_name)
 
-        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
         write_to_file(logger, done_file_path, '.')
@@ -1345,7 +1351,7 @@ def run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, 
                                                    num_of_cmds_per_job=50,
                                                    required_modules_as_list=[consts.GCC])
 
-        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
         write_to_file(logger, done_file_path, '.')
@@ -1383,7 +1389,7 @@ def run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, 
                                                    job_name_suffix='sweeps', queue_name=args.queue_name,
                                                    num_of_cmds_per_job=100)
 
-        wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
         write_to_file(logger, done_file_path, '.')
@@ -1517,14 +1523,14 @@ def cleanup_results(args, logger, meta_output_dir, final_output_dir_name):
 def main(args):
     start_time = time()
 
-    logger, meta_output_dir, error_file_path, run_number, output_html_path, output_url, meta_output_url, tmp_dir, \
+    logger, times_logger, meta_output_dir, error_file_path, run_number, output_html_path, output_url, meta_output_url, tmp_dir, \
         done_files_dir = prepare_pipeline_framework(args)
 
     try:
         data_path, number_of_genomes = prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path)
 
         orfs_dir, orfs_step_number, final_orthologs_table_file_path, phylogenetic_raw_tree_path, final_output_dir_name = \
-            run_main_pipeline(args, logger, meta_output_dir, error_file_path, run_number, output_html_path, tmp_dir,
+            run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_path, run_number, output_html_path, tmp_dir,
                               done_files_dir, data_path, number_of_genomes)
         status = 'is done'
     except Exception as e:

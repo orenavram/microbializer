@@ -5,6 +5,7 @@ import tarfile
 from time import time, sleep
 import re
 import logging
+from datetime import datetime, timedelta
 
 from . import consts
 from .email_sender import send_email
@@ -65,7 +66,7 @@ def execute(logger, process, process_is_string=False):
     subprocess.run(process, shell=process_is_string)
 
 
-def wait_for_results(logger, script_name, path, num_of_expected_results, error_file_path, suffix='done',
+def wait_for_results(logger, times_logger, script_name, path, num_of_expected_results, error_file_path, suffix='done',
                      time_to_wait=10, start=0, error_message=None, email=None):
     """waits until path contains num_of_expected_results $suffix files"""
     if not start:
@@ -95,8 +96,37 @@ def wait_for_results(logger, script_name, path, num_of_expected_results, error_f
                 f'\t{measure_time(total_time)} have passed since started waiting ({num_of_expected_results} - {current_num_of_results} = {jobs_left} more files are still missing)')
 
     end = time()
-    logger.info(f'Done waiting for: {script_name} (took {measure_time(int(end - start))}).')
+    total_time_waited = measure_time(int(end - start))
+    logger.info(f'Done waiting for: {script_name} (took {total_time_waited}).')
+
+    cput_sum, walltime_sum = get_jobs_cummulative_time(path)
+    times_logger.info(f'Step {script_name} took {total_time_waited}. '
+                      f'There were {num_of_expected_results} jobs and '
+                      f'cumulatively they took {cput_sum} cputime and {walltime_sum} wallclock time.')
+
     assert not os.path.exists(error_file_path)
+
+
+def get_jobs_cummulative_time(path):
+    log_files = [file_path for file_path in os.listdir(path) if file_path.endswith('log.txt')]
+    pattern_for_cput = re.compile(r'resources_used.cput = (.+)')
+    pattern_for_walltime = re.compile(r'resources_used.walltime = (.+)')
+
+    cput_sum = timedelta()
+    walltime_sum = timedelta()
+    for log_file_name in log_files:
+        with open(os.path.join(path, log_file_name), 'r') as log_file:
+            content = log_file.read()
+            cput_string = pattern_for_cput.search(content).group(1)
+            cput_datetime = datetime.strptime(cput_string, "%H:%M:%S")
+            cput = timedelta(hours=cput_datetime.hour, minutes=cput_datetime.minute, seconds=cput_datetime.second)
+            cput_sum += cput
+            walltime_string = pattern_for_walltime.search(content).group(1)
+            walltime_datetime = datetime.strptime(walltime_string, "%H:%M:%S")
+            walltime = timedelta(hours=walltime_datetime.hour, minutes=walltime_datetime.minute, seconds=walltime_datetime.second)
+            walltime_sum += walltime
+
+    return cput_sum, walltime_sum
 
 
 def prepare_directories(logger, outputs_dir_prefix, tmp_dir_prefix, dir_name):
