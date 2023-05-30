@@ -180,7 +180,9 @@ def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir,
     :return: an example command to debug on the shell
     """
 
-    shell_cmds_as_str = ''
+    job_log_file_path = f'{logs_dir}/$(echo $PBS_JOBNAME)_$(echo $PBS_JOBID)_log.txt'
+    shell_cmds_as_str = f'hostname >> {job_log_file_path}{new_line_delimiter}'
+
     if not consts.USE_CONDA:
         # COMMAND FOR LOADING RELEVANT MODULES
         required_modules_as_str = 'python/python-anaconda3.6.5'
@@ -216,12 +218,8 @@ def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir,
         shell_cmds_as_str += new_line_delimiter
 
     # log the runtime of the job
-    shell_cmds_as_str += 'qstat -f $PBS_JOBID | grep -Eo -m 1 "resources_used.cput = [0-9]{2}:[0-9]{2}:[0-9]{2}" >> ' + \
-                         f'{logs_dir}/$(echo $PBS_JOBNAME)_$(echo $PBS_JOBID)_log.txt'
-    shell_cmds_as_str += new_line_delimiter
-    shell_cmds_as_str += 'qstat -f $PBS_JOBID | grep -Eo -m 1 "resources_used.walltime = [0-9]{2}:[0-9]{2}:[0-9]{2}" >> ' + \
-                         f'{logs_dir}/$(echo $PBS_JOBNAME)_$(echo $PBS_JOBID)_log.txt'
-    shell_cmds_as_str += new_line_delimiter
+    shell_cmds_as_str += f'qstat -f $PBS_JOBID | grep -Eo -m 1 "resources_used.cput = [0-9]{2}:[0-9]{2}:[0-9]{2}" >> {job_log_file_path}{new_line_delimiter}'
+    shell_cmds_as_str += f'qstat -f $PBS_JOBID | grep -Eo -m 1 "resources_used.walltime = [0-9]{2}:[0-9]{2}:[0-9]{2}" >> {job_log_file_path}{new_line_delimiter}'
 
     if submit_as_a_job:
         # WRITING CMDS FILE
