@@ -14,3 +14,4 @@ dependencies:
   - prodigal=2.6.3
   - mmseqs2=14.7e284
   - mcl=14.137
+  - ete3=3.1.2

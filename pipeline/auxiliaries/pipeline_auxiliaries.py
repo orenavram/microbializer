@@ -218,8 +218,8 @@ def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir,
         shell_cmds_as_str += new_line_delimiter
 
     # log the runtime of the job
-    shell_cmds_as_str += f'qstat -f $PBS_JOBID | grep -Eo -m 1 "resources_used.cput = [0-9]{2}:[0-9]{2}:[0-9]{2}" >> {job_log_file_path}{new_line_delimiter}'
-    shell_cmds_as_str += f'qstat -f $PBS_JOBID | grep -Eo -m 1 "resources_used.walltime = [0-9]{2}:[0-9]{2}:[0-9]{2}" >> {job_log_file_path}{new_line_delimiter}'
+    shell_cmds_as_str += f'qstat -f $PBS_JOBID | grep -m 1 "resources_used.cput" >> {job_log_file_path}{new_line_delimiter}'
+    shell_cmds_as_str += f'qstat -f $PBS_JOBID | grep -m 1 "resources_used.walltime" >> {job_log_file_path}{new_line_delimiter}'
 
     if submit_as_a_job:
         # WRITING CMDS FILE

@@ -20,6 +20,7 @@ from auxiliaries.pipeline_auxiliaries import measure_time, execute, wait_for_res
 from auxiliaries.html_editor import edit_success_html, edit_failure_html, edit_progress
 from auxiliaries import consts
 from auxiliaries.plots_generator import generate_boxplot, generate_bar_plot
+from auxiliaries.mimic_prodigal_header import mimic_prodigal_output
 
 
 def get_arguments():
@@ -50,16 +51,12 @@ def get_arguments():
                         help='whether or not to apply bootstrap procedure over the reconstructed species tree.')
     parser.add_argument('--outgroup', default=None,
                         help='whether or not to root the species phylogeny.')
-    parser.add_argument('--filter_out_plasmids', default=False,
+    parser.add_argument('--filter_out_plasmids', action='store_true',
                         help='whether or not to filter out plasmids from the input files')
-    parser.add_argument('--promoters_length', default=300,
-                        help='How many basepairs upstream to the ATG will be used for the sweeps analysis',
-                        type=lambda x: int(x) if int(x) >= 0 else parser.error(
-                            f'Minimal number of upstream basepairs should be non-negative!'))
-    parser.add_argument('--minimal_number_of_sequences_allowed_for_sweeps_analysis', default=21,
-                        help='MSAs with fewer sequences will be ignore in the sweeps analysis.',
-                        type=lambda x: int(x) if int(x) > 4 else parser.error(
-                            f'Minimal number of sequences required for sweeps analysis is 5!'))
+    parser.add_argument('--inputs_are_annotated_proteomes', action='store_true',
+                        help='whether the input files are genomes or annotated proteomes')
+    parser.add_argument('--qfo_benchmark', action='store_true',
+                        help='whether the input files are annotated proteomes in the QfO benchmark format')
     # choices=['pupkoweb', 'pupkowebr', 'pupkolab', 'pupkolabr', 'pupkotmp', 'pupkotmpr', 'itaym', 'lilach',
     # 'bioseq', 'bental', 'oren.q', 'bioseq20.q'])
     parser.add_argument('-q', '--queue_name', help='The cluster to which the job(s) will be submitted to',
@@ -71,6 +68,16 @@ def get_arguments():
     parser.add_argument('--src_dir', help='source code directory', type=lambda path: path.rstrip('/'),
                         default=os.path.join(consts.PROJECT_ROOT_DIR, 'pipeline'))
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
+
+    parser.add_argument('--promoters_length', default=300,
+                        help='How many basepairs upstream to the ATG will be used for the sweeps analysis',
+                        type=lambda x: int(x) if int(x) >= 0 else parser.error(
+                            f'Minimal number of upstream basepairs should be non-negative!'))
+    parser.add_argument('--minimal_number_of_sequences_allowed_for_sweeps_analysis', default=21,
+                        help='MSAs with fewer sequences will be ignore in the sweeps analysis.',
+                        type=lambda x: int(x) if int(x) > 4 else parser.error(
+                            f'Minimal number of sequences required for sweeps analysis is 5!'))
+
     args = parser.parse_args()
     return args
 
@@ -225,7 +232,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
                                                        job_name_suffix='drop_plasmids',
                                                        queue_name=args.queue_name)
 
-            wait_for_results(logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+            wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                              num_of_batches, error_file_path, email=args.email)
             write_to_file(logger, done_file_path, '.')
         else:
@@ -247,25 +254,30 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     orfs_dir, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
-        logger.info('Extracting ORFs...')
-        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-        for fasta_file in os.listdir(data_path):
-            fasta_file_prefix = os.path.splitext(fasta_file)[0]
-            output_file_name = f'{fasta_file_prefix}.{step_name}'
+        if not args.inputs_are_annotated_proteomes:
+            logger.info('Extracting ORFs...')
+            all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
+            for fasta_file in os.listdir(data_path):
+                fasta_file_prefix = os.path.splitext(fasta_file)[0]
+                output_file_name = f'{fasta_file_prefix}.{step_name}'
 
-            single_cmd_params = [f'"{os.path.join(data_path, fasta_file)}"',
-                                 os.path.join(orfs_dir, output_file_name)]
-            all_cmds_params.append(single_cmd_params)
+                single_cmd_params = [f'"{os.path.join(data_path, fasta_file)}"',
+                                     os.path.join(orfs_dir, output_file_name)]
+                all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                   num_of_cmds_per_job=5,
-                                                   job_name_suffix='search_orfs',
-                                                   queue_name=args.queue_name,
-                                                   required_modules_as_list=[consts.PRODIGAL])
+            num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+                                                       num_of_cmds_per_job=5,
+                                                       job_name_suffix='search_orfs',
+                                                       queue_name=args.queue_name,
+                                                       required_modules_as_list=[consts.PRODIGAL])
 
-        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
-                         num_of_batches, error_file_path, email=args.email)
-        write_to_file(logger, done_file_path, '.')
+            wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+                             num_of_batches, error_file_path, email=args.email)
+        else:  # inputs are annotated proteomes
+            logger.info('Inputs are already annotated proteomes. Skipping step 02.')
+            shutil.copytree(data_path, orfs_dir, dirs_exist_ok=True)
+            mimic_prodigal_output(orfs_dir, step_name)
+            write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=10)
@@ -618,15 +630,18 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     final_orthologs_table_path, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
     final_orthologs_table_file_path = os.path.join(final_orthologs_table_path, 'final_orthologs_table.csv')
     phyletic_patterns_path = os.path.join(final_orthologs_table_path, 'phyletic_pattern.fas')
+    orthoxml_path = os.path.join(final_orthologs_table_path, 'orthologs.orthoxml')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Constructing final orthologs table...')
-        job_name = os.path.split(final_orthologs_table_file_path)[-1]
         params = [putative_orthologs_table_path,
                   previous_pipeline_step_output_dir,
                   final_orthologs_table_file_path,
-                  phyletic_patterns_path]
-        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, args.queue_name, job_name=job_name)
+                  phyletic_patterns_path,
+                  orthoxml_path]
+        if args.qfo_benchmark:
+            params += ['--qfo_benchmark']
+        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, args.queue_name, job_name='final_ortholog_groups')
         wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path,
                          error_message='No ortholog groups were detected in your dataset. Please try to lower '
