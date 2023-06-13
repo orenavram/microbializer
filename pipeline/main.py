@@ -631,6 +631,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     final_orthologs_table_file_path = os.path.join(final_orthologs_table_path, 'final_orthologs_table.csv')
     phyletic_patterns_path = os.path.join(final_orthologs_table_path, 'phyletic_pattern.fas')
     orthoxml_path = os.path.join(final_orthologs_table_path, 'orthologs.orthoxml')
+    ortholog_pairs_path = os.path.join(final_orthologs_table_path, 'ortholog_pairs.tsv')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Constructing final orthologs table...')
@@ -638,7 +639,8 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
                   previous_pipeline_step_output_dir,
                   final_orthologs_table_file_path,
                   phyletic_patterns_path,
-                  orthoxml_path]
+                  orthoxml_path,
+                  ortholog_pairs_path]
         if args.qfo_benchmark:
             params += ['--qfo_benchmark']
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, args.queue_name, job_name='final_ortholog_groups')
