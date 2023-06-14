@@ -37,7 +37,7 @@ def generate_bar_plot(path_to_data, output_file_path, xlabel='', ylabel='', dpi=
 
     # bins = np.arange(data.min(), data.max() + 2)
 
-    ax = sns.countplot(data, color="C0")
+    ax = sns.countplot(x=data, color="C0")
     # ax.set_xticklabels(ax.get_xticklabels(), rotation=90)
 
     visible_bins = max(1, len(np.unique(data)) // 20)

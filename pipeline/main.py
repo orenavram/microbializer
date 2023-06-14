@@ -477,6 +477,27 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         logger.info(f'done file {all_reciprocal_hits_file} already exists. Skipping step...')
     edit_progress(output_html_path, progress=30)
 
+    # 6b   extract_orphan_genes.py
+    step_number = '6b'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_orphan_genes'
+    script_path = os.path.join(args.src_dir, 'steps/extract_orphan_genes.py')
+    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        logger.info('Extracting orphan genes...')
+        job_name = os.path.split(script_path)[-1]
+        params = [orfs_dir,
+                  all_reciprocal_hits_file,
+                  pipeline_step_output_dir]
+        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, args.queue_name, job_name=job_name)
+        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+                         num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+    edit_progress(output_html_path, progress=35)
+
     # 7.	construct_putative_orthologs_table.py
     # Input: (1) a path for a i_vs_j_reciprocal_hits.tsv file (2) a path for a putative orthologs file (with a single line).
     # Output: updates the table with the info from the reciprocal hit file.
@@ -966,8 +987,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
 
         groups_sizes_frequency_raw_file_path = groups_sizes_frequency_file_prefix + '.txt'
         with open(groups_sizes_frequency_raw_file_path, 'w') as f:
-            f.write('\n'.join(
-                group_sizes))  # f.write('\n'.join([f'{size},{group_size_to_counts_dict[size]}' for size in group_size_to_counts_dict]))
+            f.write('\n'.join(group_sizes))
 
         groups_sizes_frequency_png_file_path = groups_sizes_frequency_file_prefix + '.png'
         generate_bar_plot(groups_sizes_frequency_raw_file_path, groups_sizes_frequency_png_file_path,
