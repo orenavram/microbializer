@@ -277,7 +277,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
             logger.info('Inputs are already annotated proteomes. Skipping step 02.')
             shutil.copytree(data_path, orfs_dir, dirs_exist_ok=True)
             mimic_prodigal_output(orfs_dir, step_name)
-            write_to_file(logger, done_file_path, '.')
+        write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=10)
