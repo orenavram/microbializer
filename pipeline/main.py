@@ -555,8 +555,8 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                   num_of_cmds_per_job=25,
-                                                   # *times* the number of clusters_to_prepare_per_job above. 250 in total per batch!
+                                                   num_of_cmds_per_job=5,
+                                                   # *times* the number of clusters_to_prepare_per_job above. 50 in total per batch!
                                                    job_name_suffix='mcl_preparation',
                                                    queue_name=args.queue_name)
 
