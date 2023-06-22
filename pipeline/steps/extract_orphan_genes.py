@@ -17,7 +17,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger
-from auxiliaries.plots_generator import generate_barplot
+from auxiliaries.plots_generator import generate_violinplot
 
 
 def flatten(l):
@@ -63,8 +63,8 @@ def extract_orphan_proteins(logger, orfs_dir, orthologs_file, output_dir):
     with open(orphan_genes_count_file_path, 'w') as orphan_genes_count_file:
         orphan_genes_count_file.write('\n'.join([str(count) for count in number_of_orphans_per_file]))
 
-    generate_barplot(orphan_genes_count_file_path, os.path.join(output_dir, 'orphan_genes_count.png'),
-                     xlabel='Orphan genes count per genome', ylabel='Count')
+    generate_violinplot(orphan_genes_count_file_path, os.path.join(output_dir, 'orphan_genes_count.png'),
+                        xlabel='Orphan genes count per genome', ylabel='Count')
 
 
 def main():

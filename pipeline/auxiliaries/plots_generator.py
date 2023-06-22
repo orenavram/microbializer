@@ -8,7 +8,7 @@ from Bio import Phylo
 import pylab as pb
 
 
-def generate_boxplot(path_to_data, output_file_path, title='', xlabel='', ylabel='', dpi=300):
+def generate_violinplot(path_to_data, output_file_path, title='', xlabel='', ylabel='', dpi=300):
     data = np.loadtxt(path_to_data)
     fig = plt.figure(figsize=(10, 10))
 
@@ -65,11 +65,11 @@ if __name__ == '__main__':
         f'/Users/Oren/Dropbox/Projects/Sweeps Project/microbilizer_web/data/{dataset_name}/19_groups_sizes_frequency/groups_sizes_frequency.txt',
         f'/Users/Oren/Dropbox/Projects/microbializerPower/html/pics/{dataset_name.split()[0]}_groups_sizes_frequency.png',
         xlabel='Orthologs group size', ylabel='Counts')
-    generate_boxplot(
+    generate_violinplot(
         f'/Users/Oren/Dropbox/Projects/Sweeps Project/microbilizer_web/data/{dataset_name}/20_orfs_plots/orfs_gc_contents.txt',
         f'/Users/Oren/Dropbox/Projects/microbializerPower/html/pics/{dataset_name.split()[0]}_orfs_gc_contents.png',
         xlabel='GC content per genome')
-    generate_boxplot(
+    generate_violinplot(
         f'/Users/Oren/Dropbox/Projects/Sweeps Project/microbilizer_web/data/{dataset_name}/20_orfs_plots/orfs_counts.txt',
         f'/Users/Oren/Dropbox/Projects/microbializerPower/html/pics/{dataset_name.split()[0]}_orfs_counts.png',
         xlabel='ORFs count per genome')

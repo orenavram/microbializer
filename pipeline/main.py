@@ -19,7 +19,7 @@ from auxiliaries.pipeline_auxiliaries import measure_time, execute, wait_for_res
     notify_admin, add_results_to_final_dir, remove_path, unpack_data, fix_illegal_chars_in_file_name, move_file
 from auxiliaries.html_editor import edit_success_html, edit_failure_html, edit_progress
 from auxiliaries import consts
-from auxiliaries.plots_generator import generate_boxplot, generate_bar_plot
+from auxiliaries.plots_generator import generate_violinplot, generate_bar_plot
 from auxiliaries.mimic_prodigal_header import mimic_prodigal_output
 
 
@@ -1019,11 +1019,11 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         # No need to wait...
         logger.info('Plotting violins...')
         orfs_counts_frequency_png_file_path = orfs_counts_frequency_file.replace('txt', 'png')
-        generate_boxplot(orfs_counts_frequency_file, orfs_counts_frequency_png_file_path,
+        generate_violinplot(orfs_counts_frequency_file, orfs_counts_frequency_png_file_path,
                          xlabel='\nORF count per genome', dpi=300)
 
         orfs_gc_content_png_file_path = orfs_gc_content_file.replace('txt', 'png')
-        generate_boxplot(orfs_gc_content_file, orfs_gc_content_png_file_path,
+        generate_violinplot(orfs_gc_content_file, orfs_gc_content_png_file_path,
                          xlabel='\nGC content per genome', dpi=300)
 
         write_to_file(logger, done_file_path, '.')
