@@ -41,6 +41,10 @@ from auxiliaries import consts
 
 
 def load_reciprocal_hits_to_dictionary(all_reciprocal_hits_path, group_name_to_pair_combinations, delimiter):
+    all_relevant_pairs = set()
+    for group_name, pair_combinations in group_name_to_pair_combinations.items():
+        all_relevant_pairs.update(pair_combinations)
+
     gene_pair_to_score = {}
     with open(all_reciprocal_hits_path) as f:
         for line in f:
@@ -49,12 +53,10 @@ def load_reciprocal_hits_to_dictionary(all_reciprocal_hits_path, group_name_to_p
                 # new reciprocal hits file starts
                 continue
             pair = tuple(line_tokens[:2])
-            for group_name in group_name_to_pair_combinations:
-                pair_combinations = group_name_to_pair_combinations[group_name]
-                if pair in pair_combinations or pair[::-1] in pair_combinations:
-                    score = line_tokens[2]
-                    gene_pair_to_score[pair] = score
-                    break
+            if pair in all_relevant_pairs or pair[::-1] in all_relevant_pairs:
+                score = line_tokens[2]
+                gene_pair_to_score[pair] = score
+
     return gene_pair_to_score
 
 
