@@ -12,9 +12,9 @@ def generate_boxplot(path_to_data, output_file_path, title='', xlabel='', ylabel
     data = np.loadtxt(path_to_data)
     fig = plt.figure(figsize=(10, 10))
 
-    ax = sns.violinplot(data, inner=None, color='lavender', cut=5)
+    ax = sns.violinplot(x=data, inner=None, color='lavender', cut=5)
     # ax = sns.boxplot(data, color='lavender')
-    sns.swarmplot(data, color='dodgerblue')
+    sns.swarmplot(x=data, color='dodgerblue')
     # ax.set_xlim(left=0)
     ax.set_xlabel(f'{xlabel}', fontdict={'fontsize': 20})
     ax.set_ylabel(ylabel, fontdict={'fontsize': 20})
