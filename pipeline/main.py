@@ -5,6 +5,7 @@ import shutil
 import sys
 from time import time, sleep
 import traceback
+import json
 
 import matplotlib.pyplot as plt
 import mmap
@@ -25,23 +26,21 @@ from auxiliaries.mimic_prodigal_header import mimic_prodigal_output
 
 def get_arguments():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--args_json_path', help='path to a json file that contains values for arguments which will '
+                                                 'override the default values. Optional.')
     parser.add_argument('--contigs_dir',
                         help='path to a folder with the genomic sequences. This folder may be zipped, as well the files'
-                             ' in it.',
-                        type=lambda path: path.rstrip('/') if os.path.exists(path) else parser.error(
-                            f'{path} does not exist!'), required=True)
+                             ' in it.')
     parser.add_argument('--output_dir', help='relative path of directory where the output files will be written to',
                         default='outputs')
     parser.add_argument('--email', help='A notification will be sent once the pipeline is done',
                         default=consts.OWNER_EMAIL)
-    parser.add_argument('--identity_cutoff', default=80, type=lambda x: eval(x),
+    parser.add_argument('--identity_cutoff', default=80,
                         help='minimum required percent of identity level (lower values will be filtered out)')
-    parser.add_argument('--e_value_cutoff', default=0.01, type=lambda x: eval(x),
-                        # if 0 <= eval(x) <= 100 else parser.error(f"Can't use {x} as percent!"),
+    parser.add_argument('--e_value_cutoff', default=0.01,
                         help='maxmimum permitted e-value (0 <= e_value_cutoff <= 1; higher values will be filtered'
                              ' out).')
-    parser.add_argument('--core_minimal_percentage', default=100.0, type=lambda x: eval(x),
-                        # if 0 <= eval(x) <= 100 else parser.error(f"Can't use {x} as percent!"),
+    parser.add_argument('--core_minimal_percentage', default=100.0,
                         help='the minimum required percent of gene members that is needed to be considered a core gene.'
                              ' For example: (1) 100 means that for a gene to be considered core, all strains should '
                              'have a member in the group.\n(2) 50 means that for a gene to be considered core, at least'
@@ -50,7 +49,7 @@ def get_arguments():
     parser.add_argument('--bootstrap', default='no', choices=['yes', 'no'],
                         help='whether or not to apply bootstrap procedure over the reconstructed species tree.')
     parser.add_argument('--outgroup', default=None,
-                        help='whether or not to root the species phylogeny.')
+                        help='The species name used to to root the phylogenetic tree, or None to leave unrooted.')
     parser.add_argument('--filter_out_plasmids', action='store_true',
                         help='whether or not to filter out plasmids from the input files')
     parser.add_argument('--inputs_are_annotated_proteomes', action='store_true',
@@ -60,12 +59,12 @@ def get_arguments():
     # choices=['pupkoweb', 'pupkowebr', 'pupkolab', 'pupkolabr', 'pupkotmp', 'pupkotmpr', 'itaym', 'lilach',
     # 'bioseq', 'bental', 'oren.q', 'bioseq20.q'])
     parser.add_argument('-q', '--queue_name', help='The cluster to which the job(s) will be submitted to',
-                        default='power-pupko')
+                        default=consts.QUEUE_FOR_JOBS)
     parser.add_argument('--dummy_delimiter',
                         help='The queue does not "like" very long commands. A dummy delimiter is used to break each row'
                              ' into different commands of a single job',
                         default='!@#')
-    parser.add_argument('--src_dir', help='source code directory', type=lambda path: path.rstrip('/'),
+    parser.add_argument('--src_dir', help='source code directory',
                         default=os.path.join(consts.PROJECT_ROOT_DIR, 'pipeline'))
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
 
@@ -79,7 +78,34 @@ def get_arguments():
                             f'Minimal number of sequences required for sweeps analysis is 5!'))
 
     args = parser.parse_args()
+
+    # Override arguments with args_json_path content
+    if args.args_json_path:
+        with open(args.args_json_path, 'r') as args_json_file:
+            args_json = json.load(args_json_file)
+            args.__dict__.update(args_json)
+
+    validate_arguments(args)
     return args
+
+
+def validate_arguments(args):
+    if os.path.exists(args.contigs_dir):
+        args.contigs_dir = args.contigs_dir.rstrip('/')
+    else:
+        raise ValueError(f'contigs_dir argument {args.contigs_dir} does not exist!')
+
+    args.identity_cutoff = int(args.identity_cutoff)
+    if args.identity_cutoff < 0 or args.identity_cutoff > 100:
+        raise ValueError(f'identity_cutoff argument {args.identity_cutoff} has invalid value')
+
+    args.e_value_cutoff = float(args.e_value_cutoff)
+    if args.e_value_cutoff < 0 or args.e_value_cutoff > 1:
+        raise ValueError(f'e_value_cutoff argument {args.e_value_cutoff} has invalid value')
+
+    args.core_minimal_percentage = float(args.core_minimal_percentage)
+    if args.core_minimal_percentage < 0 or args.core_minimal_percentage > 100:
+        raise ValueError(f'core_minimal_percentage argument {args.core_minimal_percentage} has invalid value')
 
 
 def prepare_pipeline_framework(args):
