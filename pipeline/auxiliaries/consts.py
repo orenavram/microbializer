@@ -3,6 +3,7 @@
 #############################################################################################################
 
 import os.path
+from flask_interface_consts import WEBSERVER_NAME
 
 TEST = True
 USE_CONDA = True
@@ -42,7 +43,6 @@ RAXML = 'raXML'
 PRODIGAL = 'prodigal/prodigal-2.6.3'
 MMSEQS = 'MMseqs2/June2020'
 
-WEBSERVER_NAME = 'M1CR0B1AL1Z3R'
 WEBSERVER_URL = 'https://microbializer.tau.ac.il'
 WEBSERVER_TITLE = 'A web server for analyzing bacterial genomics data. Easily.'
 

@@ -18,7 +18,7 @@ from auxiliaries.pipeline_auxiliaries import measure_time, execute, wait_for_res
     prepare_directories, fail, submit_mini_batch, submit_batch, remove_bootstrap_values, \
     notify_admin, add_results_to_final_dir, remove_path, unpack_data, fix_illegal_chars_in_file_name, move_file
 from auxiliaries.html_editor import edit_success_html, edit_failure_html, edit_progress
-from auxiliaries import consts
+from auxiliaries import consts, flask_interface_consts
 from auxiliaries.plots_generator import generate_violinplot, generate_bar_plot
 from auxiliaries.mimic_prodigal_header import mimic_prodigal_output
 
@@ -30,8 +30,8 @@ def get_arguments():
                              ' in it.',
                         type=lambda path: path.rstrip('/') if os.path.exists(path) else parser.error(
                             f'{path} does not exist!'), required=True)
-    parser.add_argument('--output_dir', help='directory where the output files will be written to',
-                        type=lambda path: path.rstrip('/'), required=True)
+    parser.add_argument('--output_dir', help='relative path of directory where the output files will be written to',
+                        default='outputs')
     parser.add_argument('--email', help='A notification will be sent once the pipeline is done',
                         default=consts.OWNER_EMAIL)
     parser.add_argument('--identity_cutoff', default=80, type=lambda x: eval(x),
@@ -83,7 +83,10 @@ def get_arguments():
 
 
 def prepare_pipeline_framework(args):
-    os.makedirs(args.output_dir, exist_ok=True)
+    meta_output_dir = os.path.join(os.path.split(args.contigs_dir)[0])
+
+    output_dir = os.path.join(meta_output_dir, args.output_dir)
+    os.makedirs(output_dir, exist_ok=True)
 
     level = logging.DEBUG if args.verbose else logging.INFO
     logging.basicConfig(format=consts.LOG_MESSAGE_FORMAT,
@@ -94,21 +97,19 @@ def prepare_pipeline_framework(args):
     if consts.LOG_IN_SEPARATE_FILES:
         formatter = logging.Formatter(consts.LOG_MESSAGE_FORMAT)
 
-        main_file_handler = logging.FileHandler(os.path.join(args.output_dir, 'main_log.txt'))
+        main_file_handler = logging.FileHandler(os.path.join(output_dir, 'main_log.txt'))
         main_file_handler.setFormatter(formatter)
         logger.addHandler(main_file_handler)
 
-        times_file_handler = logging.FileHandler(os.path.join(args.output_dir, 'times_log.txt'))
+        times_file_handler = logging.FileHandler(os.path.join(output_dir, 'times_log.txt'))
         times_file_handler.setFormatter(formatter)
         times_logger.addHandler(times_file_handler)
 
     logger.info(args)
-    logger.info(f'Created output_dir in: {args.output_dir}')
-
-    meta_output_dir = os.path.join(os.path.split(args.output_dir)[0])
     logger.info(f'meta_output_dir is: {meta_output_dir}')
+    logger.info(f'Created output_dir in: {output_dir}')
 
-    error_file_path = os.path.join(meta_output_dir, 'error.txt')
+    error_file_path = os.path.join(meta_output_dir, flask_interface_consts.ERROR_FILE_PATH)
 
     run_number = os.path.join(os.path.split(meta_output_dir)[1])
     logger.info(f'run_number is {run_number}')
@@ -134,21 +135,21 @@ def prepare_pipeline_framework(args):
         output_url = ''
         meta_output_url = ''
 
-    tmp_dir = os.path.join(args.output_dir, 'tmp')
+    tmp_dir = os.path.join(output_dir, 'tmp')
     logger.info(f'Creating tmp_dir in: {tmp_dir}')
     os.makedirs(tmp_dir, exist_ok=True)
 
-    done_files_dir = os.path.join(args.output_dir, 'done')
+    done_files_dir = os.path.join(output_dir, 'done')
     logger.info(f'Creating done_files_dir in: {done_files_dir}')
     os.makedirs(done_files_dir, exist_ok=True)
 
     return logger, times_logger, meta_output_dir, error_file_path, run_number, output_html_path, output_url, meta_output_url, \
-        tmp_dir, done_files_dir
+        output_dir, tmp_dir, done_files_dir
 
 
-def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path):
+def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path, output_dir):
     # copies input contigs_dir because we edit the files and want to keep the input directory as is
-    data_path = os.path.join(args.output_dir, 'inputs')
+    data_path = os.path.join(output_dir, 'inputs')
     shutil.copytree(args.contigs_dir, data_path, dirs_exist_ok=True)
     logger.info(f'data_path is: {data_path}')
 
@@ -206,8 +207,8 @@ def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path
     return data_path, number_of_genomes
 
 
-def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_path, run_number, output_html_path, tmp_dir,
-                      done_files_dir, data_path, number_of_genomes):
+def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_path, run_number, output_html_path,
+                      output_dir, tmp_dir, done_files_dir, data_path, number_of_genomes):
     # 1.	drop_plasmids.py
     # Input: (1) an input path for a fasta file with contigs/full genome
     # Output: overrides the original file without plasmids
@@ -217,7 +218,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         logger.info(f'Step {step_number}: {"_" * 100}')
         step_name = f'{step_number}_drop_plasmids'
         script_path = os.path.join(args.src_dir, 'steps/drop_plasmids.py')
-        filtered_inputs_dir, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
+        filtered_inputs_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
         done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
         if not os.path.exists(done_file_path):
             logger.info('Filtering plasmids out...')
@@ -251,7 +252,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_ORFs'
     script_path = os.path.join(args.src_dir, 'steps/search_orfs.py')
-    orfs_dir, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
+    orfs_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         if not args.inputs_are_annotated_proteomes:
@@ -313,7 +314,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     previous_pipeline_step_output_dir = orfs_dir
     step_name = f'{step_number}_dbs'
     script_path = os.path.join(args.src_dir, 'steps/create_mmseqs2_DB.py')
-    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
+    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Creating DBs...')
@@ -362,7 +363,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     previous_pipeline_step_output_dir = pipeline_step_output_dir
     step_name = f'{step_number}_all_vs_all_analysis'
     script_path = os.path.join(args.src_dir, 'steps/mmseqs2_all_vs_all.py')
-    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
+    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info(f'Querying all VS all (using mmseqs2)...')
@@ -431,7 +432,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     previous_pipeline_step_output_dir = pipeline_step_output_dir
     step_name = f'{step_number}_blast_filtered'
     script_path = os.path.join(args.src_dir, 'steps/filter_rbh_results.py')
-    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
+    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Filtering all vs all results...\n')
@@ -465,7 +466,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     # CANNOT be parallelized on cluster
     step_number = '06'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    all_reciprocal_hits_file = os.path.join(args.output_dir, 'concatenated_all_reciprocal_hits.txt')
+    all_reciprocal_hits_file = os.path.join(output_dir, 'concatenated_all_reciprocal_hits.txt')
     if not os.path.exists(all_reciprocal_hits_file):
         logger.info('Concatenating reciprocal hits...')
         for filtered_hits_file in os.listdir(pipeline_step_output_dir):
@@ -482,7 +483,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orphan_genes'
     script_path = os.path.join(args.src_dir, 'steps/extract_orphan_genes.py')
-    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
+    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Extracting orphan genes...')
@@ -506,7 +507,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_putative_table'
     script_path = os.path.join(args.src_dir, 'steps/construct_putative_orthologs_table.py')
-    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
+    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     putative_orthologs_table_path = os.path.join(pipeline_step_output_dir, 'putative_orthologs_table.txt')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
@@ -530,7 +531,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_mcl_input_files'
     script_path = os.path.join(args.src_dir, 'steps/prepare_files_for_mcl.py')
-    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
+    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Preparing files for MCL...')
@@ -576,7 +577,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     previous_pipeline_step_output_dir = pipeline_step_output_dir
     step_name = f'{step_number}_mcl_analysis'
     script_path = os.path.join(args.src_dir, 'steps/run_mcl.py')
-    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
+    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Executing MCL...')
@@ -611,7 +612,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     previous_pipeline_step_output_dir = pipeline_step_output_dir
     step_name = f'{step_number}_verified_clusters'
     script_path = os.path.join(args.src_dir, 'steps/verify_cluster.py')
-    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
+    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Verifying clusters...')
@@ -648,7 +649,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     previous_pipeline_step_output_dir = pipeline_step_output_dir
     step_name = f'{step_number}_final_table'
     script_path = os.path.join(args.src_dir, 'steps/construct_final_orthologs_table.py')
-    final_orthologs_table_path, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
+    final_orthologs_table_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     final_orthologs_table_file_path = os.path.join(final_orthologs_table_path, 'final_orthologs_table.csv')
     phyletic_patterns_path = os.path.join(final_orthologs_table_path, 'phyletic_pattern.fas')
     orthoxml_path = os.path.join(final_orthologs_table_path, 'orthologs.orthoxml')
@@ -701,7 +702,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orthologs_groups_dna_sequences'
     script_path = os.path.join(args.src_dir, 'steps/extract_orfs.py')
-    orthologs_dna_sequences_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
+    orthologs_dna_sequences_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Extracting orthologs groups sequences according to final orthologs table...')
@@ -744,7 +745,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orthologs_groups_aa_sequences'
     script_path = os.path.join(args.src_dir, 'steps/translate_fna_to_faa.py')
-    orthologs_aa_sequences_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
+    orthologs_aa_sequences_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Translating orthologs groups sequences...')
@@ -777,7 +778,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_aligned_aa_orthologs_groups'
     script_path = os.path.join(args.src_dir, 'steps/align_orthologs_group.py')
-    aa_alignments_path, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
+    aa_alignments_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Aligning orthologs groups...')
@@ -810,7 +811,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_aligned_core_proteome'
     script_path = os.path.join(args.src_dir, 'steps/extract_core_genome.py')
-    aligned_core_proteome_path, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
+    aligned_core_proteome_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     aligned_core_proteome_file_path = os.path.join(aligned_core_proteome_path, 'aligned_core_proteome.fas')
     core_ogs_names_file_path = os.path.join(aligned_core_proteome_path, 'core_ortholog_groups_names.txt')
@@ -842,7 +843,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_species_phylogeny'
     script_path = os.path.join(args.src_dir, 'steps/reconstruct_species_phylogeny.py')
-    phylogeny_path, phylogeny_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
+    phylogeny_path, phylogeny_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     phylogenetic_raw_tree_path = os.path.join(phylogeny_path, 'final_species_tree.txt')
     start_tree = time()
     if not os.path.exists(phylogenetic_raw_tree_path):
@@ -882,7 +883,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_genome_numeric_representation'
     script_path = os.path.join(args.src_dir, 'steps/genome_numeric_representation.py')
-    numeric_representation_output_dir, numeric_representation_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
+    numeric_representation_output_dir, numeric_representation_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     core_genome_numeric_representation_file_path = os.path.join(numeric_representation_output_dir, 'core_genome_numeric_representation.txt')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
@@ -906,7 +907,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orfs_statistics'
     script_path = os.path.join(args.src_dir, 'steps/extract_orfs_statistics.py')
-    orfs_statistics_path, orfs_statistics_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
+    orfs_statistics_path, orfs_statistics_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     start_orf_stats = time()
     if not os.path.exists(done_file_path):
@@ -941,7 +942,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     step_name = f'{step_number}_induce_dna_msa_by_aa_msa'
     script_path = os.path.join(args.src_dir, 'steps/induce_dna_msa_by_aa_msa.py')
     num_of_expected_induced_results = 0
-    dna_alignments_path, induced_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
+    dna_alignments_path, induced_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     start_induced = time()
     if not os.path.exists(done_file_path):
@@ -970,7 +971,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     step_number = '19'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_groups_sizes_frequency'
-    group_sizes_path, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
+    group_sizes_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     groups_sizes_frequency_file_prefix = os.path.join(group_sizes_path, 'groups_sizes_frequency')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
@@ -1001,7 +1002,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     step_number = '20'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orfs_plots'
-    orfs_plots_path, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
+    orfs_plots_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     orfs_counts_frequency_file = os.path.join(orfs_plots_path, 'orfs_counts.txt')
     orfs_gc_content_file = os.path.join(orfs_plots_path, 'orfs_gc_contents.txt')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
@@ -1034,7 +1035,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     # Final step_number: gather relevant results, zip them together and update html file
     logger.info(f'FINAL STEP: {"_" * 100}')
     final_output_dir_name = f'{consts.WEBSERVER_NAME}_{run_number}_outputs'
-    final_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, final_output_dir_name)
+    final_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, final_output_dir_name)
     done_file_path = os.path.join(done_files_dir, f'{final_output_dir_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Gathering results to final output dir...')
@@ -1147,7 +1148,7 @@ def report_main_pipeline_result_to_user(args, logger, status, total_time, output
         logger.error(f'\nFailed sending notification to {args.email}\n')
 
 
-def run_pipeline_extensions(args, logger, times_logger, error_file_path, run_number, tmp_dir, done_files_dir, data_path, orfs_dir,
+def run_pipeline_extensions(args, logger, times_logger, error_file_path, run_number, output_dir, tmp_dir, done_files_dir, data_path, orfs_dir,
                             orfs_step_number, final_orthologs_table_file_path, phylogenetic_raw_tree_path,
                             final_output_dir_name):
     logger.info('\n\n\n')
@@ -1161,7 +1162,7 @@ def run_pipeline_extensions(args, logger, times_logger, error_file_path, run_num
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_extract_promoters_and_orfs'
     script_path = os.path.join(args.src_dir, 'steps/extract_promoters_and_orfs.py')
-    pipeline_step_output_dir_21, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
+    pipeline_step_output_dir_21, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Extracting promoters...')
@@ -1197,7 +1198,7 @@ def run_pipeline_extensions(args, logger, times_logger, error_file_path, run_num
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orthologs_groups_dna_sequences'
     script_path = os.path.join(args.src_dir, 'steps/extract_orfs.py')
-    pipeline_step_output_dir_22, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
+    pipeline_step_output_dir_22, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     assert os.path.exists(
         pipeline_step_output_dir_22), f'Failed to create output folder. {pipeline_step_output_dir_22} does not exist!'
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
@@ -1257,7 +1258,7 @@ def run_pipeline_extensions(args, logger, times_logger, error_file_path, run_num
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_aligned_dna_orthologs_groups_with_promoter'
     script_path = os.path.join(args.src_dir, 'steps/align_orthologs_group.py')
-    pipeline_step_output_dir_23, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
+    pipeline_step_output_dir_23, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Aligning orthologs groups...')
@@ -1292,7 +1293,7 @@ def run_pipeline_extensions(args, logger, times_logger, error_file_path, run_num
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_prunned_trees'
     script_path = f'/bioseq/sincopa/adjust_tree_to_msa.py'
-    pipeline_step_output_dir_24, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
+    pipeline_step_output_dir_24, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Removing bootstrap values from tree...')
@@ -1331,7 +1332,7 @@ def run_pipeline_extensions(args, logger, times_logger, error_file_path, run_num
     step_number = '25'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_fixed_dna_msa'
-    pipeline_step_output_dir_25, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
+    pipeline_step_output_dir_25, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         script_path = f'/bioseq/sincopa/fix_msa.py'
@@ -1364,7 +1365,7 @@ def run_pipeline_extensions(args, logger, times_logger, error_file_path, run_num
     step_number = '26'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_homoplasy'
-    pipeline_step_output_dir_26, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
+    pipeline_step_output_dir_26, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         script_path = f'/bioseq/sincopa/compute_homoplasy.py'
@@ -1400,7 +1401,7 @@ def run_pipeline_extensions(args, logger, times_logger, error_file_path, run_num
     step_number = '27'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_sweeps_scores_computation'
-    pipeline_step_output_dir_27, pipeline_step_tmp_dir = prepare_directories(logger, args.output_dir, tmp_dir, step_name)
+    pipeline_step_output_dir_27, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     window_size = 50
     if not os.path.exists(done_file_path):
@@ -1436,7 +1437,7 @@ def run_pipeline_extensions(args, logger, times_logger, error_file_path, run_num
     step_number = '28'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = 'sweeps_analysis'
-    sweeps_analysis_dir = os.path.join(args.output_dir, f'{step_number}_{step_name}')
+    sweeps_analysis_dir = os.path.join(output_dir, f'{step_number}_{step_name}')
     os.makedirs(sweeps_analysis_dir, exist_ok=True)
     sweeps_summary_path = os.path.join(sweeps_analysis_dir, 'sweeps_summary.csv')
     sorted_sweeps_summary_path = os.path.join(sweeps_analysis_dir, 'sorted_sweeps_summary.csv')
@@ -1535,11 +1536,11 @@ def run_pipeline_extensions(args, logger, times_logger, error_file_path, run_num
     #     pass
 
 
-def cleanup_results(args, logger, meta_output_dir, final_output_dir_name):
+def cleanup_results(args, logger, meta_output_dir, final_output_dir_name, output_dir):
     logger.info('Cleaning up...')
 
     # remove intermediate results (including tmp_dir)
-    remove_path(logger, args.output_dir)
+    remove_path(logger, output_dir)
 
     # remove raw data from the server
     for path_to_remove in [os.path.join(meta_output_dir, final_output_dir_name, x) for x in
@@ -1556,15 +1557,15 @@ def cleanup_results(args, logger, meta_output_dir, final_output_dir_name):
 def main(args):
     start_time = time()
 
-    logger, times_logger, meta_output_dir, error_file_path, run_number, output_html_path, output_url, meta_output_url, tmp_dir, \
-        done_files_dir = prepare_pipeline_framework(args)
+    logger, times_logger, meta_output_dir, error_file_path, run_number, output_html_path, output_url, meta_output_url,\
+        output_dir, tmp_dir, done_files_dir = prepare_pipeline_framework(args)
 
     try:
-        data_path, number_of_genomes = prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path)
+        data_path, number_of_genomes = prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path, output_dir)
 
         orfs_dir, orfs_step_number, final_orthologs_table_file_path, phylogenetic_raw_tree_path, final_output_dir_name = \
-            run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_path, run_number, output_html_path, tmp_dir,
-                              done_files_dir, data_path, number_of_genomes)
+            run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_path, run_number,
+                              output_html_path, output_dir, tmp_dir, done_files_dir, data_path, number_of_genomes)
         status = 'is done'
     except Exception as e:
         status = 'was failed'
@@ -1576,12 +1577,12 @@ def main(args):
 
     if status == 'is done':
         if 'oren' in args.email:
-            run_pipeline_extensions(args, logger, error_file_path, run_number, tmp_dir, done_files_dir, data_path,
+            run_pipeline_extensions(args, logger, error_file_path, run_number, output_dir, tmp_dir, done_files_dir, data_path,
                                     orfs_dir, orfs_step_number, final_orthologs_table_file_path,
                                     phylogenetic_raw_tree_path, final_output_dir_name)
 
         if run_number.lower() != 'example' and 'oren' not in args.email and consts.CLEAN_OUTPUTS_AFTER_RUN:
-            cleanup_results(args, logger, meta_output_dir, final_output_dir_name)
+            cleanup_results(args, logger, meta_output_dir, final_output_dir_name, output_dir)
 
     logger.info('Done.')
 
