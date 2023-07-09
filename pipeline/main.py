@@ -34,7 +34,7 @@ def get_arguments():
     parser.add_argument('--output_dir', help='relative path of directory where the output files will be written to',
                         default='outputs')
     parser.add_argument('--email', help='A notification will be sent once the pipeline is done',
-                        default=consts.OWNER_EMAIL)
+                        default=flask_interface_consts.OWNER_EMAIL)
     parser.add_argument('--identity_cutoff', default=80,
                         help='minimum required percent of identity level (lower values will be filtered out)')
     parser.add_argument('--e_value_cutoff', default=0.01,
@@ -59,13 +59,13 @@ def get_arguments():
     # choices=['pupkoweb', 'pupkowebr', 'pupkolab', 'pupkolabr', 'pupkotmp', 'pupkotmpr', 'itaym', 'lilach',
     # 'bioseq', 'bental', 'oren.q', 'bioseq20.q'])
     parser.add_argument('-q', '--queue_name', help='The cluster to which the job(s) will be submitted to',
-                        default=consts.QUEUE_FOR_JOBS)
+                        default=flask_interface_consts.QUEUE_FOR_JOBS)
     parser.add_argument('--dummy_delimiter',
                         help='The queue does not "like" very long commands. A dummy delimiter is used to break each row'
                              ' into different commands of a single job',
                         default='!@#')
     parser.add_argument('--src_dir', help='source code directory',
-                        default=os.path.join(consts.PROJECT_ROOT_DIR, 'pipeline'))
+                        default=os.path.join(flask_interface_consts.PROJECT_ROOT_DIR, 'pipeline'))
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
 
     parser.add_argument('--promoters_length', default=300,

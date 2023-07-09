@@ -1,5 +1,9 @@
 
+TEST = True
 WEBSERVER_NAME = 'M1CR0B1AL1Z3R'
+QUEUE_FOR_JOBS = 'power-pupko'
+PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer' if TEST else '/bioseq/microbializer'
+OWNER_EMAIL = 'yairshimony@mail.tau.ac.il' if TEST else 'orenavram@gmail.com'
 
 # Arguments keys to run the pipeline with
 CONTIGS_DIR = "contigs_dir"  # can be a path of a directory or a zipped file
