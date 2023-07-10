@@ -85,7 +85,6 @@ def get_arguments():
             args_json = json.load(args_json_file)
             args.__dict__.update(args_json)
 
-    validate_arguments(args)
     return args
 
 
@@ -1587,12 +1586,22 @@ def main(args):
         output_dir, tmp_dir, done_files_dir = prepare_pipeline_framework(args)
 
     try:
+        validate_arguments(args)
         data_path, number_of_genomes = prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path, output_dir)
 
         orfs_dir, orfs_step_number, final_orthologs_table_file_path, phylogenetic_raw_tree_path, final_output_dir_name = \
             run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_path, run_number,
                               output_html_path, output_dir, tmp_dir, done_files_dir, data_path, number_of_genomes)
+
+        # run_pipeline_extensions(args, logger, error_file_path, run_number, output_dir, tmp_dir, done_files_dir,
+        #                         data_path,
+        #                         orfs_dir, orfs_step_number, final_orthologs_table_file_path,
+        #                         phylogenetic_raw_tree_path, final_output_dir_name)
+
         status = 'is done'
+
+        if run_number.lower() != 'example' and 'oren' not in args.email and consts.CLEAN_OUTPUTS_AFTER_RUN:
+            cleanup_results(args, logger, meta_output_dir, final_output_dir_name, output_dir)
     except Exception as e:
         status = 'was failed'
         report_error_in_main_pipeline_to_admin(logger, e, meta_output_dir, error_file_path, run_number, output_html_path,
@@ -1600,15 +1609,6 @@ def main(args):
 
     total_time = int(time() - start_time)
     report_main_pipeline_result_to_user(args, logger, status, total_time, output_url, run_number)
-
-    if status == 'is done':
-        if 'oren' in args.email:
-            run_pipeline_extensions(args, logger, error_file_path, run_number, output_dir, tmp_dir, done_files_dir, data_path,
-                                    orfs_dir, orfs_step_number, final_orthologs_table_file_path,
-                                    phylogenetic_raw_tree_path, final_output_dir_name)
-
-        if run_number.lower() != 'example' and 'oren' not in args.email and consts.CLEAN_OUTPUTS_AFTER_RUN:
-            cleanup_results(args, logger, meta_output_dir, final_output_dir_name, output_dir)
 
     logger.info('Done.')
 
