@@ -1029,17 +1029,36 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     step_name = f'{step_number}_orfs_plots'
     orfs_plots_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     orfs_counts_frequency_file = os.path.join(orfs_plots_path, 'orfs_counts.txt')
+    orfs_counts_per_genome_file = os.path.join(orfs_plots_path, 'orfs_counts.json')
     orfs_gc_content_file = os.path.join(orfs_plots_path, 'orfs_gc_contents.txt')
+    orfs_gc_content_per_genome_file = os.path.join(orfs_plots_path, 'orfs_gc_contents.json')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         wait_for_results(logger, times_logger, 'extract_orfs_statistics.py', orfs_statistics_tmp_dir,
                          num_of_expected_orfs_results, error_file_path=error_file_path, start=start_orf_stats,
                          email=args.email)
 
-        logger.info('Concatenating orfs counts...')
-        execute(logger, f'cat {orfs_statistics_path}/*.orfs_count > {orfs_counts_frequency_file}', process_is_string=True)
+        logger.info('Concatenating orfs counts and gc contents...')
 
-        logger.info('Concatenating orfs gc contents...')
+        gc_content = {}
+        orf_count = {}
+        for file_name in os.listdir(orfs_statistics_path):
+            strain_name = file_name.split('.')[0]
+            file_type = file_name.split('.')[1]
+            file_path = os.path.join(orfs_statistics_path, file_name)
+            with open(file_path, 'r') as f:
+                content = f.read()
+            if file_type == "gc_content":
+                gc_content[strain_name] = float(content)
+            if file_type == "orfs_count":
+                orf_count[strain_name] = int(content)
+
+        with open(orfs_gc_content_per_genome_file, 'w') as f:
+            json.dump(gc_content, f)
+        with open(orfs_counts_per_genome_file, 'w') as f:
+            json.dump(orf_count, f)
+
+        execute(logger, f'cat {orfs_statistics_path}/*.orfs_count > {orfs_counts_frequency_file}', process_is_string=True)
         execute(logger, f'cat {orfs_statistics_path}/*.gc_content > {orfs_gc_content_file}', process_is_string=True)
 
         # No need to wait...

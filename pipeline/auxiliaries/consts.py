@@ -3,7 +3,7 @@
 #############################################################################################################
 
 import os.path
-from .flask_interface_consts import WEBSERVER_NAME, PROJECT_ROOT_DIR
+from .flask_interface_consts import *
 
 USE_CONDA = True
 IGNORE_HTML = True
