@@ -508,14 +508,14 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orphan_genes'
     script_path = os.path.join(args.src_dir, 'steps/extract_orphan_genes.py')
-    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    orphan_genes_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Extracting orphan genes...')
         job_name = os.path.split(script_path)[-1]
         params = [orfs_dir,
                   all_reciprocal_hits_file,
-                  pipeline_step_output_dir]
+                  orphan_genes_dir]
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, args.queue_name, job_name=job_name)
         wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
@@ -1087,6 +1087,9 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         # move ORFs folder
         add_results_to_final_dir(logger, orfs_dir, final_output_dir, copy=True)
 
+        # move orphan genes
+        add_results_to_final_dir(logger, orphan_genes_dir, final_output_dir, copy=True)
+
         # move orthologs table
         add_results_to_final_dir(logger, final_orthologs_table_path, final_output_dir, copy=True)
 
@@ -1619,7 +1622,7 @@ def main(args):
 
         status = 'is done'
 
-        if run_number.lower() != 'example' and 'oren' not in args.email and consts.CLEAN_OUTPUTS_AFTER_RUN:
+        if run_number.lower() != 'example' and 'oren' not in args.email and not consts.TEST:
             cleanup_results(args, logger, meta_output_dir, final_output_dir_name, output_dir)
     except Exception as e:
         status = 'was failed'

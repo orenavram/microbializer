@@ -8,7 +8,6 @@ from .flask_interface_consts import *
 TEST = False
 USE_CONDA = True
 IGNORE_HTML = True
-CLEAN_OUTPUTS_AFTER_RUN = False
 LOG_IN_SEPARATE_FILES = True
 PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer' if TEST else '/bioseq/microbializer_v2'
 OWNER_EMAIL = 'yairshimony@mail.tau.ac.il'
