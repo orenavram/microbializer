@@ -3,12 +3,15 @@
 #############################################################################################################
 
 import os.path
+from .flask_interface_consts import *
 
-TEST = True
+TEST = False
 USE_CONDA = True
 IGNORE_HTML = True
-CLEAN_OUTPUTS_AFTER_RUN = False
 LOG_IN_SEPARATE_FILES = True
+PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer' if TEST else '/bioseq/microbializer_v2'
+OWNER_EMAIL = 'yairshimony@mail.tau.ac.il'
+QUEUE_FOR_JOBS = 'power-pupko'
 
 # mmseqs command work only on specific machines and this queue navigates only to them
 MMSEQS_REQUIRED_MEMORY = '60gb'
@@ -19,9 +22,6 @@ QUEUE_FOR_MMSEQS_COMMANDS = 'pupkolab'
 JOB_NAME_ENVIRONMENT_VARIABLE = 'PBS_JOBNAME'
 JOB_ID_ENVIRONMENT_VARIABLE = 'PBS_JOBID'
 LOG_MESSAGE_FORMAT = '%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(message)s'
-
-PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer' if TEST else '/bioseq/microbializer'
-OWNER_EMAIL = 'yairshimony@mail.tau.ac.il' if TEST else 'orenavram@gmail.com'
 
 # constants to use when sending e-mails using the server admin's email address.
 ADMIN_EMAIL = 'TAU BioSequence <bioSequence@tauex.tau.ac.il>'
@@ -42,7 +42,6 @@ RAXML = 'raXML'
 PRODIGAL = 'prodigal/prodigal-2.6.3'
 MMSEQS = 'MMseqs2/June2020'
 
-WEBSERVER_NAME = 'M1CR0B1AL1Z3R'
 WEBSERVER_URL = 'https://microbializer.tau.ac.il'
 WEBSERVER_TITLE = 'A web server for analyzing bacterial genomics data. Easily.'
 
