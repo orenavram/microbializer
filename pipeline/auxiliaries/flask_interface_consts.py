@@ -16,8 +16,7 @@ FILE_NAME_FOR_ARGUMENTS = "arguments.json"
 # Error description file (the path is relative to the unique folder of the job)
 ERROR_FILE_PATH = "error.txt"
 
-# Output files (the paths are relative to the unique folder of the job).
-# Need to be formatted with the run_number (which is the job directory name)
+# Output files (the paths are relative to the unique folder of the job)
 ALL_OUTPUTS_DIRECTORY = WEBSERVER_NAME + "_outputs"
 ALL_OUTPUTS_ZIPPED_FORMAT = WEBSERVER_NAME + "_outputs.zip"
 
@@ -54,7 +53,6 @@ MICROBIALIZER_JOB_TEMPLATE = '''
 
 source /powerapps/share/miniconda3-4.7.12/etc/profile.d/conda.sh
 conda activate microbializer
-PYTHONPATH=$(pwd)
 pwd
 sleep {sleep_interval}
 
