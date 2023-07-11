@@ -34,7 +34,7 @@ def get_arguments():
     parser.add_argument('--output_dir', help='relative path of directory where the output files will be written to',
                         default='outputs')
     parser.add_argument('--email', help='A notification will be sent once the pipeline is done',
-                        default=flask_interface_consts.OWNER_EMAIL)
+                        default=consts.OWNER_EMAIL)
     parser.add_argument('--identity_cutoff', default=80,
                         help='minimum required percent of identity level (lower values will be filtered out)')
     parser.add_argument('--e_value_cutoff', default=0.01,
@@ -59,13 +59,13 @@ def get_arguments():
     # choices=['pupkoweb', 'pupkowebr', 'pupkolab', 'pupkolabr', 'pupkotmp', 'pupkotmpr', 'itaym', 'lilach',
     # 'bioseq', 'bental', 'oren.q', 'bioseq20.q'])
     parser.add_argument('-q', '--queue_name', help='The cluster to which the job(s) will be submitted to',
-                        default=flask_interface_consts.QUEUE_FOR_JOBS)
+                        default=consts.QUEUE_FOR_JOBS)
     parser.add_argument('--dummy_delimiter',
                         help='The queue does not "like" very long commands. A dummy delimiter is used to break each row'
                              ' into different commands of a single job',
                         default='!@#')
     parser.add_argument('--src_dir', help='source code directory',
-                        default=os.path.join(flask_interface_consts.PROJECT_ROOT_DIR, 'pipeline'))
+                        default=os.path.join(consts.PROJECT_ROOT_DIR, 'pipeline'))
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
 
     parser.add_argument('--promoters_length', default=300,
@@ -94,7 +94,7 @@ def validate_arguments(args):
     else:
         raise ValueError(f'contigs_dir argument {args.contigs_dir} does not exist!')
 
-    args.identity_cutoff = int(args.identity_cutoff)
+    args.identity_cutoff = float(args.identity_cutoff)
     if args.identity_cutoff < 0 or args.identity_cutoff > 100:
         raise ValueError(f'identity_cutoff argument {args.identity_cutoff} has invalid value')
 
@@ -173,19 +173,19 @@ def prepare_pipeline_framework(args):
 
 
 def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path, output_dir):
-    # copies input contigs_dir because we edit the files and want to keep the input directory as is
-    data_path = os.path.join(output_dir, 'inputs')
-    shutil.copytree(args.contigs_dir, data_path, dirs_exist_ok=True)
-    logger.info(f'data_path is: {data_path}')
-
     # extract zip and detect data folder
-    data_path = unpack_data(logger, data_path, meta_output_dir, error_file_path)
+    primary_data_path = unpack_data(logger, args.contigs_dir, meta_output_dir, error_file_path)
 
-    for system_file in os.listdir(data_path):
+    for system_file in os.listdir(primary_data_path):
         if system_file.startswith(('.', '_')):
-            system_file_path = os.path.join(data_path, system_file)
+            system_file_path = os.path.join(primary_data_path, system_file)
             logger.warning(f'Removing system file: {system_file_path}')
             remove_path(logger, system_file_path)
+
+    # copies input contigs_dir because we edit the files and want to keep the input directory as is
+    data_path = os.path.join(output_dir, 'inputs')
+    shutil.copytree(primary_data_path, data_path, dirs_exist_ok=True)
+    logger.info(f'data_path is: {data_path}')
 
     # have to be AFTER system files removal (in the weird case a file name starts with a space)
     filename_prefixes = set()
@@ -1078,7 +1078,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
 
     # Final step_number: gather relevant results, zip them together and update html file
     logger.info(f'FINAL STEP: {"_" * 100}')
-    final_output_dir_name = f'{consts.WEBSERVER_NAME}_{run_number}_outputs'
+    final_output_dir_name = f'{consts.WEBSERVER_NAME}_outputs'
     final_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, final_output_dir_name)
     done_file_path = os.path.join(done_files_dir, f'{final_output_dir_name}.txt')
     if not os.path.exists(done_file_path):

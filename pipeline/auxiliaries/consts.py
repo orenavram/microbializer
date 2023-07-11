@@ -5,10 +5,14 @@
 import os.path
 from .flask_interface_consts import *
 
+TEST = False
 USE_CONDA = True
 IGNORE_HTML = True
 CLEAN_OUTPUTS_AFTER_RUN = False
 LOG_IN_SEPARATE_FILES = True
+PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer' if TEST else '/bioseq/microbializer_v2'
+OWNER_EMAIL = 'yairshimony@mail.tau.ac.il'
+QUEUE_FOR_JOBS = 'power-pupko'
 
 # mmseqs command work only on specific machines and this queue navigates only to them
 MMSEQS_REQUIRED_MEMORY = '60gb'

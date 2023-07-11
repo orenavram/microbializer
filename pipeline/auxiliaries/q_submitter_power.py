@@ -9,7 +9,7 @@ import argparse
 import logging
 import os
 from subprocess import call
-from . import flask_interface_consts
+from . import consts
 
 
 def generate_qsub_file(logger, queue_name, tmp_dir, cmd, prefix_name, qsub_path, CPUs):
@@ -65,7 +65,7 @@ def submit_cmds_from_file_to_q(logger, cmds_file, tmp_dir, queue_name, CPUs, dum
                 # execute the job
                 # queue_name may contain more arguments, thus the string of the cmd is generated and raw cmd is called
 
-                if flask_interface_consts.TEST:
+                if consts.TEST:
                     terminal_cmd = f'/opt/pbs/bin/qsub {qsub_path} {additional_params}'
                 else:
                     terminal_cmd = f'ssh power9login "/opt/pbs/bin/qsub {qsub_path} {additional_params}"'  # FIX by danny 5-1-2023
