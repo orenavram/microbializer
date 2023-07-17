@@ -5,7 +5,7 @@
 import os.path
 from .flask_interface_consts import *
 
-TEST = False
+TEST = True
 USE_CONDA = True
 IGNORE_HTML = True
 LOG_IN_SEPARATE_FILES = True
