@@ -4,16 +4,11 @@ from sys import argv
 import argparse
 import logging
 import os
-from Bio import SeqIO
-#from Bio.SeqUtils import CodonUsage
-import CodonUsageModified as CodonUsage
-#import CAI_Modified as CU
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 import pandas
 import numpy as np
 import time
-import pipeline_auxiliaries as pa
 import json
 from sklearn.manifold import TSNE
 from sklearn.cluster import KMeans
@@ -21,10 +16,11 @@ import umap.umap_ as umap
 from matplotlib import colors
 from matplotlib import patches as mpatches
 
-
-
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(SCRIPT_DIR))
+sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
+
+from auxiliaries.pipeline_auxiliaries import get_job_logger
+
 
 def getWData(output_file):
     WData = {}
@@ -298,8 +294,6 @@ def get_CAI_Data(output_file):
     plt.close()
 
 
-    
-
 if __name__ == '__main__':
     script_run_message = f'Starting command is: {" ".join(argv)}'
     print(script_run_message)
@@ -311,11 +305,10 @@ if __name__ == '__main__':
     parser.add_argument('output_file', help= 'path to output location')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
 
-
     args = parser.parse_args()
 
     level = logging.INFO
-    logger = pa.get_job_logger(args.logs_dir, level)
+    logger = get_job_logger(args.logs_dir, level)
     logger.info(script_run_message)
 
 

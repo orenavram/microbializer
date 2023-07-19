@@ -6,23 +6,31 @@ import logging
 import os
 from Bio import SeqIO
 import CodonUsageModified as CodonUsage
-import pipeline_auxiliaries as pa
 import json
 
-def create_blast_DB(ORF_file_path, logger):
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
+
+from auxiliaries.pipeline_auxiliaries import get_job_logger
+from auxiliaries import consts
+
+HITS_TO_KEEP_FOR_EACH_REFERENCE_HEG = 3
+
+
+def create_blast_db(ORF_file_path, logger):
     """
     input: file path to nucleotide fasta of open reading frames
 
-    output: nucleotide blast DB based on the reference sequence
+    output: nucleotide blast DB based
     """
     output_file = ORF_file_path + '.db'
     dbtype = "nucl"
     cmd = 'makeblastdb -in {} -out {} -dbtype {}'.format(ORF_file_path, output_file, dbtype)
     logger.info('Making blastdb with command: ' + cmd)
-    subprocess.run(cmd, shell = True)
+    subprocess.run(cmd, shell=True)
 
 
-def blast_with_HEG(ORF_file_path, HEG_reference_file, logger):
+def blast_with_HEG(ORF_file_path, logger):
     """
     input: file path to nucleotide fasta of open reading frames
 
@@ -30,17 +38,15 @@ def blast_with_HEG(ORF_file_path, HEG_reference_file, logger):
     """
     output_file = ORF_file_path + "_HEG_hits"
     database = ORF_file_path + '.db'
-    NUMBER_BLAST_HITS = 3
 
-    cmd = f'tblastn -db {database} -query {HEG_reference_file} -out {output_file} -outfmt 6 -max_target_seqs {NUMBER_BLAST_HITS}'
+    cmd = f'tblastn -db {database} -query {consts.HEGS_ECOLI_FILE_PATH} -out {output_file} -outfmt 6 -max_target_seqs {HITS_TO_KEEP_FOR_EACH_REFERENCE_HEG}'
     logger.info("Finding Hits with command: \n" + cmd)
-    subprocess.run(cmd, shell = True)
+    subprocess.run(cmd, shell=True)
 
-    #Delete Blastdb
+    # Delete Blastdb
     cmd = f'rm {ORF_file_path}.*'
     logger.info("Cleaning directory with command: " + cmd)
-    subprocess.run(cmd, shell = True)
-
+    subprocess.run(cmd, shell=True)
 
 
 def get_hits_only(ORF_file_path, logger):
@@ -49,14 +55,14 @@ def get_hits_only(ORF_file_path, logger):
 
     output: isolate the sequence ids of the hits
     """
-    #Get sequence names in a temporary file
+    # Get sequence names in a temporary file
     blastfile = ORF_file_path + "_HEG_hits"
     hits_only_file = ORF_file_path + "_HEG_hits_only.txt"
     cmd = f'cut -f 2 {blastfile} | sort -u > {hits_only_file}'
     subprocess.run(cmd, shell = True)
     logger.info("getting sequence names into "+ hits_only_file)
 
-    #Remove Blast Output File
+    # Remove Blast Output File
     cmd = f'rm {blastfile}'
     subprocess.run(cmd, shell = True)
     logger.info("removing blast file " + blastfile)
@@ -91,6 +97,7 @@ def make_HEF_fa(ORF_file_path, logger, output_file):
     subprocess.run(cmd, shell = True)
     logger.info("moving temporary file "+ hits_only_file)
 
+
 def save_index(output_file, genomeIndex, filename, filepath):
 
     filepath = (output_file + "/genomeIndex")
@@ -102,7 +109,6 @@ def save_index(output_file, genomeIndex, filename, filepath):
 
     with open(file, "w") as file:
         json.dump(genomeIndex.index, file)
-
 
 
 def calculate_codon_bias(filepath, filename, logger, output_file):
@@ -122,43 +128,38 @@ def calculate_codon_bias(filepath, filename, logger, output_file):
     subprocess.run(cmd, shell = True)
     logger.info("removing HEF fasta file "+ filepath + "_HEG.fa")
 
-def get_W(ORF_dir, OG_dir, HEG_reference_file, output_file, logger, filename):
-    logger.info("Getting HEGs from genome: "+ str(filename))
 
-    filepath = ORF_dir + '/' + filename
+def get_W(ORFs_file, output_file, logger):
+    logger.info("Getting HEGs from the ORFs file: " + str(ORFs_file))
 
-    #Create Blast Database for each Genome
-    create_blast_DB(filepath, logger)
+    # Create Blast Database from the ORFs file
+    create_blast_db(ORFs_file, logger)
 
-    #Identify HEG in each genome
-    blast_with_HEG(filepath, HEG_reference_file, logger)
-    get_hits_only(filepath, logger)
-    make_HEF_fa(filepath, logger, output_file)
+    # Identify HEGs in the ORFs file
+    blast_with_HEG(ORFs_file, logger)
+    get_hits_only(ORFs_file, logger)
+    make_HEF_fa(ORFs_file, logger, output_file)
 
-
-    #Find Codon bias of HEGs
+    # Find Codon bias of HEGs
     calculate_codon_bias(filepath, filename, logger, output_file)
+
 
 if __name__ == '__main__':
     script_run_message = f'Starting command is: {" ".join(argv)}'
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('ORF_dir', help='path to input fasta directory')
-    parser.add_argument('OG_dir', help='path to input Orthologous group directory')
-    parser.add_argument('HEG_reference_file', help='path to file of highly expressed bacterial genes')
-    parser.add_argument('output_file', help= 'path to output location')
-    parser.add_argument('file', help= 'Number of genome that will be calculated')
+    parser.add_argument('ORF_file', help='path to input ORF file')
+    parser.add_argument('output_dir', help='path to output dir')
+    parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
-
-
     args = parser.parse_args()
 
-    level = logging.INFO
-    logger = pa.get_job_logger(args.logs_dir, level)
+    level = logging.DEBUG if args.verbose else logging.INFO
+    logger = get_job_logger(args.logs_dir, level)
 
     logger.info(script_run_message)
     try:
-        get_W(args.ORF_dir, args.OG_dir, args.HEG_reference_file, args.output_file, logger, args.file)
+        get_W(args.ORF_file, args.output_dir, logger)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
