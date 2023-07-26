@@ -7,6 +7,7 @@ import os
 from Bio import SeqIO
 import CodonUsageModified as CodonUsage
 import json
+import pandas as pd
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
@@ -14,134 +15,89 @@ sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
 from auxiliaries.pipeline_auxiliaries import get_job_logger
 from auxiliaries import consts
 
-HITS_TO_KEEP_FOR_EACH_REFERENCE_HEG = 3
+MAX_HITS_TO_KEEP_FOR_EACH_REFERENCE_HEG = 3
+BLAST_IDENTITY_PERCENT_THRESHOLD = 0.8
+BLAST_EVALUE_THRESHOLD = 0.01
+BLAST_OUTPUT_HEADERS = ['query', 'subject', 'identity_percent', 'alignment_length', 'mismatches', 'gap_openings',
+                        'query_start', 'query_end', 'subject_start', 'subject_end', 'evalue', 'bit_score']
 
 
-def create_blast_db(ORF_file_path, logger):
+def find_HEGs_in_orf_file(ORF_file_path, tmp_dir, logger):
     """
     input: file path to nucleotide fasta of open reading frames
 
     output: nucleotide blast DB based
     """
-    output_file = ORF_file_path + '.db'
-    dbtype = "nucl"
-    cmd = 'makeblastdb -in {} -out {} -dbtype {}'.format(ORF_file_path, output_file, dbtype)
-    logger.info('Making blastdb with command: ' + cmd)
+    ORF_file_name = os.path.basename(ORF_file_path).split('.')[0]
+
+    # Create blast db from ORF file
+    db_name = os.path.join(tmp_dir, ORF_file_name + '.db')
+    cmd = f'makeblastdb -in {ORF_file_path} -out {db_name} -dbtype nucl'
+    logger.info('Making blastdb with command: \n' + cmd)
     subprocess.run(cmd, shell=True)
 
-
-def blast_with_HEG(ORF_file_path, logger):
-    """
-    input: file path to nucleotide fasta of open reading frames
-
-    output: 40 highest match hits from a tblastn with the ecoli reference query
-    """
-    output_file = ORF_file_path + "_HEG_hits"
-    database = ORF_file_path + '.db'
-
-    cmd = f'tblastn -db {database} -query {consts.HEGS_ECOLI_FILE_PATH} -out {output_file} -outfmt 6 -max_target_seqs {HITS_TO_KEEP_FOR_EACH_REFERENCE_HEG}'
+    # Query blast db with ecoli HEGs reference file
+    hegs_hits_file = os.path.join(tmp_dir, ORF_file_name + '_HEG_hits.tsv')
+    cmd = f'tblastn -db {db_name} -query {consts.HEGS_ECOLI_FILE_PATH} -out {hegs_hits_file} -outfmt 6 ' \
+          f'-max_target_seqs {MAX_HITS_TO_KEEP_FOR_EACH_REFERENCE_HEG}'
     logger.info("Finding Hits with command: \n" + cmd)
     subprocess.run(cmd, shell=True)
 
-    # Delete Blastdb
-    cmd = f'rm {ORF_file_path}.*'
-    logger.info("Cleaning directory with command: " + cmd)
-    subprocess.run(cmd, shell=True)
+    # Filter hits to find actual HEGs and write their names into a file
+    hegs_df = pd.read_csv(hegs_hits_file, delimiter='\t', names=BLAST_OUTPUT_HEADERS)
+    hegs_df_filtered = hegs_df.loc[(hegs_df['identity_percent'] > 80) & (hegs_df['evalue'] < 0.01)]
+    hegs_names = set(hegs_df_filtered['subject'])
+    HEGs_names_file_path = os.path.join(tmp_dir, ORF_file_name + '_HEG_hits_only.txt')
+    with open(HEGs_names_file_path, 'w') as HEGs_names_file:
+        HEGs_names_file.write('\n'.join(hegs_names))
+    logger.info("HEGs names were written into " + HEGs_names_file_path)
+
+    return HEGs_names_file_path
 
 
-def get_hits_only(ORF_file_path, logger):
-    """
-    input: file path to nucleotide fasta of open reading frames
+def make_HEGs_fasta(ORF_file_path, HEGs_names_file_path, tmp_dir, logger):
+    with open(HEGs_names_file_path, "r") as ORFs_hegs_file:
+        HEGs_names = ORFs_hegs_file.read().splitlines()
 
-    output: isolate the sequence ids of the hits
-    """
-    # Get sequence names in a temporary file
-    blastfile = ORF_file_path + "_HEG_hits"
-    hits_only_file = ORF_file_path + "_HEG_hits_only.txt"
-    cmd = f'cut -f 2 {blastfile} | sort -u > {hits_only_file}'
-    subprocess.run(cmd, shell = True)
-    logger.info("getting sequence names into "+ hits_only_file)
+    HEGs_fasta_file_content = ''
+    with open(ORF_file_path) as ORF_file:
+        ORFs_records = SeqIO.parse(ORF_file, "fasta")
+        for record in ORFs_records:
+            if record.id in HEGs_names:
+                HEGs_fasta_file_content += record.format("fasta")
 
-    # Remove Blast Output File
-    cmd = f'rm {blastfile}'
-    subprocess.run(cmd, shell = True)
-    logger.info("removing blast file " + blastfile)
+    ORFs_file_name = os.path.basename(ORF_file_path).split('.')[0]
+    HEGs_fasta_file_path = os.path.join(tmp_dir, ORFs_file_name + "_HEGs.fa")
+    with open(HEGs_fasta_file_path, "w") as HEGs_fasta_file:
+        HEGs_fasta_file.write(HEGs_fasta_file_content)
 
-
-def make_HEF_fa(ORF_file_path, logger, output_file):
-    """
-    input: file path to nucleotide fasta of open reading frames
-
-    output: fasta file containg the selected highly expressed genes
-    """
-    #Create output file
-    temp_output_file = open(ORF_file_path + "_HEG.fa", "w")
-    hits_only_file = ORF_file_path + "_HEG_hits_only.txt"
-    logger.info("Creating Outputfile ")
-
-    #Parse Sequences with
-    tempfile = open(hits_only_file, "r")
-    hits = tempfile.readlines()
-    for hit in hits:
-        with open(ORF_file_path) as handle:
-            for record in SeqIO.parse(handle, "fasta"):
-                if(hit[0:-1] == record.id):
-                   # if(record.seq.find('N'))
-                    temp_output_file.write(record.format("fasta"))
-                    break
-
-    #Move hits only file
-    if not os.path.exists(output_file):
-        os.makedirs(output_file+"/HEG_hits")
-    cmd = f'mv {hits_only_file} {output_file}/HEG_hits'
-    subprocess.run(cmd, shell = True)
-    logger.info("moving temporary file "+ hits_only_file)
+    logger.info(f'Created {HEGs_fasta_file_path} that contains the sequences of the HEGs')
+    return HEGs_fasta_file_path
 
 
-def save_index(output_file, genomeIndex, filename, filepath):
+def calculate_codon_bias(HEGs_fasta_file_path, output_dir, ORF_file_path, logger):
+    genome_index = CodonUsage.CodonAdaptationIndex()
+    genome_index.generate_index(HEGs_fasta_file_path)
 
-    filepath = (output_file + "/genomeIndex")
+    ORFs_file_name = os.path.basename(ORF_file_path).split('.')[0]
+    relative_adaptiveness_output_path = os.path.join(output_dir, ORFs_file_name + "_relative_adaptiveness.txt")
 
-    if not os.path.exists(filepath):
-        os.makedirs(filepath)
+    with open(relative_adaptiveness_output_path, "w") as relative_adaptiveness_file:
+        json.dump(genome_index.index, relative_adaptiveness_file)
 
-    file = filepath + "/" + filename[0:-8]
-
-    with open(file, "w") as file:
-        json.dump(genomeIndex.index, file)
-
-
-def calculate_codon_bias(filepath, filename, logger, output_file):
-    """
-    input: file path to nucleotide fasta of the highly expressed genes
-           name of the ORF file
-
-    output: fasta file containg the selected highly expressed genes
-    """
-
-    genomeIndex = CodonUsage.CodonAdaptationIndex()
-    genomeIndex.generate_index(filepath + "_HEG.fa")
-
-    save_index(output_file, genomeIndex, filename, filepath)
-
-    cmd = f'rm {filepath}_HEG.fa'
-    subprocess.run(cmd, shell = True)
-    logger.info("removing HEF fasta file "+ filepath + "_HEG.fa")
+    logger.info(f'Calculated the relative adaptiveness of codons (W vector) for HEGs file {HEGs_fasta_file_path}, '
+                f'and saved it in {relative_adaptiveness_output_path}')
 
 
-def get_W(ORFs_file, output_file, logger):
+def get_W(ORFs_file, output_dir, tmp_dir, logger):
     logger.info("Getting HEGs from the ORFs file: " + str(ORFs_file))
 
-    # Create Blast Database from the ORFs file
-    create_blast_db(ORFs_file, logger)
-
     # Identify HEGs in the ORFs file
-    blast_with_HEG(ORFs_file, logger)
-    get_hits_only(ORFs_file, logger)
-    make_HEF_fa(ORFs_file, logger, output_file)
+    HEGs_names_file_path = find_HEGs_in_orf_file(ORFs_file, tmp_dir, logger)
+    HEGs_fasta_file_path = make_HEGs_fasta(ORFs_file, HEGs_names_file_path, tmp_dir, logger)
 
     # Find Codon bias of HEGs
-    calculate_codon_bias(filepath, filename, logger, output_file)
+    calculate_codon_bias(HEGs_fasta_file_path, output_dir, ORFs_file, logger)
 
 
 if __name__ == '__main__':
@@ -151,6 +107,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('ORF_file', help='path to input ORF file')
     parser.add_argument('output_dir', help='path to output dir')
+    parser.add_argument('tmp_dir', help='path to output dir')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     args = parser.parse_args()
@@ -160,6 +117,6 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        get_W(args.ORF_file, args.output_dir, logger)
+        get_W(args.ORF_file, args.output_dir, args.tmp_dir, logger)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')

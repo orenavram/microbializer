@@ -10,7 +10,7 @@
 import math
 import warnings
 #from Bio.SeqUtils.CodonUsageIndices import SharpEcoliIndex
-#from Bio import SeqIO  # To parse a FASTA file
+from Bio import SeqIO  # To parse a FASTA file
 from Bio import BiopythonDeprecationWarning
 
 
