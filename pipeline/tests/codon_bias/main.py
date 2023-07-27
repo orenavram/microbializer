@@ -109,7 +109,6 @@ def create_2D_vector(output_file, WData, gene_number):
     print("Time for PCA:", time.time() - start_time)
 
 
-
 def create_2D_TSNE_vector(output_file, WData):
     start_time = time.time()
     """
@@ -160,6 +159,7 @@ def create_2D_TSNE_vector(output_file, WData):
     plt.savefig(filepath)
     plt.close()
     print("Time for t-SNE:", time.time() - start_time)
+
 
 def create_2D_UMAP_vector(output_file, WData):
     start_time = time.time()
@@ -239,7 +239,6 @@ def create_2D_UMAP_vector(output_file, WData):
     plt.close()
     print("Time for UMAP:", time.time() - start_time)
 
-      
 
 def get_CAI_Data(output_file):
     """
@@ -301,8 +300,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('ORF_dir', help='path to input fasta directory')
     parser.add_argument('OG_dir', help='path to input Orthologous group directory')
-    parser.add_argument('HEG_reference_file', help='path to file of highly expressed bacterial genes')
-    parser.add_argument('output_file', help= 'path to output location')
+    parser.add_argument('output_dir', help='path to output directory')
+    parser.add_argument('tmp_dir', help='path to tmp directory')
+    parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
 
     args = parser.parse_args()

@@ -14,56 +14,41 @@ sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
 from auxiliaries.pipeline_auxiliaries import get_job_logger
 
 
-def getIndexDict(output_file):
-    WDict = {}
-    filepath = output_file + '/genomeIndex/'
-    filedir = os.listdir(filepath)
-    for filename in filedir: 
-        with open(filepath + filename, "r") as file:
-            index = json.load(file)
-            genomeIndex = CodonUsage.CodonAdaptationIndex()
-            genomeIndex.set_cai_index(index)
-            WDict[filename] = genomeIndex
-    return WDict
+def get_genome_to_CAIHandler(W_dir):
+    genome_to_CAIHandler = {}
+    for file_name in os.listdir(W_dir):
+        with open(os.path.join(W_dir, file_name), "r") as genome_W_file:
+            genome_W = json.load(genome_W_file)
+            CAI_handler = CodonUsage.CodonAdaptationIndex()
+            CAI_handler.set_cai_index(genome_W)
+            genome_name = os.path.splitext(file_name)[0]
+            genome_to_CAIHandler[genome_name] = CAI_handler
 
-def calculate_cai(OG_dir, output_file, start, stop, logdir):
-    WDict = getIndexDict(output_file)
-    fileList = os.listdir(OG_dir)
-    
-    start = int(start)
-    stop = int(stop)
+    return genome_to_CAIHandler
 
-    
-    for i in range(stop - start):
-        CAI = {}
-        CAI_arr = []
-        
-        if(i + start >= len(fileList)):
-            break
-        
-        with open(OG_dir + "/" + fileList[start + i]) as handle:
-            for record in SeqIO.parse(handle, "fasta"):
-                CAI[record.id] = (WDict[record.id].cai_for_gene(record.seq))
-                CAI_arr.append((WDict[record.id].cai_for_gene(record.seq)))
-                
-        write_to_file(output_file, CAI, CAI_arr, fileList[start + i])
-            
-    
-def write_to_file(output_file, CAI, CAI_arr, filename):
-    #Check to see if file exists
-    filepath = (output_file + "/OG_CAIs")
-    
-    if not os.path.exists(filepath):
-        os.makedirs(filepath)
-        
-    with open(filepath + "/" + filename, 'w') as file:
-        line = f"Mean: {np.mean(CAI_arr)} STD: {np.std(CAI_arr)}"
-        file.write(line + "\n")
 
-        for value in CAI:
-           line = f'{value} {CAI[value]}'
-           file.write(line + "\n")
-        
+def calculate_cai(OG_dir, W_dir, OG_start_index, OG_stop_index, output_dir, logger):
+    genome_to_CAIHandler = get_genome_to_CAIHandler(W_dir)
+    logger.info(f'Read {len(genome_to_CAIHandler)} W vectors from {W_dir}')
+
+    for OG_index in range(OG_start_index, OG_stop_index + 1):
+        cai_info = {}
+        OG_path = os.path.join(OG_dir, f'og_{OG_index}_dna.fas')
+        with open(OG_path, 'r') as OG_file:
+            for record in SeqIO.parse(OG_file, "fasta"):
+                genome_name = record.id
+                cai_info[genome_name] = genome_to_CAIHandler[genome_name].cai_for_gene(record.seq)
+
+        cai_values = cai_info.values()
+        cai_info['mean'] = np.mean(cai_values)
+        cai_info['std'] = np.std(cai_values)
+
+        output_file_path = os.path.join(output_dir, f'og_{OG_index}_cai.json')
+        with open(output_file_path, 'w') as output_file:
+            json.dump(cai_info, output_file)
+
+    logger.info(f'Wrote CAI info for OGs {OG_start_index} - {OG_stop_index} into {output_dir}')
+
 
 if __name__ == '__main__':
     script_run_message = f'Starting command is: {" ".join(argv)}'
@@ -71,18 +56,19 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('OG_dir', help='path to input Orthologous group directory')
-    parser.add_argument('output_file', help= 'path to output location')
-    parser.add_argument('start', help= 'starting index of file (inclusive)')
-    parser.add_argument('stop', help= 'stopping index of file')
+    parser.add_argument('W_dir', help='path to input relative adaptiveness (W vectors) directory')
+    parser.add_argument('start', help='starting index of file')
+    parser.add_argument('stop', help='stopping index of file (inclusive)')
+    parser.add_argument('output_dir', help='path to output dir')
+    parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
-
     args = parser.parse_args()
 
-    level = logging.INFO
+    level = logging.DEBUG if args.verbose else logging.INFO
     logger = get_job_logger(args.logs_dir, level)
 
     logger.info(script_run_message)
     try:
-        calculate_cai(args.OG_dir, args.output_file, args.start, args.stop, args.logs_dir)
+        calculate_cai(args.OG_dir, args.W_dir, int(args.start), int(args.stop), args.output_dir, logger)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')

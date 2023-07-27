@@ -80,7 +80,7 @@ def calculate_codon_bias(HEGs_fasta_file_path, output_dir, ORF_file_path, logger
     genome_index.generate_index(HEGs_fasta_file_path)
 
     ORFs_file_name = os.path.basename(ORF_file_path).split('.')[0]
-    relative_adaptiveness_output_path = os.path.join(output_dir, ORFs_file_name + "_relative_adaptiveness.txt")
+    relative_adaptiveness_output_path = os.path.join(output_dir, ORFs_file_name + ".json")
 
     with open(relative_adaptiveness_output_path, "w") as relative_adaptiveness_file:
         json.dump(genome_index.index, relative_adaptiveness_file)
