@@ -312,6 +312,8 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     missing_orfs = 0
     error_msg = ''
     for file in sorted(os.listdir(orfs_dir)):
+        if '02_ORFs' not in file:  # Ignore system files that are automatically created sometimes
+            continue
         try:
             with open(os.path.join(orfs_dir, file), 'rb', 0) as orf_f, mmap.mmap(orf_f.fileno(), 0,
                                                                                  access=mmap.ACCESS_READ) as s:
@@ -761,6 +763,37 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=60)
+
+    # 12_5  codon_bias.py
+    # Input: ORF dir and OG dir
+    # Output: W_vectors, CAI for each OG
+    step_number = '12_5'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_codon_bias'
+    script_path = os.path.join(args.src_dir, 'tests/codon_bias/main.py')
+    codon_bias_output_dir_path, codon_bias_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        logger.info('Analyzing codon bias...')
+        params = [
+            orfs_dir,
+            orthologs_dna_sequences_dir_path,
+            codon_bias_output_dir_path,
+            codon_bias_tmp_dir,
+            args.src_dir,
+            args.queue_name,
+            error_file_path
+        ]
+        submit_mini_batch(logger, script_path, [params], codon_bias_tmp_dir,
+                          args.queue_name, job_name='codon_bias')
+
+        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], codon_bias_tmp_dir,
+                         num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
+
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+    edit_progress(output_html_path, progress=65)
 
     # 13.  translate_fna_to_faa.py
     # Input: path to fna file and an faa file

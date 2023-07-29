@@ -107,7 +107,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('ORF_file', help='path to input ORF file')
     parser.add_argument('output_dir', help='path to output dir')
-    parser.add_argument('tmp_dir', help='path to output dir')
+    parser.add_argument('tmp_dir', help='path to tmp dir')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     args = parser.parse_args()

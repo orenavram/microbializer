@@ -1,88 +1,63 @@
-import subprocess
 import sys
 from sys import argv
 import argparse
 import logging
 import os
-from sklearn.decomposition import PCA
-import matplotlib.pyplot as plt
-import pandas
-import numpy as np
+import re
 import time
 import json
+
+import matplotlib.pyplot as plt
+from matplotlib import colors, patches as mpatches
+import pandas as pd
+import numpy as np
 from sklearn.manifold import TSNE
 from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
 import umap.umap_ as umap
-from matplotlib import colors
-from matplotlib import patches as mpatches
+
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger
+from auxiliaries.pipeline_auxiliaries import get_job_logger, prepare_directories, submit_batch, wait_for_results
+from calculate_cai import get_genome_to_W_vector
 
 
-def getWData(output_file):
-    WData = {}
-    filepath = output_file + '/genomeIndex/'
-    filedir = os.listdir(filepath)
-    for filename in filedir: 
-        with open(filepath + filename, "r") as file:
-            genomeIndex = json.load(file)
-            WData[filename] = genomeIndex
-    return WData
-    
-
-def create_2D_vector(output_file, WData, gene_number):
+def visualize_Ws_with_PCA(W_vectors, output_dir, logger):
     """
-    input: location of output file
-    Dictionary with genome and Condon Adaption Index 
-    fileList of highly expressed nucleotide fastas
-   
-    output: 2D vector (reduced with t-SNE) Clustered with Kmeans
+    output: 2D vectors (reduced with PCA) clustered with Kmeans
     """
     start_time = time.time()
 
-    # Create output directory if it doesn't exist
-    if not os.path.exists(output_file):
-        os.makedirs(output_file)
-
-    # Define file paths
-    filepath = os.path.join(output_file, 'genomeIndex')
-    points_filepath = os.path.join(output_file, 'point_labels.csv')
-
-    # Get list of file names
-    fileList = os.listdir(filepath)
-
-    # Perform PCA dimensionality reduction
-    dataframe = pandas.DataFrame(WData).transpose()
-    values = dataframe.values
-
+    Ws_df = pd.DataFrame(W_vectors).transpose()
+    Ws_values = Ws_df.values
 
     # Perform K-means clustering
-    print(gene_number)
-    if(gene_number > 75):
+    genome_count = len(W_vectors)
+    print(genome_count)
+    if genome_count > 75:
         n_clusters = 5
-    elif(gene_number > 30):
+    elif genome_count > 30:
         n_clusters = 4
     else:
         n_clusters = 3
     kmeans = KMeans(n_clusters=n_clusters, random_state=42)
-    cluster_labels = kmeans.fit_predict(values)
+    cluster_labels = kmeans.fit_predict(Ws_values)
 
-    # Perform PCA
+    # Perform PCA dimensionality reduction
     pca = PCA(n_components=2)
-    values_reduced = pca.fit_transform(values)
+    Ws_values_reduced = pca.fit_transform(Ws_values)
     
     # Normalize cluster values for consistent colormap
     norm = colors.Normalize(vmin=0, vmax=n_clusters-1)
 
     # Create the scatter plot with color-coded clusters
-    x = values_reduced[:, 0]
-    y = values_reduced[:, 1]
+    x = Ws_values_reduced[:, 0]
+    y = Ws_values_reduced[:, 1]
     plt.axis('equal')
     scatter = plt.scatter(x, y, c=cluster_labels, cmap='viridis', alpha=0.4)
-    plt.title("Relative Adaptiveness(W)")
+    plt.title("Relative Adaptiveness (W vectors)")
     
     cluster_legend = []
     for cluster in range(n_clusters):
@@ -92,21 +67,15 @@ def create_2D_vector(output_file, WData, gene_number):
         
     plt.legend(handles=cluster_legend)
 
-
-    # Make sure output file exists
-    if not os.path.exists(output_file):
-        os.makedirs(output_file)
-
-    filepath = os.path.join(output_file, 'Relative_Adaptiveness_scatter_plot.png')
-    # Save plot to output file
-    plt.savefig(filepath)
+    # Save plot to output_dir
+    plt.savefig(os.path.join(output_dir, 'Relative_Adaptiveness_scatter_plot.png'))
     plt.close()
 
     # Save point labels and coordinates to file
-    point_labels_df = pandas.DataFrame({'Genome': fileList, 'X': x, 'Y': y, 'Cluster': cluster_labels+1})
-    point_labels_df.to_csv(points_filepath, index=False)
+    point_labels_df = pd.DataFrame({'Genome': list(W_vectors.keys()), 'X': x, 'Y': y, 'Cluster': cluster_labels + 1})
+    point_labels_df.to_csv(os.path.join(output_dir, 'point_labels.csv'), index=False)
 
-    print("Time for PCA:", time.time() - start_time)
+    logger.info("Time for PCA:", time.time() - start_time)
 
 
 def create_2D_TSNE_vector(output_file, WData):
@@ -118,7 +87,7 @@ def create_2D_TSNE_vector(output_file, WData):
     """
     filepath = os.path.join(output_file, 'genomeIndex')
     fileList = os.listdir(filepath)
-    dataframe = pandas.DataFrame(WData)
+    dataframe = pd.DataFrame(WData)
     dataframe = dataframe.transpose()
 
     reducer = TSNE(n_components=2, random_state=42, perplexity=2)  # 2 components used to reduce to 2 dimensions
@@ -170,7 +139,7 @@ def create_2D_UMAP_vector(output_file, WData):
     """
     filepath = os.path.join(output_file, 'genomeIndex')
     fileList = os.listdir(filepath)
-    dataframe = pandas.DataFrame(WData)
+    dataframe = pd.DataFrame(WData)
     dataframe = dataframe.transpose()
 
 
@@ -240,57 +209,100 @@ def create_2D_UMAP_vector(output_file, WData):
     print("Time for UMAP:", time.time() - start_time)
 
 
-def get_CAI_Data(output_file):
+def get_CAI_Data(cai_dir, output_dir):
     """
     input:
-    location of output file to access individually calculated CAI data
+    location of output dir to access individually calculated CAI data
    
     output: Histogram of CAI distribution and table of mean and standard
     deviation for each orthologous group
     """
-    
-    filepath = output_file + "/OG_CAIs"
-    fileList = os.listdir(filepath)
-    
+
+    # Iterate through the directory of OG group CAIs and extract data
     CAI_Data = {}
-    
-    #Iterate through the directory of OG group CAIs and extract data
-    for filename in fileList:
-        with open(filepath + "/" + filename, 'r') as file:
-            line = file.readline() #Read in the first line
-            #Get the mean of the orthologous group
-            mean = float(line[line.index("Mean:")+5:line.index("STD:")].strip())
-            #Get the standard deviation of the orthologous group
-            std = float(line[line.index("STD:")+4:].strip())
-            CAI_Data[filename] = {"mean": mean, "std": std}
-    
-    sorted_CAI_Data = sorted(CAI_Data.items(), key=lambda x: x[1]["mean"], reverse=True)
+    for filename in os.listdir(cai_dir):
+        with open(os.path.join(cai_dir, filename), 'r') as cai_file:
+            cai_info = json.load(cai_file)
+            og_name = re.compile(r'(og_\d+)_cai.json').match(filename).group(1)
+            CAI_Data[og_name] = {"mean": cai_info["mean"], "std": cai_info["std"]}
 
-    entries = [[filename, data["mean"], data["std"]] for filename, data in sorted_CAI_Data]
+    cai_df = pd.DataFrame(data=CAI_Data).transpose()
+    cai_df.sort_values("mean", ascending=False, inplace=True)
+    cai_df.to_csv(os.path.join(output_dir, "CAI_Table.csv"), index_label='Orthologous Group name')
 
-    header = ["Orthologous Group", "Mean", "Std"]
-
-    entries.insert(0, header)
-    data_array = np.array(entries)
-    
-    np.savetxt(output_file + "/" + "CAI_Table.csv", data_array, delimiter=",", fmt="%s")
-
-    #Create plot parameters
+    # Create histogram of CAI values
     plt.title("CAI distribution across OGs")
-    plt.xlabel('Value')
+    plt.xlabel('CAI value')
     plt.ylabel('Frequency')
     plt.axis('auto')
-    
-    #Isolate the means
-    means = [data[1]["mean"] for data in sorted_CAI_Data]
-    
-    #Plot the means
-    plt.hist(means, bins=30)
-    
-    #Save the Histogram as a png
-    filepath = os.path.join(output_file, 'CAI_Histogram.png')
-    plt.savefig(filepath)
+    plt.hist(cai_df["mean"], bins=30)
+    plt.savefig(os.path.join(output_dir, 'CAI_Histogram.png'))
     plt.close()
+
+
+def analyze_codon_bias(ORF_dir, OG_dir, output_dir, tmp_dir, src_dir, queue_name, error_file_path, logger):
+    # 1. Calculate Ws
+    step_number = '12_5_a'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_get_W'
+    script_path = os.path.join(src_dir, 'tests/codon_bias/get_W.py')
+    W_output_dir, W_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+
+    all_cmds_params = []
+    for orf_file_name in os.listdir(ORF_dir):
+        if '02_ORFs' not in orf_file_name:  # Ignore system files that are automatically created sometimes
+            continue
+        orf_file_path = os.path.join(ORF_dir, orf_file_name)
+        single_cmd_params = [orf_file_path,
+                             W_output_dir,
+                             W_tmp_dir]
+        all_cmds_params.append(single_cmd_params)
+
+    num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, W_tmp_dir,
+                                               num_of_cmds_per_job=10,
+                                               job_name_suffix='calc_W',
+                                               queue_name=queue_name)
+
+    # Passing logger also as times_logger since there is no convenient way here to get times_logger file path
+    wait_for_results(logger, logger, os.path.split(script_path)[-1], W_tmp_dir,
+                     num_of_batches, error_file_path)
+
+    # 2. Make Graph
+    W_vectors = get_genome_to_W_vector(W_output_dir)
+    visualize_Ws_with_PCA(W_vectors, output_dir, logger)
+
+    # 3. Calculate CAIS
+    step_number = '12_5_b'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_calc_CAI'
+    script_path = os.path.join(src_dir, 'tests/codon_bias/calculate_cai.py')
+    cai_output_dir, cai_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+
+    all_cmds_params = []
+    number_of_ogs_per_job = 100
+    start_og_index = 0
+    max_og_index = len(os.listdir(args.OG_dir)) - 1
+    while start_og_index <= max_og_index:
+        stop_og_index = min(start_og_index + number_of_ogs_per_job - 1, max_og_index)
+        single_cmd_params = [OG_dir,
+                             W_output_dir,
+                             start_og_index,
+                             stop_og_index,
+                             cai_output_dir]
+        all_cmds_params.append(single_cmd_params)
+        start_og_index += number_of_ogs_per_job
+
+    num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, cai_tmp_dir,
+                                               num_of_cmds_per_job=1,
+                                               job_name_suffix='calc_cai',
+                                               queue_name=queue_name)
+
+    # Passing logger also as times_logger since there is no convenient way here to get times_logger file path
+    wait_for_results(logger, logger, os.path.split(script_path)[-1], cai_tmp_dir,
+                     num_of_batches, error_file_path)
+
+    # 4. Make CAI table and histogram
+    get_CAI_Data(cai_output_dir, output_dir)
 
 
 if __name__ == '__main__':
@@ -302,76 +314,19 @@ if __name__ == '__main__':
     parser.add_argument('OG_dir', help='path to input Orthologous group directory')
     parser.add_argument('output_dir', help='path to output directory')
     parser.add_argument('tmp_dir', help='path to tmp directory')
+    parser.add_argument('src_dir', help='path to pipeline directory')
+    parser.add_argument('queue_name', help='queue to submit jobs to')
+    parser.add_argument('error_file_path', help='path to error file')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
-
     args = parser.parse_args()
 
-    level = logging.INFO
+    level = logging.DEBUG if args.verbose else logging.INFO
     logger = get_job_logger(args.logs_dir, level)
+
     logger.info(script_run_message)
-
-
-    output_dir = args.output_file
-    tmp_dir = "/temp_dir"
-    done_files_dir= "/done"
-    
-    '''
-    if not os.path.exists(tmp_dir):
-        os.makedirs(tmp_dir)
-    
-    #create a done file -- change later
-    if not os.path.exists(tmp_dir):
-        os.makedirs(done_files_dir)
-    
-    step_number = '98'
-    logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_find_W'
-    script_path_one = os.path.join(args.src_dir, 'steps/find_W')
-    script_path_two = os.path.join(args.src_dir, 'steps/find_CAI')
-    
-    orthologs_aa_sequences_dir_path, pipeline_step_tmp_dir = pa.prepare_directories(logger, output_dir, tmp_dir, step_name)
-    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt') 
-    '''
-    
-    #1. Calculate Ws
-    ORF_fileList = os.listdir(args.ORF_dir) #list of genomes
-    #Send a 'batch' to find the W for each 
-    for file in ORF_fileList:
-        #change logdir
-        cmd = f'python /scratch/brown/gdurante/codonBias/get_W.py {args.ORF_dir} {args.OG_dir} {args.HEG_reference_file} {args.output_file} {file} --logs_dir logsdir'
-        logger.info('calling batch' + cmd)
-        subprocess.run(cmd, shell = True)  
-    
-    
-    #2. Make Graph
-    ORF_fileList = os.listdir(args.ORF_dir) #list of genomes
-    WData = {}
-    WData = getWData(args.output_file)
-    create_2D_vector(args.output_file, WData, len(ORF_fileList))
-    
-    
-    
-    #3. Calculate CAIS
-    NUMBER_OF_JOBS = 10
-    NUMBER_PER_JOB = int(len(os.listdir(args.OG_dir)) / (NUMBER_OF_JOBS-1))
-    
-    for i in range(NUMBER_OF_JOBS):
-        start = i *NUMBER_PER_JOB
-        stop = (i * NUMBER_PER_JOB) + NUMBER_PER_JOB
-
-        cmd = f'python /scratch/brown/gdurante/codonBias/calculate_cai.py {args.OG_dir} {args.output_file} {start} {stop} --logs_dir {args.logs_dir}'
-        logger.info('calling batch' + cmd)
-        subprocess.run(cmd, shell = True)
-        
-    
-    #4. Make graph and table     
-    get_CAI_Data(args.output_file)
-    
-    
-
-
-
-   
-    
-    
+    try:
+        analyze_codon_bias(args.ORF_dir, args.OG_dir, args.output_dir, args.tmp_dir, args.src_dir, args.queue_name,
+                           args.error_file_path, logger)
+    except Exception as e:
+        logger.exception(f'Error in {os.path.basename(__file__)}')

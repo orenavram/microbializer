@@ -14,32 +14,39 @@ sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
 from auxiliaries.pipeline_auxiliaries import get_job_logger
 
 
-def get_genome_to_CAIHandler(W_dir):
-    genome_to_CAIHandler = {}
+def get_genome_to_W_vector(W_dir):
+    genome_to_W_vector = {}
     for file_name in os.listdir(W_dir):
         with open(os.path.join(W_dir, file_name), "r") as genome_W_file:
             genome_W = json.load(genome_W_file)
-            CAI_handler = CodonUsage.CodonAdaptationIndex()
-            CAI_handler.set_cai_index(genome_W)
             genome_name = os.path.splitext(file_name)[0]
-            genome_to_CAIHandler[genome_name] = CAI_handler
+            genome_to_W_vector[genome_name] = genome_W
 
-    return genome_to_CAIHandler
+    return genome_to_W_vector
+
+
+def W_vector_to_CAIHandler(W_vector):
+    CAI_handler = CodonUsage.CodonAdaptationIndex()
+    CAI_handler.set_cai_index(W_vector)
+    return CAI_handler
 
 
 def calculate_cai(OG_dir, W_dir, OG_start_index, OG_stop_index, output_dir, logger):
-    genome_to_CAIHandler = get_genome_to_CAIHandler(W_dir)
+    genome_to_W_vector = get_genome_to_W_vector(W_dir)
+    genome_to_CAIHandler = {genome_name: W_vector_to_CAIHandler(W_vector)
+                            for genome_name, W_vector in genome_to_W_vector.items()}
     logger.info(f'Read {len(genome_to_CAIHandler)} W vectors from {W_dir}')
 
     for OG_index in range(OG_start_index, OG_stop_index + 1):
         cai_info = {}
         OG_path = os.path.join(OG_dir, f'og_{OG_index}_dna.fas')
+
         with open(OG_path, 'r') as OG_file:
             for record in SeqIO.parse(OG_file, "fasta"):
                 genome_name = record.id
                 cai_info[genome_name] = genome_to_CAIHandler[genome_name].cai_for_gene(record.seq)
 
-        cai_values = cai_info.values()
+        cai_values = list(cai_info.values())
         cai_info['mean'] = np.mean(cai_values)
         cai_info['std'] = np.std(cai_values)
 
