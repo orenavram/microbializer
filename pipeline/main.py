@@ -770,7 +770,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     step_number = '12_5'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_codon_bias'
-    script_path = os.path.join(args.src_dir, 'tests/codon_bias/main.py')
+    script_path = os.path.join(args.src_dir, 'steps/codon_bias/main.py')
     codon_bias_output_dir_path, codon_bias_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
