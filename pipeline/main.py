@@ -663,6 +663,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
 
     logger.info(f'A total of {len(os.listdir(previous_pipeline_step_output_dir))} clusters were analyzed. '
                 f'{len(os.listdir(pipeline_step_output_dir))} clusters were produced.')
+
     # 11.	construct_final_orthologs_table.py
     # Input: (1) a path for directory with all the verified OGs (2) an output path to a final OGs table.
     # Output: aggregates all the well-clustered OGs to the final table.
