@@ -57,7 +57,7 @@ def fix_orthoxml_output_file(orthoxml_file_path):
         oxml_file.write(fixed_content)
 
 
-def build_orthoxml_and_tsv_output(logger, og_table_path, orthoxml_output_file, tsv_output_file, qfo_benchmark=False):
+def build_orthoxml_and_tsv_output(logger, og_table_path, output_dir, qfo_benchmark=False):
     logger.info(f'Start to build orthoxml output based on {og_table_path}')
 
     df = pd.read_csv(og_table_path)
@@ -113,13 +113,15 @@ def build_orthoxml_and_tsv_output(logger, og_table_path, orthoxml_output_file, t
         ortholog_groups.append(ortholog_group_list)
 
     # export orthoXML document to output_file
-    with open(orthoxml_output_file, "w") as oxml_file:
+    orthoxml_output_file_path = os.path.join(output_dir, 'orthologs.orthoxml')
+    with open(orthoxml_output_file_path, "w") as oxml_file:
         oxml.export(oxml_file, level=0)
 
-    fix_orthoxml_output_file(orthoxml_output_file)
+    fix_orthoxml_output_file(orthoxml_output_file_path)
 
     # write to tsv output all ortholog pairs
-    with open(tsv_output_file, "w") as tsv_file:
+    tsv_output_file_path = os.path.join(output_dir, 'ortholog_pairs.tsv')
+    with open(tsv_output_file_path, "w") as tsv_file:
         for group in ortholog_groups:
             for pair in itertools.combinations(group, 2):
                 tsv_file.write(f'{pair[0]}\t{pair[1]}\n')
@@ -129,8 +131,7 @@ def get_verified_clusters_set(verified_clusters_path):
     return set([os.path.splitext(file)[0] for file in os.listdir(verified_clusters_path)])
 
 
-def finalize_table(logger, putative_orthologs_path, verified_clusters_path, finalized_table_path, phyletic_patterns_path,
-                   orthoxml_path, tsv_path, qfo_benchmark, delimiter):
+def finalize_table(logger, putative_orthologs_path, verified_clusters_path, finalized_table_path, qfo_benchmark, delimiter):
     verified_clusters_set = get_verified_clusters_set(verified_clusters_path)
     logger.info(f'verified_clusters_set:\n{verified_clusters_set}')
     with open(putative_orthologs_path) as f:
@@ -166,10 +167,12 @@ def finalize_table(logger, putative_orthologs_path, verified_clusters_path, fina
     for strain_name in strain_names:
         phyletic_patterns_str += f'>{strain_name}\n{strain_names_to_phyletic_pattern[strain_name]}\n'
 
+    output_dir = os.path.dirname(finalized_table_path)
+    phyletic_patterns_path = os.path.join(output_dir, 'phyletic_pattern.fas')
     with open(phyletic_patterns_path, 'w') as f:
         f.write(phyletic_patterns_str)
 
-    build_orthoxml_and_tsv_output(logger, finalized_table_path, orthoxml_path, tsv_path, qfo_benchmark)
+    build_orthoxml_and_tsv_output(logger, finalized_table_path, output_dir, qfo_benchmark)
 
 
 if __name__ == '__main__':
@@ -180,10 +183,6 @@ if __name__ == '__main__':
     parser.add_argument('putative_orthologs_path', help='path to a file with the putative orthologs sets')
     parser.add_argument('verified_clusters_path', help='path to a directory with the verified clusters')
     parser.add_argument('finalized_table_path', help='path to an output file in which the final table will be written')
-    parser.add_argument('phyletic_patterns_path',
-                        help='path to an output file in which the phyletic patterns fasta will be written')
-    parser.add_argument('orthoxml_path', help='path to an output file in which the OrthoXml will be written')
-    parser.add_argument('tsv_path', help='path to an output file in which the pairs-tsv output will be written')
     parser.add_argument('--delimiter', help='delimiter for the putative orthologs table', default=consts.CSV_DELIMITER)
     parser.add_argument('--qfo_benchmark', help='whether the output OrthoXml should be in QfO benchmark format', action='store_true')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
@@ -196,7 +195,6 @@ if __name__ == '__main__':
     logger.info(script_run_message)
     try:
         finalize_table(logger, args.putative_orthologs_path, args.verified_clusters_path,
-                       args.finalized_table_path, args.phyletic_patterns_path, args.orthoxml_path, args.tsv_path,
-                       args.qfo_benchmark, args.delimiter)
+                       args.finalized_table_path, args.qfo_benchmark, args.delimiter)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
