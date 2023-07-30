@@ -645,11 +645,8 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         logger.info('Verifying clusters...')
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
         for putative_orthologs_group in os.listdir(previous_pipeline_step_output_dir):
-            putative_orthologs_group_prefix = os.path.splitext(putative_orthologs_group)[0]
-            job_name = os.path.split(putative_orthologs_group_prefix)[-1]
-
-            single_cmd_params = [f'"{os.path.join(previous_pipeline_step_output_dir, putative_orthologs_group)}"',
-                                 f'"{os.path.join(pipeline_step_output_dir, putative_orthologs_group)}"']
+            single_cmd_params = [os.path.join(previous_pipeline_step_output_dir, putative_orthologs_group),
+                                 pipeline_step_output_dir]
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
@@ -664,10 +661,8 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=50)
 
-    logger.info(f'A total of {len(os.listdir(previous_pipeline_step_output_dir))} clusters were verified.')
-    logger.debug(f'The verified clusters in {previous_pipeline_step_output_dir} are the following:')
-    logger.debug(os.listdir(previous_pipeline_step_output_dir))
-
+    logger.info(f'A total of {len(os.listdir(previous_pipeline_step_output_dir))} clusters were analyzed. '
+                f'{len(os.listdir(pipeline_step_output_dir))} clusters were produced.')
     # 11.	construct_final_orthologs_table.py
     # Input: (1) a path for directory with all the verified OGs (2) an output path to a final OGs table.
     # Output: aggregates all the well-clustered OGs to the final table.
