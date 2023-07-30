@@ -312,6 +312,8 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     missing_orfs = 0
     error_msg = ''
     for file in sorted(os.listdir(orfs_dir)):
+        if '02_ORFs' not in file:  # Ignore system files that are automatically created sometimes
+            continue
         try:
             with open(os.path.join(orfs_dir, file), 'rb', 0) as orf_f, mmap.mmap(orf_f.fileno(), 0,
                                                                                  access=mmap.ACCESS_READ) as s:
