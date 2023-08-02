@@ -45,7 +45,7 @@ def fix_orthoxml_output_file(orthoxml_file_path):
         content = oxml_file.read()
 
     # remove b'' prefixes
-    pattern = re.compile(r'b\'\"([\w-]+)\"\'')
+    pattern = re.compile(r'b\'\"([\w.-]+)\"\'')
     fixed_content = pattern.sub(r'"\1"', content)
 
     # remove 'ortho:' prefixes
@@ -59,8 +59,6 @@ def fix_orthoxml_output_file(orthoxml_file_path):
 
 
 def build_orthoxml_and_tsv_output(logger, all_clusters_df, output_dir, qfo_benchmark=False):
-    logger.info(f'Start to build orthoxml output')
-
     gene_name_to_gene_id = {}
     gene_name_to_gene_prot_id = {}
 
@@ -75,19 +73,20 @@ def build_orthoxml_and_tsv_output(logger, all_clusters_df, output_dir, qfo_bench
         database_xml = orthoxml.database(name=database_name)
         genes_xml = orthoxml.genes()
 
-        strain_genes = all_clusters_df[strain_column]
-        for gene_name in strain_genes:
-            if pd.isna(gene_name):
+        all_strain_genes = all_clusters_df[strain_column]
+        for og_strain_genes in all_strain_genes:
+            if pd.isna(og_strain_genes):
                 continue
 
-            prot_id = parse_gene_name(logger, gene_name, qfo_benchmark)
-            gene_xml = orthoxml.gene(id=str(next_id), protId=prot_id)
-            genes_xml.add_gene(gene_xml)
+            for gene_name in og_strain_genes.split(';'):
+                prot_id = parse_gene_name(logger, gene_name, qfo_benchmark)
+                gene_xml = orthoxml.gene(id=str(next_id), protId=prot_id)
+                genes_xml.add_gene(gene_xml)
 
-            gene_name_to_gene_id[gene_name] = next_id
-            gene_name_to_gene_prot_id[gene_name] = prot_id
+                gene_name_to_gene_id[gene_name] = next_id
+                gene_name_to_gene_prot_id[gene_name] = prot_id
 
-            next_id += 1
+                next_id += 1
 
         database_xml.set_genes(genes_xml)
         species_xml.add_database(database_xml)
@@ -100,17 +99,30 @@ def build_orthoxml_and_tsv_output(logger, all_clusters_df, output_dir, qfo_bench
     # Add ortholog groups to the orthoXML document + construct a list of all ortholog groups
     ortholog_groups = []
     for index, group_row in all_clusters_df.iterrows():
-        group_xml = orthoxml.group(id=group_row['OG_name'])
-        ortholog_group_list = []
-        for gene_name in group_row[1:]:
-            if pd.isna(gene_name):
+        og_xml = orthoxml.group(id=group_row['OG_name'])
+        og_list = []
+        for strain_genes in group_row[1:]:
+            if pd.isna(strain_genes):
                 continue
-            gene_ref_xml = orthoxml.geneRef(gene_name_to_gene_id[gene_name])
-            group_xml.add_geneRef(gene_ref_xml)
-            ortholog_group_list.append(gene_name_to_gene_prot_id[gene_name])
 
-        groups_xml.add_orthologGroup(group_xml)
-        ortholog_groups.append(ortholog_group_list)
+            strain_genes = strain_genes.split(';')
+            if len(strain_genes) == 1:
+                gene = strain_genes[0]
+                gene_ref_xml = orthoxml.geneRef(gene_name_to_gene_id[gene])
+                og_xml.add_geneRef(gene_ref_xml)
+                og_list.append([gene_name_to_gene_prot_id[gene]])
+            else:
+                paralog_group_xml = orthoxml.group()
+                paralog_group_list = []
+                for gene in strain_genes:
+                    gene_ref_xml = orthoxml.geneRef(gene_name_to_gene_id[gene])
+                    paralog_group_xml.add_geneRef(gene_ref_xml)
+                    paralog_group_list.append(gene_name_to_gene_prot_id[gene])
+                og_xml.add_paralogGroup(paralog_group_xml)
+                og_list.append(paralog_group_list)
+
+        groups_xml.add_orthologGroup(og_xml)
+        ortholog_groups.append(og_list)
 
     # export orthoXML document to output_file
     orthoxml_output_file_path = os.path.join(output_dir, 'orthologs.orthoxml')
@@ -122,9 +134,12 @@ def build_orthoxml_and_tsv_output(logger, all_clusters_df, output_dir, qfo_bench
     # write to tsv output all ortholog pairs
     tsv_output_file_path = os.path.join(output_dir, 'ortholog_pairs.tsv')
     with open(tsv_output_file_path, "w") as tsv_file:
-        for group in ortholog_groups:
-            for pair in itertools.combinations(group, 2):
-                tsv_file.write(f'{pair[0]}\t{pair[1]}\n')
+        for og_list in ortholog_groups:
+            for strain1_genes, strain2_genes in itertools.combinations(og_list, 2):
+                for strain1_gene, strain2_gene in itertools.product(strain1_genes, strain2_genes):
+                    tsv_file.write(f'{strain1_gene}\t{strain2_gene}\n')
+
+    logger.info(f'Created orthoxml and tsv outputs at {orthoxml_output_file_path} and {tsv_output_file_path}')
 
 
 def get_verified_clusters_set(verified_clusters_path):
@@ -141,14 +156,16 @@ def get_strain_from_gene(gene, strain_names):
 
 
 def finalize_table(logger, putative_orthologs_path, verified_clusters_path, finalized_table_path, qfo_benchmark, delimiter):
-    verified_clusters_set = get_verified_clusters_set(verified_clusters_path)
-    logger.info(f'verified_clusters_set:\n{verified_clusters_set}')
-
     putative_orthologs_df = pd.read_csv(putative_orthologs_path)
     strain_names = list(putative_orthologs_df.columns[1:])
 
     # Keep only the verified clusters
+    verified_clusters_set = get_verified_clusters_set(verified_clusters_path)
     verified_clusters_df = putative_orthologs_df.loc[putative_orthologs_df['OG_name'].isin(verified_clusters_set)]
+
+    logger.info(f'Found {len(verified_clusters_df.index)} verified clusters from previous steps, out of '
+                f'{len(putative_orthologs_df.index)} putative clusters overall. Starting to add putative clusters '
+                f'that were split by MCL algorithm...')
 
     # Iterate through new clusters (that were split from the putative clusters) and create Series objects from them
     new_clusters = []
@@ -172,6 +189,8 @@ def finalize_table(logger, putative_orthologs_path, verified_clusters_path, fina
     all_clusters_df['OG_name'] = [f'OG_{i}' for i in range(len(all_clusters_df.index))]
     all_clusters_df.to_csv(finalized_table_path, index=False)
 
+    logger.info(f'Finished adding split clusters. Final OG table contains {len(all_clusters_df.index)} groups.')
+
     # Create phyletic pattern
     phyletic_patterns_str = ''
     for strain_name in strain_names:
@@ -182,6 +201,7 @@ def finalize_table(logger, putative_orthologs_path, verified_clusters_path, fina
     phyletic_patterns_path = os.path.join(output_dir, 'phyletic_pattern.fas')
     with open(phyletic_patterns_path, 'w') as f:
         f.write(phyletic_patterns_str)
+    logger.info(f'Created phyletic pattern at {phyletic_patterns_path}')
 
     build_orthoxml_and_tsv_output(logger, all_clusters_df, output_dir, qfo_benchmark)
 
