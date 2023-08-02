@@ -6,6 +6,7 @@ import os
 import sys
 import pandas as pd
 import re
+from collections import defaultdict
 from ete3 import orthoxml
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -57,10 +58,9 @@ def fix_orthoxml_output_file(orthoxml_file_path):
         oxml_file.write(fixed_content)
 
 
-def build_orthoxml_and_tsv_output(logger, og_table_path, output_dir, qfo_benchmark=False):
-    logger.info(f'Start to build orthoxml output based on {og_table_path}')
+def build_orthoxml_and_tsv_output(logger, all_clusters_df, output_dir, qfo_benchmark=False):
+    logger.info(f'Start to build orthoxml output')
 
-    df = pd.read_csv(og_table_path)
     gene_name_to_gene_id = {}
     gene_name_to_gene_prot_id = {}
 
@@ -69,13 +69,13 @@ def build_orthoxml_and_tsv_output(logger, og_table_path, output_dir, qfo_benchma
 
     # Add the species (and their genes) to the orthoXML document
     next_id = 1
-    for strain_column in df.columns[1:]:
+    for strain_column in all_clusters_df.columns[1:]:
         species_name, ncbi_tax_id, database_name = parse_species_name(logger, strain_column, qfo_benchmark)
         species_xml = orthoxml.species(name=species_name, NCBITaxId=ncbi_tax_id)
         database_xml = orthoxml.database(name=database_name)
         genes_xml = orthoxml.genes()
 
-        strain_genes = df[strain_column]
+        strain_genes = all_clusters_df[strain_column]
         for gene_name in strain_genes:
             if pd.isna(gene_name):
                 continue
@@ -99,7 +99,7 @@ def build_orthoxml_and_tsv_output(logger, og_table_path, output_dir, qfo_benchma
 
     # Add ortholog groups to the orthoXML document + construct a list of all ortholog groups
     ortholog_groups = []
-    for index, group_row in df.iterrows():
+    for index, group_row in all_clusters_df.iterrows():
         group_xml = orthoxml.group(id=group_row['OG_name'])
         ortholog_group_list = []
         for gene_name in group_row[1:]:
@@ -128,51 +128,62 @@ def build_orthoxml_and_tsv_output(logger, og_table_path, output_dir, qfo_benchma
 
 
 def get_verified_clusters_set(verified_clusters_path):
-    return set([os.path.splitext(file)[0] for file in os.listdir(verified_clusters_path)])
+    return set([os.path.splitext(file)[0]
+                for file in os.listdir(verified_clusters_path) if file.endswith('10_verified_cluster')])
+
+
+def get_strain_from_gene(gene, strain_names):
+    strains = [strain for strain in strain_names if gene.startswith(strain)]
+    if len(strains) != 1:
+        raise ValueError(f"gene name {gene} doesn't contain any strain prefix or has prefix of multiple strains. "
+                         f"Strains are {','.join(strains)}")
+    return strains[0]
 
 
 def finalize_table(logger, putative_orthologs_path, verified_clusters_path, finalized_table_path, qfo_benchmark, delimiter):
     verified_clusters_set = get_verified_clusters_set(verified_clusters_path)
     logger.info(f'verified_clusters_set:\n{verified_clusters_set}')
-    with open(putative_orthologs_path) as f:
-        # OG_name,GCF_000008105,GCF_000006945,GCF_000195995,GCF_000007545,GCF_000009505
-        final_orthologs_table_header = f.readline().rstrip()
-        # remove "OG_name," from header
-        # index_of_first_delimiter = putative_orthologs_table_header.index(delimiter)
-        # final_orthologs_table_header = putative_orthologs_table_header[index_of_first_delimiter + 1:]
-        finalized_table_str = final_orthologs_table_header + '\n'
-        strain_names = final_orthologs_table_header.split(delimiter)[1:]  # remove "OG_name," from header
-        strain_names_to_phyletic_pattern = dict.fromkeys(strain_names, '')
-        og_number = 0
-        for line in f:
-            first_delimiter_index = line.index(delimiter)
-            OG_name = line[:first_delimiter_index]
-            group = line.rstrip()[first_delimiter_index + 1:]  # remove temporary name (one of the group members)
-            splitted_group = group.split(delimiter)
-            if OG_name in verified_clusters_set:
-                logger.debug(f'Adding {OG_name} to the final table')
-                verified_clusters_set.discard(OG_name)
-                finalized_table_str += f'og_{og_number}{delimiter}{group}\n'
-                og_number += 1
-                # extract phyletic pattern of the current OG
-                for i in range(len(splitted_group)):
-                    strain_name = strain_names[i]
-                    pattern = '0' if splitted_group[i] == '' else '1'
-                    strain_names_to_phyletic_pattern[strain_name] += pattern
 
-    with open(finalized_table_path, 'w') as f:
-        f.write(finalized_table_str)
+    putative_orthologs_df = pd.read_csv(putative_orthologs_path)
+    strain_names = list(putative_orthologs_df.columns[1:])
 
+    # Keep only the verified clusters
+    verified_clusters_df = putative_orthologs_df.loc[putative_orthologs_df['OG_name'].isin(verified_clusters_set)]
+
+    # Iterate through new clusters (that were split from the putative clusters) and create Series objects from them
+    new_clusters = []
+    for cluster_file_name in os.listdir(verified_clusters_path):
+        if cluster_file_name.endswith('verified_cluster'):
+            continue
+        with open(os.path.join(verified_clusters_path, cluster_file_name), 'r') as new_cluster:
+            genes = new_cluster.readline().strip().split('\t')
+        strain_to_genes = defaultdict(list)
+        for gene in genes:
+            strain = get_strain_from_gene(gene, strain_names)
+            strain_to_genes[strain].append(gene)
+        strain_to_genes = {strain: ';'.join(genes) for strain, genes in strain_to_genes.items()}
+        strain_to_genes['OG_name'] = list(strain_to_genes.values())[0]  # Set a temp OG name to be one of the genes
+        new_cluster = pd.Series(strain_to_genes)
+        new_clusters.append(new_cluster)
+
+    # Merge new clusters and verified clusters
+    new_clusters_df = pd.DataFrame(new_clusters)
+    all_clusters_df = pd.concat([verified_clusters_df, new_clusters_df], ignore_index=True)
+    all_clusters_df['OG_name'] = [f'OG_{i}' for i in range(len(all_clusters_df.index))]
+    all_clusters_df.to_csv(finalized_table_path, index=False)
+
+    # Create phyletic pattern
     phyletic_patterns_str = ''
     for strain_name in strain_names:
-        phyletic_patterns_str += f'>{strain_name}\n{strain_names_to_phyletic_pattern[strain_name]}\n'
+        phyletic_pattern = ''.join(pd.notnull(all_clusters_df[strain_name]).astype(int).astype(str))
+        phyletic_patterns_str += f'>{strain_name}\n{phyletic_pattern}\n'
 
     output_dir = os.path.dirname(finalized_table_path)
     phyletic_patterns_path = os.path.join(output_dir, 'phyletic_pattern.fas')
     with open(phyletic_patterns_path, 'w') as f:
         f.write(phyletic_patterns_str)
 
-    build_orthoxml_and_tsv_output(logger, finalized_table_path, output_dir, qfo_benchmark)
+    build_orthoxml_and_tsv_output(logger, all_clusters_df, output_dir, qfo_benchmark)
 
 
 if __name__ == '__main__':
