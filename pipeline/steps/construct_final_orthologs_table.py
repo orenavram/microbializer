@@ -12,7 +12,7 @@ from ete3 import orthoxml
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger
+from auxiliaries.pipeline_auxiliaries import get_job_logger, get_strain_from_gene
 from auxiliaries import consts
 
 
@@ -147,15 +147,9 @@ def get_verified_clusters_set(verified_clusters_path):
                 for file in os.listdir(verified_clusters_path) if file.endswith('10_verified_cluster')])
 
 
-def get_strain_from_gene(gene, strain_names):
-    strains = [strain for strain in strain_names if gene.startswith(strain)]
-    if len(strains) != 1:
-        raise ValueError(f"gene name {gene} doesn't contain any strain prefix or has prefix of multiple strains. "
-                         f"Strains are {','.join(strains)}")
-    return strains[0]
-
-
-def finalize_table(logger, putative_orthologs_path, verified_clusters_path, finalized_table_path, qfo_benchmark, delimiter):
+def finalize_table(logger, putative_orthologs_path, verified_clusters_path, finalized_table_path,
+                   finalized_table_no_paralogs_path, qfo_benchmark, delimiter):
+    output_dir = os.path.dirname(finalized_table_path)
     putative_orthologs_df = pd.read_csv(putative_orthologs_path)
     strain_names = list(putative_orthologs_df.columns[1:])
 
@@ -191,13 +185,20 @@ def finalize_table(logger, putative_orthologs_path, verified_clusters_path, fina
 
     logger.info(f'Finished adding split clusters. Final OG table contains {len(all_clusters_df.index)} groups.')
 
+    # Create OG table with only 0 or 1 gene for each genome in each OG
+    all_clusters_no_paralogs_df = all_clusters_df.copy()
+    for index, row in all_clusters_no_paralogs_df.iterrows():
+        for strain in strain_names:
+            if pd.notnull(row[strain]) and ';' in row[strain]:
+                row[strain] = row[strain].split(';')[0]
+    all_clusters_no_paralogs_df.to_csv(finalized_table_no_paralogs_path, index=False)
+
     # Create phyletic pattern
     phyletic_patterns_str = ''
     for strain_name in strain_names:
         phyletic_pattern = ''.join(pd.notnull(all_clusters_df[strain_name]).astype(int).astype(str))
         phyletic_patterns_str += f'>{strain_name}\n{phyletic_pattern}\n'
 
-    output_dir = os.path.dirname(finalized_table_path)
     phyletic_patterns_path = os.path.join(output_dir, 'phyletic_pattern.fas')
     with open(phyletic_patterns_path, 'w') as f:
         f.write(phyletic_patterns_str)
@@ -214,6 +215,7 @@ if __name__ == '__main__':
     parser.add_argument('putative_orthologs_path', help='path to a file with the putative orthologs sets')
     parser.add_argument('verified_clusters_path', help='path to a directory with the verified clusters')
     parser.add_argument('finalized_table_path', help='path to an output file in which the final table will be written')
+    parser.add_argument('finalized_table_no_paralogs_path', help='path to an output file in which the final table with no paralogs will be written')
     parser.add_argument('--delimiter', help='delimiter for the putative orthologs table', default=consts.CSV_DELIMITER)
     parser.add_argument('--qfo_benchmark', help='whether the output OrthoXml should be in QfO benchmark format', action='store_true')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
@@ -226,6 +228,6 @@ if __name__ == '__main__':
     logger.info(script_run_message)
     try:
         finalize_table(logger, args.putative_orthologs_path, args.verified_clusters_path,
-                       args.finalized_table_path, args.qfo_benchmark, args.delimiter)
+                       args.finalized_table_path, args.finalized_table_no_paralogs_path, args.qfo_benchmark, args.delimiter)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
