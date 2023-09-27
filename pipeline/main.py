@@ -190,18 +190,24 @@ def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path
     # have to be AFTER system files removal (in the weird case a file name starts with a space)
     filename_prefixes = set()
     for file_name in os.listdir(data_path):
-
-        filename_prefix = os.path.splitext(file_name)[0]
-        if filename_prefix in filename_prefixes:
-            error_msg = f'Two (or more) of the uploaded geonmes contain the same name (prefix), ' \
-                        f'e.g., {filename_prefix}. Please make sure each file name is unique.'
-            fail(logger, error_msg, error_file_path)
-        filename_prefixes.add(filename_prefix)
-
         new_file_name = fix_illegal_chars_in_file_name(logger, file_name)
         if file_name != new_file_name:
             # illegal character in file name were found
             move_file(logger, data_path, file_name, new_file_name, error_file_path)
+
+        filename_prefix, filename_ext = os.path.splitext(file_name)
+        if filename_prefix in filename_prefixes:
+            error_msg = f'Two (or more) of the uploaded geonmes contain the same name (prefix), ' \
+                        f'e.g., {filename_prefix}. Please make sure each file name is unique.'
+            fail(logger, error_msg, error_file_path)
+        for existing_file_name in filename_prefixes:
+            if filename_prefix.startswith(existing_file_name) or existing_file_name.startswith(filename_prefix):
+                error_msg = f'One of the uploaded file names is a prefix of another ({existing_file_name}, ' \
+                            f'{filename_prefix}). Please make sure the file names are not prefixes of each other.'
+                fail(logger, error_msg, error_file_path)
+        filename_prefixes.add(filename_prefix)
+
+
 
     number_of_genomes = len(os.listdir(data_path))
     logger.info(f'Number of genomes to analyze is {number_of_genomes}')
@@ -583,7 +589,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                   num_of_cmds_per_job=5,
+                                                   num_of_cmds_per_job=10,
                                                    # *times* the number of clusters_to_prepare_per_job above. 50 in total per batch!
                                                    job_name_suffix='mcl_preparation',
                                                    queue_name=args.queue_name)
@@ -645,11 +651,8 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         logger.info('Verifying clusters...')
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
         for putative_orthologs_group in os.listdir(previous_pipeline_step_output_dir):
-            putative_orthologs_group_prefix = os.path.splitext(putative_orthologs_group)[0]
-            job_name = os.path.split(putative_orthologs_group_prefix)[-1]
-
-            single_cmd_params = [f'"{os.path.join(previous_pipeline_step_output_dir, putative_orthologs_group)}"',
-                                 f'"{os.path.join(pipeline_step_output_dir, putative_orthologs_group)}"']
+            single_cmd_params = [os.path.join(previous_pipeline_step_output_dir, putative_orthologs_group),
+                                 pipeline_step_output_dir]
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
@@ -664,9 +667,8 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=50)
 
-    logger.info(f'A total of {len(os.listdir(previous_pipeline_step_output_dir))} clusters were verified.')
-    logger.debug(f'The verified clusters in {previous_pipeline_step_output_dir} are the following:')
-    logger.debug(os.listdir(previous_pipeline_step_output_dir))
+    logger.info(f'A total of {len(os.listdir(previous_pipeline_step_output_dir))} clusters were analyzed. '
+                f'{len(os.listdir(pipeline_step_output_dir))} clusters were produced.')
 
     # 11.	construct_final_orthologs_table.py
     # Input: (1) a path for directory with all the verified OGs (2) an output path to a final OGs table.
@@ -676,20 +678,16 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     previous_pipeline_step_output_dir = pipeline_step_output_dir
     step_name = f'{step_number}_final_table'
     script_path = os.path.join(args.src_dir, 'steps/construct_final_orthologs_table.py')
-    final_orthologs_table_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    final_orthologs_table_file_path = os.path.join(final_orthologs_table_path, 'final_orthologs_table.csv')
-    phyletic_patterns_path = os.path.join(final_orthologs_table_path, 'phyletic_pattern.fas')
-    orthoxml_path = os.path.join(final_orthologs_table_path, 'orthologs.orthoxml')
-    ortholog_pairs_path = os.path.join(final_orthologs_table_path, 'ortholog_pairs.tsv')
+    final_orthologs_table_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    final_orthologs_table_file_path = os.path.join(final_orthologs_table_dir_path, 'final_orthologs_table.csv')
+    final_orthologs_table_no_paralogs_file_path = os.path.join(final_orthologs_table_dir_path, 'final_orthologs_table_no_paralogs.csv')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Constructing final orthologs table...')
         params = [putative_orthologs_table_path,
                   previous_pipeline_step_output_dir,
                   final_orthologs_table_file_path,
-                  phyletic_patterns_path,
-                  orthoxml_path,
-                  ortholog_pairs_path]
+                  final_orthologs_table_no_paralogs_file_path]
         if args.qfo_benchmark:
             params += ['--qfo_benchmark']
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, args.queue_name, job_name='final_ortholog_groups')
@@ -711,13 +709,13 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         final_table_header = header_line.rstrip()[first_delimiter_index + 1:]  # remove "OG_name"
 
     # extract of strains names for core genome analysis later on
-    strains_names_path = os.path.join(final_orthologs_table_path, 'strains_names.txt')
+    strains_names_path = os.path.join(final_orthologs_table_dir_path, 'strains_names.txt')
     strains_names = final_table_header.split(consts.CSV_DELIMITER)
     with open(strains_names_path, 'w') as f:
         f.write('\n'.join(strains_names) + '\n')
 
     # extract number of strains for core genome analysis later on
-    num_of_strains_path = os.path.join(final_orthologs_table_path, 'num_of_strains.txt')
+    num_of_strains_path = os.path.join(final_orthologs_table_dir_path, 'num_of_strains.txt')
     num_of_strains = len(strains_names)
     with open(num_of_strains_path, 'w') as f:
         f.write(f'{num_of_strains}\n')
@@ -945,7 +943,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     core_genome_numeric_representation_file_path = os.path.join(numeric_representation_output_dir, 'core_genome_numeric_representation.txt')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
-        params = [final_orthologs_table_file_path,
+        params = [final_orthologs_table_no_paralogs_file_path,
                   orfs_dir,
                   core_genome_numeric_representation_file_path]
         submit_mini_batch(logger, script_path, [params], numeric_representation_tmp_dir,
@@ -1124,7 +1122,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         add_results_to_final_dir(logger, orphan_genes_dir, final_output_dir, copy=True)
 
         # move orthologs table
-        add_results_to_final_dir(logger, final_orthologs_table_path, final_output_dir, copy=True)
+        add_results_to_final_dir(logger, final_orthologs_table_dir_path, final_output_dir, copy=True)
 
         # move unaligned dna sequences
         add_results_to_final_dir(logger, orthologs_dna_sequences_dir_path, final_output_dir)

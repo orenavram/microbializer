@@ -10,18 +10,32 @@ sys.path.append(os.path.dirname(SCRIPT_DIR))
 from auxiliaries.pipeline_auxiliaries import load_header2sequences_dict, get_job_logger
 
 
-def is_core_gene(strain_to_gene_dict, num_of_strains, core_minimal_percentage):
-    return len(strain_to_gene_dict) / num_of_strains >= core_minimal_percentage / 100
+def get_num_of_strains_in_og(gene_name_to_sequence_dict):
+    strains_in_og = set()
+    for gene_name in gene_name_to_sequence_dict.keys():
+        strain_name = gene_name.split(' (')[1][:-1]
+        strains_in_og.add(strain_name)
+
+    return len(strains_in_og)
 
 
-def update_core_genome(logger, strain_to_core_genome_dict, strain_to_gene_dict, current_gene_length):
+def update_core_genome(logger, og_file, gene_name_to_sequence_dict, og_alignment_length, strain_to_core_genome_dict):
+    # gene_name_to_sequence_dict may contain multiple genes for each strain, so here we choose one of them
+    # to be included in the core genome.
+    strain_to_chosen_gene_sequence_dict = {}
+    for gene_name, sequence in gene_name_to_sequence_dict.items():
+        strain = gene_name.split(' (')[1][:-1]
+        if strain not in strain_to_chosen_gene_sequence_dict:
+            logger.info(f'gene {gene_name} was chosen from OG {og_file} to represent strain {strain}')
+            strain_to_chosen_gene_sequence_dict[strain] = gene_name_to_sequence_dict[gene_name]
+
     for strain in strain_to_core_genome_dict:
-        if strain in strain_to_gene_dict:
-            logger.debug(f'{strain} has homolog in current og. Updating its core genome')
-            strain_to_core_genome_dict[strain] += strain_to_gene_dict[strain]
+        if strain in strain_to_chosen_gene_sequence_dict:
+            logger.debug(f'{strain} has homolog in og {og_file}. Updating its core genome')
+            strain_to_core_genome_dict[strain] += strain_to_chosen_gene_sequence_dict[strain]
         else:
-            logger.debug(f'{strain} has no homolog in current og. Elongating its core genome by "-"')
-            strain_to_core_genome_dict[strain] += '-' * current_gene_length
+            logger.debug(f'{strain} has no homolog in og {og_file}. Elongating its core genome by "-"')
+            strain_to_core_genome_dict[strain] += '-' * og_alignment_length
 
 
 def extract_core_genome(logger, alignments_path, num_of_strains, core_length_path, strains_names_path, core_genome_path,
@@ -30,18 +44,18 @@ def extract_core_genome(logger, alignments_path, num_of_strains, core_length_pat
         strains_names = f.read().rstrip().split('\n')
     strain_to_core_genome_dict = dict.fromkeys(strains_names, '')
     core_ogs = []
-    for og_file in os.listdir(
-            alignments_path):  # TODO: consider sorting by og name (currently the concatenation is arbitrary)
-        strain_to_gene_dict, current_gene_length = load_header2sequences_dict(os.path.join(alignments_path, og_file),
-                                                                              get_length=True)
-        if is_core_gene(strain_to_gene_dict, num_of_strains, core_minimal_percentage):
-            logger.info(
-                f'Adding to core genome: {og_file} ({len(strain_to_gene_dict)}/{num_of_strains} >= {core_minimal_percentage}%)')
-            update_core_genome(logger, strain_to_core_genome_dict, strain_to_gene_dict, current_gene_length)
+    for og_file in os.listdir(alignments_path):  # TODO: consider sorting by og name (currently the concatenation is arbitrary)
+        gene_name_to_sequence_dict, og_alignment_length = load_header2sequences_dict(
+            os.path.join(alignments_path, og_file), get_length=True)
+        num_of_strains_in_og = get_num_of_strains_in_og(gene_name_to_sequence_dict)
+        if num_of_strains_in_og / num_of_strains >= core_minimal_percentage / 100:  # meaning OG is core
+            logger.info(f'Adding to core genome: {og_file} '
+                        f'({num_of_strains_in_og}/{num_of_strains} >= {core_minimal_percentage}%)')
+            update_core_genome(logger, og_file, gene_name_to_sequence_dict, og_alignment_length, strain_to_core_genome_dict)
             core_ogs.append(og_file.split('_')[1])  # e.g., og_2655_aa_mafft.fas
         else:
-            logger.info(
-                f'Not a core gene: {og_file} ({len(strain_to_gene_dict)}/{num_of_strains} < {core_minimal_percentage}%)')
+            logger.info(f'Not a core gene: {og_file} '
+                        f'({num_of_strains_in_og}/{num_of_strains} < {core_minimal_percentage}%)')
 
     core_genome_length = None
     with open(core_genome_path, 'w') as f:
