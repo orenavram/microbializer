@@ -32,7 +32,6 @@ def visualize_Ws_with_PCA(W_vectors, output_dir, logger):
 
     # Perform K-means clustering
     genome_count = len(W_vectors)
-    print(genome_count)
     if genome_count > 75:
         n_clusters = 5
     elif genome_count > 30:

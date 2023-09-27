@@ -61,8 +61,7 @@ def make_HEGs_fasta(ORF_file_path, HEGs_names_file_path, tmp_dir, logger):
 
     HEGs_fasta_file_content = ''
     with open(ORF_file_path) as ORF_file:
-        ORFs_records = SeqIO.parse(ORF_file, "fasta")
-        for record in ORFs_records:
+        for record in SeqIO.parse(ORF_file, "fasta"):
             if record.id in HEGs_names:
                 HEGs_fasta_file_content += record.format("fasta")
 

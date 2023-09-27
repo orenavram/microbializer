@@ -766,7 +766,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
 
     # 12_5  codon_bias.py
     # Input: ORF dir and OG dir
-    # Output: W_vectors, CAI for each OG
+    # Output: W_vector for each genome, CAI for each OG
     step_number = '12_5'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_codon_bias'
