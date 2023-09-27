@@ -68,7 +68,8 @@ def generate_text_to_mcl_input_file(logger, gene_pair_to_score_dict, gene_pairs)
         # get gene1,gene2 score and if it's not there try gene2,gene1
         score = gene_pair_to_score_dict.get(pair, gene_pair_to_score_dict.get(pair[::-1]))
         if not score:
-            # both pairs are not in the dictionary!
+            # both pairs are not in the dictionary gene_pair_to_score_dict (meaning they were not detected as homologs
+            # in all-vs-all RBH)!
             # E.g., say we found these pairs a1-b1 (A:B), a1-c2 (A:C), b1-c1 (B:C), c1-a2 (C:A)
             # a1-c1 was discarded earlier because it is not *best* hit (best hit was with paralogs, a2 and c2, respectively)
             # Thus, it will not appear in the concatenated best hits.
@@ -102,7 +103,10 @@ def prepare_files_for_mcl(logger, all_reciprocal_hits_path, putative_orthologs_p
             og_members = line_tokens[1:]
 
             # remove empty tokens
-            og_members = [member for member in og_members if member != '']
+            og_members = [genome_members for genome_members in og_members if genome_members != '']
+
+            # flatten OG members
+            og_members = [gene for genome_members in og_members for gene in genome_members.split(';')]
 
             # get all pair combinations as a set of tuples
             group_name_to_combinations[group_name] = set(combinations(og_members, 2))

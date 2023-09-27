@@ -31,16 +31,16 @@ def induce_sequence(logger, aa_seq, dna_seq):
 
 
 def induce_msa(logger, aa_msa_path, dna_ms_path, output_path):
-    og_name_to_aa = load_header2sequences_dict(aa_msa_path)
-    og_name_to_dna = load_header2sequences_dict(dna_ms_path)
+    gene_name_to_aligned_aa_sequence = load_header2sequences_dict(aa_msa_path)
+    gene_name_to_unaligned_dna_sequence = load_header2sequences_dict(dna_ms_path)
 
     result = ''
     with open(dna_ms_path) as f:
         for line in f:
             if line.startswith('>'):
-                og_name = line.lstrip('>').rstrip()
-                induced_dna_sequence = induce_sequence(logger, og_name_to_aa[og_name], og_name_to_dna[og_name])
-                result += f'>{og_name}\n{induced_dna_sequence}\n'
+                gene_name = line.lstrip('>').rstrip()
+                induced_dna_sequence = induce_sequence(logger, gene_name_to_aligned_aa_sequence[gene_name], gene_name_to_unaligned_dna_sequence[gene_name])
+                result += f'>{gene_name}\n{induced_dna_sequence}\n'
 
     with open(output_path, 'w') as f:
         f.write(result)

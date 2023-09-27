@@ -452,3 +452,11 @@ def get_job_logger(log_file_dir, level=logging.INFO):
 
     logger = logging.getLogger('main')
     return logger
+
+
+def get_strain_from_gene(gene, strain_names):
+    strains = [strain for strain in strain_names if gene.startswith(strain)]
+    if len(strains) != 1:
+        raise ValueError(f"gene name {gene} doesn't contain any strain prefix or has prefix of multiple strains. "
+                         f"Strains are {','.join(strains)}")
+    return strains[0]
