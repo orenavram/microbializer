@@ -20,6 +20,8 @@ sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
 from auxiliaries.pipeline_auxiliaries import get_job_logger, prepare_directories, submit_batch, wait_for_results
 from calculate_cai import get_genome_to_W_vector
 
+OG_NAME_PATTERN = re.compile(r'(OG_\d+)_cai.json')
+
 
 def visualize_Ws_with_PCA(W_vectors, output_dir, logger):
     """
@@ -74,7 +76,7 @@ def visualize_Ws_with_PCA(W_vectors, output_dir, logger):
     logger.info("Time for PCA:", time.time() - start_time)
 
 
-def get_CAI_Data(cai_dir, output_dir):
+def get_CAI_Data(cai_dir, output_dir, cai_table_path):
     """
     input:
     location of output dir to access individually calculated CAI data
@@ -88,12 +90,12 @@ def get_CAI_Data(cai_dir, output_dir):
     for filename in os.listdir(cai_dir):
         with open(os.path.join(cai_dir, filename), 'r') as cai_file:
             cai_info = json.load(cai_file)
-            og_name = re.compile(r'(OG_\d+)_cai.json').match(filename).group(1)
-            CAI_Data[og_name] = {"mean": cai_info["mean"], "std": cai_info["std"]}
+            og_name = OG_NAME_PATTERN.match(filename).group(1)
+            CAI_Data[og_name] = {"CAI_mean": cai_info["mean"], "CAI_std": cai_info["std"]}
 
     cai_df = pd.DataFrame(data=CAI_Data).transpose()
     cai_df.sort_values("mean", ascending=False, inplace=True)
-    cai_df.to_csv(os.path.join(output_dir, "CAI_Table.csv"), index_label='Orthologous Group name')
+    cai_df.to_csv(cai_table_path, index_label='OG_name')
 
     # Create histogram of CAI values
     plt.title("CAI distribution across OGs")
@@ -105,7 +107,7 @@ def get_CAI_Data(cai_dir, output_dir):
     plt.close()
 
 
-def analyze_codon_bias(ORF_dir, OG_dir, output_dir, tmp_dir, src_dir, queue_name, error_file_path, logger):
+def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, src_dir, queue_name, error_file_path, logger):
     # 1. Calculate Ws
     step_number = '12_5_a'
     logger.info(f'Step {step_number}: {"_" * 100}')
@@ -136,7 +138,7 @@ def analyze_codon_bias(ORF_dir, OG_dir, output_dir, tmp_dir, src_dir, queue_name
     W_vectors = get_genome_to_W_vector(W_output_dir)
     visualize_Ws_with_PCA(W_vectors, output_dir, logger)
 
-    # 3. Calculate CAIS
+    # 3. Calculate CAIs
     step_number = '12_5_b'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_calc_CAI'
@@ -167,7 +169,7 @@ def analyze_codon_bias(ORF_dir, OG_dir, output_dir, tmp_dir, src_dir, queue_name
                      num_of_batches, error_file_path)
 
     # 4. Make CAI table and histogram
-    get_CAI_Data(cai_output_dir, output_dir)
+    get_CAI_Data(cai_output_dir, output_dir, cai_table_path)
 
 
 if __name__ == '__main__':
@@ -178,6 +180,7 @@ if __name__ == '__main__':
     parser.add_argument('ORF_dir', help='path to input fasta directory')
     parser.add_argument('OG_dir', help='path to input Orthologous group directory')
     parser.add_argument('output_dir', help='path to output directory')
+    parser.add_argument('cai_table_path', help='path to the output CAI table of all OGs')
     parser.add_argument('tmp_dir', help='path to tmp directory')
     parser.add_argument('src_dir', help='path to pipeline directory')
     parser.add_argument('queue_name', help='queue to submit jobs to')
@@ -191,7 +194,7 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        analyze_codon_bias(args.ORF_dir, args.OG_dir, args.output_dir, args.tmp_dir, args.src_dir, args.queue_name,
-                           args.error_file_path, logger)
+        analyze_codon_bias(args.ORF_dir, args.OG_dir, args.output_dir, args.cai_table_path, args.tmp_dir, args.src_dir,
+                           args.queue_name, args.error_file_path, logger)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')

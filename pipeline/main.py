@@ -770,6 +770,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     step_name = f'{step_number}_codon_bias'
     script_path = os.path.join(args.src_dir, 'steps/codon_bias/main.py')
     codon_bias_output_dir_path, codon_bias_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    cai_table_path = os.path.join(codon_bias_output_dir_path, 'CAI_table.csv')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Analyzing codon bias...')
@@ -777,6 +778,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
             orfs_dir,
             orthologs_dna_sequences_dir_path,
             codon_bias_output_dir_path,
+            cai_table_path,
             codon_bias_tmp_dir,
             args.src_dir,
             args.queue_name,
@@ -861,6 +863,22 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=70)
+
+    # 14_b. add data to OG table
+    step_number = '14_b'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_add_data_to_final_OG_table'
+    step_output_dir, step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        final_orthologs_df = pd.read_csv(final_orthologs_table_file_path)
+        cai_df = pd.read_csv(cai_table_path)[['OG_name', 'CAI_mean']]
+        final_orthologs_with_cai_df = pd.merge(cai_df, final_orthologs_df, on='OG_name')
+        final_orthologs_with_cai_df.to_csv(os.path.join(step_output_dir, 'final_orthologs_table.csv'), index=False)
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+    edit_progress(output_html_path, progress=72)
 
     # 15.	extract aligned_core_proteome.py
     step_number = '15'
