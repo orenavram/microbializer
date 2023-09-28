@@ -88,7 +88,7 @@ def get_CAI_Data(cai_dir, output_dir):
     for filename in os.listdir(cai_dir):
         with open(os.path.join(cai_dir, filename), 'r') as cai_file:
             cai_info = json.load(cai_file)
-            og_name = re.compile(r'(og_\d+)_cai.json').match(filename).group(1)
+            og_name = re.compile(r'(OG_\d+)_cai.json').match(filename).group(1)
             CAI_Data[og_name] = {"mean": cai_info["mean"], "std": cai_info["std"]}
 
     cai_df = pd.DataFrame(data=CAI_Data).transpose()

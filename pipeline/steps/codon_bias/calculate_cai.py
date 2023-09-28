@@ -7,11 +7,14 @@ from Bio import SeqIO
 import CodonUsageModified as CodonUsage
 import numpy as np
 import json
+import re
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger
+
+OG_FASTA_HEADER_GENOME_NAME_PATTERN = re.compile(r'.+\((\w+)\)')
 
 
 def get_genome_to_W_vector(W_dir):
@@ -39,18 +42,18 @@ def calculate_cai(OG_dir, W_dir, OG_start_index, OG_stop_index, output_dir, logg
 
     for OG_index in range(OG_start_index, OG_stop_index + 1):
         cai_info = {}
-        OG_path = os.path.join(OG_dir, f'og_{OG_index}_dna.fas')
+        OG_path = os.path.join(OG_dir, f'OG_{OG_index}_dna.fas')
 
         with open(OG_path, 'r') as OG_file:
             for record in SeqIO.parse(OG_file, "fasta"):
-                genome_name = record.id
+                genome_name = OG_FASTA_HEADER_GENOME_NAME_PATTERN.match(record.description).group(1)
                 cai_info[genome_name] = genome_to_CAIHandler[genome_name].cai_for_gene(record.seq)
 
         cai_values = list(cai_info.values())
         cai_info['mean'] = np.mean(cai_values)
         cai_info['std'] = np.std(cai_values)
 
-        output_file_path = os.path.join(output_dir, f'og_{OG_index}_cai.json')
+        output_file_path = os.path.join(output_dir, f'OG_{OG_index}_cai.json')
         with open(output_file_path, 'w') as output_file:
             json.dump(cai_info, output_file)
 

@@ -74,7 +74,7 @@ def extract_core_genome(logger, alignments_path, num_of_strains, core_length_pat
 
     sorted_core_groups_names = sorted(core_ogs, key=int)
     with open(core_ogs_names_path, 'w') as f:
-        f.write('\n'.join(f'og_{core_group}' for core_group in sorted_core_groups_names))  # e.g., 2655
+        f.write('\n'.join(f'OG_{core_group}' for core_group in sorted_core_groups_names))  # e.g., 2655
 
     with open(number_of_core_members, 'w') as f:
         f.write(f'{len(core_ogs)}\n')
