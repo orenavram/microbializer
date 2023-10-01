@@ -872,9 +872,10 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         final_orthologs_df = pd.read_csv(final_orthologs_table_file_path)
-        cai_df = pd.read_csv(cai_table_path)[['OG_name', 'CAI_mean']]
-        final_orthologs_with_cai_df = pd.merge(cai_df, final_orthologs_df, on='OG_name')
-        final_orthologs_with_cai_df.to_csv(os.path.join(step_output_dir, 'final_orthologs_table.csv'), index=False)
+        if os.path.exists(cai_table_path):
+            cai_df = pd.read_csv(cai_table_path)[['OG_name', 'CAI_mean']]
+            final_orthologs_with_cai_df = pd.merge(cai_df, final_orthologs_df, on='OG_name')
+            final_orthologs_with_cai_df.to_csv(os.path.join(step_output_dir, 'final_orthologs_table.csv'), index=False)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')

@@ -134,8 +134,13 @@ def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, src
     wait_for_results(logger, logger, os.path.split(script_path)[-1], W_tmp_dir,
                      num_of_batches, error_file_path)
 
-    # 2. Make Graph
     W_vectors = get_genome_to_W_vector(W_output_dir)
+    if any(None in w_vector.values() for w_vector in W_vectors.values()):
+        logger.info("At least one of the genomes has an incomplete W vector (might be because there were not "
+                    "enough genes that were identified as HEGs). Codon bias analysis is therefore not possible.")
+        return
+
+    # 2. Make Graph
     visualize_Ws_with_PCA(W_vectors, output_dir, logger)
 
     # 3. Calculate CAIs
