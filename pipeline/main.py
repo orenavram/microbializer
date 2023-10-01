@@ -341,25 +341,25 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     # 2b.  translate_fna_to_faa.py - of ORFs files
     # Input: path to fna file and an faa file
     # Output: translate the fna to protein and write to the faa file
-    step_number = '2_b'
+    step_number = '02_b'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_translate_orfs'
+    step_name = f'{step_number}_translated_orfs'
     script_path = os.path.join(args.src_dir, 'steps/translate_fna_to_faa.py')
-    translate_orfs_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    translated_orfs_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Translating ORFs sequences...')
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-        for fasta_file in os.listdir(orthologs_dna_sequences_dir_path):
-            file_path = os.path.join(orthologs_dna_sequences_dir_path, fasta_file)
-            output_path = os.path.join(orthologs_aa_sequences_dir_path, fasta_file.replace('_dna.fas', '_aa.fas'))
+        for fasta_file in os.listdir(orfs_dir):
+            file_path = os.path.join(orfs_dir, fasta_file)
+            output_path = os.path.join(translated_orfs_dir_path, fasta_file)
 
             single_cmd_params = [file_path, output_path]
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                    num_of_cmds_per_job=250,
-                                                   job_name_suffix='dna_translation',
+                                                   job_name_suffix='orfs_dna_translation',
                                                    queue_name=args.queue_name)
 
         wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
@@ -368,7 +368,9 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
-    edit_progress(output_html_path, progress=65)
+    edit_progress(output_html_path, progress=12)
+
+    return
 
     # 3.  create_mmseqs2_DB.py
     # Input: path to gene file to create DB from
