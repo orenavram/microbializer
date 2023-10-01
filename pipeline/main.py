@@ -370,7 +370,50 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=12)
 
-    return
+    # 2c.  assessing_genomes_completeness.py
+    # Input: path to faa file
+    # Output: calculate proteome completeness based on a dataset of profile-HMMs that represent core bacterial genes.
+    step_number = '02_c'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_genomes_completeness'
+    script_path = os.path.join(args.src_dir, 'steps/assessing_genome_completeness.py')
+    step_output_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    genomes_output_dir_path = os.path.join(step_output_dir_path, 'individual_proteomes_outputs')
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        logger.info('Calculating genomes completeness...')
+        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
+        os.makedirs(genomes_output_dir_path, exist_ok=True)
+        for fasta_file in os.listdir(translated_orfs_dir_path):
+            file_path = os.path.join(translated_orfs_dir_path, fasta_file)
+            single_cmd_params = [file_path, genomes_output_dir_path]
+            all_cmds_params.append(single_cmd_params)
+
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+                                                   num_of_cmds_per_job=10,
+                                                   job_name_suffix='genomes_completeness',
+                                                   queue_name=args.queue_name)
+
+        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+                         num_of_batches, error_file_path, email=args.email)
+
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+    edit_progress(output_html_path, progress=12)
+
+    # Aggregate results of step 2c
+    genomes_completeness_scores = {}
+    for genome_name in os.listdir(genomes_output_dir_path):
+        genome_score_path = os.path.join(genomes_output_dir_path, genome_name, 'result.txt')
+        with open(genome_score_path, 'r') as fp:
+            genomes_completeness_scores[genome_name] = float(fp.read().strip())
+
+    with open(os.path.join(step_output_dir_path, 'genomes_completeness_assessment.json'), 'w') as fp:
+        json.dump(genomes_completeness_scores, fp)
+
+    # comment the next line if you don't wish to delete hmmer results
+    shutil.rmtree(genomes_output_dir_path)
 
     # 3.  create_mmseqs2_DB.py
     # Input: path to gene file to create DB from
