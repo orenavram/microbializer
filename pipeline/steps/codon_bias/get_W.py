@@ -45,7 +45,7 @@ def find_HEGs_in_orf_file(ORF_file_path, tmp_dir, logger):
 
     # Filter hits to find actual HEGs and write their names into a file
     hegs_df = pd.read_csv(hegs_hits_file, delimiter='\t', names=BLAST_OUTPUT_HEADERS)
-    hegs_df_filtered = hegs_df.loc[(hegs_df['identity_percent'] > 80) & (hegs_df['evalue'] < 0.01)]
+    hegs_df_filtered = hegs_df.loc[(hegs_df['identity_percent'] > 70) & (hegs_df['evalue'] < 0.01)]
     hegs_names = set(hegs_df_filtered['subject'])
     HEGs_names_file_path = os.path.join(tmp_dir, ORF_file_name + '_HEG_hits_only.txt')
     with open(HEGs_names_file_path, 'w') as HEGs_names_file:
