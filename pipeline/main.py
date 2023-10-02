@@ -21,7 +21,7 @@ from auxiliaries.pipeline_auxiliaries import measure_time, execute, wait_for_res
 from auxiliaries.html_editor import edit_success_html, edit_failure_html, edit_progress
 from auxiliaries import consts, flask_interface_consts
 from auxiliaries.plots_generator import generate_violinplot, generate_bar_plot
-from auxiliaries.mimic_prodigal_header import mimic_prodigal_output
+from auxiliaries.steps_auxiliaries import mimic_prodigal_output, aggregate_ani_results
 
 
 def get_arguments():
@@ -271,6 +271,42 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
             logger.info(f'done file {done_file_path} already exists. Skipping step...')
         data_path = filtered_inputs_dir
         edit_progress(output_html_path, progress=5)
+
+    # 1b.   ani.py
+    step_number = '1b'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_ANI'
+    script_path = os.path.join(args.src_dir, 'steps/ani.py')
+    ani_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        logger.info('Calculating ANI values...')
+
+        genomes_paths = [os.path.join(data_path, genome_file_name) for genome_file_name in os.listdir(data_path)]
+        genomes_list_path = os.path.join(ani_output_dir, 'genomes_list.txt')
+        with open(genomes_list_path, 'w') as genomes_list_file:
+            genomes_list_file.write('\n'.join(genomes_paths))
+
+        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
+        for fasta_file in os.listdir(data_path):
+            single_cmd_params = [os.path.join(data_path, fasta_file), genomes_list_path, ani_output_dir]
+            all_cmds_params.append(single_cmd_params)
+
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+                                                   num_of_cmds_per_job=1,
+                                                   job_name_suffix='calculate_ani',
+                                                   queue_name=args.queue_name)
+
+        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+                         num_of_batches, error_file_path, email=args.email)
+
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+    edit_progress(output_html_path, progress=8)
+
+    # Aggregate ANI results
+    aggregate_ani_results(ani_output_dir)
 
     # 2.	search_orfs.py
     # Input: (1) an input path for a fasta file with contigs/full genome (2) an output file path
