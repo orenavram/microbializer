@@ -18,3 +18,4 @@ dependencies:
   - blast=2.14.0
   - scikit-learn=1.3.0
   - hmmer=3.3.2
+  - fastani=1.34
