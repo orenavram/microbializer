@@ -16,7 +16,7 @@ BACTERIA_CORE_GENES_HMM_PROFILES_PATH = '/groups/pupko/naamawagner/Microbializer
 CORE_GENES_COUNT = len(os.listdir(BACTERIA_CORE_GENES_HMM_PROFILES_PATH))
 
 
-def compute_genome_completeness(genomic_translated_f, out_dir):
+def compute_genome_completeness(genomic_translated_f, out_dir, logger):
     """
     input:
         genomic_translated_f - protein fasta file of one genome
@@ -35,22 +35,25 @@ def compute_genome_completeness(genomic_translated_f, out_dir):
         subprocess.check_output(cmd, shell=True)
 
         with open(hmmsearch_out_file_path) as out_hmmsearch:
+            # Examine the first sequence hit (=the most significant hit = the first line that doesn't start with #)
             for line in out_hmmsearch:
                 if not line.startswith('#'):
                     if float(line.split()[2]) < 10 ** (-4):
                         score += 1
-                        break
+                    else:
+                        logger.info(f"Proteome {genomic_translated_f} doesn't include a gene that matches the profile {profile}")
+                    break
 
     return round((score / CORE_GENES_COUNT) * 100)
 
 
-def main(proteome_path, output_dir):
+def main(proteome_path, output_dir, logger):
     """
     the main function that computes the genome completeness of the proteome and saves the results to the output dir.
     """
     genome_name = os.path.basename(proteome_path).split('.')[0]
     genome_out_dir = os.path.join(output_dir, genome_name)
-    completeness_score = compute_genome_completeness(proteome_path, genome_out_dir)
+    completeness_score = compute_genome_completeness(proteome_path, genome_out_dir, logger)
     with open(os.path.join(genome_out_dir, 'result.txt'), 'w') as fp:
         fp.write(str(completeness_score))
 
@@ -72,6 +75,6 @@ if __name__ == '__main__':
     logger.info(script_run_message)
 
     try:
-        main(args.proteome_path, args.output_dir)
+        main(args.proteome_path, args.output_dir, logger)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
