@@ -207,8 +207,6 @@ def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path
                 fail(logger, error_msg, error_file_path)
         filename_prefixes.add(filename_prefix)
 
-
-
     number_of_genomes = len(os.listdir(data_path))
     logger.info(f'Number of genomes to analyze is {number_of_genomes}')
     logger.info(f'data_path contains the following {number_of_genomes} files: {os.listdir(data_path)}')

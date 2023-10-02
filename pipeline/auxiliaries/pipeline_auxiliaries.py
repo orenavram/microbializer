@@ -420,6 +420,11 @@ def fix_illegal_chars_in_file_name(logger, file_name, illegal_chars='\\|( );,\xa
         if char in new_file_name:
             logger.info(f'File name with illegal character "{char}" was detected!\n')
             new_file_name = new_file_name.replace(char, '_')
+
+    # Due to weird mmseqs behavior, the ORFs headers (and therefore the filenames) cannot start with 'consensus'.
+    if new_file_name.startswith('consensus'):
+        new_file_name = new_file_name.replace('consensus', 'consenzus')
+
     return new_file_name
 
 
