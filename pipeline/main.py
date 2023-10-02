@@ -308,8 +308,6 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     # Aggregate ANI results
     aggregate_ani_results(ani_output_dir)
 
-    return
-
     # 2.	search_orfs.py
     # Input: (1) an input path for a fasta file with contigs/full genome (2) an output file path
     #                (with a suffix as follows: i_genes.fasta. especially relevant for the wrapper).
