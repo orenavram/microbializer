@@ -8,6 +8,7 @@ from sys import argv
 import argparse
 import logging
 import sys
+from collections import defaultdict
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -93,25 +94,25 @@ def construct_table(logger, all_reciprocal_hits_path, putative_orthologs_path, d
 
     header = delimiter.join(['OG_name'] + sorted_strains) + '\n'
     result = ''
-    number_of_putative_sets = 0
     result += header
     # groups sorted by the strain they are associated with (group names are a subset of all the genes..)
     sorted_groups = sorted(group_name_to_member_genes, key=member_gene_to_strain_name_dict.get)
     for group in sorted_groups:
         current_group = group_name_to_member_genes[group]
-        # dictionary that holds for each strain the member of the current group if any, o.w., empty str.
-        strain_to_member = dict.fromkeys(sorted_strains, '')
+        # dictionary that holds for each strain the members of the current group
+        strain_to_members = defaultdict(list)
         for member in current_group:
             strain = member_gene_to_strain_name_dict[member]
-            strain_to_member[strain] = member
-        result += delimiter.join([group] + [strain_to_member[strain] for strain in sorted_strains]) + '\n'
-        number_of_putative_sets += 1
+            strain_to_members[strain].append(member)
+        strain_to_members = {strain: ';'.join(members) for strain, members in strain_to_members.items()}
+        group_row_str = delimiter.join([group] + [strain_to_members.get(strain, '') for strain in sorted_strains])
+        result += group_row_str + '\n'
 
     with open(putative_orthologs_path, 'w') as f:
         f.write(result)
 
     with open(os.path.join(os.path.split(putative_orthologs_path)[0], 'num_of_putative_sets.txt'), 'w') as f:
-        f.write(f'{number_of_putative_sets}\n')
+        f.write(f'{len(group_name_to_member_genes)}\n')
 
 
 if __name__ == '__main__':

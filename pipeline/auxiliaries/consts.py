@@ -9,6 +9,7 @@ TEST = True
 USE_CONDA = True
 IGNORE_HTML = True
 LOG_IN_SEPARATE_FILES = True
+HEGS_ECOLI_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'HEG_ecoli.txt')
 PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer' if TEST else '/bioseq/microbializer_v2'
 OWNER_EMAIL = 'yairshimony@mail.tau.ac.il'
 QUEUE_FOR_JOBS = 'power-pupko'

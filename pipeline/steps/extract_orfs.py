@@ -7,6 +7,7 @@ from sys import argv
 import argparse
 import logging
 import sys
+from Bio import SeqIO
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -15,30 +16,20 @@ from auxiliaries.pipeline_auxiliaries import get_job_logger
 from auxiliaries import consts
 
 
-def get_sequence_by_ortholog_name(fasta_path, ortholog_name):
-    with open(fasta_path) as f:
-        sequence = ''
-        flag = False
-        for line in f:
-            line = line.rstrip()
-            if line.startswith('>'):
-                if sequence != '':
-                    # finished aggregating relevant sequence
-                    return sequence
-                header = line.lstrip('>')
-                if header.startswith(ortholog_name):
-                    # gene name was found! start aggregating sequence
-                    flag = True
-            elif flag:
-                # previous header is $ortholog_name! so we are now aggregating its sequence
-                sequence += line
-        if sequence != '':
-            # LAST record was the relevant sequence
-            return sequence
-    raise ValueError(f'{ortholog_name} does not exist in {fasta_path}!')
+def get_sequences_by_genes_names(fasta_path, genes_names):
+    sequences = {}
+    for seq_record in SeqIO.parse(fasta_path, 'fasta'):
+        if seq_record.id in genes_names:
+            sequences[seq_record.id] = seq_record.seq
+        if len(sequences) == len(genes_names):  # We found all genes_names
+            break
+
+    if len(sequences) != len(genes_names):
+        raise ValueError(f'Not all genes names ({genes_names}) were found in {fasta_path}!')
+    return sequences
 
 
-def get_orthologs_group_sequences(logger, orfs_dir, strain_name_to_ortholog_name, strains):
+def get_orthologs_group_sequences(logger, orfs_dir, strain_name_to_genes_names, strains):
     result = ''
 
     strain_to_strain_orfs_path_dict = {}
@@ -47,15 +38,16 @@ def get_orthologs_group_sequences(logger, orfs_dir, strain_name_to_ortholog_name
         strain_to_strain_orfs_path_dict[strain] = os.path.join(orfs_dir, orfs_file)
 
     for strain in strains:
-        ortholog_name = strain_name_to_ortholog_name[strain]
-        if ortholog_name != '':
-            # current strain has a member in this cluster
+        genes_names = strain_name_to_genes_names[strain]
+        if genes_names != '':
+            # current strain has members in this cluster
             if strain_to_strain_orfs_path_dict.get(strain) is not None:
                 orfs_path = strain_to_strain_orfs_path_dict[strain]
-                ortholog_sequence = get_sequence_by_ortholog_name(orfs_path, ortholog_name)
-                result += f'>{strain}\n{ortholog_sequence}\n'
+                genes_sequences = get_sequences_by_genes_names(orfs_path, genes_names.split(';'))
+                for gene_name, sequence in genes_sequences.items():
+                    result += f'>{gene_name} ({strain})\n{sequence}\n'
             else:
-                logger.error(f'Could not extract {strain_name_to_ortholog_name[strain]} ortholog of strain {strain} as '
+                logger.error(f'Could not extract {strain_name_to_genes_names[strain]} genes of strain {strain} as '
                              f'its ORFs file does not exist at {orfs_dir} (probably ORFs sequence extraction for was '
                              f'failed due to multiple contigs in the corresponding genomic file. Try to grep "failed" '
                              f'on ORFs extraction ER log files)')
@@ -67,8 +59,8 @@ def extract_orfs(logger, sequences_dir, final_table_header_line, cluster_members
                  cluster_name, output_path, delimiter):
     strains = final_table_header_line.rstrip().split(delimiter)
     cluster_members = cluster_members_line.rstrip().split(delimiter)
-    strain_name_to_ortholog_name = dict(zip(strains, cluster_members))
-    orthologs_sequences = get_orthologs_group_sequences(logger, sequences_dir, strain_name_to_ortholog_name, strains)
+    strain_name_to_genes_names = dict(zip(strains, cluster_members))
+    orthologs_sequences = get_orthologs_group_sequences(logger, sequences_dir, strain_name_to_genes_names, strains)
     if not orthologs_sequences:
         logger.error(f'Failed to extract any sequence for {cluster_name}.')
         return
