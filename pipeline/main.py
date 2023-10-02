@@ -21,7 +21,7 @@ from auxiliaries.pipeline_auxiliaries import measure_time, execute, wait_for_res
 from auxiliaries.html_editor import edit_success_html, edit_failure_html, edit_progress
 from auxiliaries import consts, flask_interface_consts
 from auxiliaries.plots_generator import generate_violinplot, generate_bar_plot
-from auxiliaries.mimic_prodigal_header import mimic_prodigal_output
+from auxiliaries.steps_auxiliaries import mimic_prodigal_output, aggregate_ani_results
 
 
 def get_arguments():
@@ -194,6 +194,8 @@ def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path
         if file_name != new_file_name:
             # illegal character in file name were found
             move_file(logger, data_path, file_name, new_file_name, error_file_path)
+            if args.outgroup == file_name:
+                args.outgroup = new_file_name
 
         filename_prefix, filename_ext = os.path.splitext(file_name)
         if filename_prefix in filename_prefixes:
@@ -206,8 +208,6 @@ def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path
                             f'{filename_prefix}). Please make sure the file names are not prefixes of each other.'
                 fail(logger, error_msg, error_file_path)
         filename_prefixes.add(filename_prefix)
-
-
 
     number_of_genomes = len(os.listdir(data_path))
     logger.info(f'Number of genomes to analyze is {number_of_genomes}')
@@ -271,6 +271,42 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
             logger.info(f'done file {done_file_path} already exists. Skipping step...')
         data_path = filtered_inputs_dir
         edit_progress(output_html_path, progress=5)
+
+    # 1b.   ani.py
+    step_number = '1b'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_ANI'
+    script_path = os.path.join(args.src_dir, 'steps/ani.py')
+    ani_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        logger.info('Calculating ANI values...')
+
+        genomes_paths = [os.path.join(data_path, genome_file_name) for genome_file_name in os.listdir(data_path)]
+        genomes_list_path = os.path.join(ani_output_dir, 'genomes_list.txt')
+        with open(genomes_list_path, 'w') as genomes_list_file:
+            genomes_list_file.write('\n'.join(genomes_paths))
+
+        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
+        for fasta_file in os.listdir(data_path):
+            single_cmd_params = [os.path.join(data_path, fasta_file), genomes_list_path, ani_output_dir]
+            all_cmds_params.append(single_cmd_params)
+
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+                                                   num_of_cmds_per_job=1,
+                                                   job_name_suffix='calculate_ani',
+                                                   queue_name=args.queue_name)
+
+        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+                         num_of_batches, error_file_path, email=args.email)
+
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+    edit_progress(output_html_path, progress=8)
+
+    # Aggregate ANI results
+    aggregate_ani_results(ani_output_dir)
 
     # 2.	search_orfs.py
     # Input: (1) an input path for a fasta file with contigs/full genome (2) an output file path
@@ -1093,10 +1129,8 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_induce_dna_msa_by_aa_msa'
     script_path = os.path.join(args.src_dir, 'steps/induce_dna_msa_by_aa_msa.py')
-    num_of_expected_induced_results = 0
     dna_alignments_path, induced_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-    start_induced = time()
     if not os.path.exists(done_file_path):
         logger.info(f'Inducing dna alignments...\n(from {aa_alignments_path})')
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
@@ -1114,10 +1148,41 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
                                                                     job_name_suffix='induce_msa',
                                                                     queue_name=args.queue_name)
 
-        # no need to wait now. Wait before moving the results dir!
+        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], induced_tmp_dir,
+                         num_of_expected_results=num_of_expected_induced_results, error_file_path=error_file_path, email=args.email)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+    # 18b.      extract_aligned_core_genome
+    step_number = '18b'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_aligned_core_genome'
+    script_path = os.path.join(args.src_dir, 'steps/extract_core_genome.py')
+    aligned_core_genome_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    aligned_core_genome_file_path = os.path.join(aligned_core_genome_path, 'aligned_core_genome.fas')
+    core_ogs_names_file_path = os.path.join(aligned_core_genome_path, 'core_ortholog_groups_names.txt')
+    core_length_file_path = os.path.join(aligned_core_genome_path, 'core_length.txt')
+    number_of_core_members = os.path.join(aligned_core_genome_path, 'number_of_core_genes.txt')
+    if not os.path.exists(done_file_path):
+        logger.info('Extracting aligned core genome...')
+
+        params = [dna_alignments_path, num_of_strains, strains_names_path,
+                  aligned_core_genome_file_path,
+                  core_ogs_names_file_path,
+                  core_length_file_path,
+                  number_of_core_members,
+                  f'--core_minimal_percentage {args.core_minimal_percentage}']  # how many members induce a core group?
+        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir,
+                          args.queue_name, job_name='core_genome')
+
+        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+                         num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+    edit_progress(output_html_path, progress=75)
 
     # 19.	extract_groups_sizes_frequency
     step_number = '19'
@@ -1241,10 +1306,6 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         # move orfs plot
         add_results_to_final_dir(logger, orfs_plots_path, final_output_dir)
 
-        if num_of_expected_induced_results > 0:  # can be 0 when re-running
-            wait_for_results(logger, times_logger, 'induce_dna_msa_by_aa_msa.py', induced_tmp_dir,
-                             num_of_expected_results=num_of_expected_induced_results,
-                             error_file_path=error_file_path, start=start_induced, email=args.email)
         # move induced dna sequences
         add_results_to_final_dir(logger, dna_alignments_path, final_output_dir)
 
