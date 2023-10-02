@@ -28,14 +28,25 @@ def aggregate_ani_results(ani_output_dir):
 
     ani_values_df = combined_df.pivot_table(index='query', columns='subject', values='ani_value')
 
-    #plt.subplots(figsize=(40, 40))
-    plot = sns.heatmap(ani_values_df, cmap='Blues')
+    num_of_genomes = len(all_dfs)
+    sns.set_context('paper', font_scale=1.4)
+    if num_of_genomes <= 10:
+        plt.subplots(figsize=(12, 10))
+        plot = sns.heatmap(ani_values_df, annot=True, fmt='.1f', cmap='Blues')
+    elif num_of_genomes <= 20:
+        plt.subplots(figsize=(26, 20))
+        plot = sns.heatmap(ani_values_df, cmap='Blues')
+    else:
+        plt.subplots(figsize=(53, 40))
+        plot = sns.heatmap(ani_values_df, cmap='Blues')
+
+    plt.tight_layout()
     fig = plot.get_figure()
     fig.savefig(os.path.join(ani_output_dir, 'heatmap.png'))
 
-    ani_values_df.replace({100: np.nan}, inplace=True)
-    max_values = ani_values_df.max(axis=1)
-    max_columns = ani_values_df.idxmax(axis=1)
+    ani_values_without_diagonal_df = ani_values_df.replace({100: np.nan})
+    max_values = ani_values_without_diagonal_df.max(axis=1)
+    max_columns = ani_values_without_diagonal_df.idxmax(axis=1)
     ani_values_df = ani_values_df.assign(max_value=max_values.values)
     ani_values_df = ani_values_df.assign(max_column=max_columns.values)
     ani_values_df.to_csv(os.path.join(ani_output_dir, 'ani_pairwise_values.csv'))
