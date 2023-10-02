@@ -1129,10 +1129,8 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_induce_dna_msa_by_aa_msa'
     script_path = os.path.join(args.src_dir, 'steps/induce_dna_msa_by_aa_msa.py')
-    num_of_expected_induced_results = 0
     dna_alignments_path, induced_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-    start_induced = time()
     if not os.path.exists(done_file_path):
         logger.info(f'Inducing dna alignments...\n(from {aa_alignments_path})')
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
@@ -1150,10 +1148,41 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
                                                                     job_name_suffix='induce_msa',
                                                                     queue_name=args.queue_name)
 
-        # no need to wait now. Wait before moving the results dir!
+        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], induced_tmp_dir,
+                         num_of_expected_results=num_of_expected_induced_results, error_file_path=error_file_path, email=args.email)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+    # 18b.      extract_aligned_core_genome
+    step_number = '18b'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_aligned_core_genome'
+    script_path = os.path.join(args.src_dir, 'steps/extract_core_genome.py')
+    aligned_core_genome_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    aligned_core_genome_file_path = os.path.join(aligned_core_genome_path, 'aligned_core_genome.fas')
+    core_ogs_names_file_path = os.path.join(aligned_core_genome_path, 'core_ortholog_groups_names.txt')
+    core_length_file_path = os.path.join(aligned_core_genome_path, 'core_length.txt')
+    number_of_core_members = os.path.join(aligned_core_genome_path, 'number_of_core_genes.txt')
+    if not os.path.exists(done_file_path):
+        logger.info('Extracting aligned core genome...')
+
+        params = [dna_alignments_path, num_of_strains, strains_names_path,
+                  aligned_core_genome_file_path,
+                  core_ogs_names_file_path,
+                  core_length_file_path,
+                  number_of_core_members,
+                  f'--core_minimal_percentage {args.core_minimal_percentage}']  # how many members induce a core group?
+        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir,
+                          args.queue_name, job_name='core_genome')
+
+        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+                         num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+    edit_progress(output_html_path, progress=75)
 
     # 19.	extract_groups_sizes_frequency
     step_number = '19'
@@ -1277,10 +1306,6 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         # move orfs plot
         add_results_to_final_dir(logger, orfs_plots_path, final_output_dir)
 
-        if num_of_expected_induced_results > 0:  # can be 0 when re-running
-            wait_for_results(logger, times_logger, 'induce_dna_msa_by_aa_msa.py', induced_tmp_dir,
-                             num_of_expected_results=num_of_expected_induced_results,
-                             error_file_path=error_file_path, start=start_induced, email=args.email)
         # move induced dna sequences
         add_results_to_final_dir(logger, dna_alignments_path, final_output_dir)
 
