@@ -194,8 +194,11 @@ def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path
         if file_name != new_file_name:
             # illegal character in file name were found
             move_file(logger, data_path, file_name, new_file_name, error_file_path)
-            if args.outgroup == file_name:
-                args.outgroup = new_file_name
+            if args.outgroup == os.path.splitext(file_name)[0]:
+                new_outgroup = os.path.splitext(new_file_name)[0]
+                logger.info(f'Following the change of input genome name {file_name} to {new_file_name}, '
+                            f'outgroup argument was changed from {args.outgroup} to {new_outgroup}')
+                args.outgroup = new_outgroup
 
         filename_prefix, filename_ext = os.path.splitext(file_name)
         if filename_prefix in filename_prefixes:
