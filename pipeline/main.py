@@ -1070,25 +1070,26 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     edit_progress(output_html_path, progress=80)
 
     # 16b.	genome_numeric_representation.py
-    step_number = '16b'
-    logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_genome_numeric_representation'
-    script_path = os.path.join(args.src_dir, 'steps/genome_numeric_representation.py')
-    numeric_representation_output_dir, numeric_representation_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    core_genome_numeric_representation_file_path = os.path.join(numeric_representation_output_dir, 'core_genome_numeric_representation.txt')
-    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-    if not os.path.exists(done_file_path):
-        params = [final_orthologs_table_no_paralogs_file_path,
-                  orfs_dir,
-                  core_genome_numeric_representation_file_path]
-        submit_mini_batch(logger, script_path, [params], numeric_representation_tmp_dir,
-                          args.queue_name, job_name='numeric_representation')
+    if args.core_minimal_percentage == 100:
+        step_number = '16b'
+        logger.info(f'Step {step_number}: {"_" * 100}')
+        step_name = f'{step_number}_genome_numeric_representation'
+        script_path = os.path.join(args.src_dir, 'steps/genome_numeric_representation.py')
+        numeric_representation_output_dir, numeric_representation_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+        core_genome_numeric_representation_file_path = os.path.join(numeric_representation_output_dir, 'core_genome_numeric_representation.txt')
+        done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+        if not os.path.exists(done_file_path):
+            params = [final_orthologs_table_no_paralogs_file_path,
+                      orfs_dir,
+                      core_genome_numeric_representation_file_path]
+            submit_mini_batch(logger, script_path, [params], numeric_representation_tmp_dir,
+                              args.queue_name, job_name='numeric_representation')
 
-        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], numeric_representation_tmp_dir,
-                         num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
-    else:
-        logger.info(f'done file {done_file_path} already exists. Skipping step...')
-    edit_progress(output_html_path, progress=90)
+            wait_for_results(logger, times_logger, os.path.split(script_path)[-1], numeric_representation_tmp_dir,
+                             num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
+        else:
+            logger.info(f'done file {done_file_path} already exists. Skipping step...')
+        edit_progress(output_html_path, progress=90)
 
     # 17.	extract_orfs_statistics.py
     # Input: (1) A path to ORFs file (2) An output path to ORFs counts (3) An output path to GC content
