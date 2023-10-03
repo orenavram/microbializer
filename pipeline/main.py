@@ -58,7 +58,7 @@ def get_arguments():
                         help='whether the input files are annotated proteomes in the QfO benchmark format')
     # choices=['pupkoweb', 'pupkowebr', 'pupkolab', 'pupkolabr', 'pupkotmp', 'pupkotmpr', 'itaym', 'lilach',
     # 'bioseq', 'bental', 'oren.q', 'bioseq20.q'])
-    parser.add_argument('-q', '--queue_name', help='The cluster to which the job(s) will be submitted to',
+    parser.add_argument('-q', '--queue_name', help='The queue to which the job(s) will be submitted to',
                         default=consts.QUEUE_FOR_JOBS)
     parser.add_argument('--dummy_delimiter',
                         help='The queue does not "like" very long commands. A dummy delimiter is used to break each row'
@@ -378,7 +378,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         fail(logger, error_msg, error_file_path)
 
     # 2b.  translate_fna_to_faa.py - of ORFs files
-    # Input: path to fna file and an faa file
+    # Input: path to fna file and a faa file
     # Output: translate the fna to protein and write to the faa file
     step_number = '02_b'
     logger.info(f'Step {step_number}: {"_" * 100}')

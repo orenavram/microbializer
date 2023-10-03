@@ -5,7 +5,7 @@ Created on Tue Jun 13 08:25:48 2023
 
 @author: noa
 """
-
+import json
 from sys import argv
 import argparse
 import logging
@@ -47,21 +47,25 @@ def extract_orphan_proteins(logger, orfs_dir, orthologs_file, output_dir):
     if not os.path.exists(output_dir):
         logger.exception(f'Output path does not exist in {output_dir}')
     genes_with_orthologs = get_all_genes_with_orthologs(orthologs_file)
-    number_of_orphans_per_file = []
+    number_of_orphans_per_file = {}
     for file_name in os.listdir(orfs_dir):
-        org_name = file_name.split('.')[0] 
-        file_path = os.path.join(orfs_dir,file_name)
+        org_name = os.path.splitext(file_name)[0]
+        file_path = os.path.join(orfs_dir, file_name)
         if os.path.isfile(file_path):
             gene_names = set(extract_gene_names_from_fasta(file_path))
             orphans = list(gene_names.difference(genes_with_orthologs))
-            number_of_orphans_per_file.append(len(orphans))
-            orphans_path = os.path.join(output_dir, org_name+"_orphans")
+            number_of_orphans_per_file[org_name] = len(orphans)
+            orphans_path = os.path.join(output_dir, f'{org_name}_orphans.txt')
             with open(orphans_path, 'w') as ORPH:
                 ORPH.write('\n'.join(orphans))
 
+    orphan_genes_count_per_genome_file_path = os.path.join(output_dir, 'orphan_genes_count.json')
+    with open(orphan_genes_count_per_genome_file_path, 'w') as orphan_genes_count_per_genome_file:
+        json.dump(number_of_orphans_per_file, orphan_genes_count_per_genome_file)
+
     orphan_genes_count_file_path = os.path.join(output_dir, 'orphan_genes_count.txt')
     with open(orphan_genes_count_file_path, 'w') as orphan_genes_count_file:
-        orphan_genes_count_file.write('\n'.join([str(count) for count in number_of_orphans_per_file]))
+        orphan_genes_count_file.write('\n'.join([str(count) for count in number_of_orphans_per_file.values()]))
 
     generate_violinplot(orphan_genes_count_file_path, os.path.join(output_dir, 'orphan_genes_count.png'),
                         xlabel='Orphan genes count per genome', ylabel='Count')
