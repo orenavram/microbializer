@@ -60,6 +60,7 @@ def get_arguments():
     # 'bioseq', 'bental', 'oren.q', 'bioseq20.q'])
     parser.add_argument('-q', '--queue_name', help='The queue to which the job(s) will be submitted to',
                         default=consts.QUEUE_FOR_JOBS)
+    parser.add_argument('--step_to_stop', help='The final step to execute', default=None)
     parser.add_argument('--dummy_delimiter',
                         help='The queue does not "like" very long commands. A dummy delimiter is used to break each row'
                              ' into different commands of a single job',
@@ -172,7 +173,8 @@ def prepare_pipeline_framework(args):
         output_dir, tmp_dir, done_files_dir
 
 
-def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path, output_dir):
+def prepare_and_verify_input_data(args, logger, times_logger, meta_output_dir, error_file_path, output_html_path,
+                                  output_dir, tmp_dir, done_files_dir):
     # extract zip and detect data folder
     primary_data_path = unpack_data(logger, args.contigs_dir, meta_output_dir, error_file_path)
 
@@ -238,17 +240,9 @@ def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path
         remove_path(logger, data_path)
         fail(logger, verification_error, error_file_path)
 
-    return data_path, number_of_genomes
-
-
-def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_path, run_number, output_html_path,
-                      output_dir, tmp_dir, done_files_dir, data_path, number_of_genomes):
-    # 1.	drop_plasmids.py
-    # Input: (1) an input path for a fasta file with contigs/full genome
-    # Output: overrides the original file without plasmids
-    # Can be parallelized on cluster
+    # 0.	drop_plasmids.py
     if args.filter_out_plasmids:
-        step_number = '01'
+        step_number = '00'
         logger.info(f'Step {step_number}: {"_" * 100}')
         step_name = f'{step_number}_drop_plasmids'
         script_path = os.path.join(args.src_dir, 'steps/drop_plasmids.py')
@@ -275,8 +269,13 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         data_path = filtered_inputs_dir
         edit_progress(output_html_path, progress=5)
 
-    # 1b.   ani.py
-    step_number = '1b'
+    return data_path, number_of_genomes
+
+
+def step_1_calculate_ani(args, logger, times_logger, error_file_path, output_html_path, output_dir, tmp_dir,
+                         done_files_dir, data_path):
+    # 1.   ani.py
+    step_number = '01'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_ANI'
     script_path = os.path.join(args.src_dir, 'steps/ani.py')
@@ -303,22 +302,25 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
+        # Aggregate ANI results
+        aggregate_ani_results(ani_output_dir)
+
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=8)
 
-    # Aggregate ANI results
-    aggregate_ani_results(ani_output_dir)
 
-    # 2.	search_orfs.py
+def step_2_search_orfs(args, logger, times_logger, error_file_path, output_html_path, output_dir, tmp_dir,
+                       done_files_dir, data_path):
+    # 2a.	search_orfs.py
     # Input: (1) an input path for a fasta file with contigs/full genome (2) an output file path
     #                (with a suffix as follows: i_genes.fasta. especially relevant for the wrapper).
     # Output: a fasta file where under each header, there’s a single gene.
     # Can be parallelized on cluster
     # Prodigal ignores newlines in the middle of a sequence, namely, >bac1\nAAA\nAA\nTTT >bac1\nAAAAATTT will be
     # analyzed identically.
-    step_number = orfs_step_number = '02'  # using orfs_step_number for downstream analysis (extract promoter and gene sequences)
+    step_number = orfs_step_number = '02a'  # using orfs_step_number for downstream analysis (extract promoter and gene sequences)
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_ORFs'
     script_path = os.path.join(args.src_dir, 'steps/search_orfs.py')
@@ -377,10 +379,101 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
                      f'it is recommended to use genomic files that contain at least 20K base pairs (each).'
         fail(logger, error_msg, error_file_path)
 
-    # 2b.  translate_fna_to_faa.py - of ORFs files
+    # 2b.	extract_orfs_statistics.py
+    # Input: (1) A path to ORFs file (2) An output path to ORFs counts (3) An output path to GC content
+    # Output: write the number of ORFs and GC content to the output files (respectively)
+    # Can be parallelized on cluster
+    step_number = '02b'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_orfs_statistics'
+    script_path = os.path.join(args.src_dir, 'steps/extract_orfs_statistics.py')
+    orfs_statistics_path, orfs_statistics_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    start_orf_stats = time()
+    if not os.path.exists(done_file_path):
+        logger.info('Collecting orfs counts...')
+        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
+        for file in os.listdir(orfs_dir):
+            orf_path = os.path.join(orfs_dir, file)
+            strain_name = os.path.splitext(file)[0]
+            orfs_count_output_path = os.path.join(orfs_statistics_path, f'{strain_name}.orfs_count')
+            gc_content_output_path = os.path.join(orfs_statistics_path, f'{strain_name}.gc_content')
+
+            single_cmd_params = [orf_path, orfs_count_output_path, gc_content_output_path]
+            all_cmds_params.append(single_cmd_params)
+
+        num_of_expected_orfs_results, example_cmd = submit_batch(logger, script_path, all_cmds_params,
+                                                                 orfs_statistics_tmp_dir,
+                                                                 num_of_cmds_per_job=200,
+                                                                 job_name_suffix='orfs_statistics',
+                                                                 queue_name=args.queue_name)
+
+        wait_for_results(logger, times_logger, 'extract_orfs_statistics.py', orfs_statistics_tmp_dir,
+                         num_of_expected_orfs_results, error_file_path=error_file_path, start=start_orf_stats,
+                         email=args.email)
+
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+    # 2c.	plot_orfs_statistics
+    step_number = '02c'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_orfs_plots'
+    orfs_plots_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    orfs_counts_frequency_file = os.path.join(orfs_plots_path, 'orfs_counts.txt')
+    orfs_counts_per_genome_file = os.path.join(orfs_plots_path, 'orfs_counts.json')
+    orfs_gc_content_file = os.path.join(orfs_plots_path, 'orfs_gc_contents.txt')
+    orfs_gc_content_per_genome_file = os.path.join(orfs_plots_path, 'orfs_gc_contents.json')
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        logger.info('Concatenating orfs counts and gc contents...')
+
+        gc_content = {}
+        orf_count = {}
+        for file_name in os.listdir(orfs_statistics_path):
+            strain_name = file_name.split('.')[0]
+            file_type = file_name.split('.')[1]
+            file_path = os.path.join(orfs_statistics_path, file_name)
+            with open(file_path, 'r') as f:
+                content = f.read()
+            if file_type == "gc_content":
+                gc_content[strain_name] = float(content)
+            if file_type == "orfs_count":
+                orf_count[strain_name] = int(content)
+
+        with open(orfs_gc_content_per_genome_file, 'w') as f:
+            json.dump(gc_content, f)
+        with open(orfs_counts_per_genome_file, 'w') as f:
+            json.dump(orf_count, f)
+
+        execute(logger, f'cat {orfs_statistics_path}/*.orfs_count > {orfs_counts_frequency_file}', process_is_string=True)
+        execute(logger, f'cat {orfs_statistics_path}/*.gc_content > {orfs_gc_content_file}', process_is_string=True)
+
+        # No need to wait...
+        logger.info('Plotting violins...')
+        orfs_counts_frequency_png_file_path = orfs_counts_frequency_file.replace('txt', 'png')
+        generate_violinplot(orfs_counts_frequency_file, orfs_counts_frequency_png_file_path,
+                         xlabel='\nORF count per genome', dpi=300)
+
+        orfs_gc_content_png_file_path = orfs_gc_content_file.replace('txt', 'png')
+        generate_violinplot(orfs_gc_content_file, orfs_gc_content_png_file_path,
+                         xlabel='\nGC content per genome', dpi=300)
+
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+    edit_progress(output_html_path, progress=85)
+
+    return orfs_dir
+
+
+def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_path, output_html_path, output_dir,
+                                       tmp_dir, done_files_dir, orfs_dir):
+    # 3a.  translate_fna_to_faa.py - of ORFs files
     # Input: path to fna file and a faa file
     # Output: translate the fna to protein and write to the faa file
-    step_number = '02_b'
+    step_number = '02b'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_translated_orfs'
     script_path = os.path.join(args.src_dir, 'steps/translate_fna_to_faa.py')
@@ -409,10 +502,10 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=12)
 
-    # 2c.  assessing_genomes_completeness.py
+    # 3b.  assessing_genomes_completeness.py
     # Input: path to faa file
     # Output: calculate proteome completeness based on a dataset of profile-HMMs that represent core bacterial genes.
-    step_number = '02_c'
+    step_number = '02c'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_genomes_completeness'
     script_path = os.path.join(args.src_dir, 'steps/assessing_genome_completeness.py')
@@ -454,11 +547,14 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=12)
 
-    # 3.  create_mmseqs2_DB.py
+
+def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_html_path, output_dir, tmp_dir,
+                            done_files_dir, orfs_dir):
+    # 4a.  create_mmseqs2_DB.py
     # Input: path to gene file to create DB from
     # Output: DB of the input file for mmseqs2
     # Can be parallelized on cluster
-    step_number = '03'
+    step_number = '04a'
     logger.info(f'Step {step_number}: {"_" * 100}')
     previous_pipeline_step_output_dir = orfs_dir
     step_name = f'{step_number}_dbs'
@@ -501,13 +597,13 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
                       [[pipeline_step_tmp_dir]], pipeline_step_tmp_dir, args.queue_name,
                       job_name='remove_dirs_from_tmp')
 
-    # 4.	mmseqs2_all_vs_all.py
+    # 4b.	mmseqs2_all_vs_all.py
     # Input: (1) 2 input paths for 2 (different) genome files (query and target), g1 and g2
     #        (2) an output file path (with a suffix as follows: i_vs_j.tsv. especially relevant for the wrapper).
     # Output: a tsv file where the first column contains g1 genes and the second column includes the corresponding best match.
     # Precisely, for each gene x in g1, query x among all the genes of g2. Let y be the gene in g2 that is the most similar to x among all g2 genes. Append a row to the output file with: ‘{x}\t{y}’.
     # Can be parallelized on cluster
-    step_number = '04'
+    step_number = '04b'
     logger.info(f'Step {step_number}: {"_" * 100}')
     previous_pipeline_step_output_dir = pipeline_step_output_dir
     step_name = f'{step_number}_all_vs_all_analysis'
@@ -567,16 +663,16 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
                       [[previous_pipeline_step_output_dir]],
                       pipeline_step_tmp_dir, args.queue_name, job_name='remove_m8_files')
 
-    # 5.	filter_rbh_results.py
+    # 4c.	filter_rbh_results.py
     # Input: (1) a path for a i_vs_j.tsv file (2) an output path (with a suffix as follows: i_vs_j_filtered.tsv.
     #            especially relevant for the wrapper).
     # Output: the same format of the input file containing only pairs that passed the filtration. For each row in
     #         the input file (pair of genes), apply the following filters:
     # 1. at least X% similarity
     # 2. at least X% of the length
-    # 3.# write each pair to the output file if it passed all the above filters.
+    # 3. write each pair to the output file if it passed all the above filters.
     # Can be parallelized on cluster
-    step_number = '05'
+    step_number = '04c'
     logger.info(f'Step {step_number}: {"_" * 100}')
     previous_pipeline_step_output_dir = pipeline_step_output_dir
     step_name = f'{step_number}_blast_filtered'
@@ -609,11 +705,11 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=25)
 
-    # 6. concatenate_reciprocal_hits
+    # 4d. concatenate_reciprocal_hits
     # Input: path to folder with all reciprocal hits files
     # Output: concatenated file of all reciprocal hits files
     # CANNOT be parallelized on cluster
-    step_number = '06'
+    step_number = '04d'
     logger.info(f'Step {step_number}: {"_" * 100}')
     all_reciprocal_hits_file = os.path.join(output_dir, 'concatenated_all_reciprocal_hits.txt')
     if not os.path.exists(all_reciprocal_hits_file):
@@ -627,8 +723,11 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         logger.info(f'done file {all_reciprocal_hits_file} already exists. Skipping step...')
     edit_progress(output_html_path, progress=30)
 
-    # 6b   extract_orphan_genes.py
-    step_number = '6b'
+
+def step_5_extract_orphan_genes(args, logger, times_logger, error_file_path, output_html_path, output_dir, tmp_dir,
+                            done_files_dir, orfs_dir, all_reciprocal_hits_file):
+    # 5.   extract_orphan_genes.py
+    step_number = '05'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orphan_genes'
     script_path = os.path.join(args.src_dir, 'steps/extract_orphan_genes.py')
@@ -648,11 +747,14 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=35)
 
-    # 7.	construct_putative_orthologs_table.py
+
+def step_6_cluster_orthologs(args, logger, times_logger, error_file_path, output_html_path, output_dir, tmp_dir,
+                             done_files_dir, all_reciprocal_hits_file):
+    # 6a.	construct_putative_orthologs_table.py
     # Input: (1) a path for a i_vs_j_reciprocal_hits.tsv file (2) a path for a putative orthologs file (with a single line).
     # Output: updates the table with the info from the reciprocal hit file.
     # CANNOT be parallelized on cluster
-    step_number = '07'
+    step_number = '06a'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_putative_table'
     script_path = os.path.join(args.src_dir, 'steps/construct_putative_orthologs_table.py')
@@ -672,11 +774,11 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=35)
 
-    # 8   prepare_files_for_mcl.py
+    # 6b.   prepare_files_for_mcl.py
     # Input: (1) a path for a concatenated all reciprocal hits file (2) a path for a putative orthologs file (3) a path for an output folder
     # Output: an input file for MCL for each putative orthologs group
     # CANNOT be parallelized on cluster (if running on the concatenated file)
-    step_number = '08'
+    step_number = '06b'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_mcl_input_files'
     script_path = os.path.join(args.src_dir, 'steps/prepare_files_for_mcl.py')
@@ -717,11 +819,11 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=40)
 
-    # 9.	run_mcl.py
+    # 6c.	run_mcl.py
     # Input: (1) a path to an MCL input file (2) a path to MCL's output.
     # Output: MCL analysis.
     # Can be parallelized on cluster
-    step_number = '09'
+    step_number = '06c'
     logger.info(f'Step {step_number}: {"_" * 100}')
     previous_pipeline_step_output_dir = pipeline_step_output_dir
     step_name = f'{step_number}_mcl_analysis'
@@ -752,11 +854,11 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=45)
 
-    # 10.	verify_cluster.py
+    # 6d.	verify_cluster.py
     # Input: (1) mcl analysis file (2) a path to which the file will be moved if relevant (3) optional: maximum number of clusters allowed [default=1]
     # Output: filter irrelevant clusters by moving the relevant to an output directory
     # Can be parallelized on cluster
-    step_number = '10'
+    step_number = '06d'
     logger.info(f'Step {step_number}: {"_" * 100}')
     previous_pipeline_step_output_dir = pipeline_step_output_dir
     step_name = f'{step_number}_verified_clusters'
@@ -786,10 +888,10 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     logger.info(f'A total of {len(os.listdir(previous_pipeline_step_output_dir))} clusters were analyzed. '
                 f'{len(os.listdir(pipeline_step_output_dir))} clusters were produced.')
 
-    # 11.	construct_final_orthologs_table.py
+    # 6e.	construct_final_orthologs_table.py
     # Input: (1) a path for directory with all the verified OGs (2) an output path to a final OGs table.
     # Output: aggregates all the well-clustered OGs to the final table.
-    step_number = '11'
+    step_number = '06e'
     logger.info(f'Step {step_number}: {"_" * 100}')
     previous_pipeline_step_output_dir = pipeline_step_output_dir
     step_name = f'{step_number}_final_table'
@@ -818,6 +920,42 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=55)
 
+    # 6f.	extract_groups_sizes_frequency
+    step_number = '06f'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_groups_sizes_frequency'
+    group_sizes_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    groups_sizes_frequency_file_prefix = os.path.join(group_sizes_path, 'groups_sizes_frequency')
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        logger.info('Collecting sizes...')
+        group_sizes = []
+        with open(final_orthologs_table_file_path) as f:
+            final_table_header = f.readline().rstrip()
+            for line in f:
+                cluster_members = line.rstrip()
+                size = sum(
+                    bool(item) for item in cluster_members.split(consts.CSV_DELIMITER))  # count non empty entries
+                size -= 1  # don't count group name
+                group_sizes.append(str(size))
+
+        groups_sizes_frequency_raw_file_path = groups_sizes_frequency_file_prefix + '.txt'
+        with open(groups_sizes_frequency_raw_file_path, 'w') as f:
+            f.write('\n'.join(group_sizes))
+
+        groups_sizes_frequency_png_file_path = groups_sizes_frequency_file_prefix + '.png'
+        generate_bar_plot(groups_sizes_frequency_raw_file_path, groups_sizes_frequency_png_file_path,
+                          xlabel='Orthologous group size', ylabel='Count')
+
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+    return final_orthologs_table_file_path
+
+
+def step_7_build_orthologous_groups_fastas(args, logger, times_logger,  error_file_path,  output_html_path,
+                      output_dir, tmp_dir, done_files_dir, orfs_dir, final_orthologs_table_dir_path, final_orthologs_table_file_path):
     # extract orthologs table header for sequence extraction later on
     with open(final_orthologs_table_file_path) as f:
         header_line = f.readline()
@@ -836,10 +974,10 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
     with open(num_of_strains_path, 'w') as f:
         f.write(f'{num_of_strains}\n')
 
-    # 12.	extract_orfs.py
+    # 7a.	extract_orfs.py
     # Input: (1) a row from the final orthologs table (2) a path for a directory where the genes files are at (3) a path for an output file.
     # Output: write the sequences of the orthologs group to the output file.
-    step_number = '12'
+    step_number = '07a'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orthologs_groups_dna_sequences'
     script_path = os.path.join(args.src_dir, 'steps/extract_orfs.py')
@@ -878,44 +1016,11 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=60)
 
-    # 12_5  codon_bias.py
-    # Input: ORF dir and OG dir
-    # Output: W_vector for each genome, CAI for each OG
-    step_number = '12_5'
-    logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_codon_bias'
-    script_path = os.path.join(args.src_dir, 'steps/codon_bias/main.py')
-    codon_bias_output_dir_path, codon_bias_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    cai_table_path = os.path.join(codon_bias_output_dir_path, 'CAI_table.csv')
-    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-    if not os.path.exists(done_file_path):
-        logger.info('Analyzing codon bias...')
-        params = [
-            orfs_dir,
-            orthologs_dna_sequences_dir_path,
-            codon_bias_output_dir_path,
-            cai_table_path,
-            codon_bias_tmp_dir,
-            args.src_dir,
-            args.queue_name,
-            error_file_path
-        ]
-        submit_mini_batch(logger, script_path, [params], codon_bias_tmp_dir,
-                          args.queue_name, job_name='codon_bias')
-
-        wait_for_results(logger, times_logger, 'codon_bias/main.py', codon_bias_tmp_dir,
-                         num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
-
-        write_to_file(logger, done_file_path, '.')
-    else:
-        logger.info(f'done file {done_file_path} already exists. Skipping step...')
-    edit_progress(output_html_path, progress=65)
-
-    # 13.  translate_fna_to_faa.py
+    # 7b.  translate_fna_to_faa.py
     # Input: path to fna file and an faa file
     # Output: translate the fna to protein and write to the faa file
     # Can be parallelized on cluster
-    step_number = '13'
+    step_number = '07b'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orthologs_groups_aa_sequences'
     script_path = os.path.join(args.src_dir, 'steps/translate_fna_to_faa.py')
@@ -944,11 +1049,11 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=65)
 
-    # 14.	align_orthologs_group.py
+    # 7c.	align_orthologs_group.py
     # Input: (1) A path to an unaligned amino acid sequences file (2) An output file path
     # Output: aligned sequences
     # Can be parallelized on cluster
-    step_number = '14'
+    step_number = '07c'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_aligned_aa_orthologs_groups'
     script_path = os.path.join(args.src_dir, 'steps/align_orthologs_group.py')
@@ -980,25 +1085,69 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=70)
 
-    # 14_b. add data to OG table
-    step_number = '14_b'
+    # 7d.	induce_dna_msa_by_aa_msa.py
+    # Input: (1) An aa alignment (2) An unaligned dna file (3) An output file path
+    # Output: write the codon alignment induced by the aa alignment to the output file
+    # Can be parallelized on cluster
+    step_number = '07d'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_add_data_to_final_OG_table'
-    step_output_dir, step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    step_name = f'{step_number}_induce_dna_msa_by_aa_msa'
+    script_path = os.path.join(args.src_dir, 'steps/induce_dna_msa_by_aa_msa.py')
+    dna_alignments_path, induced_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
-        final_orthologs_df = pd.read_csv(final_orthologs_table_file_path)
-        if os.path.exists(cai_table_path):
-            cai_df = pd.read_csv(cai_table_path)[['OG_name', 'CAI_mean']]
-            final_orthologs_with_cai_df = pd.merge(cai_df, final_orthologs_df, on='OG_name')
-            final_orthologs_with_cai_df.to_csv(os.path.join(step_output_dir, 'final_orthologs_table.csv'), index=False)
+        logger.info(f'Inducing dna alignments...\n(from {aa_alignments_path})')
+        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
+        for og_file in os.listdir(aa_alignments_path):
+            aa_alignment_path = os.path.join(aa_alignments_path, og_file)
+            dna_unaligned_path = os.path.join(orthologs_dna_sequences_dir_path, og_file.replace('aa_mafft', 'dna'))
+            dna_induced_alignment_path = os.path.join(dna_alignments_path, og_file.replace('aa_mafft', 'dna_induced'))
+
+            single_cmd_params = [aa_alignment_path, dna_unaligned_path, dna_induced_alignment_path]
+            all_cmds_params.append(single_cmd_params)
+
+        num_of_expected_induced_results, example_cmd = submit_batch(logger, script_path, all_cmds_params,
+                                                                    induced_tmp_dir,
+                                                                    num_of_cmds_per_job=250,
+                                                                    job_name_suffix='induce_msa',
+                                                                    queue_name=args.queue_name)
+
+        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], induced_tmp_dir,
+                         num_of_expected_results=num_of_expected_induced_results, error_file_path=error_file_path, email=args.email)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
-    edit_progress(output_html_path, progress=72)
 
-    # 15.	extract aligned_core_proteome.py
-    step_number = '15'
+
+def step_8_genome_numeric_representation(args, logger, times_logger, error_file_path,  output_html_path,
+                      output_dir, tmp_dir, done_files_dir, orfs_dir, final_orthologs_table_no_paralogs_file_path):
+    # 8.	genome_numeric_representation.py
+    if args.core_minimal_percentage == 100:
+        step_number = '8'
+        logger.info(f'Step {step_number}: {"_" * 100}')
+        step_name = f'{step_number}_genome_numeric_representation'
+        script_path = os.path.join(args.src_dir, 'steps/genome_numeric_representation.py')
+        numeric_representation_output_dir, numeric_representation_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+        core_genome_numeric_representation_file_path = os.path.join(numeric_representation_output_dir, 'core_genome_numeric_representation.txt')
+        done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+        if not os.path.exists(done_file_path):
+            params = [final_orthologs_table_no_paralogs_file_path,
+                      orfs_dir,
+                      core_genome_numeric_representation_file_path]
+            submit_mini_batch(logger, script_path, [params], numeric_representation_tmp_dir,
+                              args.queue_name, job_name='numeric_representation')
+
+            wait_for_results(logger, times_logger, os.path.split(script_path)[-1], numeric_representation_tmp_dir,
+                             num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
+        else:
+            logger.info(f'done file {done_file_path} already exists. Skipping step...')
+        edit_progress(output_html_path, progress=90)
+
+
+def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, error_file_path, output_html_path,
+                      output_dir, tmp_dir, done_files_dir, num_of_strains_path, aa_alignments_path, strains_names_path, dna_alignments_path):
+    # 9a.	extract aligned_core_proteome.py
+    step_number = '09a'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_aligned_core_proteome'
     script_path = os.path.join(args.src_dir, 'steps/extract_core_genome.py')
@@ -1029,137 +1178,8 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=75)
 
-    # 16.	reconstruct_species_phylogeny.py
-    step_number = '16'
-    logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_species_phylogeny'
-    script_path = os.path.join(args.src_dir, 'steps/reconstruct_species_phylogeny.py')
-    phylogeny_path, phylogeny_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    phylogenetic_raw_tree_path = os.path.join(phylogeny_path, 'final_species_tree.txt')
-    start_tree = time()
-    if not os.path.exists(phylogenetic_raw_tree_path):
-        logger.info('Reconstructing species phylogeny...')
-
-        if 'oren' in args.email or 'pupkoweb' not in args.queue_name:
-            num_of_cpus = 20  # anyhow it can't be more than 20! o.w., "qsub: Job violates queue and/or server resource limits"
-        else:
-            # better not to use more than 10 cpus, routinely, when running on pupkoweb
-            num_of_cpus = 10
-        params = [aligned_core_proteome_file_path,
-                  phylogenetic_raw_tree_path,
-                  f'--cpu {num_of_cpus}']
-        if args.outgroup:
-            if args.outgroup in strains_names:
-                params += [f'--outgroup {args.outgroup}']
-            else:
-                logger.info(f'Outgroup {args.outgroup} was specified but it is not one of the input species:\n'
-                            f'{",".join(sorted(strains_names))}\nAn unrooted tree is going to be reconstructed')
-        if args.bootstrap == 'yes' and (
-                number_of_genomes < 150 or 'oren' in args.email):  # allow bootstrap only for less than 150 genomes
-            params += ['--num_of_bootstrap_iterations 100']
-
-        submit_mini_batch(logger, script_path, [params], phylogeny_tmp_dir,
-                          args.queue_name, job_name='tree_reconstruction',
-                          required_modules_as_list=[consts.RAXML], num_of_cpus=num_of_cpus)
-        # no need to wait now. Wait before plotting the tree!
-        # Still, in order to get more than one thread, allow few seconds to the subjobs to be submitted
-        # (before the next batch is submitted and pounds the cluster)
-        sleep(60)
-    else:
-        logger.info(f'Raw tree file {phylogenetic_raw_tree_path} already exists. Skipping step...')
-    edit_progress(output_html_path, progress=80)
-
-    # 16b.	genome_numeric_representation.py
-    if args.core_minimal_percentage == 100:
-        step_number = '16b'
-        logger.info(f'Step {step_number}: {"_" * 100}')
-        step_name = f'{step_number}_genome_numeric_representation'
-        script_path = os.path.join(args.src_dir, 'steps/genome_numeric_representation.py')
-        numeric_representation_output_dir, numeric_representation_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-        core_genome_numeric_representation_file_path = os.path.join(numeric_representation_output_dir, 'core_genome_numeric_representation.txt')
-        done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-        if not os.path.exists(done_file_path):
-            params = [final_orthologs_table_no_paralogs_file_path,
-                      orfs_dir,
-                      core_genome_numeric_representation_file_path]
-            submit_mini_batch(logger, script_path, [params], numeric_representation_tmp_dir,
-                              args.queue_name, job_name='numeric_representation')
-
-            wait_for_results(logger, times_logger, os.path.split(script_path)[-1], numeric_representation_tmp_dir,
-                             num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
-        else:
-            logger.info(f'done file {done_file_path} already exists. Skipping step...')
-        edit_progress(output_html_path, progress=90)
-
-    # 17.	extract_orfs_statistics.py
-    # Input: (1) A path to ORFs file (2) An output path to ORFs counts (3) An output path to GC content
-    # Output: write the number of ORFs and GC content to the output files (respectively)
-    # Can be parallelized on cluster
-    step_number = '17'
-    logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_orfs_statistics'
-    script_path = os.path.join(args.src_dir, 'steps/extract_orfs_statistics.py')
-    orfs_statistics_path, orfs_statistics_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-    start_orf_stats = time()
-    if not os.path.exists(done_file_path):
-        logger.info('Collecting orfs counts...')
-        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-        for file in os.listdir(orfs_dir):
-            orf_path = os.path.join(orfs_dir, file)
-            strain_name = os.path.splitext(file)[0]
-            orfs_count_output_path = os.path.join(orfs_statistics_path, f'{strain_name}.orfs_count')
-            gc_content_output_path = os.path.join(orfs_statistics_path, f'{strain_name}.gc_content')
-
-            single_cmd_params = [orf_path, orfs_count_output_path, gc_content_output_path]
-            all_cmds_params.append(single_cmd_params)
-
-        num_of_expected_orfs_results, example_cmd = submit_batch(logger, script_path, all_cmds_params,
-                                                                 orfs_statistics_tmp_dir,
-                                                                 num_of_cmds_per_job=200,
-                                                                 job_name_suffix='orfs_statistics',
-                                                                 queue_name=args.queue_name)
-
-        # no need to wait now. Wait before plotting the statistics!
-        write_to_file(logger, done_file_path, '.')
-    else:
-        logger.info(f'done file {done_file_path} already exists. Skipping step...')
-
-    # 18.	induce_dna_msa_by_aa_msa.py
-    # Input: (1) An aa alignment (2) An unaligned dna file (3) An output file path
-    # Output: write the codon alignment induced by the aa alignment to the output file
-    # Can be parallelized on cluster
-    step_number = '18'
-    logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_induce_dna_msa_by_aa_msa'
-    script_path = os.path.join(args.src_dir, 'steps/induce_dna_msa_by_aa_msa.py')
-    dna_alignments_path, induced_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-    if not os.path.exists(done_file_path):
-        logger.info(f'Inducing dna alignments...\n(from {aa_alignments_path})')
-        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-        for og_file in os.listdir(aa_alignments_path):
-            aa_alignment_path = os.path.join(aa_alignments_path, og_file)
-            dna_unaligned_path = os.path.join(orthologs_dna_sequences_dir_path, og_file.replace('aa_mafft', 'dna'))
-            dna_induced_alignment_path = os.path.join(dna_alignments_path, og_file.replace('aa_mafft', 'dna_induced'))
-
-            single_cmd_params = [aa_alignment_path, dna_unaligned_path, dna_induced_alignment_path]
-            all_cmds_params.append(single_cmd_params)
-
-        num_of_expected_induced_results, example_cmd = submit_batch(logger, script_path, all_cmds_params,
-                                                                    induced_tmp_dir,
-                                                                    num_of_cmds_per_job=250,
-                                                                    job_name_suffix='induce_msa',
-                                                                    queue_name=args.queue_name)
-
-        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], induced_tmp_dir,
-                         num_of_expected_results=num_of_expected_induced_results, error_file_path=error_file_path, email=args.email)
-        write_to_file(logger, done_file_path, '.')
-    else:
-        logger.info(f'done file {done_file_path} already exists. Skipping step...')
-
-    # 18b.      extract_aligned_core_genome
-    step_number = '18b'
+    # 9b.      extract_aligned_core_genome
+    step_number = '09b'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_aligned_core_genome'
     script_path = os.path.join(args.src_dir, 'steps/extract_core_genome.py')
@@ -1188,90 +1208,110 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=75)
 
-    # 19.	extract_groups_sizes_frequency
-    step_number = '19'
+
+def step_10_codon_bias(args, logger, times_logger, error_file_path,  output_html_path,
+                      output_dir, tmp_dir, done_files_dir, orfs_dir, orthologs_dna_sequences_dir_path, final_orthologs_table_file_path):
+    # 10a.  codon_bias.py
+    # Input: ORF dir and OG dir
+    # Output: W_vector for each genome, CAI for each OG
+    step_number = '10a'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_groups_sizes_frequency'
-    group_sizes_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    groups_sizes_frequency_file_prefix = os.path.join(group_sizes_path, 'groups_sizes_frequency')
+    step_name = f'{step_number}_codon_bias'
+    script_path = os.path.join(args.src_dir, 'steps/codon_bias/main.py')
+    codon_bias_output_dir_path, codon_bias_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    cai_table_path = os.path.join(codon_bias_output_dir_path, 'CAI_table.csv')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
-        logger.info('Collecting sizes...')
-        group_sizes = []
-        with open(final_orthologs_table_file_path) as f:
-            final_table_header = f.readline().rstrip()
-            for line in f:
-                cluster_members = line.rstrip()
-                size = sum(
-                    bool(item) for item in cluster_members.split(consts.CSV_DELIMITER))  # count non empty entries
-                size -= 1  # don't count group name
-                group_sizes.append(str(size))
+        logger.info('Analyzing codon bias...')
+        params = [
+            orfs_dir,
+            orthologs_dna_sequences_dir_path,
+            codon_bias_output_dir_path,
+            cai_table_path,
+            codon_bias_tmp_dir,
+            args.src_dir,
+            args.queue_name,
+            error_file_path
+        ]
+        submit_mini_batch(logger, script_path, [params], codon_bias_tmp_dir,
+                          args.queue_name, job_name='codon_bias')
 
-        groups_sizes_frequency_raw_file_path = groups_sizes_frequency_file_prefix + '.txt'
-        with open(groups_sizes_frequency_raw_file_path, 'w') as f:
-            f.write('\n'.join(group_sizes))
-
-        groups_sizes_frequency_png_file_path = groups_sizes_frequency_file_prefix + '.png'
-        generate_bar_plot(groups_sizes_frequency_raw_file_path, groups_sizes_frequency_png_file_path,
-                          xlabel='Orthologous group size', ylabel='Count')
+        wait_for_results(logger, times_logger, 'codon_bias/main.py', codon_bias_tmp_dir,
+                         num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
 
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
+    edit_progress(output_html_path, progress=65)
 
-    # 20.	plot_orfs_statistics
-    step_number = '20'
+    # 10b. add data to OG table
+    step_number = '10b'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_orfs_plots'
-    orfs_plots_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    orfs_counts_frequency_file = os.path.join(orfs_plots_path, 'orfs_counts.txt')
-    orfs_counts_per_genome_file = os.path.join(orfs_plots_path, 'orfs_counts.json')
-    orfs_gc_content_file = os.path.join(orfs_plots_path, 'orfs_gc_contents.txt')
-    orfs_gc_content_per_genome_file = os.path.join(orfs_plots_path, 'orfs_gc_contents.json')
+    step_name = f'{step_number}_add_data_to_final_OG_table'
+    step_output_dir, step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
-        wait_for_results(logger, times_logger, 'extract_orfs_statistics.py', orfs_statistics_tmp_dir,
-                         num_of_expected_orfs_results, error_file_path=error_file_path, start=start_orf_stats,
-                         email=args.email)
-
-        logger.info('Concatenating orfs counts and gc contents...')
-
-        gc_content = {}
-        orf_count = {}
-        for file_name in os.listdir(orfs_statistics_path):
-            strain_name = file_name.split('.')[0]
-            file_type = file_name.split('.')[1]
-            file_path = os.path.join(orfs_statistics_path, file_name)
-            with open(file_path, 'r') as f:
-                content = f.read()
-            if file_type == "gc_content":
-                gc_content[strain_name] = float(content)
-            if file_type == "orfs_count":
-                orf_count[strain_name] = int(content)
-
-        with open(orfs_gc_content_per_genome_file, 'w') as f:
-            json.dump(gc_content, f)
-        with open(orfs_counts_per_genome_file, 'w') as f:
-            json.dump(orf_count, f)
-
-        execute(logger, f'cat {orfs_statistics_path}/*.orfs_count > {orfs_counts_frequency_file}', process_is_string=True)
-        execute(logger, f'cat {orfs_statistics_path}/*.gc_content > {orfs_gc_content_file}', process_is_string=True)
-
-        # No need to wait...
-        logger.info('Plotting violins...')
-        orfs_counts_frequency_png_file_path = orfs_counts_frequency_file.replace('txt', 'png')
-        generate_violinplot(orfs_counts_frequency_file, orfs_counts_frequency_png_file_path,
-                         xlabel='\nORF count per genome', dpi=300)
-
-        orfs_gc_content_png_file_path = orfs_gc_content_file.replace('txt', 'png')
-        generate_violinplot(orfs_gc_content_file, orfs_gc_content_png_file_path,
-                         xlabel='\nGC content per genome', dpi=300)
-
+        final_orthologs_df = pd.read_csv(final_orthologs_table_file_path)
+        if os.path.exists(cai_table_path):
+            cai_df = pd.read_csv(cai_table_path)[['OG_name', 'CAI_mean']]
+            final_orthologs_with_cai_df = pd.merge(cai_df, final_orthologs_df, on='OG_name')
+            final_orthologs_with_cai_df.to_csv(os.path.join(step_output_dir, 'final_orthologs_table.csv'), index=False)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
-    edit_progress(output_html_path, progress=85)
+    edit_progress(output_html_path, progress=72)
 
+
+def step_11_phylogeny(args, logger, times_logger, error_file_path, output_html_path,
+                      output_dir, tmp_dir, done_files_dir, number_of_genomes, aligned_core_proteome_file_path, strains_names):
+    # 11.	reconstruct_species_phylogeny.py
+    step_number = '11'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_species_phylogeny'
+    script_path = os.path.join(args.src_dir, 'steps/reconstruct_species_phylogeny.py')
+    phylogeny_path, phylogeny_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    start_tree = time()
+    if not os.path.exists(done_file_path):
+        logger.info('Reconstructing species phylogeny...')
+
+        if 'oren' in args.email or 'pupkoweb' not in args.queue_name:
+            num_of_cpus = 20  # anyhow it can't be more than 20! o.w., "qsub: Job violates queue and/or server resource limits"
+        else:
+            # better not to use more than 10 cpus, routinely, when running on pupkoweb
+            num_of_cpus = 10
+        params = [aligned_core_proteome_file_path,
+                  os.path.join(phylogeny_path, 'final_species_tree.txt'),
+                  f'--cpu {num_of_cpus}']
+        if args.outgroup:
+            if args.outgroup in strains_names:
+                params += [f'--outgroup {args.outgroup}']
+            else:
+                logger.info(f'Outgroup {args.outgroup} was specified but it is not one of the input species:\n'
+                            f'{",".join(sorted(strains_names))}\nAn unrooted tree is going to be reconstructed')
+        if args.bootstrap == 'yes' and (
+                number_of_genomes < 150 or 'oren' in args.email):  # allow bootstrap only for less than 150 genomes
+            params += ['--num_of_bootstrap_iterations 100']
+
+        submit_mini_batch(logger, script_path, [params], phylogeny_tmp_dir,
+                          args.queue_name, job_name='tree_reconstruction',
+                          required_modules_as_list=[consts.RAXML], num_of_cpus=num_of_cpus)
+
+        # wait for the raw tree here
+        wait_for_results(logger, times_logger, 'reconstruct_species_phylogeny.py', phylogeny_tmp_dir,
+                         num_of_expected_results=1, error_file_path=error_file_path,
+                         start=start_tree, email=args.email)
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+    edit_progress(output_html_path, progress=80)
+
+
+def step_12_aggregate_results(logger,  meta_output_dir, run_number, output_html_path, output_dir, tmp_dir,
+                              done_files_dir, orfs_dir, orphan_genes_dir, final_orthologs_table_dir_path,
+                              orthologs_dna_sequences_dir_path, orthologs_aa_sequences_dir_path, aa_alignments_path,
+                              aligned_core_proteome_path, group_sizes_path, orfs_statistics_path, orfs_plots_path,
+                              dna_alignments_path, phylogeny_path, numeric_representation_output_dir):
     # Final step_number: gather relevant results, zip them together and update html file
     logger.info(f'FINAL STEP: {"_" * 100}')
     final_output_dir_name = f'{consts.WEBSERVER_NAME}_outputs'
@@ -1313,10 +1353,6 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         # move induced dna sequences
         add_results_to_final_dir(logger, dna_alignments_path, final_output_dir)
 
-        # wait for the raw tree here
-        wait_for_results(logger, times_logger, 'reconstruct_species_phylogeny.py', phylogeny_tmp_dir,
-                         num_of_expected_results=1, error_file_path=error_file_path,
-                         start=start_tree, email=args.email)
         # move species tree dir
         add_results_to_final_dir(logger, phylogeny_path, final_output_dir)
 
@@ -1347,8 +1383,12 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
 
     edit_progress(output_html_path, progress=100, active=False)
 
-    return orfs_dir, orfs_step_number, final_orthologs_table_file_path, phylogenetic_raw_tree_path, \
-        final_output_dir_name
+    return final_output_dir_name
+
+
+def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_path, run_number, output_html_path,
+                      output_dir, tmp_dir, done_files_dir, data_path, number_of_genomes):
+    pass
 
 
 def report_error_in_main_pipeline_to_admin(logger, e, meta_output_dir, error_file_path, run_number, output_html_path, meta_output_url):
@@ -1801,7 +1841,9 @@ def main(args):
 
     try:
         validate_arguments(args)
-        data_path, number_of_genomes = prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path, output_dir)
+        data_path, number_of_genomes = prepare_and_verify_input_data(args, logger, times_logger, meta_output_dir,
+                                                                     error_file_path, output_html_path, output_dir,
+                                                                     tmp_dir, done_files_dir)
 
         orfs_dir, orfs_step_number, final_orthologs_table_file_path, phylogenetic_raw_tree_path, final_output_dir_name = \
             run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_path, run_number,

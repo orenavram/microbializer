@@ -107,9 +107,9 @@ def get_CAI_Data(cai_dir, output_dir, cai_table_path):
     plt.close()
 
 
-def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, src_dir, queue_name, error_file_path, logger):
+def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, src_dir, queue_name, error_file_path, logger, codon_bias_step_number):
     # 1. Calculate Ws
-    step_number = '12_5_a'
+    step_number = f'{codon_bias_step_number}_a'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_get_W'
     script_path = os.path.join(src_dir, 'steps/codon_bias/get_W.py')
