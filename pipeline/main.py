@@ -433,23 +433,23 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
+        # Aggregate results of step 2c
+        genomes_completeness_scores = {}
+        for genome_name in os.listdir(genomes_output_dir_path):
+            genome_score_path = os.path.join(genomes_output_dir_path, genome_name, 'result.txt')
+            with open(genome_score_path, 'r') as fp:
+                genomes_completeness_scores[genome_name] = float(fp.read().strip())
+
+        with open(os.path.join(step_output_dir_path, 'genomes_completeness_assessment.json'), 'w') as fp:
+            json.dump(genomes_completeness_scores, fp)
+
+        # comment the next line if you don't wish to delete hmmer results
+        shutil.rmtree(genomes_output_dir_path)
+
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
     edit_progress(output_html_path, progress=12)
-
-    # Aggregate results of step 2c
-    genomes_completeness_scores = {}
-    for genome_name in os.listdir(genomes_output_dir_path):
-        genome_score_path = os.path.join(genomes_output_dir_path, genome_name, 'result.txt')
-        with open(genome_score_path, 'r') as fp:
-            genomes_completeness_scores[genome_name] = float(fp.read().strip())
-
-    with open(os.path.join(step_output_dir_path, 'genomes_completeness_assessment.json'), 'w') as fp:
-        json.dump(genomes_completeness_scores, fp)
-
-    # comment the next line if you don't wish to delete hmmer results
-    shutil.rmtree(genomes_output_dir_path)
 
     # 3.  create_mmseqs2_DB.py
     # Input: path to gene file to create DB from
@@ -900,7 +900,7 @@ def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_pa
         submit_mini_batch(logger, script_path, [params], codon_bias_tmp_dir,
                           args.queue_name, job_name='codon_bias')
 
-        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], codon_bias_tmp_dir,
+        wait_for_results(logger, times_logger, 'codon_bias/main.py', codon_bias_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
 
         write_to_file(logger, done_file_path, '.')

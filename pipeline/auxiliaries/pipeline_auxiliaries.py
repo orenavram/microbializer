@@ -126,8 +126,9 @@ def get_jobs_cummulative_time(path):
                 log_files_without_times.append(log_file_full_path)
                 continue
             cput_string = cput_string_match.group(1)
-            cput_datetime = datetime.strptime(cput_string, "%H:%M:%S")
-            cput = timedelta(hours=cput_datetime.hour, minutes=cput_datetime.minute, seconds=cput_datetime.second)
+            # I used manual parsing instead of datetime.strptime because the string might represent a value greater than 24 hours.
+            cput_hours, cput_minutes, cput_seconds = map(float, cput_string.split(':'))
+            cput = timedelta(hours=cput_hours, minutes=cput_minutes, seconds=cput_seconds)
             cput_sum += cput
 
             walltime_string_match = pattern_for_walltime.search(content)
@@ -135,8 +136,8 @@ def get_jobs_cummulative_time(path):
                 log_files_without_times.append(log_file_full_path)
                 continue
             walltime_string = walltime_string_match.group(1)
-            walltime_datetime = datetime.strptime(walltime_string, "%H:%M:%S")
-            walltime = timedelta(hours=walltime_datetime.hour, minutes=walltime_datetime.minute, seconds=walltime_datetime.second)
+            walltime_hours, walltime_minutes, walltime_seconds = map(float, walltime_string.split(':'))
+            walltime = timedelta(hours=walltime_hours, minutes=walltime_minutes, seconds=walltime_seconds)
             walltime_sum += walltime
 
     return cput_sum, walltime_sum, log_files_without_times
