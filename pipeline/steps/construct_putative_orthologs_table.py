@@ -88,9 +88,6 @@ def construct_table(logger, all_reciprocal_hits_path, putative_orthologs_path, d
 
     # strains sorted lexicographically
     sorted_strains = sorted(set(member_gene_to_strain_name_dict.values()))
-    putative_orthologs_prefix = os.path.split(putative_orthologs_path)[0]
-    with open(os.path.join(putative_orthologs_prefix, 'num_of_strains.txt'), 'w') as f:
-        f.write(f'{len(sorted_strains)}\n')
 
     header = delimiter.join(['OG_name'] + sorted_strains) + '\n'
     result = ''
