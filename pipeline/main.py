@@ -261,7 +261,7 @@ def prepare_and_verify_input_data(args, logger, times_logger, meta_output_dir, e
                                                        job_name_suffix='drop_plasmids',
                                                        queue_name=args.queue_name)
 
-            wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+            wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                              num_of_batches, error_file_path, email=args.email)
             write_to_file(logger, done_file_path, '.')
         else:
@@ -299,7 +299,7 @@ def step_1_calculate_ani(args, logger, times_logger, error_file_path, output_htm
                                                    job_name_suffix='calculate_ani',
                                                    queue_name=args.queue_name)
 
-        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
         # Aggregate ANI results
@@ -344,7 +344,7 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path, output_html_
                                                        queue_name=args.queue_name,
                                                        required_modules_as_list=[consts.PRODIGAL])
 
-            wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+            wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                              num_of_batches, error_file_path, email=args.email)
         else:  # inputs are annotated proteomes
             logger.info('Inputs are already annotated proteomes. Skipping step 02.')
@@ -408,7 +408,7 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path, output_html_
                                                                  job_name_suffix='orfs_statistics',
                                                                  queue_name=args.queue_name)
 
-        wait_for_results(logger, times_logger, 'extract_orfs_statistics.py', orfs_statistics_tmp_dir,
+        wait_for_results(logger, times_logger, step_name, orfs_statistics_tmp_dir,
                          num_of_expected_orfs_results, error_file_path=error_file_path, start=start_orf_stats,
                          email=args.email)
 
@@ -473,7 +473,7 @@ def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_pa
     # 3a.  translate_fna_to_faa.py - of ORFs files
     # Input: path to fna file and a faa file
     # Output: translate the fna to protein and write to the faa file
-    step_number = '02b'
+    step_number = '03a'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_translated_orfs'
     script_path = os.path.join(args.src_dir, 'steps/translate_fna_to_faa.py')
@@ -494,7 +494,7 @@ def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_pa
                                                    job_name_suffix='orfs_dna_translation',
                                                    queue_name=args.queue_name)
 
-        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
         write_to_file(logger, done_file_path, '.')
@@ -505,7 +505,7 @@ def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_pa
     # 3b.  assessing_genomes_completeness.py
     # Input: path to faa file
     # Output: calculate proteome completeness based on a dataset of profile-HMMs that represent core bacterial genes.
-    step_number = '02c'
+    step_number = '03b'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_genomes_completeness'
     script_path = os.path.join(args.src_dir, 'steps/assessing_genome_completeness.py')
@@ -526,7 +526,7 @@ def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_pa
                                                    job_name_suffix='genomes_completeness',
                                                    queue_name=args.queue_name)
 
-        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
         # Aggregate results of step 2c
@@ -582,7 +582,7 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
                                                    queue_name=consts.QUEUE_FOR_MMSEQS_COMMANDS,
                                                    required_modules_as_list=[consts.MMSEQS])
 
-        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
         write_to_file(logger, done_file_path, '.')
@@ -648,7 +648,7 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
                                                    queue_name=consts.QUEUE_FOR_MMSEQS_COMMANDS,
                                                    required_modules_as_list=[consts.MMSEQS])
 
-        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
         write_to_file(logger, done_file_path, '.')
@@ -698,7 +698,7 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
                                                    job_name_suffix='hits_filtration',
                                                    queue_name=args.queue_name)
 
-        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
         write_to_file(logger, done_file_path, '.')
     else:
@@ -740,7 +740,7 @@ def step_5_extract_orphan_genes(args, logger, times_logger, error_file_path, out
                   all_reciprocal_hits_file,
                   orphan_genes_dir]
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, args.queue_name, job_name=job_name)
-        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
         write_to_file(logger, done_file_path, '.')
     else:
@@ -767,7 +767,7 @@ def step_6_cluster_orthologs(args, logger, times_logger, error_file_path, output
         params = [all_reciprocal_hits_file,
                   putative_orthologs_table_path]
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, args.queue_name, job_name=job_name)
-        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
         write_to_file(logger, done_file_path, '.')
     else:
@@ -812,7 +812,7 @@ def step_6_cluster_orthologs(args, logger, times_logger, error_file_path, output
                                                    job_name_suffix='mcl_preparation',
                                                    queue_name=args.queue_name)
 
-        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
         write_to_file(logger, done_file_path, '.')
     else:
@@ -847,7 +847,7 @@ def step_6_cluster_orthologs(args, logger, times_logger, error_file_path, output
                                                    queue_name=args.queue_name,
                                                    required_modules_as_list=[consts.MCL])
 
-        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
         write_to_file(logger, done_file_path, '.')
     else:
@@ -878,7 +878,7 @@ def step_6_cluster_orthologs(args, logger, times_logger, error_file_path, output
                                                    job_name_suffix='clusters_verification',
                                                    queue_name=args.queue_name)
 
-        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
         write_to_file(logger, done_file_path, '.')
     else:
@@ -909,7 +909,7 @@ def step_6_cluster_orthologs(args, logger, times_logger, error_file_path, output
         if args.qfo_benchmark:
             params += ['--qfo_benchmark']
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, args.queue_name, job_name='final_ortholog_groups')
-        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path,
                          error_message='No ortholog groups were detected in your dataset. Please try to lower '
                                        'the similarity parameters (see Advanced Options in the submission page) '
@@ -1009,7 +1009,7 @@ def step_7_build_orthologous_groups_fastas(args, logger, times_logger,  error_fi
                                                    job_name_suffix='orfs_extraction',
                                                    queue_name=args.queue_name)
 
-        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
         write_to_file(logger, done_file_path, '.')
     else:
@@ -1041,7 +1041,7 @@ def step_7_build_orthologous_groups_fastas(args, logger, times_logger,  error_fi
                                                    job_name_suffix='dna_translation',
                                                    queue_name=args.queue_name)
 
-        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
         write_to_file(logger, done_file_path, '.')
@@ -1077,7 +1077,7 @@ def step_7_build_orthologous_groups_fastas(args, logger, times_logger,  error_fi
                                                    queue_name=args.queue_name,
                                                    required_modules_as_list=[consts.MAFFT])
 
-        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
         write_to_file(logger, done_file_path, '.')
@@ -1112,7 +1112,7 @@ def step_7_build_orthologous_groups_fastas(args, logger, times_logger,  error_fi
                                                                     job_name_suffix='induce_msa',
                                                                     queue_name=args.queue_name)
 
-        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], induced_tmp_dir,
+        wait_for_results(logger, times_logger, step_name, induced_tmp_dir,
                          num_of_expected_results=num_of_expected_induced_results, error_file_path=error_file_path, email=args.email)
         write_to_file(logger, done_file_path, '.')
     else:
@@ -1137,8 +1137,9 @@ def step_8_genome_numeric_representation(args, logger, times_logger, error_file_
             submit_mini_batch(logger, script_path, [params], numeric_representation_tmp_dir,
                               args.queue_name, job_name='numeric_representation')
 
-            wait_for_results(logger, times_logger, os.path.split(script_path)[-1], numeric_representation_tmp_dir,
+            wait_for_results(logger, times_logger, step_name, numeric_representation_tmp_dir,
                              num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
+            write_to_file(logger, done_file_path, '.')
         else:
             logger.info(f'done file {done_file_path} already exists. Skipping step...')
         edit_progress(output_html_path, progress=90)
@@ -1171,7 +1172,7 @@ def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, err
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir,
                           args.queue_name, job_name='core_proteome')
 
-        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
         write_to_file(logger, done_file_path, '.')
     else:
@@ -1201,7 +1202,7 @@ def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, err
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir,
                           args.queue_name, job_name='core_genome')
 
-        wait_for_results(logger, times_logger, os.path.split(script_path)[-1], pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
         write_to_file(logger, done_file_path, '.')
     else:
@@ -1236,7 +1237,7 @@ def step_10_codon_bias(args, logger, times_logger, error_file_path,  output_html
         submit_mini_batch(logger, script_path, [params], codon_bias_tmp_dir,
                           args.queue_name, job_name='codon_bias')
 
-        wait_for_results(logger, times_logger, 'codon_bias/main.py', codon_bias_tmp_dir,
+        wait_for_results(logger, times_logger, step_name, codon_bias_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
 
         write_to_file(logger, done_file_path, '.')
@@ -1298,7 +1299,7 @@ def step_11_phylogeny(args, logger, times_logger, error_file_path, output_html_p
                           required_modules_as_list=[consts.RAXML], num_of_cpus=num_of_cpus)
 
         # wait for the raw tree here
-        wait_for_results(logger, times_logger, 'reconstruct_species_phylogeny.py', phylogeny_tmp_dir,
+        wait_for_results(logger, times_logger, step_name, phylogeny_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path,
                          start=start_tree, email=args.email)
         write_to_file(logger, done_file_path, '.')
