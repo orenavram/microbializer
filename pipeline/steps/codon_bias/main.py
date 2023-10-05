@@ -131,7 +131,7 @@ def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, src
                                                queue_name=queue_name)
 
     # Passing logger also as times_logger since there is no convenient way here to get times_logger file path
-    wait_for_results(logger, logger, os.path.split(script_path)[-1], W_tmp_dir,
+    wait_for_results(logger, logger, step_name, W_tmp_dir,
                      num_of_batches, error_file_path)
 
     W_vectors = get_genome_to_W_vector(W_output_dir)
@@ -144,7 +144,7 @@ def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, src
     visualize_Ws_with_PCA(W_vectors, output_dir, logger)
 
     # 3. Calculate CAIs
-    step_number = '12_5_b'
+    step_number = f'{codon_bias_step_number}_b'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_calc_CAI'
     script_path = os.path.join(src_dir, 'steps/codon_bias/calculate_cai.py')
@@ -170,7 +170,7 @@ def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, src
                                                queue_name=queue_name)
 
     # Passing logger also as times_logger since there is no convenient way here to get times_logger file path
-    wait_for_results(logger, logger, os.path.split(script_path)[-1], cai_tmp_dir,
+    wait_for_results(logger, logger, step_name, cai_tmp_dir,
                      num_of_batches, error_file_path)
 
     # 4. Make CAI table and histogram
