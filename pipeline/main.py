@@ -60,7 +60,7 @@ def get_arguments():
     # 'bioseq', 'bental', 'oren.q', 'bioseq20.q'])
     parser.add_argument('-q', '--queue_name', help='The queue to which the job(s) will be submitted to',
                         default=consts.QUEUE_FOR_JOBS)
-    parser.add_argument('--step_to_stop', help='The final step to execute', default=None)
+    parser.add_argument('--step_to_complete', help='The final step to execute', default=None, choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
     parser.add_argument('--dummy_delimiter',
                         help='The queue does not "like" very long commands. A dummy delimiter is used to break each row'
                              ' into different commands of a single job',
@@ -1273,8 +1273,7 @@ def step_10_codon_bias(args, logger, times_logger, error_file_path, output_html_
 
 
 def step_11_phylogeny(args, logger, times_logger, error_file_path, output_html_path, output_dir, tmp_dir,
-                      done_files_dir, number_of_genomes,
-                      aligned_core_proteome_file_path, genomes_names_path):
+                      done_files_dir, number_of_genomes, aligned_core_proteome_file_path, genomes_names_path):
     # 11.	reconstruct_species_phylogeny.py
     step_number = '11'
     logger.info(f'Step {step_number}: {"_" * 100}')
@@ -1400,46 +1399,72 @@ def step_12_aggregate_results(logger, meta_output_dir, run_number, output_html_p
 
 def run_main_pipeline(args, logger, times_logger, meta_output_dir, error_file_path, run_number, output_html_path,
                       output_dir, tmp_dir, done_files_dir, data_path, number_of_genomes, genomes_names_path):
+    if args.step_to_complete == 0:
+        return
+
     ani_output_dir = step_1_calculate_ani(args, logger, times_logger, error_file_path, output_html_path, output_dir,
                                           tmp_dir, done_files_dir, data_path)
+    if args.step_to_complete == 1:
+        return
 
     orfs_dir, orfs_plots_path = step_2_search_orfs(args, logger, times_logger, error_file_path, output_html_path,
                                                    output_dir, tmp_dir, done_files_dir, data_path)
+    if args.step_to_complete == 2:
+        return
 
     genome_completeness_dir_path = step_3_analyze_genome_completeness(args, logger, times_logger, error_file_path,
                                                                       output_html_path, output_dir,
                                                                       tmp_dir, done_files_dir, orfs_dir)
+    if args.step_to_complete == 3:
+        return
 
     all_reciprocal_hits_file = step_4_search_orthologs(args, logger, times_logger, error_file_path, output_html_path,
                                                        output_dir, tmp_dir, done_files_dir, orfs_dir)
+    if args.step_to_complete == 4:
+        return
 
     orphan_genes_dir = step_5_extract_orphan_genes(args, logger, times_logger, error_file_path, output_html_path,
                                                    output_dir, tmp_dir, done_files_dir, orfs_dir,
                                                    all_reciprocal_hits_file)
+    if args.step_to_complete == 5:
+        return
 
     final_orthologs_table_dir_path, final_orthologs_table_file_path, final_orthologs_table_no_paralogs_file_path, group_sizes_path = \
         step_6_cluster_orthologs(args, logger, times_logger, error_file_path, output_html_path, output_dir, tmp_dir,
                                  done_files_dir, all_reciprocal_hits_file)
+    if args.step_to_complete == 6:
+        return
 
     numeric_representation_output_dir = step_7_genome_numeric_representation(
         args, logger, times_logger, error_file_path, output_html_path, output_dir, tmp_dir, done_files_dir, orfs_dir,
         final_orthologs_table_no_paralogs_file_path)
+    if args.step_to_complete == 7:
+        return
 
     ogs_dna_sequences_path, ogs_aa_sequences_path, ogs_aa_alignments_path, ogs_dna_alignments_path = \
         step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_file_path, output_html_path,
                                                output_dir, tmp_dir, done_files_dir, orfs_dir,
                                                final_orthologs_table_file_path)
+    if args.step_to_complete == 8:
+        return
 
     aligned_core_proteome_path, aligned_core_genome_path, aligned_core_proteome_file_path = step_9_extract_core_genome_and_core_proteome(
         args, logger, times_logger, error_file_path, output_html_path, output_dir, tmp_dir, done_files_dir,
         number_of_genomes, genomes_names_path, ogs_aa_alignments_path, ogs_dna_alignments_path)
+    if args.step_to_complete == 9:
+        return
 
     codon_bias_dir_path = step_10_codon_bias(args, logger, times_logger, error_file_path, output_html_path,
                                              output_dir, tmp_dir, done_files_dir, orfs_dir, ogs_dna_sequences_path,
                                              final_orthologs_table_file_path)
+    if args.step_to_complete == 10:
+        return
 
-    phylogeny_path = step_11_phylogeny(args, logger, output_html_path, output_dir, tmp_dir, done_files_dir,
-                                       number_of_genomes, aligned_core_proteome_file_path, genomes_names_path)
+    phylogeny_path = step_11_phylogeny(args, logger, times_logger, error_file_path, output_html_path, output_dir,
+                                       tmp_dir, done_files_dir, number_of_genomes, aligned_core_proteome_file_path,
+                                       genomes_names_path)
+    if args.step_to_complete == 11:
+        return
 
     step_12_aggregate_results(
         logger, meta_output_dir, run_number, output_html_path, output_dir, tmp_dir, done_files_dir, ani_output_dir,
