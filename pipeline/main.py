@@ -3,7 +3,7 @@ import logging
 import os
 import shutil
 import sys
-from time import time, sleep
+from time import time
 import traceback
 import json
 
@@ -292,15 +292,16 @@ def step_1_calculate_ani(args, logger, times_logger, error_file_path,  output_di
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Calculating ANI values...')
+        ani_tmp_files = os.path.join(pipeline_step_tmp_dir, 'temp_results')
 
         genomes_paths = [os.path.join(data_path, genome_file_name) for genome_file_name in os.listdir(data_path)]
-        genomes_list_path = os.path.join(ani_output_dir, 'genomes_list.txt')
+        genomes_list_path = os.path.join(ani_tmp_files, 'genomes_list.txt')
         with open(genomes_list_path, 'w') as genomes_list_file:
             genomes_list_file.write('\n'.join(genomes_paths))
 
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
         for fasta_file in os.listdir(data_path):
-            single_cmd_params = [os.path.join(data_path, fasta_file), genomes_list_path, ani_output_dir]
+            single_cmd_params = [os.path.join(data_path, fasta_file), genomes_list_path, ani_tmp_files]
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
@@ -312,7 +313,7 @@ def step_1_calculate_ani(args, logger, times_logger, error_file_path,  output_di
                          num_of_batches, error_file_path, email=args.email)
 
         # Aggregate ANI results
-        aggregate_ani_results(ani_output_dir)
+        aggregate_ani_results(ani_tmp_files, ani_output_dir)
 
         add_results_to_final_dir(logger, ani_output_dir, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
 
@@ -719,14 +720,19 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
     # CANNOT be parallelized on cluster
     step_number = '04d'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    all_reciprocal_hits_file = os.path.join(output_dir, 'concatenated_all_reciprocal_hits.txt')
-    if not os.path.exists(all_reciprocal_hits_file):
+    step_name = f'{step_number}_concatenate_reciprocal_hits'
+    concatenate_output_dir, concatenate_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    all_reciprocal_hits_file = os.path.join(concatenate_output_dir, 'concatenated_all_reciprocal_hits.txt')
+    if not os.path.exists(done_file_path):
         logger.info('Concatenating reciprocal hits...')
         for filtered_hits_file in os.listdir(pipeline_step_output_dir):
             execute(logger, f'cat {pipeline_step_output_dir}/{filtered_hits_file} >> {all_reciprocal_hits_file}',
                     process_is_string=True)
         # avoid cat {pipeline_step_output_dir}/* because arguments list might be too long!
         # No need to wait...
+
+        write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {all_reciprocal_hits_file} already exists. Skipping step...')
 
@@ -1341,8 +1347,8 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
         logger.info("Step 1 completed.")
         return
 
-    orfs_dir = step_2_search_orfs(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
-                                                   final_output_dir, done_files_dir, data_path)
+    orfs_dir = step_2_search_orfs(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
+                                  done_files_dir, data_path)
     edit_progress(output_html_path, progress=15)
 
     if args.step_to_complete == '2':
@@ -1406,7 +1412,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
         logger.info("Step 8 completed.")
         return
 
-     aligned_core_proteome_file_path = step_9_extract_core_genome_and_core_proteome(
+    aligned_core_proteome_file_path = step_9_extract_core_genome_and_core_proteome(
         args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir, done_files_dir,
         number_of_genomes, genomes_names_path, ogs_aa_alignments_path, ogs_dna_alignments_path)
     edit_progress(output_html_path, progress=75)
@@ -1876,9 +1882,9 @@ def main(args):
                           output_html_path, output_dir, tmp_dir, done_files_dir,
                           data_path, number_of_genomes, genomes_names_path, final_output_dir)
 
-        if args.step_to_complete is None or args.zip_results_in_partial_pipeline:
+        if args.step_to_complete is None or args.only_calc_ogs or args.zip_results_in_partial_pipeline:
             logger.info('Zipping results folder...')
-            shutil.make_archive(final_output_dir, 'zip', meta_output_dir)
+            shutil.make_archive(final_output_dir, 'zip', meta_output_dir, final_output_dir)
 
         logger.info('Editing results html...')
         edit_success_html(logger, output_html_path, meta_output_dir, final_output_dir_name, run_number)
