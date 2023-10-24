@@ -293,6 +293,7 @@ def step_1_calculate_ani(args, logger, times_logger, error_file_path,  output_di
     if not os.path.exists(done_file_path):
         logger.info('Calculating ANI values...')
         ani_tmp_files = os.path.join(pipeline_step_tmp_dir, 'temp_results')
+        os.makedirs(ani_tmp_files, exist_ok=True)
 
         genomes_paths = [os.path.join(data_path, genome_file_name) for genome_file_name in os.listdir(data_path)]
         genomes_list_path = os.path.join(ani_tmp_files, 'genomes_list.txt')
@@ -1256,10 +1257,10 @@ def step_10_codon_bias(args, logger, times_logger, error_file_path, output_dir, 
             codon_bias_tmp_dir,
             args.src_dir,
             args.queue_name,
-            error_file_path
+            error_file_path,
+            step_number
         ]
-        submit_mini_batch(logger, script_path, [params], codon_bias_tmp_dir,
-                          args.queue_name, job_name='codon_bias')
+        submit_mini_batch(logger, script_path, [params], codon_bias_tmp_dir, args.queue_name, job_name='codon_bias')
 
         wait_for_results(logger, times_logger, step_name, codon_bias_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path, email=args.email)

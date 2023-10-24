@@ -94,7 +94,7 @@ def get_CAI_Data(cai_dir, output_dir, cai_table_path):
             CAI_Data[og_name] = {"CAI_mean": cai_info["mean"], "CAI_std": cai_info["std"]}
 
     cai_df = pd.DataFrame(data=CAI_Data).transpose()
-    cai_df.sort_values("mean", ascending=False, inplace=True)
+    cai_df.sort_values("CAI_mean", ascending=False, inplace=True)
     cai_df.to_csv(cai_table_path, index_label='OG_name')
 
     # Create histogram of CAI values
@@ -102,12 +102,13 @@ def get_CAI_Data(cai_dir, output_dir, cai_table_path):
     plt.xlabel('CAI value')
     plt.ylabel('Frequency')
     plt.axis('auto')
-    plt.hist(cai_df["mean"], bins=30)
+    plt.hist(cai_df["CAI_mean"], bins=30)
     plt.savefig(os.path.join(output_dir, 'CAI_Histogram.png'))
     plt.close()
 
 
-def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, src_dir, queue_name, error_file_path, logger, codon_bias_step_number):
+def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, src_dir, queue_name, error_file_path,
+                       logger, codon_bias_step_number):
     # 1. Calculate Ws
     step_number = f'{codon_bias_step_number}_a'
     logger.info(f'Step {step_number}: {"_" * 100}')
@@ -117,7 +118,7 @@ def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, src
 
     all_cmds_params = []
     for orf_file_name in os.listdir(ORF_dir):
-        if '02_ORFs' not in orf_file_name:  # Ignore system files that are automatically created sometimes
+        if '02a_ORFs' not in orf_file_name:  # Ignore system files that are automatically created sometimes
             continue
         orf_file_path = os.path.join(ORF_dir, orf_file_name)
         single_cmd_params = [orf_file_path,
@@ -131,8 +132,7 @@ def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, src
                                                queue_name=queue_name)
 
     # Passing logger also as times_logger since there is no convenient way here to get times_logger file path
-    wait_for_results(logger, logger, step_name, W_tmp_dir,
-                     num_of_batches, error_file_path)
+    wait_for_results(logger, logger, step_name, W_tmp_dir, num_of_batches, error_file_path)
 
     W_vectors = get_genome_to_W_vector(W_output_dir)
     if any(None in w_vector.values() for w_vector in W_vectors.values()):
@@ -170,10 +170,10 @@ def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, src
                                                queue_name=queue_name)
 
     # Passing logger also as times_logger since there is no convenient way here to get times_logger file path
-    wait_for_results(logger, logger, step_name, cai_tmp_dir,
-                     num_of_batches, error_file_path)
+    wait_for_results(logger, logger, step_name, cai_tmp_dir, num_of_batches, error_file_path)
 
     # 4. Make CAI table and histogram
+    logger.info("Aggregate CAI of OGs into a table and plot histogram")
     get_CAI_Data(cai_output_dir, output_dir, cai_table_path)
 
 
@@ -190,6 +190,7 @@ if __name__ == '__main__':
     parser.add_argument('src_dir', help='path to pipeline directory')
     parser.add_argument('queue_name', help='queue to submit jobs to')
     parser.add_argument('error_file_path', help='path to error file')
+    parser.add_argument('codon_bias_step_number', help='codon bias step number')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     args = parser.parse_args()
@@ -200,6 +201,6 @@ if __name__ == '__main__':
     logger.info(script_run_message)
     try:
         analyze_codon_bias(args.ORF_dir, args.OG_dir, args.output_dir, args.cai_table_path, args.tmp_dir, args.src_dir,
-                           args.queue_name, args.error_file_path, logger)
+                           args.queue_name, args.error_file_path, logger, args.codon_bias_step_number)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
