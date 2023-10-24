@@ -71,4 +71,3 @@ def mimic_prodigal_output(orfs_dir, output_orf_file_extension):
 
         # change file name to match the output of step 2
         os.rename(file_path, f'{os.path.splitext(file_path)[0]}.{output_orf_file_extension}')
-
