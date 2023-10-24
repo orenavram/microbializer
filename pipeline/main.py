@@ -281,7 +281,7 @@ def step_0_filter_out_plasmids(args, logger, times_logger, error_file_path, outp
     return filtered_inputs_dir
 
 
-def step_1_calculate_ani(args, logger, times_logger, error_file_path,  output_dir, tmp_dir,
+def step_1_calculate_ani(args, logger, times_logger, error_file_path,  output_dir, tmp_dir, final_output_dir,
                          done_files_dir, data_path):
     # 1.   ani.py
     step_number = '01'
@@ -314,14 +314,14 @@ def step_1_calculate_ani(args, logger, times_logger, error_file_path,  output_di
         # Aggregate ANI results
         aggregate_ani_results(ani_output_dir)
 
+        add_results_to_final_dir(logger, ani_output_dir, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
+
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    return ani_output_dir
 
-
-def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir, tmp_dir,
+def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir, tmp_dir, final_output_dir,
                        done_files_dir, data_path):
     # 2a.	search_orfs.py
     # Input: (1) an input path for a fasta file with contigs/full genome (2) an output file path
@@ -360,6 +360,8 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
             logger.info('Inputs are already annotated genomes. Skipping step 02a.')
             shutil.copytree(data_path, orfs_dir, dirs_exist_ok=True)
             mimic_prodigal_output(orfs_dir, step_name)
+
+        add_results_to_final_dir(logger, orfs_dir, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -470,15 +472,16 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
         generate_violinplot(orfs_gc_content_file, orfs_gc_content_png_file_path,
                             xlabel='\nGC content per genome', dpi=300)
 
+        add_results_to_final_dir(logger, orfs_plots_path, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    return orfs_dir, orfs_plots_path
+    return orfs_dir
 
 
-def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_path, output_dir,
-                                       tmp_dir, done_files_dir, orfs_dir):
+def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
+                                       final_output_dir, done_files_dir, orfs_dir):
     # 3a.  translate_fna_to_faa.py - of ORFs files
     # Input: path to fna file and a faa file
     # Output: translate the fna to protein and write to the faa file
@@ -550,11 +553,10 @@ def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_pa
         # comment the next line if you don't wish to delete hmmer results
         shutil.rmtree(genomes_output_dir_path)
 
+        add_results_to_final_dir(logger, genome_completeness_dir_path, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
-
-    return genome_completeness_dir_path
 
 
 def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
@@ -731,7 +733,7 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
     return all_reciprocal_hits_file
 
 
-def step_5_extract_orphan_genes(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
+def step_5_extract_orphan_genes(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
                                 done_files_dir, orfs_dir, all_reciprocal_hits_file):
     # 5.   extract_orphan_genes.py
     step_number = '05'
@@ -749,14 +751,14 @@ def step_5_extract_orphan_genes(args, logger, times_logger, error_file_path, out
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, args.queue_name, job_name=job_name)
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
+
+        add_results_to_final_dir(logger, orphan_genes_dir, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    return orphan_genes_dir
 
-
-def step_6_cluster_orthologs(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
+def step_6_cluster_orthologs(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
                              done_files_dir, all_reciprocal_hits_file):
     # 6a.	construct_putative_orthologs_table.py
     # Input: (1) a path for a i_vs_j_reciprocal_hits.tsv file (2) a path for a putative orthologs file (with a single line).
@@ -921,6 +923,8 @@ def step_6_cluster_orthologs(args, logger, times_logger, error_file_path, output
                                        'the similarity parameters (see Advanced Options in the submission page) '
                                        'and re-submit your job.', email=args.email)
 
+        add_results_to_final_dir(logger, final_orthologs_table_dir_path, final_output_dir,
+                                 copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -952,16 +956,16 @@ def step_6_cluster_orthologs(args, logger, times_logger, error_file_path, output
         generate_bar_plot(groups_sizes_frequency_raw_file_path, groups_sizes_frequency_png_file_path,
                           xlabel='Orthologous group size', ylabel='Count')
 
+        add_results_to_final_dir(logger, group_sizes_path, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    return final_orthologs_table_dir_path, final_orthologs_table_file_path, \
-        final_orthologs_table_no_paralogs_file_path, group_sizes_path
+    return final_orthologs_table_file_path, final_orthologs_table_no_paralogs_file_path
 
 
 def step_7_genome_numeric_representation(args, logger, times_logger, error_file_path, output_dir,
-                                         tmp_dir, done_files_dir, orfs_dir,
+                                         tmp_dir, final_output_dir, done_files_dir, orfs_dir,
                                          final_orthologs_table_no_paralogs_file_path):
     # 7.	genome_numeric_representation.py
     step_number = '07'
@@ -982,15 +986,16 @@ def step_7_genome_numeric_representation(args, logger, times_logger, error_file_
 
         wait_for_results(logger, times_logger, step_name, numeric_representation_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
+
+        add_results_to_final_dir(logger, numeric_representation_output_dir, final_output_dir,
+                                 copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    return numeric_representation_output_dir
 
-
-def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_file_path, output_dir,
-                                           tmp_dir, done_files_dir, orfs_dir, final_orthologs_table_file_path):
+def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
+                                           final_output_dir, done_files_dir, orfs_dir, final_orthologs_table_file_path):
     # extract orthologs table header for sequence extraction later on
     with open(final_orthologs_table_file_path) as f:
         header_line = f.readline()
@@ -1035,6 +1040,9 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
+
+        add_results_to_final_dir(logger, orthologs_dna_sequences_dir_path, final_output_dir,
+                                 copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -1067,6 +1075,8 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
+        add_results_to_final_dir(logger, orthologs_aa_sequences_dir_path, final_output_dir,
+                                 copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -1102,6 +1112,8 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
+        add_results_to_final_dir(logger, aa_alignments_path, final_output_dir,
+                                 copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -1136,15 +1148,17 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
         wait_for_results(logger, times_logger, step_name, induced_tmp_dir,
                          num_of_expected_results=num_of_expected_induced_results, error_file_path=error_file_path,
                          email=args.email)
+
+        add_results_to_final_dir(logger, dna_alignments_path, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    return orthologs_dna_sequences_dir_path, orthologs_aa_sequences_dir_path, aa_alignments_path, dna_alignments_path
+    return orthologs_dna_sequences_dir_path, aa_alignments_path, dna_alignments_path
 
 
 def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, error_file_path,
-                                                 output_dir, tmp_dir, done_files_dir, num_of_strains,
+                                                 output_dir, tmp_dir, final_output_dir, done_files_dir, num_of_strains,
                                                  strains_names_path, aa_alignments_path, dna_alignments_path):
     # 9a.	extract aligned_core_proteome.py
     step_number = '09a'
@@ -1172,6 +1186,9 @@ def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, err
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
+
+        add_results_to_final_dir(logger, aligned_core_proteome_path, final_output_dir,
+                                 copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -1201,16 +1218,18 @@ def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, err
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
+
+        add_results_to_final_dir(logger, aligned_core_genome_path, final_output_dir,
+                                 copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    return aligned_core_proteome_path, aligned_core_genome_path, aligned_core_proteome_file_path
+    return aligned_core_proteome_file_path
 
 
-def step_10_codon_bias(args, logger, times_logger, error_file_path,
-                       output_dir, tmp_dir, done_files_dir, orfs_dir, orthologs_dna_sequences_dir_path,
-                       final_orthologs_table_file_path):
+def step_10_codon_bias(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
+                       done_files_dir, orfs_dir, orthologs_dna_sequences_dir_path, final_orthologs_table_file_path):
     # 10.  codon_bias.py
     # Input: ORF dir and OG dir
     # Output: W_vector for each genome, CAI for each OG
@@ -1246,14 +1265,14 @@ def step_10_codon_bias(args, logger, times_logger, error_file_path,
             final_orthologs_with_cai_df.to_csv(os.path.join(codon_bias_output_dir_path, 'final_orthologs_table.csv'),
                                                index=False)
 
+        add_results_to_final_dir(logger, codon_bias_output_dir_path, final_output_dir,
+                                 copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    return codon_bias_output_dir_path
 
-
-def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
+def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
                       done_files_dir, number_of_genomes, aligned_core_proteome_file_path, genomes_names_path):
     # 11.	reconstruct_species_phylogeny.py
     step_number = '11'
@@ -1294,11 +1313,11 @@ def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, t
         wait_for_results(logger, times_logger, step_name, phylogeny_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path,
                          start=start_time, email=args.email)
+
+        add_results_to_final_dir(logger, phylogeny_path, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
-
-    return phylogeny_path
 
 
 def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_path, output_dir, tmp_dir,
@@ -1314,19 +1333,16 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
         return
 
     if not args.only_calc_ogs:
-        ani_output_dir = step_1_calculate_ani(args, logger, times_logger, error_file_path, output_dir,
-                                              tmp_dir, done_files_dir, data_path)
-        add_results_to_final_dir(logger, ani_output_dir, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
+        step_1_calculate_ani(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
+                             done_files_dir, data_path)
         edit_progress(output_html_path, progress=10)
 
     if args.step_to_complete == '1':
         logger.info("Step 1 completed.")
         return
 
-    orfs_dir, orfs_plots_path = step_2_search_orfs(args, logger, times_logger, error_file_path,
-                                                   output_dir, tmp_dir, done_files_dir, data_path)
-    add_results_to_final_dir(logger, orfs_dir, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
-    add_results_to_final_dir(logger, orfs_plots_path, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
+    orfs_dir = step_2_search_orfs(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
+                                                   final_output_dir, done_files_dir, data_path)
     edit_progress(output_html_path, progress=15)
 
     if args.step_to_complete == '2':
@@ -1334,10 +1350,8 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
         return
 
     if not args.only_calc_ogs:
-        genome_completeness_dir_path = step_3_analyze_genome_completeness(args, logger, times_logger, error_file_path,
-                                                                          output_dir,
-                                                                          tmp_dir, done_files_dir, orfs_dir)
-        add_results_to_final_dir(logger, genome_completeness_dir_path, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
+        step_3_analyze_genome_completeness(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
+                                           final_output_dir, done_files_dir, orfs_dir)
         edit_progress(output_html_path, progress=20)
 
     if args.step_to_complete == '3':
@@ -1352,21 +1366,17 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
         logger.info("Step 4 completed.")
         return
 
-    orphan_genes_dir = step_5_extract_orphan_genes(args, logger, times_logger, error_file_path,
-                                                   output_dir, tmp_dir, done_files_dir, orfs_dir,
-                                                   all_reciprocal_hits_file)
-    add_results_to_final_dir(logger, orphan_genes_dir, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
+    step_5_extract_orphan_genes(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
+                                done_files_dir, orfs_dir, all_reciprocal_hits_file)
     edit_progress(output_html_path, progress=35)
 
     if args.step_to_complete == '5':
         logger.info("Step 5 completed.")
         return
 
-    final_orthologs_table_dir_path, final_orthologs_table_file_path, final_orthologs_table_no_paralogs_file_path, group_sizes_path = \
-        step_6_cluster_orthologs(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
+    final_orthologs_table_file_path, final_orthologs_table_no_paralogs_file_path = \
+        step_6_cluster_orthologs(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
                                  done_files_dir, all_reciprocal_hits_file)
-    add_results_to_final_dir(logger, final_orthologs_table_dir_path, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
-    add_results_to_final_dir(logger, group_sizes_path, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
     edit_progress(output_html_path, progress=55)
 
     if args.step_to_complete == '6':
@@ -1377,55 +1387,44 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
         return
 
     if args.core_minimal_percentage == 100:
-        numeric_representation_output_dir = step_7_genome_numeric_representation(
-            args, logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir, orfs_dir,
-            final_orthologs_table_no_paralogs_file_path)
-        add_results_to_final_dir(logger, numeric_representation_output_dir, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
+        step_7_genome_numeric_representation(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
+                                             final_output_dir, done_files_dir, orfs_dir,
+                                             final_orthologs_table_no_paralogs_file_path)
         edit_progress(output_html_path, progress=90)
 
     if args.step_to_complete == '7':
         logger.info("Step 7 completed.")
         return
 
-    ogs_dna_sequences_path, ogs_aa_sequences_path, ogs_aa_alignments_path, ogs_dna_alignments_path = \
+    ogs_dna_sequences_path, ogs_aa_alignments_path, ogs_dna_alignments_path = \
         step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_file_path,
-                                               output_dir, tmp_dir, done_files_dir, orfs_dir,
+                                               output_dir, tmp_dir, final_output_dir, done_files_dir, orfs_dir,
                                                final_orthologs_table_file_path)
-    add_results_to_final_dir(logger, ogs_dna_sequences_path, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
-    add_results_to_final_dir(logger, ogs_aa_sequences_path, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
-    add_results_to_final_dir(logger, ogs_aa_alignments_path, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
-    add_results_to_final_dir(logger, ogs_dna_alignments_path, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
     edit_progress(output_html_path, progress=60)
 
     if args.step_to_complete == '8':
         logger.info("Step 8 completed.")
         return
 
-    aligned_core_proteome_path, aligned_core_genome_path, aligned_core_proteome_file_path = step_9_extract_core_genome_and_core_proteome(
-        args, logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
+     aligned_core_proteome_file_path = step_9_extract_core_genome_and_core_proteome(
+        args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir, done_files_dir,
         number_of_genomes, genomes_names_path, ogs_aa_alignments_path, ogs_dna_alignments_path)
-    add_results_to_final_dir(logger, aligned_core_proteome_path, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
-    add_results_to_final_dir(logger, aligned_core_genome_path, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
     edit_progress(output_html_path, progress=75)
 
     if args.step_to_complete == '9':
         logger.info("Step 9 completed.")
         return
 
-    codon_bias_dir_path = step_10_codon_bias(args, logger, times_logger, error_file_path,
-                                             output_dir, tmp_dir, done_files_dir, orfs_dir, ogs_dna_sequences_path,
-                                             final_orthologs_table_file_path)
-    add_results_to_final_dir(logger, codon_bias_dir_path, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
+    step_10_codon_bias(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
+                       done_files_dir, orfs_dir, ogs_dna_sequences_path, final_orthologs_table_file_path)
     edit_progress(output_html_path, progress=65)
 
     if args.step_to_complete == '10':
         logger.info("Step 10 completed.")
         return
 
-    phylogeny_path = step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir,
-                                       tmp_dir, done_files_dir, number_of_genomes, aligned_core_proteome_file_path,
-                                       genomes_names_path)
-    add_results_to_final_dir(logger, phylogeny_path, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
+    step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
+                      done_files_dir, number_of_genomes, aligned_core_proteome_file_path, genomes_names_path)
     edit_progress(output_html_path, progress=95)
 
     if args.step_to_complete == '11':
@@ -1868,8 +1867,7 @@ def main(args):
     try:
         validate_arguments(args)
         data_path, number_of_genomes, genomes_names_path = prepare_and_verify_input_data(
-            args, logger, times_logger, meta_output_dir, error_file_path, output_html_path, output_dir, tmp_dir,
-            done_files_dir)
+            args, logger, meta_output_dir, error_file_path, output_dir)
 
         final_output_dir_name = f'{consts.WEBSERVER_NAME}_outputs'
         final_output_dir = os.path.join(meta_output_dir, final_output_dir_name)
