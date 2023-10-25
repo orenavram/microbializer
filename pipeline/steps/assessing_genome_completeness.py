@@ -14,6 +14,7 @@ from auxiliaries.pipeline_auxiliaries import get_job_logger
 
 BACTERIA_CORE_GENES_HMM_PROFILES_PATH = '/groups/pupko/naamawagner/Microbializer/Busco/hmms'
 CORE_GENES_COUNT = float(len(os.listdir(BACTERIA_CORE_GENES_HMM_PROFILES_PATH)))
+HMMER_EVAULE_CUTOFF = 10 ** (-2)
 
 
 def compute_genome_completeness(genomic_translated_f, out_dir, logger):
@@ -38,7 +39,7 @@ def compute_genome_completeness(genomic_translated_f, out_dir, logger):
             # Examine the first sequence hit (=the most significant hit = the first line that doesn't start with #)
             for line in out_hmmsearch:
                 if not line.startswith('#'):
-                    if line.isspace() or float(line.split()[2]) > 10 ** (-4):
+                    if line.isspace() or float(line.split()[2]) > HMMER_EVAULE_CUTOFF:
                         logger.info(f"Proteome {genomic_translated_f} doesn't include a gene that matches the profile {profile}")
                     else:
                         score += 1

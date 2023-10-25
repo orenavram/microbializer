@@ -5,12 +5,12 @@ import seaborn as sns
 import numpy as np
 
 
-def aggregate_ani_results(ani_output_dir):
+def aggregate_ani_results(ani_tmp_files, ani_output_dir):
     all_dfs = []
-    for file_name in os.listdir(ani_output_dir):
+    for file_name in os.listdir(ani_tmp_files):
         if not file_name.endswith('.tsv'):
             continue
-        file_path = os.path.join(ani_output_dir, file_name)
+        file_path = os.path.join(ani_tmp_files, file_name)
         df = pd.read_csv(file_path, delimiter='\t',
                          names=['query', 'subject', 'ani_value', 'orthologous_segments', 'total_segments'])
         all_dfs.append(df)
@@ -71,4 +71,3 @@ def mimic_prodigal_output(orfs_dir, output_orf_file_extension):
 
         # change file name to match the output of step 2
         os.rename(file_path, f'{os.path.splitext(file_path)[0]}.{output_orf_file_extension}')
-
