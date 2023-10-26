@@ -65,7 +65,7 @@ def submit_cmds_from_file_to_q(logger, cmds_file, tmp_dir, queue_name, CPUs, dum
                 # execute the job
                 # queue_name may contain more arguments, thus the string of the cmd is generated and raw cmd is called
 
-                if consts.TEST:
+                if consts.TEST or consts.Q_SUBMITTER_ASSUME_RUN_FROM_POWER9LOGIN:
                     terminal_cmd = f'/opt/pbs/bin/qsub {qsub_path} {additional_params}'
                 else:
                     terminal_cmd = f'ssh power9login "/opt/pbs/bin/qsub {qsub_path} {additional_params}"'  # FIX by danny 5-1-2023

@@ -5,15 +5,14 @@ import argparse
 import logging
 import sys
 
-
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger
+from auxiliaries import consts
 
 
-BACTERIA_CORE_GENES_HMM_PROFILES_PATH = '/groups/pupko/naamawagner/Microbializer/Busco/hmms'
-CORE_GENES_COUNT = float(len(os.listdir(BACTERIA_CORE_GENES_HMM_PROFILES_PATH)))
+CORE_GENES_COUNT = float(len(os.listdir(consts.BACTERIA_CORE_GENES_HMM_PROFILES_PATH)))
 HMMER_EVAULE_CUTOFF = 10 ** (-2)
 
 

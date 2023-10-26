@@ -114,7 +114,7 @@ def validate_arguments(args):
 
 
 def prepare_pipeline_framework(args):
-    meta_output_dir = os.path.join(os.path.split(args.contigs_dir)[0])
+    meta_output_dir = os.path.split(args.contigs_dir)[0]
 
     output_dir = os.path.join(meta_output_dir, args.output_dir)
     os.makedirs(output_dir, exist_ok=True)
@@ -174,8 +174,12 @@ def prepare_pipeline_framework(args):
     logger.info(f'Creating done_files_dir in: {done_files_dir}')
     os.makedirs(done_files_dir, exist_ok=True)
 
+    steps_results_dir = os.path.join(output_dir, 'steps_results')
+    logger.info(f'Creating results_dir in: {steps_results_dir}')
+    os.makedirs(steps_results_dir, exist_ok=True)
+
     return logger, times_logger, meta_output_dir, error_file_path, run_number, output_html_path, output_url, meta_output_url, \
-        output_dir, tmp_dir, done_files_dir
+        output_dir, tmp_dir, done_files_dir, steps_results_dir
 
 
 def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path, output_dir):
@@ -1874,18 +1878,18 @@ def main(args):
     start_time = time()
 
     logger, times_logger, meta_output_dir, error_file_path, run_number, output_html_path, output_url, meta_output_url, \
-        output_dir, tmp_dir, done_files_dir = prepare_pipeline_framework(args)
+        output_dir, tmp_dir, done_files_dir, steps_results_dir = prepare_pipeline_framework(args)
 
     try:
         validate_arguments(args)
         data_path, number_of_genomes, genomes_names_path = prepare_and_verify_input_data(
             args, logger, meta_output_dir, error_file_path, output_dir)
 
-        final_output_dir_name = f'{consts.WEBSERVER_NAME}_outputs'
+        final_output_dir_name = f'{consts.WEBSERVER_NAME}_{args.output_dir}'
         final_output_dir = os.path.join(meta_output_dir, final_output_dir_name)
 
         run_main_pipeline(args, logger, times_logger, error_file_path,
-                          output_html_path, output_dir, tmp_dir, done_files_dir,
+                          output_html_path, steps_results_dir, tmp_dir, done_files_dir,
                           data_path, number_of_genomes, genomes_names_path, final_output_dir)
 
         if args.step_to_complete is None or args.only_calc_ogs or args.zip_results_in_partial_pipeline:
@@ -1906,7 +1910,7 @@ def main(args):
         # remove intermediate results (including tmp_dir)
         if run_number.lower() != 'example' and 'oren' not in args.email and not consts.TEST:
             logger.info('Cleaning up intermediate results...')
-            remove_path(logger, output_dir)
+            remove_path(logger, steps_results_dir)
     except Exception as e:
         status = 'was failed'
         report_error_in_main_pipeline_to_admin(logger, e, meta_output_dir, error_file_path, run_number,

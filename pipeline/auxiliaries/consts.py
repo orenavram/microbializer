@@ -6,14 +6,16 @@ import os.path
 from .flask_interface_consts import *
 
 TEST = True
-COPY_OUTPUTS_TO_FINAL_DIR = TEST
+COPY_OUTPUTS_TO_FINAL_DIR = True
 USE_CONDA = True
 IGNORE_HTML = True
 LOG_IN_SEPARATE_FILES = True
-HEGS_ECOLI_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'HEG_ecoli.txt')
-PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer' if TEST else '/bioseq/microbializer_v2'
+PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer' if TEST else '/groups/pupko/yairshimony/microbializer_prod'
 OWNER_EMAIL = 'yairshimony@mail.tau.ac.il'
 QUEUE_FOR_JOBS = 'power-pupko'
+Q_SUBMITTER_ASSUME_RUN_FROM_POWER9LOGIN = True
+HEGS_ECOLI_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'HEG_ecoli.txt')
+BACTERIA_CORE_GENES_HMM_PROFILES_PATH = '/groups/pupko/naamawagner/Microbializer/Busco/hmms'
 
 # mmseqs command work only on specific machines and this queue navigates only to them
 MMSEQS_REQUIRED_MEMORY = '60gb'
