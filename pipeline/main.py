@@ -53,11 +53,13 @@ def get_arguments():
     parser.add_argument('--filter_out_plasmids', action='store_true',
                         help='whether or not to filter out plasmids from the input files')
     parser.add_argument('--inputs_are_annotated_genomes', action='store_true',
-                        help='whether the input files are genomes or annotated genomes')
+                        help='whether the input files are annotated genomes (=genes) and therefore Prodigal is skipped.'
+                             'By default we assume the inputs are genomes assemblies and then the first step is ORFs'
+                             'extraction using Prodigal')
     parser.add_argument('--add_orphan_genes_to_ogs', action='store_true',
                         help='whether orphan genes should be considered as OGs')
     parser.add_argument('--qfo_benchmark', action='store_true',
-                        help='whether the input files are annotated proteomes in the QfO benchmark format')
+                        help='whether the input files are annotated genomes in the QfO benchmark format')
     # choices=['pupkoweb', 'pupkowebr', 'pupkolab', 'pupkolabr', 'pupkotmp', 'pupkotmpr', 'itaym', 'lilach',
     # 'bioseq', 'bental', 'oren.q', 'bioseq20.q'])
     parser.add_argument('-q', '--queue_name', help='The queue to which the job(s) will be submitted to',
@@ -926,11 +928,12 @@ def step_6_cluster_orthologs(args, logger, times_logger, error_file_path, output
         logger.info('Constructing final orthologs table...')
         params = [putative_orthologs_table_path,
                   previous_pipeline_step_output_dir,
-                  orphan_genes_dir if args.add_orphan_genes_to_ogs else None,
                   final_orthologs_table_file_path,
                   final_orthologs_table_no_paralogs_file_path]
         if args.qfo_benchmark:
             params += ['--qfo_benchmark']
+        if args.add_orphan_genes_to_ogs:
+            params += [f'--orphan_genes_dir {orphan_genes_dir}']
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, args.queue_name,
                           job_name='final_ortholog_groups')
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
