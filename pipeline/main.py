@@ -54,6 +54,8 @@ def get_arguments():
                         help='whether or not to filter out plasmids from the input files')
     parser.add_argument('--inputs_are_annotated_genomes', action='store_true',
                         help='whether the input files are genomes or annotated genomes')
+    parser.add_argument('--add_orphan_genes_to_ogs', action='store_true',
+                        help='whether orphan genes should be considered as OGs')
     parser.add_argument('--qfo_benchmark', action='store_true',
                         help='whether the input files are annotated proteomes in the QfO benchmark format')
     # choices=['pupkoweb', 'pupkowebr', 'pupkolab', 'pupkolabr', 'pupkotmp', 'pupkotmpr', 'itaym', 'lilach',
@@ -764,9 +766,11 @@ def step_5_extract_orphan_genes(args, logger, times_logger, error_file_path, out
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
+    return orphan_genes_dir
+
 
 def step_6_cluster_orthologs(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
-                             done_files_dir, all_reciprocal_hits_file):
+                             done_files_dir, all_reciprocal_hits_file, orphan_genes_dir):
     # 6a.	construct_putative_orthologs_table.py
     # Input: (1) a path for a i_vs_j_reciprocal_hits.tsv file (2) a path for a putative orthologs file (with a single line).
     # Output: updates the table with the info from the reciprocal hit file.
@@ -918,6 +922,7 @@ def step_6_cluster_orthologs(args, logger, times_logger, error_file_path, output
         logger.info('Constructing final orthologs table...')
         params = [putative_orthologs_table_path,
                   previous_pipeline_step_output_dir,
+                  orphan_genes_dir if args.add_orphan_genes_to_ogs else None,
                   final_orthologs_table_file_path,
                   final_orthologs_table_no_paralogs_file_path]
         if args.qfo_benchmark:
@@ -1373,8 +1378,8 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
         logger.info("Step 4 completed.")
         return
 
-    step_5_extract_orphan_genes(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
-                                done_files_dir, orfs_dir, all_reciprocal_hits_file)
+    orphan_genes_dir = step_5_extract_orphan_genes(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
+                                                   final_output_dir, done_files_dir, orfs_dir, all_reciprocal_hits_file)
     edit_progress(output_html_path, progress=35)
 
     if args.step_to_complete == '5':
@@ -1383,7 +1388,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
 
     final_orthologs_table_file_path, final_orthologs_table_no_paralogs_file_path = \
         step_6_cluster_orthologs(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
-                                 done_files_dir, all_reciprocal_hits_file)
+                                 done_files_dir, all_reciprocal_hits_file, orphan_genes_dir)
     edit_progress(output_html_path, progress=55)
 
     if args.step_to_complete == '6':

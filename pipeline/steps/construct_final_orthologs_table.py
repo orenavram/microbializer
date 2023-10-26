@@ -15,6 +15,8 @@ sys.path.append(os.path.dirname(SCRIPT_DIR))
 from auxiliaries.pipeline_auxiliaries import get_job_logger, get_strain_from_gene
 from auxiliaries import consts
 
+ORPHANS_FILENAME_GENOME_NAME_PATTERN = re.compile('(.+)_orphans.txt')
+
 
 def parse_species_name(logger, name, qfo_benchmark=False):
     if not qfo_benchmark:
@@ -147,7 +149,7 @@ def get_verified_clusters_set(verified_clusters_path):
                 for file in os.listdir(verified_clusters_path) if file.endswith('10_verified_cluster')])
 
 
-def finalize_table(logger, putative_orthologs_path, verified_clusters_path, finalized_table_path,
+def finalize_table(logger, putative_orthologs_path, verified_clusters_path, orphan_genes_dir, finalized_table_path,
                    finalized_table_no_paralogs_path, qfo_benchmark, delimiter):
     output_dir = os.path.dirname(finalized_table_path)
     putative_orthologs_df = pd.read_csv(putative_orthologs_path)
@@ -181,9 +183,26 @@ def finalize_table(logger, putative_orthologs_path, verified_clusters_path, fina
     new_clusters_df = pd.DataFrame(new_clusters)
     all_clusters_df = pd.concat([verified_clusters_df, new_clusters_df], ignore_index=True)
     all_clusters_df['OG_name'] = [f'OG_{i}' for i in range(len(all_clusters_df.index))]
-    all_clusters_df.to_csv(finalized_table_path, index=False)
+    logger.info(f'Finished adding split clusters. OG table now contains {len(all_clusters_df.index)} groups.')
 
-    logger.info(f'Finished adding split clusters. Final OG table contains {len(all_clusters_df.index)} groups.')
+    if orphan_genes_dir:
+        # Add orphan genes as new OGs
+        orphan_clusters = []
+        for filename in os.listdir(orphan_genes_dir):
+            strain_match_object = ORPHANS_FILENAME_GENOME_NAME_PATTERN.match(filename)
+            if not strain_match_object:
+                continue
+            strain = strain_match_object.group(1)
+            with open(os.path.join(orphan_genes_dir, filename)) as orphan_genes_file:
+                genes = orphan_genes_file.read().splitlines()
+            orphan_clusters.extend([pd.Series({'OG_name': '', strain: gene}) for gene in genes])
+
+        orphan_clusters_df = pd.DataFrame(orphan_clusters)
+        all_clusters_df = pd.concat([all_clusters_df, orphan_clusters_df], ignore_index=True)
+        all_clusters_df['OG_name'] = [f'OG_{i}' for i in range(len(all_clusters_df.index))]
+        logger.info(f'Finished adding orphan genes as clusters. OG table now contains {len(all_clusters_df.index)} groups.')
+
+    all_clusters_df.to_csv(finalized_table_path, index=False)
 
     # Create OG table with only 0 or 1 gene for each genome in each OG
     all_clusters_no_paralogs_df = all_clusters_df.copy()
@@ -214,6 +233,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('putative_orthologs_path', help='path to a file with the putative orthologs sets')
     parser.add_argument('verified_clusters_path', help='path to a directory with the verified clusters')
+    parser.add_argument('orphan_genes_dir', help='path to a directory with the orphan genes')
     parser.add_argument('finalized_table_path', help='path to an output file in which the final table will be written')
     parser.add_argument('finalized_table_no_paralogs_path', help='path to an output file in which the final table with no paralogs will be written')
     parser.add_argument('--delimiter', help='delimiter for the putative orthologs table', default=consts.CSV_DELIMITER)
@@ -227,7 +247,7 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        finalize_table(logger, args.putative_orthologs_path, args.verified_clusters_path,
+        finalize_table(logger, args.putative_orthologs_path, args.verified_clusters_path, args.orphan_genes_dir,
                        args.finalized_table_path, args.finalized_table_no_paralogs_path, args.qfo_benchmark, args.delimiter)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
