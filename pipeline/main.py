@@ -114,7 +114,7 @@ def validate_arguments(args):
 
 
 def prepare_pipeline_framework(args):
-    meta_output_dir = os.path.split(args.contigs_dir)[0]
+    meta_output_dir = os.path.dirname(args.contigs_dir.rstrip("/"))
 
     output_dir = os.path.join(meta_output_dir, args.output_dir)
     os.makedirs(output_dir, exist_ok=True)
@@ -178,8 +178,8 @@ def prepare_pipeline_framework(args):
     logger.info(f'Creating results_dir in: {steps_results_dir}')
     os.makedirs(steps_results_dir, exist_ok=True)
 
-    return logger, times_logger, meta_output_dir, error_file_path, run_number, output_html_path, output_url, meta_output_url, \
-        output_dir, tmp_dir, done_files_dir, steps_results_dir
+    return logger, times_logger, meta_output_dir, error_file_path, run_number, output_html_path, output_url, \
+        meta_output_url, output_dir, tmp_dir, done_files_dir, steps_results_dir
 
 
 def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path, output_dir):
