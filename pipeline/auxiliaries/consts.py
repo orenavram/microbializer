@@ -6,7 +6,7 @@ import os.path
 from .flask_interface_consts import *
 
 TEST = True
-COPY_OUTPUTS_TO_FINAL_DIR = True
+COPY_OUTPUTS_TO_FINAL_DIR = TEST
 USE_CONDA = True
 IGNORE_HTML = True
 LOG_IN_SEPARATE_FILES = True

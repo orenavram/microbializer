@@ -369,7 +369,7 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
             shutil.copytree(data_path, orfs_dir, dirs_exist_ok=True)
             mimic_prodigal_output(orfs_dir, step_name)
 
-        add_results_to_final_dir(logger, orfs_dir, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
+        add_results_to_final_dir(logger, orfs_dir, final_output_dir, copy=True)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -765,7 +765,7 @@ def step_5_extract_orphan_genes(args, logger, times_logger, error_file_path, out
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
 
-        add_results_to_final_dir(logger, orphan_genes_dir, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
+        add_results_to_final_dir(logger, orphan_genes_dir, final_output_dir, copy=True)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -940,7 +940,7 @@ def step_6_cluster_orthologs(args, logger, times_logger, error_file_path, output
                                        'and re-submit your job.', email=args.email)
 
         add_results_to_final_dir(logger, final_orthologs_table_dir_path, final_output_dir,
-                                 copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
+                                 copy=True)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -1058,7 +1058,7 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
                          num_of_batches, error_file_path, email=args.email)
 
         add_results_to_final_dir(logger, orthologs_dna_sequences_dir_path, final_output_dir,
-                                 copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
+                                 copy=True)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -1129,7 +1129,7 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
                          num_of_batches, error_file_path, email=args.email)
 
         add_results_to_final_dir(logger, aa_alignments_path, final_output_dir,
-                                 copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
+                                 copy=True)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -1165,7 +1165,7 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
                          num_of_expected_results=num_of_expected_induced_results, error_file_path=error_file_path,
                          email=args.email)
 
-        add_results_to_final_dir(logger, dna_alignments_path, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
+        add_results_to_final_dir(logger, dna_alignments_path, final_output_dir, copy=True)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -1204,7 +1204,7 @@ def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, err
                          num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
 
         add_results_to_final_dir(logger, aligned_core_proteome_path, final_output_dir,
-                                 copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
+                                 copy=True)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
