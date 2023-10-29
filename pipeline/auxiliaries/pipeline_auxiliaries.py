@@ -195,9 +195,9 @@ def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir,
         shell_cmds_as_str += new_line_delimiter  # several commands that will be split to different lines
         # (long lines with ";" are bad practice)
     else:
-        shell_cmds_as_str += f'source ~/.bashrc{new_line_delimiter}'
-        #shell_cmds_as_str += f'source ~/miniconda3/etc/profile.d/conda.sh{new_line_delimiter}'
-        shell_cmds_as_str += f'conda activate microbializer{new_line_delimiter}'
+        # shell_cmds_as_str += f'source ~/.bashrc{new_line_delimiter}'
+        shell_cmds_as_str += f'source {consts.CONDA_INSTALLATION_DIR}/etc/profile.d/conda.sh{new_line_delimiter}'
+        shell_cmds_as_str += f'conda activate {consts.CONDA_ENVIRONMENT_DIR}{new_line_delimiter}'
         shell_cmds_as_str += f'export PATH=$CONDA_PREFIX/bin:$PATH{new_line_delimiter}'
 
     example_shell_cmd = ' '.join(['python', script_path, *[str(param) for param in mini_batch_parameters_list[0]]] + (
@@ -318,11 +318,11 @@ def notify_admin(meta_output_dir, meta_output_url, run_number):
                        f"{os.path.join(meta_output_dir, error_log_path.replace('ER', 'OU'))}")
 
 
-def add_results_to_final_dir(logger, source, final_output_dir, copy=True):
+def add_results_to_final_dir(logger, source, final_output_dir, keep_in_source_dir=True):
     dest = os.path.join(final_output_dir, os.path.split(source)[1])
 
     try:
-        if not copy:
+        if not keep_in_source_dir:
             logger.info(f'Moving {source} TO {dest}')
             shutil.move(source, dest)
         else:

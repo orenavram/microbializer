@@ -6,11 +6,13 @@ import os.path
 from .flask_interface_consts import *
 
 TEST = True
-COPY_OUTPUTS_TO_FINAL_DIR = TEST
+KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR = TEST
 USE_CONDA = True
 IGNORE_HTML = True
 LOG_IN_SEPARATE_FILES = True
 PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer' if TEST else '/groups/pupko/yairshimony/microbializer_prod'
+CONDA_INSTALLATION_DIR = r'/groups/pupko/yairshimony/miniconda3'
+CONDA_ENVIRONMENT_DIR = r'/groups/pupko/yairshimony/miniconda3/envs/microbializer'
 OWNER_EMAIL = 'yairshimony@mail.tau.ac.il'
 QUEUE_FOR_JOBS = 'power-pupko'
 Q_SUBMITTER_ASSUME_RUN_FROM_POWER9LOGIN = True

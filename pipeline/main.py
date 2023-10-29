@@ -324,7 +324,8 @@ def step_1_calculate_ani(args, logger, times_logger, error_file_path,  output_di
         # Aggregate ANI results
         aggregate_ani_results(ani_tmp_files, ani_output_dir)
 
-        add_results_to_final_dir(logger, ani_output_dir, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
+        add_results_to_final_dir(logger, ani_output_dir, final_output_dir,
+                                 keep_in_source_dir=consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR)
 
         write_to_file(logger, done_file_path, '.')
     else:
@@ -371,7 +372,7 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
             shutil.copytree(data_path, orfs_dir, dirs_exist_ok=True)
             mimic_prodigal_output(orfs_dir, step_name)
 
-        add_results_to_final_dir(logger, orfs_dir, final_output_dir, copy=True)
+        add_results_to_final_dir(logger, orfs_dir, final_output_dir, keep_in_source_dir=True)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -482,7 +483,8 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
         generate_violinplot(orfs_gc_content_file, orfs_gc_content_png_file_path,
                             xlabel='\nGC content per genome', dpi=300)
 
-        add_results_to_final_dir(logger, orfs_plots_path, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
+        add_results_to_final_dir(logger, orfs_plots_path, final_output_dir,
+                                 keep_in_source_dir=consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -563,7 +565,8 @@ def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_pa
         # comment the next line if you don't wish to delete hmmer results
         shutil.rmtree(genomes_output_dir_path)
 
-        add_results_to_final_dir(logger, genome_completeness_dir_path, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
+        add_results_to_final_dir(logger, genome_completeness_dir_path, final_output_dir,
+                                 keep_in_source_dir=consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -767,7 +770,7 @@ def step_5_extract_orphan_genes(args, logger, times_logger, error_file_path, out
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
 
-        add_results_to_final_dir(logger, orphan_genes_dir, final_output_dir, copy=True)
+        add_results_to_final_dir(logger, orphan_genes_dir, final_output_dir, keep_in_source_dir=True)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -943,7 +946,7 @@ def step_6_cluster_orthologs(args, logger, times_logger, error_file_path, output
                                        'and re-submit your job.', email=args.email)
 
         add_results_to_final_dir(logger, final_orthologs_table_dir_path, final_output_dir,
-                                 copy=True)
+                                 keep_in_source_dir=True)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -975,7 +978,8 @@ def step_6_cluster_orthologs(args, logger, times_logger, error_file_path, output
         generate_bar_plot(groups_sizes_frequency_raw_file_path, groups_sizes_frequency_png_file_path,
                           xlabel='Orthologous group size', ylabel='Count')
 
-        add_results_to_final_dir(logger, group_sizes_path, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
+        add_results_to_final_dir(logger, group_sizes_path, final_output_dir,
+                                 keep_in_source_dir=consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -1007,7 +1011,7 @@ def step_7_genome_numeric_representation(args, logger, times_logger, error_file_
                          num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
 
         add_results_to_final_dir(logger, numeric_representation_output_dir, final_output_dir,
-                                 copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
+                                 keep_in_source_dir=consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -1061,7 +1065,7 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
                          num_of_batches, error_file_path, email=args.email)
 
         add_results_to_final_dir(logger, orthologs_dna_sequences_dir_path, final_output_dir,
-                                 copy=True)
+                                 keep_in_source_dir=True)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -1095,7 +1099,7 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
                          num_of_batches, error_file_path, email=args.email)
 
         add_results_to_final_dir(logger, orthologs_aa_sequences_dir_path, final_output_dir,
-                                 copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
+                                 keep_in_source_dir=consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -1132,7 +1136,7 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
                          num_of_batches, error_file_path, email=args.email)
 
         add_results_to_final_dir(logger, aa_alignments_path, final_output_dir,
-                                 copy=True)
+                                 keep_in_source_dir=True)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -1168,7 +1172,7 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
                          num_of_expected_results=num_of_expected_induced_results, error_file_path=error_file_path,
                          email=args.email)
 
-        add_results_to_final_dir(logger, dna_alignments_path, final_output_dir, copy=True)
+        add_results_to_final_dir(logger, dna_alignments_path, final_output_dir, keep_in_source_dir=True)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -1207,7 +1211,7 @@ def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, err
                          num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
 
         add_results_to_final_dir(logger, aligned_core_proteome_path, final_output_dir,
-                                 copy=True)
+                                 keep_in_source_dir=True)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -1239,7 +1243,7 @@ def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, err
                          num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
 
         add_results_to_final_dir(logger, aligned_core_genome_path, final_output_dir,
-                                 copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
+                                 keep_in_source_dir=consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -1285,7 +1289,7 @@ def step_10_codon_bias(args, logger, times_logger, error_file_path, output_dir, 
                                                index=False)
 
         add_results_to_final_dir(logger, codon_bias_output_dir_path, final_output_dir,
-                                 copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
+                                 keep_in_source_dir=consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -1333,7 +1337,8 @@ def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, t
                          num_of_expected_results=1, error_file_path=error_file_path,
                          start=start_time, email=args.email)
 
-        add_results_to_final_dir(logger, phylogeny_path, final_output_dir, copy=consts.COPY_OUTPUTS_TO_FINAL_DIR)
+        add_results_to_final_dir(logger, phylogeny_path, final_output_dir,
+                                 keep_in_source_dir=consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -1910,8 +1915,8 @@ def main(args):
 
         status = 'is done'
 
-        # remove intermediate results (including tmp_dir)
-        if run_number.lower() != 'example' and 'oren' not in args.email and not consts.TEST:
+        # remove intermediate results
+        if run_number.lower() != 'example' and 'oren' not in args.email and not consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR:
             logger.info('Cleaning up intermediate results...')
             remove_path(logger, steps_results_dir)
     except Exception as e:
