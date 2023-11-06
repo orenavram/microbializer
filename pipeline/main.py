@@ -682,7 +682,7 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
     # (e.g., 3465136234521948 etc..) in tmp_dir
     # does not remove (sge/cmds/log) files. only folders.
     submit_mini_batch(logger, os.path.join(args.src_dir, 'auxiliaries/remove_tmp_folders.py'),
-                      [[previous_pipeline_step_output_dir]],
+                      [[pipeline_step_tmp_dir]],
                       pipeline_step_tmp_dir, args.queue_name, job_name='remove_m8_files')
 
     # 4c.	filter_rbh_results.py
