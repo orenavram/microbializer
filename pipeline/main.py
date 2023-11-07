@@ -74,6 +74,8 @@ def get_arguments():
                         default='!@#')
     parser.add_argument('--src_dir', help='source code directory',
                         default=os.path.join(consts.PROJECT_ROOT_DIR, 'pipeline'))
+    parser.add_argument('--bypass_number_of_genomes_limit', help='bypass the limit on number of genomes',
+                        action='store_true')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
 
     parser.add_argument('--promoters_length', default=300,
@@ -236,10 +238,10 @@ def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path
         fail(logger, error_msg, error_file_path)
 
     # check MAXimal number of genomes
-    max_number_of_genomes_to_analyze = 350
-    if number_of_genomes > max_number_of_genomes_to_analyze and 'oren' not in args.email.lower():
+    if number_of_genomes > consts.MAX_NUMBER_OF_GENOMES_TO_ANALYZE and 'oren' not in args.email.lower() \
+            and not args.bypass_number_of_genomes_limit:
         error_msg = f'The dataset contains too many genomes. {consts.WEBSERVER_NAME} allows analyzing up to ' \
-                    f'{max_number_of_genomes_to_analyze} genomes due to the high resource consumption. However, ' \
+                    f'{consts.MAX_NUMBER_OF_GENOMES_TO_ANALYZE} genomes due to the high resource consumption. However, ' \
                     f'upon request (and supervision), we do allow analyzing large datasets. Please contact us ' \
                     f'directly and we will do that for you.'
         fail(logger, error_msg, error_file_path)
@@ -316,7 +318,8 @@ def step_1_calculate_ani(args, logger, times_logger, error_file_path,  output_di
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                    num_of_cmds_per_job=1,
                                                    job_name_suffix='calculate_ani',
-                                                   queue_name=args.queue_name)
+                                                   queue_name=args.queue_name,
+                                                   memory=consts.ANI_REQUIRED_MEMORY)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
@@ -574,6 +577,13 @@ def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_pa
 
 def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                             done_files_dir, orfs_dir):
+    if consts.USE_DIFFERENT_QUEUE_FOR_MMSEQS:
+        mmseqs_queue_name = consts.QUEUE_FOR_MMSEQS_COMMANDS
+        mmseqs_memory = None
+    else:
+        mmseqs_queue_name = args.queue_name
+        mmseqs_memory = consts.MMSEQS_REQUIRED_MEMORY
+
     # 4a.  create_mmseqs2_DB.py
     # Input: path to gene file to create DB from
     # Output: DB of the input file for mmseqs2
@@ -603,7 +613,8 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                    num_of_cmds_per_job=10,
                                                    job_name_suffix='DB_creation',
-                                                   queue_name=consts.QUEUE_FOR_MMSEQS_COMMANDS,
+                                                   queue_name=mmseqs_queue_name,
+                                                   memory=mmseqs_memory,
                                                    required_modules_as_list=[consts.MMSEQS])
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
@@ -668,7 +679,8 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                    num_of_cmds_per_job=100 if len(os.listdir(orfs_dir)) > 25 else 5,
                                                    job_name_suffix='rbh_analysis',
-                                                   queue_name=consts.QUEUE_FOR_MMSEQS_COMMANDS,
+                                                   queue_name=mmseqs_queue_name,
+                                                   memory=mmseqs_memory,
                                                    required_modules_as_list=[consts.MMSEQS])
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,

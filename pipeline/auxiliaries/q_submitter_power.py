@@ -12,12 +12,14 @@ from subprocess import call
 from . import consts
 
 
-def generate_qsub_file(logger, queue_name, tmp_dir, cmd, prefix_name, qsub_path, CPUs):
+def generate_qsub_file(logger, queue_name, tmp_dir, cmd, prefix_name, qsub_path, CPUs, memory=None):
     """compose qsub_file content and fetches it"""
     qsub_file_content = '#!/bin/bash -x\n'  # 'old bash: #!/bin/tcsh -x\n'
     qsub_file_content += '#PBS -S /bin/bash\n'  # '#PBS -S /bin/tcsh\n'
     if int(CPUs) > 1:
         qsub_file_content += f'#PBS -l ncpus={CPUs}\n'
+    if memory:
+        qsub_file_content += f'#PBS -l mem={memory}\n'
     qsub_file_content += f'#PBS -q {queue_name}@power9\n'
     qsub_file_content += f'#PBS -N {prefix_name}\n'
     qsub_file_content += f'#PBS -e {tmp_dir}\n'  # error log
@@ -39,8 +41,8 @@ def generate_qsub_file(logger, queue_name, tmp_dir, cmd, prefix_name, qsub_path,
     logger.debug('#' * 80)
 
 
-def submit_cmds_from_file_to_q(logger, cmds_file, tmp_dir, queue_name, CPUs, dummy_delimiter='!@#', start=0, end=float('inf'),
-                               additional_params=''):
+def submit_cmds_from_file_to_q(logger, cmds_file, tmp_dir, queue_name, CPUs, dummy_delimiter='!@#', memory=None,
+                               start=0, end=float('inf'), additional_params=''):
     logger.debug('-> Jobs will be submitted to ' + queue_name + '\'s queue')
     logger.debug('-> out, err and pbs files will be written to:\n' + tmp_dir + '/')
     logger.debug('-> Jobs are based on cmds ' + str(start) + ' to ' + str(end) + ' (excluding) from:\n' + cmds_file)
@@ -60,7 +62,7 @@ def submit_cmds_from_file_to_q(logger, cmds_file, tmp_dir, queue_name, CPUs, dum
                 cmd = cmd.replace(dummy_delimiter, '\n')
                 qsub_path = os.path.join(tmp_dir, prefix_name + '.pbs')  # path to job
 
-                generate_qsub_file(logger, queue_name, tmp_dir, cmd, prefix_name, qsub_path, CPUs)
+                generate_qsub_file(logger, queue_name, tmp_dir, cmd, prefix_name, qsub_path, CPUs, memory)
 
                 # execute the job
                 # queue_name may contain more arguments, thus the string of the cmd is generated and raw cmd is called
@@ -90,6 +92,7 @@ if __name__ == '__main__':
                         default='pupkolab')  # , choices=['pupko', 'itaym', 'lilach', 'bioseq'])
     parser.add_argument('--cpu', help='How many CPUs will be used?', choices=[str(i) for i in range(1, 29)],
                         default='1')
+    parser.add_argument('--memory', help='How much memory is needed')
     parser.add_argument('--dummy_delimiter',
                         help='The queue does not "like" very long commands; A dummy delimiter is used to break each row into different commands of a single job',
                         default='!@#')
@@ -114,5 +117,5 @@ if __name__ == '__main__':
         os.makedirs(args.tmp_dir, exist_ok=True)
 
     submit_cmds_from_file_to_q(logger, args.cmds_file, args.tmp_dir, args.queue_name, args.cpu, args.dummy_delimiter,
-                               args.start, args.end, args.additional_params)
+                               args.memory, args.start, args.end, args.additional_params)
     # print(args.cmds_file, args.tmp_dir, args.queue_name, args.cpu, args.verbose, args.start, args.end)

@@ -18,10 +18,13 @@ QUEUE_FOR_JOBS = 'power-pupko'
 Q_SUBMITTER_ASSUME_RUN_FROM_POWER9LOGIN = True
 HEGS_ECOLI_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'HEG_ecoli.txt')
 BACTERIA_CORE_GENES_HMM_PROFILES_PATH = '/groups/pupko/naamawagner/Microbializer/Busco/hmms'
+MAX_NUMBER_OF_GENOMES_TO_ANALYZE = 350
 
-# mmseqs command work only on specific machines and this queue navigates only to them
-MMSEQS_REQUIRED_MEMORY = '60gb'
-USE_DIFFERENT_QUEUE_FOR_MMSEQS = True
+ANI_REQUIRED_MEMORY = '120gb'
+# mmseqs command work only on machines with enough memory. we solve this either by navigating to a specific queue
+# or by restrict the compute-nodes with memory threshold.
+MMSEQS_REQUIRED_MEMORY = '120gb'
+USE_DIFFERENT_QUEUE_FOR_MMSEQS = False
 QUEUE_FOR_MMSEQS_COMMANDS = 'pupkolab'
 
 # logging consts
