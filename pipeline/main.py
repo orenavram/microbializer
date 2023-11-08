@@ -23,6 +23,8 @@ from auxiliaries import consts, flask_interface_consts
 from auxiliaries.plots_generator import generate_violinplot, generate_bar_plot
 from auxiliaries.steps_auxiliaries import mimic_prodigal_output, aggregate_ani_results
 
+PIPELINE_STEPS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11']
+
 
 def get_arguments():
     parser = argparse.ArgumentParser()
@@ -65,7 +67,7 @@ def get_arguments():
     parser.add_argument('-q', '--queue_name', help='The queue to which the job(s) will be submitted to',
                         default=consts.QUEUE_FOR_JOBS)
     parser.add_argument('--step_to_complete', help='The final step to execute', default=None,
-                        choices=['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', None])
+                        choices=[*PIPELINE_STEPS, None])
     parser.add_argument('--only_calc_ogs', help='Do only the necessary steps to calculate OGs', action='store_true')
     parser.add_argument('--zip_results_in_partial_pipeline', help='Zip results also when the pipeline is partially run', action='store_true')
     parser.add_argument('--dummy_delimiter',
@@ -1912,7 +1914,8 @@ def main(args):
                           output_html_path, steps_results_dir, tmp_dir, done_files_dir,
                           data_path, number_of_genomes, genomes_names_path, final_output_dir)
 
-        if args.step_to_complete is None or args.only_calc_ogs or args.zip_results_in_partial_pipeline:
+        if args.step_to_complete is None or args.step_to_complete == PIPELINE_STEPS[-1] or args.only_calc_ogs \
+                or args.zip_results_in_partial_pipeline:
             logger.info('Zipping results folder...')
             shutil.make_archive(final_output_dir, 'zip', meta_output_dir, final_output_dir)
 
