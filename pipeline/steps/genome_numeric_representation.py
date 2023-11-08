@@ -41,7 +41,7 @@ def get_genes_info_dicts(fasta_path):
             header example: 
             >Ecoli_APEC_O1_gi_117622295_ref_NC_008563.1__1 # 317 # 2779 # 1 # ID=1_1;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.528
             '''
-            line_tokens = line[1:].rstrip().split(ORFS_FILE_HEADER_DELIMITER)  # returns header without ">" !
+            line_tokens = line[1:].split(ORFS_FILE_HEADER_DELIMITER)  # returns header without ">" !
             gene_name = line_tokens[ORFS_FILE_HEADER_GENE_INDEX]
             orientation = line_tokens[ORFS_FILE_HEADER_ORIENTATION_INDEX]
             gene_name_to_location[gene_name] = location
