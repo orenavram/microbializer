@@ -4,6 +4,7 @@ from sys import argv
 import argparse
 import logging
 import os
+import shutil
 from Bio import SeqIO
 import CodonUsageModified as CodonUsage
 import json
@@ -31,7 +32,8 @@ def find_HEGs_in_orf_file(ORF_file_path, tmp_dir, logger):
     ORF_file_name = os.path.basename(ORF_file_path).split('.')[0]
 
     # Create blast db from ORF file
-    db_name = os.path.join(tmp_dir, ORF_file_name + '.db')
+    db_dir = os.path.join(tmp_dir, f'{ORF_file_name}_db')
+    db_name = os.path.join(db_dir, ORF_file_name + '.db')
     cmd = f'makeblastdb -in {ORF_file_path} -out {db_name} -dbtype nucl'
     logger.info('Making blastdb with command: \n' + cmd)
     subprocess.run(cmd, shell=True)
@@ -42,6 +44,8 @@ def find_HEGs_in_orf_file(ORF_file_path, tmp_dir, logger):
           f'-max_target_seqs {MAX_HITS_TO_KEEP_FOR_EACH_REFERENCE_HEG}'
     logger.info("Finding Hits with command: \n" + cmd)
     subprocess.run(cmd, shell=True)
+
+    shutil.rmtree(db_dir, ignore_errors=True)
 
     # Filter hits to find actual HEGs and write their names into a file
     hegs_df = pd.read_csv(hegs_hits_file, delimiter='\t', names=BLAST_OUTPUT_HEADERS)

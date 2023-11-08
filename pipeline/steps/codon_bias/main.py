@@ -18,7 +18,6 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger, prepare_directories, submit_batch, wait_for_results
-from calculate_cai import get_genome_to_W_vector
 
 OG_NAME_PATTERN = re.compile(r'(OG_\d+)_cai.json')
 
@@ -76,7 +75,7 @@ def visualize_Ws_with_PCA(W_vectors, output_dir, logger):
     logger.info("Time for PCA:", time.time() - start_time)
 
 
-def get_CAI_Data(cai_dir, output_dir, cai_table_path):
+def aggregate_CAI_Data(cai_dir, output_dir, cai_table_path):
     """
     input:
     location of output dir to access individually calculated CAI data
@@ -107,6 +106,17 @@ def get_CAI_Data(cai_dir, output_dir, cai_table_path):
     plt.close()
 
 
+def get_genome_to_W_vector(W_dir):
+    genome_to_W_vector = {}
+    for file_name in os.listdir(W_dir):
+        with open(os.path.join(W_dir, file_name), "r") as genome_W_file:
+            genome_W = json.load(genome_W_file)
+            genome_name = os.path.splitext(file_name)[0]
+            genome_to_W_vector[genome_name] = genome_W
+
+    return genome_to_W_vector
+
+
 def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, src_dir, queue_name, error_file_path,
                        logger, codon_bias_step_number):
     # 1. Calculate Ws
@@ -114,7 +124,11 @@ def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, src
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_get_W'
     script_path = os.path.join(src_dir, 'steps/codon_bias/get_W.py')
-    W_output_dir, W_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+
+    W_tmp_dir = os.path.join(tmp_dir, step_name)
+    os.makedirs(W_tmp_dir, exist_ok=True)
+    W_vectors_output_dir = os.path.join(W_tmp_dir, 'W_vectors')
+    os.makedirs(W_vectors_output_dir, exist_ok=True)
 
     all_cmds_params = []
     for orf_file_name in os.listdir(ORF_dir):
@@ -122,7 +136,7 @@ def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, src
             continue
         orf_file_path = os.path.join(ORF_dir, orf_file_name)
         single_cmd_params = [orf_file_path,
-                             W_output_dir,
+                             W_vectors_output_dir,
                              W_tmp_dir]
         all_cmds_params.append(single_cmd_params)
 
@@ -134,14 +148,21 @@ def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, src
     # Passing logger also as times_logger since there is no convenient way here to get times_logger file path
     wait_for_results(logger, logger, step_name, W_tmp_dir, num_of_batches, error_file_path)
 
-    W_vectors = get_genome_to_W_vector(W_output_dir)
-    if any(None in w_vector.values() for w_vector in W_vectors.values()):
-        logger.info("At least one of the genomes has an incomplete W vector (might be because there were not "
-                    "enough genes that were identified as HEGs). Codon bias analysis is therefore not possible.")
+    W_vectors = get_genome_to_W_vector(W_vectors_output_dir)
+    W_vectors_file_path = os.path.join(output_dir, "W_vectors.json")
+    with open(W_vectors_file_path, 'w') as W_vectors_fp:
+        json.dump(W_vectors, W_vectors_fp)
+
+    genomes_with_incomplete_W_vectors = [genome for genome, w_vector in W_vectors.items() if None in w_vector.values()]
+    if genomes_with_incomplete_W_vectors:
+        logger.info("The following genomes have incomplete W vectors (might be because there were not "
+                    "enough genes that were identified as HEGs). Codon bias analysis is therefore not possible."
+                    f"Genome names: {','.join(genomes_with_incomplete_W_vectors)}")
         return
 
     # 2. Make Graph
-    visualize_Ws_with_PCA(W_vectors, output_dir, logger)
+    if len(W_vectors) >= 4:
+        visualize_Ws_with_PCA(W_vectors, output_dir, logger)
 
     # 3. Calculate CAIs
     step_number = f'{codon_bias_step_number}_b'
@@ -157,7 +178,7 @@ def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, src
     while start_og_index <= max_og_index:
         stop_og_index = min(start_og_index + number_of_ogs_per_job - 1, max_og_index)
         single_cmd_params = [OG_dir,
-                             W_output_dir,
+                             W_vectors_file_path,
                              start_og_index,
                              stop_og_index,
                              cai_output_dir]
@@ -174,7 +195,7 @@ def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, src
 
     # 4. Make CAI table and histogram
     logger.info("Aggregate CAI of OGs into a table and plot histogram")
-    get_CAI_Data(cai_output_dir, output_dir, cai_table_path)
+    aggregate_CAI_Data(cai_output_dir, output_dir, cai_table_path)
 
 
 if __name__ == '__main__':

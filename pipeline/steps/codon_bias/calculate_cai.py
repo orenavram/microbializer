@@ -17,28 +17,19 @@ from auxiliaries.pipeline_auxiliaries import get_job_logger
 OG_FASTA_HEADER_GENOME_NAME_PATTERN = re.compile(r'.+\((\w+)\)')
 
 
-def get_genome_to_W_vector(W_dir):
-    genome_to_W_vector = {}
-    for file_name in os.listdir(W_dir):
-        with open(os.path.join(W_dir, file_name), "r") as genome_W_file:
-            genome_W = json.load(genome_W_file)
-            genome_name = os.path.splitext(file_name)[0]
-            genome_to_W_vector[genome_name] = genome_W
-
-    return genome_to_W_vector
-
-
 def W_vector_to_CAIHandler(W_vector):
     CAI_handler = CodonUsage.CodonAdaptationIndex()
     CAI_handler.set_cai_index(W_vector)
     return CAI_handler
 
 
-def calculate_cai(OG_dir, W_dir, OG_start_index, OG_stop_index, output_dir, logger):
-    genome_to_W_vector = get_genome_to_W_vector(W_dir)
+def calculate_cai(OG_dir, W_vectors_file_path, OG_start_index, OG_stop_index, output_dir, logger):
+    with open(W_vectors_file_path, "r") as W_vectors_fp:
+        genome_to_W_vector = json.load(W_vectors_fp)
+
     genome_to_CAIHandler = {genome_name: W_vector_to_CAIHandler(W_vector)
                             for genome_name, W_vector in genome_to_W_vector.items()}
-    logger.info(f'Read {len(genome_to_CAIHandler)} W vectors from {W_dir}')
+    logger.info(f'Read {len(genome_to_CAIHandler)} W vectors from {W_vectors_file_path}')
 
     for OG_index in range(OG_start_index, OG_stop_index + 1):
         cai_info = {}
@@ -47,7 +38,7 @@ def calculate_cai(OG_dir, W_dir, OG_start_index, OG_stop_index, output_dir, logg
         with open(OG_path, 'r') as OG_file:
             for record in SeqIO.parse(OG_file, "fasta"):
                 genome_name = OG_FASTA_HEADER_GENOME_NAME_PATTERN.match(record.description).group(1)
-                cai_info[genome_name] = genome_to_CAIHandler[genome_name].cai_for_gene(record.seq)
+                cai_info[record.description] = genome_to_CAIHandler[genome_name].cai_for_gene(record.seq)
 
         cai_values = list(cai_info.values())
         cai_info['mean'] = np.mean(cai_values)
@@ -66,7 +57,8 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('OG_dir', help='path to input Orthologous group directory')
-    parser.add_argument('W_dir', help='path to input relative adaptiveness (W vectors) directory')
+    parser.add_argument('W_vectors_file_path', help='path to file the contains input relative adaptiveness (W vectors)'
+                                                    'of all genomes')
     parser.add_argument('start', help='starting index of file')
     parser.add_argument('stop', help='stopping index of file (inclusive)')
     parser.add_argument('output_dir', help='path to output dir')
@@ -79,6 +71,6 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        calculate_cai(args.OG_dir, args.W_dir, int(args.start), int(args.stop), args.output_dir, logger)
+        calculate_cai(args.OG_dir, args.W_vectors_file_path, int(args.start), int(args.stop), args.output_dir, logger)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
