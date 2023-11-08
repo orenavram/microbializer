@@ -22,7 +22,7 @@ def verify_fasta_format(logger, data_path):
                     return f'Illegal <a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a>. First line in "{file_name}" starts with "{line[0]}" instead of ">".'
                 previous_line_was_header = True
                 putative_end_of_file = False
-                curated_content = f'>{strain_name}_{line[1:]}'.replace("|", "_")
+                curated_content = f'>{strain_name}:{line[1:]}'
                 for line in f:
                     line_number += 1
                     line = line.strip()
@@ -37,7 +37,7 @@ def verify_fasta_format(logger, data_path):
                             return f'Illegal <a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a>. "{file_name}" contains an empty record. Both lines {line_number - 1} and {line_number} start with ">".'
                         else:
                             previous_line_was_header = True
-                            curated_content += f'>{strain_name}_{line[1:]}\n'.replace("|", "_")
+                            curated_content += f'>{strain_name}:{line[1:]}\n'
                             continue
                     else:  # not a header
                         previous_line_was_header = False
