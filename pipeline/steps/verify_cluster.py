@@ -20,17 +20,14 @@ def verify(logger, input_file, output_dir, clustering_criterion):
     elif len(lines) == 0:
         raise ValueError(f'{input_file} is empty! There\'s a bug in the previous step!')
     elif len(lines) == 1:
-        os.rename(input_file, os.path.join(output_dir, input_og_name + ".10_verified_cluster"))
+        os.rename(input_file, os.path.join(output_dir, input_og_name + ".verified_cluster"))
     else:  # 1 < len(lines) <= clustering_criterion
         for line in lines:
-            genes = line.split('\t')
-            if input_og_name in genes:
-                og_name = input_og_name
-            else:
-                og_name = genes[0]
-            verified_cluster_path = os.path.join(output_dir, og_name + ".10_split_cluster")
+            og_subset_id = 0
+            verified_cluster_path = os.path.join(output_dir, f"{input_og_name}_{og_subset_id}.split_cluster")
             with open(verified_cluster_path, 'w') as verified_cluster_file:
                 verified_cluster_file.write(line)
+            og_subset_id += 1
 
 
 if __name__ == '__main__':

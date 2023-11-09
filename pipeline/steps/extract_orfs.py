@@ -32,20 +32,20 @@ def get_sequences_by_genes_names(fasta_path, genes_names):
 def get_orthologs_group_sequences(logger, orfs_dir, strain_name_to_genes_names, strains):
     result = ''
 
-    strain_to_strain_orfs_path_dict = {}
+    strain_to_orfs_path_dict = {}
     for orfs_file in os.listdir(orfs_dir):
         strain = os.path.splitext(orfs_file)[0]
-        strain_to_strain_orfs_path_dict[strain] = os.path.join(orfs_dir, orfs_file)
+        strain_to_orfs_path_dict[strain] = os.path.join(orfs_dir, orfs_file)
 
     for strain in strains:
         genes_names = strain_name_to_genes_names[strain]
         if genes_names != '':
             # current strain has members in this cluster
-            if strain_to_strain_orfs_path_dict.get(strain) is not None:
-                orfs_path = strain_to_strain_orfs_path_dict[strain]
+            if strain_to_orfs_path_dict.get(strain) is not None:
+                orfs_path = strain_to_orfs_path_dict[strain]
                 genes_sequences = get_sequences_by_genes_names(orfs_path, genes_names.split(';'))
                 for gene_name, sequence in genes_sequences.items():
-                    result += f'>{gene_name} ({strain})\n{sequence}\n'
+                    result += f'>{gene_name}\n{sequence}\n'
             else:
                 logger.error(f'Could not extract {strain_name_to_genes_names[strain]} genes of strain {strain} as '
                              f'its ORFs file does not exist at {orfs_dir} (probably ORFs sequence extraction for was '
