@@ -21,7 +21,7 @@ from auxiliaries.pipeline_auxiliaries import measure_time, execute, wait_for_res
 from auxiliaries.html_editor import edit_success_html, edit_failure_html, edit_progress
 from auxiliaries import consts, flask_interface_consts
 from auxiliaries.plots_generator import generate_violinplot, generate_bar_plot
-from auxiliaries.steps_auxiliaries import mimic_prodigal_output, aggregate_ani_results
+from auxiliaries.logic_auxiliaries import mimic_prodigal_output, aggregate_ani_results
 
 PIPELINE_STEPS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11']
 

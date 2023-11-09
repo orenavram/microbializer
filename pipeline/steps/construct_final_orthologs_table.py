@@ -13,6 +13,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger
+from auxiliaries.logic_auxiliaries import get_strain_name
 from auxiliaries import consts
 
 ORPHANS_FILENAME_GENOME_NAME_PATTERN = re.compile('(.+)_orphans.txt')
@@ -172,7 +173,7 @@ def finalize_table(logger, putative_orthologs_path, verified_clusters_path, orph
             genes = new_cluster.readline().strip().split('\t')
         strain_to_genes = defaultdict(list)
         for gene in genes:
-            strain = gene.split(':')[0]
+            strain = get_strain_name(gene)
             strain_to_genes[strain].append(gene)
         strain_to_genes = {strain: ';'.join(genes) for strain, genes in strain_to_genes.items()}
         strain_to_genes['OG_name'] = ''  # Set a temp empty OG name
