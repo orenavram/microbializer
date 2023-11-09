@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
+import re
 
 
 def aggregate_ani_results(ani_tmp_files, ani_output_dir):
@@ -75,3 +76,13 @@ def mimic_prodigal_output(orfs_dir, output_orf_file_extension):
 
 def get_strain_name(gene_name):
     return gene_name.split(':')[0]
+
+
+def remove_bootstrap_values(in_tree_path, out_tree_path):
+    with open(in_tree_path) as f:
+        tree_as_str = f.read()
+
+    tree_as_str = re.sub('\)\d+:', '):', tree_as_str)
+    with open(out_tree_path, 'w') as f:
+        f.write(tree_as_str)
+

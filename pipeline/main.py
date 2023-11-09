@@ -14,14 +14,13 @@ import pandas as pd
 
 from auxiliaries.email_sender import send_email
 from auxiliaries.file_writer import write_to_file
-from auxiliaries.input_verifications import verify_fasta_format
+from auxiliaries.input_verifications import prepare_and_verify_input_data
 from auxiliaries.pipeline_auxiliaries import measure_time, execute, wait_for_results, \
-    prepare_directories, fail, submit_mini_batch, submit_batch, remove_bootstrap_values, \
-    notify_admin, add_results_to_final_dir, remove_path, unpack_data, fix_illegal_chars_in_file_name, move_file
+    prepare_directories, fail, submit_mini_batch, submit_batch, notify_admin, add_results_to_final_dir, remove_path
 from auxiliaries.html_editor import edit_success_html, edit_failure_html, edit_progress
 from auxiliaries import consts, flask_interface_consts
 from auxiliaries.plots_generator import generate_violinplot, generate_bar_plot
-from auxiliaries.logic_auxiliaries import mimic_prodigal_output, aggregate_ani_results
+from auxiliaries.logic_auxiliaries import mimic_prodigal_output, aggregate_ani_results, remove_bootstrap_values
 
 PIPELINE_STEPS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11']
 
@@ -186,80 +185,6 @@ def prepare_pipeline_framework(args):
 
     return logger, times_logger, meta_output_dir, error_file_path, run_number, output_html_path, output_url, \
         meta_output_url, output_dir, tmp_dir, done_files_dir, steps_results_dir
-
-
-def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path, output_dir):
-    # extract zip and detect data folder
-    primary_data_path = unpack_data(logger, args.contigs_dir, meta_output_dir, error_file_path)
-
-    for system_file in os.listdir(primary_data_path):
-        if system_file.startswith(('.', '_')):
-            system_file_path = os.path.join(primary_data_path, system_file)
-            logger.warning(f'Removing system file: {system_file_path}')
-            remove_path(logger, system_file_path)
-
-    # copies input contigs_dir because we edit the files and want to keep the input directory as is
-    data_path = os.path.join(output_dir, 'inputs')
-    shutil.copytree(primary_data_path, data_path, dirs_exist_ok=True)
-    logger.info(f'data_path is: {data_path}')
-
-    # have to be AFTER system files removal (in the weird case a file name starts with a space)
-    filename_prefixes = set()
-    for file_name in os.listdir(data_path):
-        new_file_name = fix_illegal_chars_in_file_name(logger, file_name)
-        if file_name != new_file_name:
-            # illegal character in file name were found
-            move_file(logger, data_path, file_name, new_file_name, error_file_path)
-            if args.outgroup == os.path.splitext(file_name)[0]:
-                new_outgroup = os.path.splitext(new_file_name)[0]
-                logger.info(f'Following the change of input genome name {file_name} to {new_file_name}, '
-                            f'outgroup argument was changed from {args.outgroup} to {new_outgroup}')
-                args.outgroup = new_outgroup
-
-        filename_prefix, filename_ext = os.path.splitext(file_name)
-        if filename_prefix in filename_prefixes:
-            error_msg = f'Two (or more) of the uploaded geonmes contain the same name (prefix), ' \
-                        f'e.g., {filename_prefix}. Please make sure each file name is unique.'
-            fail(logger, error_msg, error_file_path)
-        for existing_file_name in filename_prefixes:
-            if filename_prefix.startswith(existing_file_name) or existing_file_name.startswith(filename_prefix):
-                error_msg = f'One of the uploaded file names is a prefix of another ({existing_file_name}, ' \
-                            f'{filename_prefix}). Please make sure the file names are not prefixes of each other.'
-                fail(logger, error_msg, error_file_path)
-        filename_prefixes.add(filename_prefix)
-
-    number_of_genomes = len(os.listdir(data_path))
-    logger.info(f'Number of genomes to analyze is {number_of_genomes}')
-    logger.info(f'data_path contains the following {number_of_genomes} files: {os.listdir(data_path)}')
-
-    # check MINimal number of genomes
-    min_number_of_genomes_to_analyze = 2
-    if number_of_genomes < min_number_of_genomes_to_analyze:
-        error_msg = f'The dataset contains too few genomes ({consts.WEBSERVER_NAME} does comparative analysis and ' \
-                    f'thus needs at least 2 genomes).'
-        fail(logger, error_msg, error_file_path)
-
-    # check MAXimal number of genomes
-    if number_of_genomes > consts.MAX_NUMBER_OF_GENOMES_TO_ANALYZE and 'oren' not in args.email.lower() \
-            and not args.bypass_number_of_genomes_limit:
-        error_msg = f'The dataset contains too many genomes. {consts.WEBSERVER_NAME} allows analyzing up to ' \
-                    f'{consts.MAX_NUMBER_OF_GENOMES_TO_ANALYZE} genomes due to the high resource consumption. However, ' \
-                    f'upon request (and supervision), we do allow analyzing large datasets. Please contact us ' \
-                    f'directly and we will do that for you.'
-        fail(logger, error_msg, error_file_path)
-
-    # must be only after the spaces removal from the species names!!
-    verification_error = verify_fasta_format(logger, data_path)
-    if verification_error:
-        remove_path(logger, data_path)
-        fail(logger, verification_error, error_file_path)
-
-    genomes_names = [os.path.splitext(genome_name)[0] for genome_name in os.listdir(data_path)]
-    genomes_names_path = os.path.join(output_dir, 'genomes_names.txt')
-    with open(genomes_names_path, 'w') as genomes_name_fp:
-        genomes_name_fp.write('\n'.join(genomes_names))
-
-    return data_path, number_of_genomes, genomes_names_path
 
 
 def step_0_filter_out_plasmids(args, logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
