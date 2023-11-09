@@ -2,6 +2,7 @@ import os
 import Bio.SeqUtils
 import shutil
 import tarfile
+import collections
 
 from . import consts
 from .pipeline_auxiliaries import execute, remove_path, fail
@@ -187,6 +188,7 @@ def verify_fasta_format(logger, data_path):
             return f'{file_name} is a binary file (rather than textual). Please upload your genomes as text files (such as fas or fna).'
         file_path = os.path.join(data_path, file_name)
         strain_name = os.path.splitext(file_name)[0]
+        record_ids = []
         with open(file_path) as f:
             line_number = 0
             try:
@@ -199,6 +201,7 @@ def verify_fasta_format(logger, data_path):
                 previous_line_was_header = True
                 putative_end_of_file = False
                 curated_content = f'>{strain_name}:{line[1:]}'
+                record_ids.append(line[1:].split(' ')[0])
                 for line in f:
                     line_number += 1
                     line = line.strip()
@@ -214,6 +217,7 @@ def verify_fasta_format(logger, data_path):
                         else:
                             previous_line_was_header = True
                             curated_content += f'>{strain_name}:{line[1:]}\n'
+                            record_ids.append(line[1:].split(' ')[0])
                             continue
                     else:  # not a header
                         previous_line_was_header = False
@@ -225,6 +229,9 @@ def verify_fasta_format(logger, data_path):
                 logger.info(e.args)
                 line_number += 1  # the line that was failed to be read
                 return f'Illegal <a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a>. Line {line_number} in "{file_name}" contains one (or more) non <a href="https://en.wikipedia.org/wiki/ASCII" target="_blank">ascii</a> character(s).'
+        duplicate_ids = [item for item, count in collections.Counter(record_ids).items() if count > 1]
+        if duplicate_ids:
+            return f'Illegal <a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a>. "{file_name}" contains duplicated record ids: {",".join(duplicate_ids)}.'
         # override the old file with the curated content
         with open(file_path, 'w') as f:
             f.write(curated_content)
