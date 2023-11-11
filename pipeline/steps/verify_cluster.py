@@ -22,8 +22,8 @@ def verify(logger, input_file, output_dir, clustering_criterion):
     elif len(lines) == 1:
         os.rename(input_file, os.path.join(output_dir, input_og_name + ".verified_cluster"))
     else:  # 1 < len(lines) <= clustering_criterion
+        og_subset_id = 0
         for line in lines:
-            og_subset_id = 0
             verified_cluster_path = os.path.join(output_dir, f"{input_og_name}_{og_subset_id}.split_cluster")
             with open(verified_cluster_path, 'w') as verified_cluster_file:
                 verified_cluster_file.write(line)
