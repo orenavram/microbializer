@@ -8,12 +8,13 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from auxiliaries.pipeline_auxiliaries import load_header2sequences_dict, get_job_logger
+from auxiliaries.logic_auxiliaries import get_strain_name
 
 
 def get_num_of_strains_in_og(gene_name_to_sequence_dict):
     strains_in_og = set()
     for gene_name in gene_name_to_sequence_dict.keys():
-        strain_name = gene_name.split(' (')[1][:-1]
+        strain_name = get_strain_name(gene_name)
         strains_in_og.add(strain_name)
 
     return len(strains_in_og)
@@ -24,7 +25,7 @@ def update_core_genome(logger, og_file, gene_name_to_sequence_dict, og_alignment
     # to be included in the core genome.
     strain_to_chosen_gene_sequence_dict = {}
     for gene_name, sequence in gene_name_to_sequence_dict.items():
-        strain = gene_name.split(' (')[1][:-1]
+        strain = get_strain_name(gene_name)
         if strain not in strain_to_chosen_gene_sequence_dict:
             logger.info(f'gene {gene_name} was chosen from OG {og_file} to represent strain {strain}')
             strain_to_chosen_gene_sequence_dict[strain] = gene_name_to_sequence_dict[gene_name]

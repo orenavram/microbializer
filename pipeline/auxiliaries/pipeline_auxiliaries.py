@@ -1,11 +1,11 @@
 import os
 import shutil
 import subprocess
-import tarfile
+
 from time import time, sleep
 import re
 import logging
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from . import consts
 from .email_sender import send_email
@@ -285,15 +285,6 @@ def wait_for_output_folder(logger, output_folder, max_waiting_time=300):
         sleep(1)
 
 
-def remove_bootstrap_values(in_tree_path, out_tree_path):
-    with open(in_tree_path) as f:
-        tree_as_str = f.read()
-
-    tree_as_str = re.sub('\)\d+:', '):', tree_as_str)
-    with open(out_tree_path, 'w') as f:
-        f.write(tree_as_str)
-
-
 def notify_admin(meta_output_dir, meta_output_url, run_number):
     email = 'NO_EMAIL'
     user_email_path = os.path.join(meta_output_dir, consts.EMAIL_FILE_NAME)
@@ -346,103 +337,6 @@ def remove_path(logger, path_to_remove):
         pass
 
 
-def unpack_data(logger, data_path, meta_output_dir, error_file_path):
-    if not os.path.isdir(data_path):
-        unzipped_data_path = os.path.join(meta_output_dir, 'data')
-        try:
-            if tarfile.is_tarfile(data_path):
-                logger.info('UnTARing')
-                with tarfile.open(data_path, 'r:gz') as f:
-                    f.extractall(path=unzipped_data_path)  # unzip tar folder to parent dir
-                logger.info('Succeeded!')
-                # data_path = data_path.split('.tar')[0] # e.g., /groups/pupko/orenavr2/microbializer/example_data.tar.gz
-                # logger.info(f'Updated data_path is:\n{data_path}')
-            elif data_path.endswith('.gz'):  # gunzip gz file
-                execute(logger, f'gunzip -f "{data_path}"', process_is_string=True)
-                unzipped_data_path = data_path[:-3]  # trim the ".gz"
-            else:
-                logger.info('UnZIPing')
-                shutil.unpack_archive(data_path, extract_dir=unzipped_data_path)  # unzip tar folder to parent dir
-        except Exception as e:
-            logger.info(e)
-            remove_path(logger, data_path)
-            fail(logger, f'{consts.WEBSERVER_NAME} failed to decompress your data. Please make sure all your FASTA files names '
-                 f'do contain only dashes, dots, and alphanumeric characters (a-z, A-Z, 0-9). Other characters such as '
-                 f'parenthesis, pipes, slashes, are not allowed. Please also make sure your archived file format is legal (either a '
-                 f'<a href="https://support.microsoft.com/en-us/help/14200/windows-compress-uncompress-zip-files" target="_blank">.zip</a> file or a '
-                 f'<a href="https://linhost.info/2012/08/gzip-files-in-windows/" target="_blank">.tar.gz</a> file in which each file is a '
-                 f'<a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a> containing genomic sequence of a different species).',
-                 error_file_path)
-        logger.info('Succeeded!')
-        # data_path = os.path.join(meta_output_dir, 'data') # e.g., /groups/pupko/orenavr2/microbializer/example_data.tar.gz
-        # logger.info(f'Updated data_path is:\n{data_path}')
-
-        if not os.path.exists(unzipped_data_path):
-            fail(logger, f'Failed to unzip {os.path.split(data_path)[-1]} (maybe it is empty?)', error_file_path)
-
-        if not os.path.isdir(unzipped_data_path):
-            fail(logger, 'Archived file content is not a folder', error_file_path)
-
-        file = [x for x in os.listdir(unzipped_data_path) if not x.startswith(('_', '.'))][0]
-        logger.info(f'first file in {unzipped_data_path} is:\n{file}')
-        if os.path.isdir(os.path.join(unzipped_data_path, file)):
-            data_path = os.path.join(unzipped_data_path, file)
-            if not [x for x in os.listdir(data_path) if not x.startswith(('_', '.'))]:
-                fail(logger, f'No input files were found in the archived folder.',
-                     error_file_path)
-        else:
-            data_path = unzipped_data_path
-
-    logger.info(f'Updated data_path is: {data_path}')
-    for file in os.listdir(data_path):
-        file_path = os.path.join(data_path, file)
-        if file_path.endswith('gz'):  # gunzip gz files in $data_path if any
-            execute(logger, f'gunzip -f "{file_path}"', process_is_string=True)
-
-    for file in os.listdir(data_path):
-        if not os.path.isdir(os.path.join(data_path, file)):
-            # make sure each fasta has writing permissions for downstream editing
-            os.chmod(os.path.join(data_path, file), 0o644)  # -rw-r--r--
-        else:
-            if file == '__MACOSX':
-                # happens too many times to mac users so i decided to assist in this case
-                logger.info('Removing __MACOSX file...')
-                shutil.rmtree(os.path.join(data_path, file))
-            else:
-                fail(logger, f'Please make sure to upload one archived folder containing (only) FASTA files '
-                     f'("{file}" is a folder).', error_file_path)
-
-    return data_path
-
-
-def fix_illegal_chars_in_file_name(logger, file_name, illegal_chars='\\|( );,\xa0'):
-    new_file_name = file_name
-    for char in illegal_chars:
-        if char in new_file_name:
-            logger.info(f'File name with illegal character "{char}" was detected!\n')
-            new_file_name = new_file_name.replace(char, '_')
-
-    # Due to weird mmseqs behavior, the ORFs headers (and therefore the filenames) cannot start with 'consensus'.
-    if new_file_name.startswith('consensus'):
-        new_file_name = new_file_name.replace('consensus', 'consenzus')
-
-    return new_file_name
-
-
-def move_file(logger, folder, file_name, new_file_name, error_file_path):
-    # a name replacement was applied. move the file to its new name.
-    try:
-        logger.info(f'Renaming file path from:\n'
-                    f'{os.path.join(folder, file_name)}\n'
-                    f'to this:\n'
-                    f'{os.path.join(folder, new_file_name)}')
-        os.rename(os.path.join(folder, file_name), os.path.join(folder, new_file_name))
-        file_name = new_file_name
-    except:
-        error_msg = f'One (or more) file name(s) contain illegal character such as parenthesis, pipes, or slashes.<br>\nIn order to avoid downstream parsing errors, {consts.WEBSERVER_NAME} automatically replaces these spaces with dashes. For some reason, the replacement for {file_name} failed. Please make sure all your input files names contain only dashes, dots, and alphanumeric characters (a-z, A-Z, 0-9) and re-submit your job.'
-        fail(logger, error_msg, error_file_path)
-
-
 def get_job_logger(log_file_dir, level=logging.INFO):
     job_name = os.environ.get(consts.JOB_NAME_ENVIRONMENT_VARIABLE, None)
     job_id = os.environ.get(consts.JOB_ID_ENVIRONMENT_VARIABLE, None)
@@ -458,11 +352,3 @@ def get_job_logger(log_file_dir, level=logging.INFO):
 
     logger = logging.getLogger('main')
     return logger
-
-
-def get_strain_from_gene(gene, strain_names):
-    strains = [strain for strain in strain_names if gene.startswith(strain)]
-    if len(strains) != 1:
-        raise ValueError(f"gene name {gene} doesn't contain any strain prefix or has prefix of multiple strains. "
-                         f"Strains are {','.join(strains)}")
-    return strains[0]

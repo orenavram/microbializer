@@ -21,6 +21,7 @@ def construct_table(logger, all_reciprocal_hits_path, putative_orthologs_path, d
     member_gene_to_group_name = {}
     member_gene_to_strain_name_dict = {}
     group_name_to_member_genes = {}
+    next_group_id = 0
     with open(all_reciprocal_hits_path) as f:
         for i, line in enumerate(f):
             if i % 1_000_000 == 0:
@@ -40,10 +41,9 @@ def construct_table(logger, all_reciprocal_hits_path, putative_orthologs_path, d
                     # update strain name
                     member_gene_to_strain_name_dict[gene1] = strain1
                     member_gene_to_strain_name_dict[gene2] = strain2
-                    # take the gene that is associated with the lexicographically lower strain.
-                    # Normally, the strains should be different (no paralogs), but if it's the
-                    # same strain, take the lexicographically lower gene
-                    group = min([gene1, gene2], key=lambda gene: (member_gene_to_strain_name_dict[gene], gene))
+
+                    group = f'OG_{next_group_id}'
+                    next_group_id += 1
                     # add gene1 to group
                     member_gene_to_group_name[gene1] = group
                     # add gene2 to group
@@ -77,8 +77,7 @@ def construct_table(logger, all_reciprocal_hits_path, putative_orthologs_path, d
                     if group1 == group2:
                         # groups are already merged
                         continue
-                    min_group, max_group = sorted([group1, group2], key=lambda gene: (
-                    member_gene_to_strain_name_dict[gene], member_gene_to_group_name[gene]))
+                    min_group, max_group = sorted([group1, group2])
                     # remove max_group from dictionary
                     max_group_members = group_name_to_member_genes.pop(max_group)
                     # merge groups
@@ -92,13 +91,10 @@ def construct_table(logger, all_reciprocal_hits_path, putative_orthologs_path, d
     header = delimiter.join(['OG_name'] + sorted_strains) + '\n'
     result = ''
     result += header
-    # groups sorted by the strain they are associated with (group names are a subset of all the genes..)
-    sorted_groups = sorted(group_name_to_member_genes, key=member_gene_to_strain_name_dict.get)
-    for group in sorted_groups:
-        current_group = group_name_to_member_genes[group]
+    for group, group_genes in group_name_to_member_genes.items():
         # dictionary that holds for each strain the members of the current group
         strain_to_members = defaultdict(list)
-        for member in current_group:
+        for member in group_genes:
             strain = member_gene_to_strain_name_dict[member]
             strain_to_members[strain].append(member)
         strain_to_members = {strain: ';'.join(members) for strain, members in strain_to_members.items()}

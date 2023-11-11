@@ -12,7 +12,8 @@ from ete3 import orthoxml
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger, get_strain_from_gene
+from auxiliaries.pipeline_auxiliaries import get_job_logger
+from auxiliaries.logic_auxiliaries import get_strain_name
 from auxiliaries import consts
 
 ORPHANS_FILENAME_GENOME_NAME_PATTERN = re.compile('(.+)_orphans.txt')
@@ -35,7 +36,7 @@ def parse_gene_name(logger, name, qfo_benchmark=False):
         return name
 
     try:
-        prot_id = name.split('_')[4]
+        prot_id = name.split('|')[1]
         return prot_id
     except Exception:
         logger.exception(f"Failed parsing gene name {name}, using full name")
@@ -47,7 +48,7 @@ def fix_orthoxml_output_file(orthoxml_file_path):
         content = oxml_file.read()
 
     # remove b'' prefixes
-    pattern = re.compile(r'b\'\"([\w.-]+)\"\'')
+    pattern = re.compile(r'b\'\"([\w.:|-]+)\"\'')
     fixed_content = pattern.sub(r'"\1"', content)
 
     # remove 'ortho:' prefixes
@@ -146,7 +147,7 @@ def build_orthoxml_and_tsv_output(logger, all_clusters_df, output_dir, qfo_bench
 
 def get_verified_clusters_set(verified_clusters_path):
     return set([os.path.splitext(file)[0]
-                for file in os.listdir(verified_clusters_path) if file.endswith('10_verified_cluster')])
+                for file in os.listdir(verified_clusters_path) if file.endswith('verified_cluster')])
 
 
 def finalize_table(logger, putative_orthologs_path, verified_clusters_path, orphan_genes_dir, finalized_table_path,
@@ -172,10 +173,10 @@ def finalize_table(logger, putative_orthologs_path, verified_clusters_path, orph
             genes = new_cluster.readline().strip().split('\t')
         strain_to_genes = defaultdict(list)
         for gene in genes:
-            strain = get_strain_from_gene(gene, strain_names)
+            strain = get_strain_name(gene)
             strain_to_genes[strain].append(gene)
         strain_to_genes = {strain: ';'.join(genes) for strain, genes in strain_to_genes.items()}
-        strain_to_genes['OG_name'] = list(strain_to_genes.values())[0]  # Set a temp OG name to be one of the genes
+        strain_to_genes['OG_name'] = ''  # Set a temp empty OG name
         new_cluster = pd.Series(strain_to_genes)
         new_clusters.append(new_cluster)
 

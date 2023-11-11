@@ -7,14 +7,12 @@ from Bio import SeqIO
 import CodonUsageModified as CodonUsage
 import numpy as np
 import json
-import re
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger
-
-OG_FASTA_HEADER_GENOME_NAME_PATTERN = re.compile(r'.+\((\w+)\)')
+from auxiliaries.logic_auxiliaries import get_strain_name
 
 
 def W_vector_to_CAIHandler(W_vector):
@@ -37,7 +35,7 @@ def calculate_cai(OG_dir, W_vectors_file_path, OG_start_index, OG_stop_index, ou
 
         with open(OG_path, 'r') as OG_file:
             for record in SeqIO.parse(OG_file, "fasta"):
-                genome_name = OG_FASTA_HEADER_GENOME_NAME_PATTERN.match(record.description).group(1)
+                genome_name = get_strain_name(record.id)
                 cai_info[record.description] = genome_to_CAIHandler[genome_name].cai_for_gene(record.seq)
 
         cai_values = list(cai_info.values())
