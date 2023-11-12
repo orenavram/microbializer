@@ -49,7 +49,7 @@ def search_all_vs_all(logger, aa_db1, aa_db2, aln_offsetted_db, tmp_dir, m8_outf
     while not os.path.exists(m8_outfile):
         # when the data set is very big some files are not generated because of the heavy load
         logger.info(f'Iteration #{i}: convertalis. Result should be at {m8_outfile}')
-        cmd = f'mmseqs convertalis {aa_db1} {aa_db2} {aln_offsetted_db} {m8_outfile} -v {verbosity_level} ' \
+        cmd = f'mmseqs convertalis {aa_db1} {aa_db2} {aln_offsetted_db} {m8_outfile} -format-mode 2 -v {verbosity_level} ' \
               f'--threads {cpus}'  # default number of threads is 4. If the wrapper did not allocated enough threads the process will crash.
         logger.info(f'Calling:\n{cmd}')
         subprocess.run(cmd, shell=True)

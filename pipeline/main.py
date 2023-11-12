@@ -38,6 +38,8 @@ def get_arguments():
                         default=consts.OWNER_EMAIL)
     parser.add_argument('--identity_cutoff', default=80,
                         help='minimum required percent of identity level (lower values will be filtered out)')
+    parser.add_argument('--coverage_cutoff', default=70,
+                        help='minimum required coverage percent of homology region between genes (lower values will be filtered out)')
     parser.add_argument('--e_value_cutoff', default=0.01,
                         help='maxmimum permitted e-value (0 <= e_value_cutoff <= 1; higher values will be filtered'
                              ' out).')
@@ -108,6 +110,10 @@ def validate_arguments(args):
     args.identity_cutoff = float(args.identity_cutoff)
     if args.identity_cutoff < 0 or args.identity_cutoff > 100:
         raise ValueError(f'identity_cutoff argument {args.identity_cutoff} has invalid value')
+
+    args.coverage_cutoff = float(args.coverage_cutoff)
+    if args.coverage_cutoff < 0 or args.coverage_cutoff > 100:
+        raise ValueError(f'coverage_cutoff argument {args.coverage_cutoff} has invalid value')
 
     args.e_value_cutoff = float(args.e_value_cutoff)
     if args.e_value_cutoff < 0 or args.e_value_cutoff > 1:
@@ -282,11 +288,8 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
             logger.info('Extracting ORFs...')
             all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
             for fasta_file in os.listdir(data_path):
-                fasta_file_prefix = os.path.splitext(fasta_file)[0]
-                output_file_name = f'{fasta_file_prefix}.{step_name}'
-
                 single_cmd_params = [f'"{os.path.join(data_path, fasta_file)}"',
-                                     os.path.join(orfs_dir, output_file_name)]
+                                     os.path.join(orfs_dir, orfs_dir)]
                 all_cmds_params.append(single_cmd_params)
 
             num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
@@ -298,7 +301,7 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
             wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                              num_of_batches, error_file_path, email=args.email)
         else:  # inputs are annotated genomes
-            logger.info('Inputs are already annotated genomes. Skipping step 02a.')
+            logger.info(f'Inputs are already annotated genomes. Skipping step {step_name}.')
             shutil.copytree(data_path, orfs_dir, dirs_exist_ok=True)
             mimic_prodigal_output(orfs_dir, step_name)
 
@@ -332,26 +335,21 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
         fail(logger, error_msg, error_file_path)
 
     # 2b.	extract_orfs_statistics.py
-    # Input: (1) A path to ORFs file (2) An output path to ORFs counts (3) An output path to GC content
+    # Input: (1) A path to ORFs file (2) An output dir of orfs statistics
     # Output: write the number of ORFs and GC content to the output files (respectively)
     # Can be parallelized on cluster
     step_number = '02b'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orfs_statistics'
     script_path = os.path.join(args.src_dir, 'steps/extract_orfs_statistics.py')
-    orfs_statistics_path, orfs_statistics_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    orfs_statistics_dir, orfs_statistics_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-    start_orf_stats = time()
     if not os.path.exists(done_file_path):
         logger.info('Collecting orfs counts...')
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
         for file in os.listdir(orfs_dir):
             orf_path = os.path.join(orfs_dir, file)
-            strain_name = os.path.splitext(file)[0]
-            orfs_count_output_path = os.path.join(orfs_statistics_path, f'{strain_name}.orfs_count')
-            gc_content_output_path = os.path.join(orfs_statistics_path, f'{strain_name}.gc_content')
-
-            single_cmd_params = [orf_path, orfs_count_output_path, gc_content_output_path]
+            single_cmd_params = [orf_path, orfs_statistics_dir]
             all_cmds_params.append(single_cmd_params)
 
         num_of_expected_orfs_results, example_cmd = submit_batch(logger, script_path, all_cmds_params,
@@ -361,7 +359,7 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
                                                                  queue_name=args.queue_name)
 
         wait_for_results(logger, times_logger, step_name, orfs_statistics_tmp_dir,
-                         num_of_expected_orfs_results, error_file_path=error_file_path, start=start_orf_stats,
+                         num_of_expected_orfs_results, error_file_path=error_file_path,
                          email=args.email)
 
         write_to_file(logger, done_file_path, '.')
@@ -383,25 +381,23 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
 
         gc_content = {}
         orf_count = {}
-        for file_name in os.listdir(orfs_statistics_path):
+        for file_name in os.listdir(orfs_statistics_dir):
             strain_name = file_name.split('.')[0]
-            file_type = file_name.split('.')[1]
-            file_path = os.path.join(orfs_statistics_path, file_name)
-            with open(file_path, 'r') as f:
-                content = f.read()
-            if file_type == "gc_content":
-                gc_content[strain_name] = float(content)
-            if file_type == "orfs_count":
-                orf_count[strain_name] = int(content)
+            with open(os.path.join(orfs_statistics_dir, file_name), 'r') as fp:
+                orfs_statistics = json.load(fp)
+
+            gc_content[strain_name] = orfs_statistics['gc_content']
+            orf_count[strain_name] = orfs_statistics['orfs_count']
 
         with open(orfs_gc_content_per_genome_file, 'w') as f:
             json.dump(gc_content, f)
         with open(orfs_counts_per_genome_file, 'w') as f:
             json.dump(orf_count, f)
 
-        execute(logger, f'cat {orfs_statistics_path}/*.orfs_count > {orfs_counts_frequency_file}',
-                process_is_string=True)
-        execute(logger, f'cat {orfs_statistics_path}/*.gc_content > {orfs_gc_content_file}', process_is_string=True)
+        with open(orfs_counts_frequency_file, 'w') as fp:
+            fp.write('\n'.join([str(value) for value in orf_count.values()]))
+        with open(orfs_gc_content_file, 'w') as fp:
+            fp.write('\n'.join([str(value) for value in gc_content.values()]))
 
         # No need to wait...
         logger.info('Plotting violins...')
@@ -419,7 +415,7 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    return orfs_dir
+    return orfs_dir, orfs_statistics_dir
 
 
 def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
@@ -503,7 +499,7 @@ def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_pa
 
 
 def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
-                            done_files_dir, orfs_dir):
+                            done_files_dir, orfs_dir, orfs_statistics_dir):
     if consts.USE_DIFFERENT_QUEUE_FOR_MMSEQS:
         mmseqs_queue_name = consts.QUEUE_FOR_MMSEQS_COMMANDS
         mmseqs_memory = None
@@ -650,8 +646,10 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
             single_cmd_params = [os.path.join(previous_pipeline_step_output_dir, blast_results_file),
                                  os.path.join(pipeline_step_output_dir, output_file_name),
                                  f'--identity_cutoff {args.identity_cutoff / 100}',
+                                 f'--coverage_cutoff {args.coverage_cutoff / 100}',
                                  # needs to be normalized between 0 and 1
-                                 f'--e_value_cutoff {args.e_value_cutoff}']
+                                 f'--e_value_cutoff {args.e_value_cutoff}',
+                                 f'--orfs_statistics_dir {orfs_statistics_dir}']
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
@@ -1304,7 +1302,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
         logger.info("Step 1 completed.")
         return
 
-    orfs_dir = step_2_search_orfs(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
+    orfs_dir, orfs_statistics_dir = step_2_search_orfs(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
                                   done_files_dir, data_path)
     edit_progress(output_html_path, progress=15)
 
@@ -1322,7 +1320,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
         return
 
     all_reciprocal_hits_file = step_4_search_orthologs(args, logger, times_logger, error_file_path,
-                                                       output_dir, tmp_dir, done_files_dir, orfs_dir)
+                                                       output_dir, tmp_dir, done_files_dir, orfs_dir, orfs_statistics_dir)
     edit_progress(output_html_path, progress=25)
 
     if args.step_to_complete == '4':
