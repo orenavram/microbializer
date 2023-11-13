@@ -5,7 +5,6 @@ import os
 import sys
 import json
 from Bio import SeqIO
-from Bio.SeqUtils import GC
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -17,17 +16,14 @@ def extract_orfs_statistics(logger, orf_path, orfs_statistics_dir):
     total_num_of_nucleotides = 0
     total_num_of_GC = 0
     orfs_count = 0
-    orfs_lengths = {}
     for seq_record in SeqIO.parse(orf_path, 'fasta'):
         orfs_count += 1
         total_num_of_nucleotides += len(seq_record)
         total_num_of_GC += seq_record.count('G') + seq_record.count('C')
-        orfs_lengths[seq_record.id] = len(seq_record)
 
     orfs_statistics = {}
     orfs_statistics['orfs_count'] = orfs_count
     orfs_statistics['gc_content'] = total_num_of_GC / total_num_of_nucleotides
-    orfs_statistics['lengths'] = orfs_lengths
 
     genome_name = os.path.splitext(os.path.basename(orf_path))[0]
     orfs_statistics_step_name = os.path.basename(orfs_statistics_dir)

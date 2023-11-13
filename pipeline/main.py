@@ -415,7 +415,7 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    return orfs_dir, orfs_statistics_dir
+    return orfs_dir
 
 
 def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
@@ -499,7 +499,7 @@ def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_pa
 
 
 def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
-                            done_files_dir, orfs_dir, orfs_statistics_dir):
+                            done_files_dir, orfs_dir):
     if consts.USE_DIFFERENT_QUEUE_FOR_MMSEQS:
         mmseqs_queue_name = consts.QUEUE_FOR_MMSEQS_COMMANDS
         mmseqs_memory = None
@@ -648,8 +648,7 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
                                  f'--identity_cutoff {args.identity_cutoff / 100}',
                                  f'--coverage_cutoff {args.coverage_cutoff / 100}',
                                  # needs to be normalized between 0 and 1
-                                 f'--e_value_cutoff {args.e_value_cutoff}',
-                                 f'--orfs_statistics_dir {orfs_statistics_dir}']
+                                 f'--e_value_cutoff {args.e_value_cutoff}']
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
@@ -1302,7 +1301,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
         logger.info("Step 1 completed.")
         return
 
-    orfs_dir, orfs_statistics_dir = step_2_search_orfs(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
+    orfs_dir = step_2_search_orfs(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
                                   done_files_dir, data_path)
     edit_progress(output_html_path, progress=15)
 
@@ -1320,7 +1319,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
         return
 
     all_reciprocal_hits_file = step_4_search_orthologs(args, logger, times_logger, error_file_path,
-                                                       output_dir, tmp_dir, done_files_dir, orfs_dir, orfs_statistics_dir)
+                                                       output_dir, tmp_dir, done_files_dir, orfs_dir)
     edit_progress(output_html_path, progress=25)
 
     if args.step_to_complete == '4':
