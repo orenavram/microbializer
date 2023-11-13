@@ -25,7 +25,7 @@ def filter_rbh_results(logger, query_vs_reference, output_path, precent_identity
     mmseqs_output_columns_headers = consts.MMSEQS_CONVERTALIS_OUTPUT_FORMAT.split(',')
     df = pd.read_csv(query_vs_reference, sep='\t', names=mmseqs_output_columns_headers)
 
-    result = df[(df['pident'] >= precent_identity_cutoff) & (df['evalue'] <= e_value_cutoff) &
+    result = df[(df['fident'] >= precent_identity_cutoff) & (df['evalue'] <= e_value_cutoff) &
                 (df['qcov'] >= coverage_cutoff) & (df['tcov'] >= coverage_cutoff)]
     columns_to_write = mmseqs_output_columns_headers[:2] + mmseqs_output_columns_headers[-1:]
 
