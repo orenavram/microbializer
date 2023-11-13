@@ -22,11 +22,12 @@ def filter_rbh_results(logger, query_vs_reference, output_path, precent_identity
     logger.info(f'Filtering rbh results of {query_vs_reference}')
 
     # Here is the last time that '\t' is used as a delimiter!! from here and on, only ','
-    df = pd.read_csv(query_vs_reference, sep='\t', names=consts.MMSEQS_CONVERTALIS_OUTPUT_FORMAT.split(','))
+    mmseqs_output_columns_headers = consts.MMSEQS_CONVERTALIS_OUTPUT_FORMAT.split(',')
+    df = pd.read_csv(query_vs_reference, sep='\t', names=mmseqs_output_columns_headers)
 
     result = df[(df['pident'] >= precent_identity_cutoff) & (df['evalue'] <= e_value_cutoff) &
                 (df['qcov'] >= coverage_cutoff) & (df['tcov'] >= coverage_cutoff)]
-    columns_to_write = consts.MMSEQS_CONVERTALIS_OUTPUT_FORMAT[:2] + consts.MMSEQS_CONVERTALIS_OUTPUT_FORMAT[-1:]
+    columns_to_write = mmseqs_output_columns_headers[:2] + mmseqs_output_columns_headers[-1:]
 
     # e.g., ..../outputs/04_blast_filtered/Sflexneri_5_8401_vs_Ssonnei_Ss046.05_reciprocal_hits
     file_name = os.path.split(query_vs_reference)[-1]
