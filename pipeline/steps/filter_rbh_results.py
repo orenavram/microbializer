@@ -12,7 +12,7 @@ from auxiliaries.pipeline_auxiliaries import get_job_logger
 from auxiliaries import consts
 
 
-def filter_rbh_results(logger, query_vs_reference, output_path, precent_identity_cutoff,
+def filter_rbh_results(logger, query_vs_reference, output_path, precent_identity_cutoff, coverage_cutoff,
                        e_value_cutoff, delimiter, names_delimiter):
     '''
     input:  path to file of blast results
@@ -21,12 +21,13 @@ def filter_rbh_results(logger, query_vs_reference, output_path, precent_identity
     '''
     logger.info(f'Filtering rbh results of {query_vs_reference}')
 
-    header = 'qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore'
     # Here is the last time that '\t' is used as a delimiter!! from here and on, only ','
-    df = pd.read_csv(query_vs_reference, header=None, sep='\t', names=header.split())
-    result = df[(df.pident >= precent_identity_cutoff) & (df.evalue <= e_value_cutoff)]
-    splitted_header = header.split()
-    columns_to_write = splitted_header[:2] + splitted_header[-1:]
+    mmseqs_output_columns_headers = consts.MMSEQS_CONVERTALIS_OUTPUT_FORMAT.split(',')
+    df = pd.read_csv(query_vs_reference, sep='\t', names=mmseqs_output_columns_headers)
+
+    result = df[(df['fident'] >= precent_identity_cutoff) & (df['evalue'] <= e_value_cutoff) &
+                (df['qcov'] >= coverage_cutoff) & (df['tcov'] >= coverage_cutoff)]
+    columns_to_write = mmseqs_output_columns_headers[:2] + mmseqs_output_columns_headers[-1:]
 
     # e.g., ..../outputs/04_blast_filtered/Sflexneri_5_8401_vs_Ssonnei_Ss046.05_reciprocal_hits
     file_name = os.path.split(query_vs_reference)[-1]
@@ -42,8 +43,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('blast_result', help='path to fasta genome file')
     parser.add_argument('output_path', help='path to output file')
-    parser.add_argument('--identity_cutoff', help='path to translated sequences', type=float)
-    parser.add_argument('--e_value_cutoff', help='path to translated sequences', type=float)
+    parser.add_argument('--identity_cutoff', type=float)
+    parser.add_argument('--coverage_cutoff', type=float)
+    parser.add_argument('--e_value_cutoff', type=float)
     parser.add_argument('--delimiter', help='orthologs table delimiter', default=consts.CSV_DELIMITER)
     parser.add_argument('--names_delimiter', help='delimiter between the to species names', default='_vs_')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
@@ -55,7 +57,7 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        filter_rbh_results(logger, args.blast_result, args.output_path, args.identity_cutoff,
+        filter_rbh_results(logger, args.blast_result, args.output_path, args.identity_cutoff, args.coverage_cutoff,
                            args.e_value_cutoff, args.delimiter, args.names_delimiter)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')

@@ -19,8 +19,6 @@ from auxiliaries import consts
 MAX_HITS_TO_KEEP_FOR_EACH_REFERENCE_HEG = 3
 BLAST_IDENTITY_PERCENT_THRESHOLD = 0.8
 BLAST_EVALUE_THRESHOLD = 0.01
-BLAST_OUTPUT_HEADERS = ['query', 'subject', 'identity_percent', 'alignment_length', 'mismatches', 'gap_openings',
-                        'query_start', 'query_end', 'subject_start', 'subject_end', 'evalue', 'bit_score']
 
 
 def find_HEGs_in_orf_file(ORF_file_path, tmp_dir, logger):
@@ -48,7 +46,7 @@ def find_HEGs_in_orf_file(ORF_file_path, tmp_dir, logger):
     shutil.rmtree(db_dir, ignore_errors=True)
 
     # Filter hits to find actual HEGs and write their names into a file
-    hegs_df = pd.read_csv(hegs_hits_file, delimiter='\t', names=BLAST_OUTPUT_HEADERS)
+    hegs_df = pd.read_csv(hegs_hits_file, delimiter='\t', names=consts.BLAST_OUTPUT_HEADERS)
     hegs_df_filtered = hegs_df.loc[(hegs_df['identity_percent'] > 70) & (hegs_df['evalue'] < 0.01)]
     hegs_names = set(hegs_df_filtered['subject'])
     HEGs_names_file_path = os.path.join(tmp_dir, ORF_file_name + '_HEG_hits_only.txt')
