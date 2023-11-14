@@ -12,7 +12,7 @@ dependencies:
   - raxml=8.2.12
   - mafft=7.520
   - prodigal=2.6.3
-  - mmseqs2=14.7e284
+  - mmseqs2=15.6f452
   - mcl=14.137
   - ete3=3.1.2
   - blast=2.14.0
