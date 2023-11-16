@@ -35,15 +35,13 @@ def RAxML_tree_search(tmp_folder, msa_path, final_tree_name, logger, num_of_cpus
         intermediate_tree_path = os.path.join(tmp_folder, f'RAxML_bipartitions.{final_tree_name}')
         cmd += f' -f a -x {seed} -N {num_of_bootstrap_iterations}'
 
-    logger.info(f'intermediate_tree_path is:\n{intermediate_tree_path}')
-
     logger.info(f'Reconstructing species phylogeny with RAxML. Executed command is:\n{cmd}')
     subprocess.run(cmd, shell=True)
 
     if os.path.exists(intermediate_tree_path):
-        os.rename(intermediate_tree_path, phylogenetic_tree_path)
+        logger.info(f'Copying result {intermediate_tree_path} to {phylogenetic_tree_path}')
+        shutil.copy(intermediate_tree_path, phylogenetic_tree_path)
     else:
-        pass
         logger.fatal(f'TREE WAS NOT GENERATED!!')
 
     # update info file regarding duplicated sequences reduction
@@ -64,20 +62,28 @@ def iqtree_tree_search(tmp_folder, msa_path, final_tree_name, logger, num_of_cpu
         logger.info(f'The following outgroup was provided: {outgroup}')
         cmd += ' ' + f'-o {outgroup}'
     if num_of_bootstrap_iterations > 0:
-        num_of_bootstrap_iterations = min(num_of_bootstrap_iterations, 1000)
+        if num_of_bootstrap_iterations < 1000:
+            num_of_bootstrap_iterations = 1000
+            logger.info(f'Updating num_of_bootstrap_iterations to 1000 since it is the minimum.')
+
         logger.info(f'{num_of_bootstrap_iterations} bootstrap iterations are going to be done')
         cmd += f' -B {num_of_bootstrap_iterations}'
+
+    logger.info(f'Reconstructing species phylogeny with IQTree. Executed command is:\n{cmd}')
     subprocess.run(cmd, shell=True)
+
     intermediate_tree_path = search_prefix + ".treefile"
     if os.path.exists(intermediate_tree_path):
-        os.rename(intermediate_tree_path, phylogenetic_tree_path)
+        logger.info(f'Copying result {intermediate_tree_path} to {phylogenetic_tree_path}')
+        shutil.copy(intermediate_tree_path, phylogenetic_tree_path)
     else:
-        pass
         logger.fatal(f'TREE WAS NOT GENERATED!!')
 
 
 def fasttree_tree_search(tmp_folder, msa_path, final_tree_name, logger, num_of_cpus, outgroup, num_of_bootstrap_iterations, phylogenetic_tree_path, seed):
     cmd = f"FastTree {msa_path} > {phylogenetic_tree_path}"
+
+    logger.info(f'Reconstructing species phylogeny with FastTree. Executed command is:\n{cmd}')
     subprocess.run(cmd, shell=True)
 
 
@@ -98,7 +104,7 @@ def generate_phylogenetic_tree(logger, msa_path, phylogenetic_tree_path, seed, t
         fasttree_tree_search(tmp_folder, msa_path,final_tree_name, logger, num_of_cpus, outgroup,
                              num_of_bootstrap_iterations, phylogenetic_tree_path, seed)
 
-    shutil.rmtree(tmp_folder)
+    #shutil.rmtree(tmp_folder)
 
 
 if __name__ == '__main__':
