@@ -415,15 +415,10 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    return orfs_dir
-
-
-def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
-                                       final_output_dir, done_files_dir, orfs_dir):
-    # 3a.  translate_fna_to_faa.py - of ORFs files
+    # 2d.  translate_fna_to_faa.py - of ORFs files
     # Input: path to fna file and a faa file
     # Output: translate the fna to protein and write to the faa file
-    step_number = '03a'
+    step_number = '02d'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_translated_orfs'
     script_path = os.path.join(args.src_dir, 'steps/translate_fna_to_faa.py')
@@ -434,7 +429,8 @@ def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_pa
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
         for fasta_file in os.listdir(orfs_dir):
             file_path = os.path.join(orfs_dir, fasta_file)
-            output_path = os.path.join(translated_orfs_dir_path, fasta_file)
+            translated_file_name = f'{os.path.splitext(fasta_file)[0]}.{step_name}'
+            output_path = os.path.join(translated_orfs_dir_path, translated_file_name)
 
             single_cmd_params = [file_path, output_path]
             all_cmds_params.append(single_cmd_params)
@@ -451,10 +447,15 @@ def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_pa
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # 3b.  assessing_genomes_completeness.py
+    return orfs_dir, translated_orfs_dir_path
+
+
+def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
+                                       final_output_dir, done_files_dir, translated_orfs_dir_path):
+    # 3a.  assessing_genomes_completeness.py
     # Input: path to faa file
     # Output: calculate proteome completeness based on a dataset of profile-HMMs that represent core bacterial genes.
-    step_number = '03b'
+    step_number = '03a'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_genomes_completeness'
     script_path = os.path.join(args.src_dir, 'steps/assessing_genome_completeness.py')
@@ -478,7 +479,7 @@ def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_pa
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
-        # Aggregate results of step 2c
+        # Aggregate results of step
         genomes_completeness_scores = {}
         for genome_name in os.listdir(genomes_output_dir_path):
             genome_score_path = os.path.join(genomes_output_dir_path, genome_name, 'result.txt')
@@ -1301,8 +1302,8 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
         logger.info("Step 1 completed.")
         return
 
-    orfs_dir = step_2_search_orfs(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
-                                  done_files_dir, data_path)
+    orfs_dir, translated_orfs_dir_path = step_2_search_orfs(args, logger, times_logger, error_file_path, output_dir,
+                                                            tmp_dir, final_output_dir, done_files_dir, data_path)
     edit_progress(output_html_path, progress=15)
 
     if args.step_to_complete == '2':
@@ -1311,7 +1312,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
 
     if not args.only_calc_ogs:
         step_3_analyze_genome_completeness(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
-                                           final_output_dir, done_files_dir, orfs_dir)
+                                           final_output_dir, done_files_dir, translated_orfs_dir_path)
         edit_progress(output_html_path, progress=20)
 
     if args.step_to_complete == '3':

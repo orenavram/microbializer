@@ -5,12 +5,13 @@
 import os.path
 from .flask_interface_consts import *
 
-TEST = True
-KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR = TEST
+KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR = True
+USE_TEST_ROOT_DIR = True
 USE_CONDA = True
 IGNORE_HTML = True
 LOG_IN_SEPARATE_FILES = True
-PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer' if TEST else '/groups/pupko/yairshimony/microbializer_prod'
+PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer' if USE_TEST_ROOT_DIR else \
+    '/groups/pupko/yairshimony/microbializer_prod'
 CONDA_INSTALLATION_DIR = r'/groups/pupko/yairshimony/miniconda3'
 CONDA_ENVIRONMENT_DIR = r'/groups/pupko/yairshimony/miniconda3/envs/microbializer'
 OWNER_EMAIL = 'yairshimony@mail.tau.ac.il'
