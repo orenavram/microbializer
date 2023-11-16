@@ -3,7 +3,9 @@ from sys import argv
 import argparse
 import logging
 import os
+import shutil
 import sys
+from Bio import SeqIO
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -13,23 +15,25 @@ from auxiliaries.pipeline_auxiliaries import get_job_logger
 
 # python /bioseq/microbializer/pipeline/reconstruct_species_phylogeny.py /bioseq/data/results/microbializer/155542823177458857633443576357/outputs/15_aligned_core_proteome/aligned_core_proteome.fas /bioseq/data/results/microbializer/155542823177458857633443576357/outputs/16_species_phylogeny/species_tree.txt --model PROTGAMMAILG --num_of_bootstrap_iterations 100 --cpu 3 --num_of_bootstrap_iterations 5 --root
 
-def generate_phylogenetic_tree(logger, msa_path, phylogenetic_tree_path, seed, model, outgroup, num_of_bootstrap_iterations,
-                               num_of_cpus):
-    wd, final_tree_name = os.path.split(phylogenetic_tree_path)
+def extract_msa_dimensions(msa_path):
+    data = list(SeqIO.parse(msa_path, 'fasta'))
+    n_seq = len(data)
+    n_loci = len(data[0])
+    return n_seq, n_loci
 
-    intermediate_tree_path = os.path.join(wd, f'RAxML_result.{final_tree_name}')
-    # phylogenetic_tree_name = 'unrooted_species_tree.txt'
-    # rooted_phylogenetic_tree_name = 'rooted_species_tree.txt'
 
-    # e.g.: raxmlHPC-PTHREADS-SSE3 -m PROTGAMMAILG -p 12345 -s /bioseq/data/results/microbializer/155542823177458857633443576357/outputs/15_aligned_core_proteome/aligned_core_proteome.fas -n unrooted_species_tree.txt -w /bioseq/data/results/microbializer/155542823177458857633443576357/outputs/16_species_phylogeny -T 3 -f a -x 12345 -N 5
-    cmd = f'raxmlHPC-PTHREADS-SSE3 -m {model} -p {seed} -s {msa_path} -n {final_tree_name} -w {wd} -T {num_of_cpus}'
+def RAxML_tree_search(tmp_folder, msa_path, final_tree_name, logger, num_of_cpus, outgroup,
+                      num_of_bootstrap_iterations, phylogenetic_tree_path, seed):
+    intermediate_tree_path = os.path.join(tmp_folder, f'RAxML_result.{final_tree_name}')
+    cmd = f'raxmlHPC-PTHREADS-SSE3 -m PROTGAMMAILG -p {seed} -s {msa_path} -n {final_tree_name} -w {tmp_folder} -T {num_of_cpus}'
+
     if outgroup:
         logger.info(f'The following outgroup was provided: {outgroup}')
         cmd += ' ' + f'-o {outgroup}'
     if num_of_bootstrap_iterations > 0:
         logger.info(f'{num_of_bootstrap_iterations} bootstrap iterations are going to be done')
-        intermediate_tree_path = os.path.join(wd, f'RAxML_bipartitions.{final_tree_name}')
-        cmd += ' ' + f'-f a -x {seed} -N {num_of_bootstrap_iterations}'
+        intermediate_tree_path = os.path.join(tmp_folder, f'RAxML_bipartitions.{final_tree_name}')
+        cmd += f' -f a -x {seed} -N {num_of_bootstrap_iterations}'
 
     logger.info(f'intermediate_tree_path is:\n{intermediate_tree_path}')
 
@@ -39,10 +43,11 @@ def generate_phylogenetic_tree(logger, msa_path, phylogenetic_tree_path, seed, m
     if os.path.exists(intermediate_tree_path):
         os.rename(intermediate_tree_path, phylogenetic_tree_path)
     else:
+        pass
         logger.fatal(f'TREE WAS NOT GENERATED!!')
 
     # update info file regarding duplicated sequences reduction
-    raxml_info_output_path = os.path.join(wd, f'RAxML_info.{final_tree_name}')
+    raxml_info_output_path = os.path.join(tmp_folder, f'RAxML_info.{final_tree_name}')
     if os.path.exists(raxml_info_output_path):
         with open(raxml_info_output_path) as f:
             info = f.read()
@@ -50,6 +55,50 @@ def generate_phylogenetic_tree(logger, msa_path, phylogenetic_tree_path, seed, m
                                                                              'reduced (at the same folder of the reconstructed core genome)')
         with open(raxml_info_output_path, 'w') as f:
             f.write(info)
+
+
+def iqtree_tree_search(tmp_folder, msa_path, final_tree_name, logger, num_of_cpus, outgroup, num_of_bootstrap_iterations, phylogenetic_tree_path, seed):
+    search_prefix = os.path.join(tmp_folder, final_tree_name)
+    cmd = f"iqtree -s {msa_path} -m WAG+G -seed {seed} -pre {search_prefix} -T {num_of_cpus}"
+    if outgroup:
+        logger.info(f'The following outgroup was provided: {outgroup}')
+        cmd += ' ' + f'-o {outgroup}'
+    if num_of_bootstrap_iterations > 0:
+        num_of_bootstrap_iterations = min(num_of_bootstrap_iterations, 1000)
+        logger.info(f'{num_of_bootstrap_iterations} bootstrap iterations are going to be done')
+        cmd += f' -B {num_of_bootstrap_iterations}'
+    subprocess.run(cmd, shell=True)
+    intermediate_tree_path = search_prefix + ".treefile"
+    if os.path.exists(intermediate_tree_path):
+        os.rename(intermediate_tree_path, phylogenetic_tree_path)
+    else:
+        pass
+        logger.fatal(f'TREE WAS NOT GENERATED!!')
+
+
+def fasttree_tree_search(tmp_folder, msa_path, final_tree_name, logger, num_of_cpus, outgroup, num_of_bootstrap_iterations, phylogenetic_tree_path, seed):
+    cmd = f"FastTree {msa_path} > {phylogenetic_tree_path}"
+    subprocess.run(cmd, shell=True)
+
+
+def generate_phylogenetic_tree(logger, msa_path, phylogenetic_tree_path, seed, tree_search_software, outgroup,
+                               num_of_bootstrap_iterations, num_of_cpus):
+    wd, final_tree_name = os.path.split(phylogenetic_tree_path)
+    tmp_folder = os.path.join(wd, 'tmp')
+    if not os.path.exists(tmp_folder):
+        os.mkdir(tmp_folder)
+    n_seq, n_loci = extract_msa_dimensions(msa_path) # use later to decide which program to use
+    if tree_search_software == 'raxml':
+        RAxML_tree_search(tmp_folder, msa_path,final_tree_name, logger, num_of_cpus,outgroup,
+                          num_of_bootstrap_iterations, phylogenetic_tree_path, seed)
+    elif tree_search_software == 'iqtree':
+        iqtree_tree_search(tmp_folder, msa_path, final_tree_name, logger, num_of_cpus, outgroup,
+                           num_of_bootstrap_iterations, phylogenetic_tree_path, seed)
+    elif tree_search_software == 'fasttree':
+        fasttree_tree_search(tmp_folder, msa_path,final_tree_name, logger, num_of_cpus, outgroup,
+                             num_of_bootstrap_iterations, phylogenetic_tree_path, seed)
+
+    shutil.rmtree(tmp_folder)
 
 
 if __name__ == '__main__':
@@ -63,8 +112,8 @@ if __name__ == '__main__':
     parser.add_argument('--seed',
                         help='RaxML seed parameter',
                         default=12345)
-    parser.add_argument('--model', default='PROTGAMMAILG',
-                        help='RAxML reconstruction model parameter')
+    parser.add_argument('--tree_search_software', default='raxml',
+                        help='Tree search software to perform phylogenetic tree search. Use iqtree/raxml/fasttree')
     parser.add_argument('--outgroup', default=None)
     parser.add_argument('--num_of_bootstrap_iterations', type=int, default=0)
     parser.add_argument('--cpu', choices=[str(i) for i in range(1, 29)], default='1',
@@ -79,6 +128,6 @@ if __name__ == '__main__':
     logger.info(script_run_message)
     try:
         generate_phylogenetic_tree(logger, args.msa_path, args.phylogenetic_raw_tree_path, args.seed,
-                                   args.model, args.outgroup, args.num_of_bootstrap_iterations, args.cpu)
+                                   args.tree_search_software, args.outgroup, args.num_of_bootstrap_iterations, args.cpu)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
