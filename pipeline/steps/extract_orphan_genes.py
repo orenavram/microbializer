@@ -25,10 +25,15 @@ def flatten(l):
 
 
 def get_all_genes_with_orthologs(orthologs_file):
-    with open(orthologs_file) as ORT:
-        pairs = ORT.readlines()[1:]
-    parsed_pairs = [pair.split(',') for pair in pairs]
-    all_genes_with_orthologs = set(flatten(parsed_pairs))
+    all_genes_with_orthologs = set()
+    with open(orthologs_file) as orthologs_file_fp:
+        for line in orthologs_file_fp:
+            if 'bitscore' in line:
+                continue
+            gene_1, gene_2, _ = line.split(',')
+            all_genes_with_orthologs.add(gene_1)
+            all_genes_with_orthologs.add(gene_2)
+
     return all_genes_with_orthologs
 
 

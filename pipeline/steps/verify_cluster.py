@@ -3,6 +3,7 @@ import argparse
 import logging
 import os
 import sys
+import math
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -38,7 +39,7 @@ if __name__ == '__main__':
     parser.add_argument('input_file', help='path to an MCL analysis file')
     parser.add_argument('output_dir',
                         help='dir path to which the MCL analysis will be moved if clustering criterion was met')
-    parser.add_argument('--clustering-criterion', help='maximal number of clusters allowed', type=int, default=4)
+    parser.add_argument('--clustering-criterion', help='maximal number of clusters allowed', type=int, default=math.inf)
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     args = parser.parse_args()
