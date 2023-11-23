@@ -1245,14 +1245,10 @@ def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, t
     if not os.path.exists(done_file_path):
         logger.info('Reconstructing species phylogeny...')
 
-        if 'oren' in args.email or 'pupkoweb' not in args.queue_name:
-            num_of_cpus = 20  # anyhow it can't be more than 20! o.w., "qsub: Job violates queue and/or server resource limits"
-        else:
-            # better not to use more than 10 cpus, routinely, when running on pupkoweb
-            num_of_cpus = 10
         params = [aligned_core_proteome_file_path,
                   os.path.join(phylogeny_path, 'final_species_tree.txt'),
-                  f'--cpu {num_of_cpus}']
+                  phylogeny_tmp_dir,
+                  f'--cpu {consts.PHYLOGENY_NUM_OF_CORES}']
         if args.outgroup:
             with open(genomes_names_path, 'r') as genomes_names_fp:
                 strains_names = genomes_names_fp.read().split('\n')
