@@ -20,6 +20,8 @@ Q_SUBMITTER_ASSUME_RUN_FROM_POWER9LOGIN = True
 HEGS_ECOLI_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'HEG_ecoli.txt')
 BACTERIA_CORE_GENES_HMM_PROFILES_PATH = '/groups/pupko/naamawagner/Microbializer/Busco/hmms'
 MAX_NUMBER_OF_GENOMES_TO_ANALYZE = 350
+NUMBER_OF_IQTREE_BOOTSTRAP_ITERATIONS = 1000
+NUMBER_OF_RAXML_BOOTSTRAP_ITERATIONS = 100
 
 ANI_REQUIRED_MEMORY = '120gb'
 # mmseqs command work only on machines with enough memory. we solve this either by navigating to a specific queue

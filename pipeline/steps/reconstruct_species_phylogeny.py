@@ -11,6 +11,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger
+from auxiliaries import consts
 
 
 def extract_msa_dimensions(msa_path):
@@ -21,7 +22,7 @@ def extract_msa_dimensions(msa_path):
 
 
 def RAxML_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num_of_cpus, outgroup,
-                      num_of_bootstrap_iterations, seed):
+                      bootstrap, seed):
     final_tree_name = os.path.split(phylogenetic_tree_path)[1]
 
     final_tree_path = os.path.join(tmp_folder, f'RAxML_result.{final_tree_name}')
@@ -30,10 +31,10 @@ def RAxML_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num_
     if outgroup:
         logger.info(f'The following outgroup was provided: {outgroup}')
         cmd += ' ' + f'-o {outgroup}'
-    if num_of_bootstrap_iterations > 0:
-        logger.info(f'{num_of_bootstrap_iterations} bootstrap iterations are going to be done')
+    if bootstrap == 'yes':
+        logger.info(f'{consts.NUMBER_OF_RAXML_BOOTSTRAP_ITERATIONS} bootstrap iterations are going to be done')
         final_tree_path = os.path.join(tmp_folder, f'RAxML_bipartitions.{final_tree_name}')
-        cmd += f' -f a -x {seed} -N {num_of_bootstrap_iterations}'
+        cmd += f' -f a -x {seed} -N {consts.NUMBER_OF_RAXML_BOOTSTRAP_ITERATIONS}'
 
     logger.info(f'Reconstructing species phylogeny with RAxML. Executed command is:\n{cmd}')
     subprocess.run(cmd, shell=True)
@@ -56,7 +57,7 @@ def RAxML_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num_
 
 
 def iqtree_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num_of_cpus, outgroup,
-                       num_of_bootstrap_iterations, seed):
+                       bootstrap, seed):
     final_tree_name = os.path.split(phylogenetic_tree_path)[1]
     search_prefix = os.path.join(tmp_folder, final_tree_name)
 
@@ -64,13 +65,9 @@ def iqtree_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num
     if outgroup:
         logger.info(f'The following outgroup was provided: {outgroup}')
         cmd += ' ' + f'-o {outgroup}'
-    if num_of_bootstrap_iterations > 0:
-        if num_of_bootstrap_iterations < 1000:
-            num_of_bootstrap_iterations = 1000
-            logger.info(f'Updating num_of_bootstrap_iterations to 1000 since it is the minimum.')
-
-        logger.info(f'{num_of_bootstrap_iterations} bootstrap iterations are going to be done')
-        cmd += f' -B {num_of_bootstrap_iterations}'
+    if bootstrap == 'yes':
+        logger.info(f'{consts.NUMBER_OF_IQTREE_BOOTSTRAP_ITERATIONS} bootstrap iterations are going to be done')
+        cmd += f' -B {consts.NUMBER_OF_IQTREE_BOOTSTRAP_ITERATIONS}'
 
     logger.info(f'Reconstructing species phylogeny with IQTree. Executed command is:\n{cmd}')
     subprocess.run(cmd, shell=True)
@@ -84,7 +81,7 @@ def iqtree_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num
 
 
 def fasttree_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num_of_cpus, outgroup,
-                         num_of_bootstrap_iterations, seed):
+                         bootstrap, seed):
     cmd = f"FastTree {msa_path} > {phylogenetic_tree_path}"
 
     logger.info(f'Reconstructing species phylogeny with FastTree. Executed command is:\n{cmd}')
@@ -92,19 +89,19 @@ def fasttree_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, n
 
 
 def generate_phylogenetic_tree(logger, msa_path, phylogenetic_tree_path, tmp_folder, seed, tree_search_software, outgroup,
-                               num_of_bootstrap_iterations, num_of_cpus):
+                               bootstrap, num_of_cpus):
     # optionally use to decide which program to use
     # n_seq, n_loci = extract_msa_dimensions(msa_path)
 
     if tree_search_software == 'raxml':
-        RAxML_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num_of_cpus,outgroup,
-                          num_of_bootstrap_iterations, seed)
+        RAxML_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num_of_cpus, outgroup,
+                          bootstrap, seed)
     elif tree_search_software == 'iqtree':
         iqtree_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num_of_cpus, outgroup,
-                           num_of_bootstrap_iterations, seed)
+                           bootstrap, seed)
     elif tree_search_software == 'fasttree':
         fasttree_tree_search(tmp_folder, msa_path,phylogenetic_tree_path, logger, num_of_cpus, outgroup,
-                             num_of_bootstrap_iterations, seed)
+                             bootstrap, seed)
 
 
 if __name__ == '__main__':
@@ -116,13 +113,12 @@ if __name__ == '__main__':
     parser.add_argument('phylogenetic_raw_tree_path',
                         help='path to an output file in which the phylogenetic tree will be written')
     parser.add_argument('tmp_path', help='path to a tmp folder')
-    parser.add_argument('--seed',
-                        help='RaxML seed parameter',
-                        default=12345)
-    parser.add_argument('--tree_search_software', default='raxml',
+    parser.add_argument('--seed', help='RaxML seed parameter', default=12345)
+    parser.add_argument('--tree_search_software', default='iqtree',
                         help='Tree search software to perform phylogenetic tree search. Use iqtree/raxml/fasttree')
     parser.add_argument('--outgroup', default=None)
-    parser.add_argument('--num_of_bootstrap_iterations', type=int, default=0)
+    parser.add_argument('--bootstrap', default='no', choices=['yes', 'no'],
+                        help='whether or not to apply bootstrap procedure over the reconstructed species tree.')
     parser.add_argument('--cpu', choices=[str(i) for i in range(1, 29)], default='1',
                         help='How many CPUs will be used? (for running in parallel mode). For further details see:\nhttps://support.nesi.org.nz/hc/en-gb/articles/115001854444-RAxML#parallel-versions')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
@@ -135,6 +131,6 @@ if __name__ == '__main__':
     logger.info(script_run_message)
     try:
         generate_phylogenetic_tree(logger, args.msa_path, args.phylogenetic_raw_tree_path, args.tmp_path, args.seed,
-                                   args.tree_search_software, args.outgroup, args.num_of_bootstrap_iterations, args.cpu)
+                                   args.tree_search_software, args.outgroup, args.bootstrap, args.cpu)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
