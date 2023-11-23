@@ -19,3 +19,5 @@ dependencies:
   - scikit-learn=1.3.0
   - hmmer=3.3.2
   - fastani=1.34
+  - fasttree=2.1.11
+  - iqtree=2.2.5

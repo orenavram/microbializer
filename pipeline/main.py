@@ -1245,14 +1245,11 @@ def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, t
     if not os.path.exists(done_file_path):
         logger.info('Reconstructing species phylogeny...')
 
-        if 'oren' in args.email or 'pupkoweb' not in args.queue_name:
-            num_of_cpus = 20  # anyhow it can't be more than 20! o.w., "qsub: Job violates queue and/or server resource limits"
-        else:
-            # better not to use more than 10 cpus, routinely, when running on pupkoweb
-            num_of_cpus = 10
         params = [aligned_core_proteome_file_path,
                   os.path.join(phylogeny_path, 'final_species_tree.txt'),
-                  f'--cpu {num_of_cpus}']
+                  phylogeny_tmp_dir,
+                  f'--cpu {consts.PHYLOGENY_NUM_OF_CORES}',
+                  f'--bootstrap {args.bootstrap}']
         if args.outgroup:
             with open(genomes_names_path, 'r') as genomes_names_fp:
                 strains_names = genomes_names_fp.read().split('\n')
@@ -1261,13 +1258,10 @@ def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, t
             else:
                 logger.info(f'Outgroup {args.outgroup} was specified but it is not one of the input species:\n'
                             f'{",".join(sorted(strains_names))}\nAn unrooted tree is going to be reconstructed')
-        if args.bootstrap == 'yes' and (
-                number_of_genomes < 150 or 'oren' in args.email):  # allow bootstrap only for less than 150 genomes
-            params += ['--num_of_bootstrap_iterations 100']
 
         submit_mini_batch(logger, script_path, [params], phylogeny_tmp_dir,
                           args.queue_name, job_name='tree_reconstruction',
-                          required_modules_as_list=[consts.RAXML], num_of_cpus=num_of_cpus)
+                          required_modules_as_list=[consts.RAXML], num_of_cpus=consts.PHYLOGENY_NUM_OF_CORES)
 
         # wait for the phylogenetic tree here
         wait_for_results(logger, times_logger, step_name, phylogeny_tmp_dir,
