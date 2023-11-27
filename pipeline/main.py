@@ -289,7 +289,8 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
             all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
             for fasta_file in os.listdir(data_path):
                 single_cmd_params = [f'"{os.path.join(data_path, fasta_file)}"',
-                                     os.path.join(orfs_dir, orfs_dir)]
+                                     orfs_dir,
+                                     step_name]
                 all_cmds_params.append(single_cmd_params)
 
             num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
