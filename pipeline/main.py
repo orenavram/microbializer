@@ -500,7 +500,7 @@ def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_pa
 
 
 def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
-                            done_files_dir, orfs_dir):
+                            done_files_dir, orfs_dir, translated_orfs_dir):
     if consts.USE_DIFFERENT_QUEUE_FOR_MMSEQS:
         mmseqs_queue_name = consts.QUEUE_FOR_MMSEQS_COMMANDS
         mmseqs_memory = None
@@ -620,6 +620,8 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
     submit_mini_batch(logger, os.path.join(args.src_dir, 'auxiliaries/remove_tmp_folders.py'),
                       [[pipeline_step_tmp_dir]],
                       pipeline_step_tmp_dir, args.queue_name, job_name='remove_m8_files')
+
+    # 4b2.
 
     # 4c.	filter_rbh_results.py
     # Input: (1) a path for a i_vs_j.tsv file (2) an output path (with a suffix as follows: i_vs_j_filtered.tsv.
@@ -1296,7 +1298,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
         logger.info("Step 1 completed.")
         return
 
-    orfs_dir, translated_orfs_dir_path = step_2_search_orfs(args, logger, times_logger, error_file_path, output_dir,
+    orfs_dir, translated_orfs_dir = step_2_search_orfs(args, logger, times_logger, error_file_path, output_dir,
                                                             tmp_dir, final_output_dir, done_files_dir, data_path)
     edit_progress(output_html_path, progress=15)
 
@@ -1306,7 +1308,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
 
     if not args.only_calc_ogs:
         step_3_analyze_genome_completeness(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
-                                           final_output_dir, done_files_dir, translated_orfs_dir_path)
+                                           final_output_dir, done_files_dir, translated_orfs_dir)
         edit_progress(output_html_path, progress=20)
 
     if args.step_to_complete == '3':
@@ -1314,7 +1316,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
         return
 
     all_reciprocal_hits_file = step_4_search_orthologs(args, logger, times_logger, error_file_path,
-                                                       output_dir, tmp_dir, done_files_dir, orfs_dir)
+                                                       output_dir, tmp_dir, done_files_dir, orfs_dir, translated_orfs_dir)
     edit_progress(output_html_path, progress=25)
 
     if args.step_to_complete == '4':
