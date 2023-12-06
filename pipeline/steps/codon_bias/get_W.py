@@ -17,27 +17,26 @@ from auxiliaries.pipeline_auxiliaries import get_job_logger
 from auxiliaries import consts
 
 MAX_HITS_TO_KEEP_FOR_EACH_REFERENCE_HEG = 3
-BLAST_IDENTITY_PERCENT_THRESHOLD = 0.8
+BLAST_IDENTITY_PERCENT_THRESHOLD = 35
 BLAST_EVALUE_THRESHOLD = 0.01
 
 
-def find_HEGs_in_orf_file(ORF_file_path, tmp_dir, logger):
+def find_HEGs_in_orf_file(ORFs_file, genome_name, tmp_dir, logger):
     """
     input: file path to nucleotide fasta of open reading frames
 
     output: nucleotide blast DB based
     """
-    ORF_file_name = os.path.basename(ORF_file_path).split('.')[0]
 
     # Create blast db from ORF file
-    db_dir = os.path.join(tmp_dir, f'{ORF_file_name}_db')
-    db_name = os.path.join(db_dir, ORF_file_name + '.db')
-    cmd = f'makeblastdb -in {ORF_file_path} -out {db_name} -dbtype nucl'
+    db_dir = os.path.join(tmp_dir, f'{genome_name}_db')
+    db_name = os.path.join(db_dir, genome_name + '.db')
+    cmd = f'makeblastdb -in {ORFs_file} -out {db_name} -dbtype nucl'
     logger.info('Making blastdb with command: \n' + cmd)
     subprocess.run(cmd, shell=True)
 
     # Query blast db with ecoli HEGs reference file
-    hegs_hits_file = os.path.join(tmp_dir, ORF_file_name + '_HEG_hits.tsv')
+    hegs_hits_file = os.path.join(tmp_dir, genome_name + '_HEG_hits.tsv')
     cmd = f'tblastn -db {db_name} -query {consts.HEGS_ECOLI_FILE_PATH} -out {hegs_hits_file} -outfmt 6 ' \
           f'-max_target_seqs {MAX_HITS_TO_KEEP_FOR_EACH_REFERENCE_HEG}'
     logger.info("Finding Hits with command: \n" + cmd)
@@ -47,9 +46,9 @@ def find_HEGs_in_orf_file(ORF_file_path, tmp_dir, logger):
 
     # Filter hits to find actual HEGs and write their names into a file
     hegs_df = pd.read_csv(hegs_hits_file, delimiter='\t', names=consts.BLAST_OUTPUT_HEADERS)
-    hegs_df_filtered = hegs_df.loc[(hegs_df['identity_percent'] > 70) & (hegs_df['evalue'] < 0.01)]
+    hegs_df_filtered = hegs_df.loc[(hegs_df['identity_percent'] > BLAST_IDENTITY_PERCENT_THRESHOLD) & (hegs_df['evalue'] < BLAST_EVALUE_THRESHOLD)]
     hegs_names = set(hegs_df_filtered['subject'])
-    HEGs_names_file_path = os.path.join(tmp_dir, ORF_file_name + '_HEG_hits_only.txt')
+    HEGs_names_file_path = os.path.join(tmp_dir, genome_name + '_HEG_hits_only.txt')
     with open(HEGs_names_file_path, 'w') as HEGs_names_file:
         HEGs_names_file.write('\n'.join(hegs_names))
     logger.info("HEGs names were written into " + HEGs_names_file_path)
@@ -57,18 +56,17 @@ def find_HEGs_in_orf_file(ORF_file_path, tmp_dir, logger):
     return HEGs_names_file_path
 
 
-def make_HEGs_fasta(ORF_file_path, HEGs_names_file_path, tmp_dir, logger):
+def make_HEGs_fasta(ORFs_file, genome_name, HEGs_names_file_path, tmp_dir, logger):
     with open(HEGs_names_file_path, "r") as ORFs_hegs_file:
         HEGs_names = ORFs_hegs_file.read().splitlines()
 
     HEGs_fasta_file_content = ''
-    with open(ORF_file_path) as ORF_file:
+    with open(ORFs_file) as ORF_file:
         for record in SeqIO.parse(ORF_file, "fasta"):
             if record.id in HEGs_names:
                 HEGs_fasta_file_content += record.format("fasta")
 
-    ORFs_file_name = os.path.basename(ORF_file_path).split('.')[0]
-    HEGs_fasta_file_path = os.path.join(tmp_dir, ORFs_file_name + "_HEGs.fa")
+    HEGs_fasta_file_path = os.path.join(tmp_dir, genome_name + "_HEGs.fa")
     with open(HEGs_fasta_file_path, "w") as HEGs_fasta_file:
         HEGs_fasta_file.write(HEGs_fasta_file_content)
 
@@ -76,12 +74,11 @@ def make_HEGs_fasta(ORF_file_path, HEGs_names_file_path, tmp_dir, logger):
     return HEGs_fasta_file_path
 
 
-def calculate_codon_bias(HEGs_fasta_file_path, output_dir, ORF_file_path, logger):
+def calculate_codon_bias(HEGs_fasta_file_path, output_dir, genome_name, logger):
     genome_index = CodonUsage.CodonAdaptationIndex()
     genome_index.generate_index(HEGs_fasta_file_path)
 
-    ORFs_file_name = os.path.basename(ORF_file_path).split('.')[0]
-    relative_adaptiveness_output_path = os.path.join(output_dir, ORFs_file_name + ".json")
+    relative_adaptiveness_output_path = os.path.join(output_dir, genome_name + ".json")
 
     with open(relative_adaptiveness_output_path, "w") as relative_adaptiveness_file:
         json.dump(genome_index.index, relative_adaptiveness_file)
@@ -93,12 +90,14 @@ def calculate_codon_bias(HEGs_fasta_file_path, output_dir, ORF_file_path, logger
 def get_W(ORFs_file, output_dir, tmp_dir, logger):
     logger.info("Getting HEGs from the ORFs file: " + str(ORFs_file))
 
+    genome_name = os.path.splitext(os.path.basename(ORFs_file))[0]
+
     # Identify HEGs in the ORFs file
-    HEGs_names_file_path = find_HEGs_in_orf_file(ORFs_file, tmp_dir, logger)
-    HEGs_fasta_file_path = make_HEGs_fasta(ORFs_file, HEGs_names_file_path, tmp_dir, logger)
+    HEGs_names_file_path = find_HEGs_in_orf_file(ORFs_file, genome_name, tmp_dir, logger)
+    HEGs_fasta_file_path = make_HEGs_fasta(ORFs_file, genome_name, HEGs_names_file_path, tmp_dir, logger)
 
     # Find Codon bias of HEGs
-    calculate_codon_bias(HEGs_fasta_file_path, output_dir, ORFs_file, logger)
+    calculate_codon_bias(HEGs_fasta_file_path, output_dir, genome_name, logger)
 
 
 if __name__ == '__main__':

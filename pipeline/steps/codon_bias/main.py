@@ -156,7 +156,7 @@ def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, src
     genomes_with_incomplete_W_vectors = [genome for genome, w_vector in W_vectors.items() if None in w_vector.values()]
     if genomes_with_incomplete_W_vectors:
         logger.info("The following genomes have incomplete W vectors (might be because there were not "
-                    "enough genes that were identified as HEGs). Codon bias analysis is therefore not possible."
+                    "enough genes that were identified as HEGs). Codon bias analysis is therefore not possible. "
                     f"Genome names: {','.join(genomes_with_incomplete_W_vectors)}")
         return
 

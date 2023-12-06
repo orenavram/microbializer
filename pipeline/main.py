@@ -383,7 +383,7 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
         gc_content = {}
         orf_count = {}
         for file_name in os.listdir(orfs_statistics_dir):
-            strain_name = file_name.split('.')[0]
+            strain_name = os.path.splitext(file_name)[0]
             with open(os.path.join(orfs_statistics_dir, file_name), 'r') as fp:
                 orfs_statistics = json.load(fp)
 

@@ -51,7 +51,7 @@ def main(proteome_path, output_dir, logger):
     """
     the main function that computes the genome completeness of the proteome and saves the results to the output dir.
     """
-    genome_name = os.path.basename(proteome_path).split('.')[0]
+    genome_name = os.path.splitext(os.path.basename(proteome_path))[0]
     genome_out_dir = os.path.join(output_dir, genome_name)
     completeness_score = compute_genome_completeness(proteome_path, genome_out_dir, logger)
     with open(os.path.join(genome_out_dir, 'result.txt'), 'w') as fp:
