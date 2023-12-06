@@ -41,11 +41,6 @@ def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path
             error_msg = f'Two (or more) of the uploaded geonmes contain the same name (prefix), ' \
                         f'e.g., {filename_prefix}. Please make sure each file name is unique.'
             fail(logger, error_msg, error_file_path)
-        for existing_file_name in filename_prefixes:
-            if filename_prefix.startswith(existing_file_name) or existing_file_name.startswith(filename_prefix):
-                error_msg = f'One of the uploaded file names is a prefix of another ({existing_file_name}, ' \
-                            f'{filename_prefix}). Please make sure the file names are not prefixes of each other.'
-                fail(logger, error_msg, error_file_path)
         filename_prefixes.add(filename_prefix)
 
     number_of_genomes = len(os.listdir(data_path))
