@@ -7,6 +7,7 @@ from time import time
 import traceback
 import json
 import itertools
+from collections import defaultdict
 
 import matplotlib.pyplot as plt
 import mmap
@@ -522,7 +523,7 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_all_vs_all_analysis'
     script_path = os.path.join(args.src_dir, 'steps/mmseqs2_all_vs_all.py')
-    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    orthologs_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info(f'Querying all VS all (using mmseqs2)...')
@@ -533,7 +534,7 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
 
             logger.info(f'Querying {strain1_name} against {strain2_name}')
             output_file_name = f'{strain1_name}_vs_{strain2_name}.m8'
-            output_file_path = os.path.join(pipeline_step_output_dir, output_file_name)
+            output_file_path = os.path.join(orthologs_output_dir, output_file_name)
 
             single_cmd_params = [os.path.join(translated_orfs_dir, fasta1),
                                  os.path.join(translated_orfs_dir, fasta2),
@@ -556,6 +557,46 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
+    # 4b. mmseqs2_paralogs.py
+    # Input: max orthologs bitscore for each gene
+    # Output: paralogs in each genome
+    step_number = '04b'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_mmseqs_paralogs'
+    script_path = os.path.join(args.src_dir, 'steps/mmseqs2_paralogs.py')
+    paralogs_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        logger.info('Searching for paralogs in each genome')
+        all_cmds_params = []
+        for fasta_file in os.listdir(translated_orfs_dir):
+            strain_name = os.path.splitext(fasta_file)[0]
+
+            logger.info(f'Querying {fasta_file} for paralogs')
+            output_file_name = f'{strain_name}_vs_{strain_name}.m8'
+            output_file_path = os.path.join(paralogs_output_dir, output_file_name)
+
+            single_cmd_params = [os.path.join(translated_orfs_dir, fasta_file),
+                                 output_file_path,
+                                 error_file_path]
+
+            all_cmds_params.append(single_cmd_params)
+
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+                                                   num_of_cmds_per_job=100 if len(
+                                                       os.listdir(translated_orfs_dir)) > 25 else 5,
+                                                   job_name_suffix='rbh_analysis',
+                                                   queue_name=mmseqs_queue_name,
+                                                   memory=mmseqs_memory,
+                                                   required_modules_as_list=[consts.MMSEQS])
+
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+                         num_of_batches, error_file_path, email=args.email)
+
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
     # 4b.	filter_rbh_results.py
     # Input: (1) a path for a i_vs_j.tsv file (2) an output path (with a suffix as follows: i_vs_j_filtered.tsv.
     #            especially relevant for the wrapper).
@@ -565,21 +606,31 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
     # 2. at least X% of the length
     # 3. write each pair to the output file if it passed all the above filters.
     # Can be parallelized on cluster
-    step_number = '04b'
+    step_number = '04c'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    previous_pipeline_step_output_dir = pipeline_step_output_dir
     step_name = f'{step_number}_blast_filtered'
     script_path = os.path.join(args.src_dir, 'steps/filter_rbh_results.py')
     pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
-        logger.info('Filtering all vs all results...\n')
+        logger.info('Filtering all vs all + paralogs results...\n')
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-        for blast_results_file in os.listdir(previous_pipeline_step_output_dir):
+        for blast_results_file in os.listdir(orthologs_output_dir):
             fasta_file_prefix = os.path.splitext(blast_results_file)[0]
             output_file_name = f'{fasta_file_prefix}.{step_name}'
 
-            single_cmd_params = [os.path.join(previous_pipeline_step_output_dir, blast_results_file),
+            single_cmd_params = [os.path.join(orthologs_output_dir, blast_results_file),
+                                 os.path.join(pipeline_step_output_dir, output_file_name),
+                                 f'--identity_cutoff {args.identity_cutoff / 100}',
+                                 f'--coverage_cutoff {args.coverage_cutoff / 100}',
+                                 # needs to be normalized between 0 and 1
+                                 f'--e_value_cutoff {args.e_value_cutoff}']
+            all_cmds_params.append(single_cmd_params)
+        for blast_results_file in os.listdir(paralogs_output_dir):
+            fasta_file_prefix = os.path.splitext(blast_results_file)[0]
+            output_file_name = f'{fasta_file_prefix}.{step_name}'
+
+            single_cmd_params = [os.path.join(paralogs_output_dir, blast_results_file),
                                  os.path.join(pipeline_step_output_dir, output_file_name),
                                  f'--identity_cutoff {args.identity_cutoff / 100}',
                                  f'--coverage_cutoff {args.coverage_cutoff / 100}',
@@ -598,11 +649,11 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # 4c. concatenate_reciprocal_hits
+    # 4d. concatenate_reciprocal_hits
     # Input: path to folder with all reciprocal hits files
     # Output: concatenated file of all reciprocal hits files
     # CANNOT be parallelized on cluster
-    step_number = '04c'
+    step_number = '04d'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_concatenate_reciprocal_hits'
     concatenate_output_dir, concatenate_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
@@ -618,7 +669,7 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
 
         write_to_file(logger, done_file_path, '.')
     else:
-        logger.info(f'done file {all_reciprocal_hits_file} already exists. Skipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
     return all_reciprocal_hits_file
 

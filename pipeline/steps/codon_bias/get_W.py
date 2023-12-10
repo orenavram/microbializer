@@ -45,7 +45,7 @@ def find_HEGs_in_orf_file(ORFs_file, genome_name, tmp_dir, logger):
     shutil.rmtree(db_dir, ignore_errors=True)
 
     # Filter hits to find actual HEGs and write their names into a file
-    hegs_df = pd.read_csv(hegs_hits_file, delimiter='\t', names=consts.BLAST_OUTPUT_HEADERS)
+    hegs_df = pd.read_csv(hegs_hits_file, delimiter='\t', names=consts.BLAST_OUTPUT_HEADER)
     hegs_df_filtered = hegs_df.loc[(hegs_df['identity_percent'] > BLAST_IDENTITY_PERCENT_THRESHOLD) & (hegs_df['evalue'] < BLAST_EVALUE_THRESHOLD)]
     hegs_names = set(hegs_df_filtered['subject'])
     HEGs_names_file_path = os.path.join(tmp_dir, genome_name + '_HEG_hits_only.txt')

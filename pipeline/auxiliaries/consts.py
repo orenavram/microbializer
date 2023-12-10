@@ -31,9 +31,10 @@ USE_DIFFERENT_QUEUE_FOR_MMSEQS = False
 QUEUE_FOR_MMSEQS_COMMANDS = 'pupkolab'
 PHYLOGENY_NUM_OF_CORES = 20
 
-BLAST_OUTPUT_HEADERS = ['query', 'subject', 'identity_percent', 'alignment_length', 'mismatches', 'gap_openings',
+BLAST_OUTPUT_HEADER = ['query', 'subject', 'identity_percent', 'alignment_length', 'mismatches', 'gap_openings',
                         'query_start', 'query_end', 'subject_start', 'subject_end', 'evalue', 'bit_score']
-MMSEQS_EASY_RBH_OUTPUT_FORMAT = 'query,target,fident,alnlen,mismatch,gapopen,qstart,qend,qlen,qcov,tstart,tend,tlen,tcov,evalue,bits'
+MMSEQS_OUTPUT_FORMAT = 'query,target,fident,alnlen,mismatch,gapopen,qstart,qend,qlen,qcov,tstart,tend,tlen,tcov,evalue,bits'
+MMSEQS_OUTPUT_HEADER = MMSEQS_OUTPUT_FORMAT.split(',')
 
 # logging consts
 JOB_NAME_ENVIRONMENT_VARIABLE = 'PBS_JOBNAME'
