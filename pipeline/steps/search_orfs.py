@@ -16,7 +16,7 @@ def find_genes(logger, genome, output_dir, step_name):
         input:path to fasta file with prokaryotic genome to be analyzed
         output: protein-coding gene prediction for input genome
     """
-    fasta_file_prefix = os.path.splitext(genome)[0]
+    fasta_file_prefix = os.path.splitext(os.path.basename(genome))[0]
     orfs_output_file_name = f'{fasta_file_prefix}.{step_name}'
     orfs_output_file_path = os.path.join(output_dir, orfs_output_file_name)
     cmd = f'prodigal -i "{genome}" -d {orfs_output_file_path}'

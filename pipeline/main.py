@@ -289,7 +289,8 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
             all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
             for fasta_file in os.listdir(data_path):
                 single_cmd_params = [f'"{os.path.join(data_path, fasta_file)}"',
-                                     os.path.join(orfs_dir, orfs_dir)]
+                                     orfs_dir,
+                                     step_name]
                 all_cmds_params.append(single_cmd_params)
 
             num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
@@ -382,7 +383,7 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
         gc_content = {}
         orf_count = {}
         for file_name in os.listdir(orfs_statistics_dir):
-            strain_name = file_name.split('.')[0]
+            strain_name = os.path.splitext(file_name)[0]
             with open(os.path.join(orfs_statistics_dir, file_name), 'r') as fp:
                 orfs_statistics = json.load(fp)
 
@@ -443,6 +444,8 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
+        add_results_to_final_dir(logger, translated_orfs_dir_path, final_output_dir,
+                                 keep_in_source_dir=consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
