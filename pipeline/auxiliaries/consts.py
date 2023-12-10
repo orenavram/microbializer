@@ -33,7 +33,7 @@ PHYLOGENY_NUM_OF_CORES = 20
 
 BLAST_OUTPUT_HEADERS = ['query', 'subject', 'identity_percent', 'alignment_length', 'mismatches', 'gap_openings',
                         'query_start', 'query_end', 'subject_start', 'subject_end', 'evalue', 'bit_score']
-MMSEQS_CONVERTALIS_OUTPUT_FORMAT = 'query,target,fident,alnlen,mismatch,gapopen,qstart,qend,qlen,qcov,tstart,tend,tlen,tcov,evalue,bits'
+MMSEQS_EASY_RBH_OUTPUT_FORMAT = 'query,target,fident,alnlen,mismatch,gapopen,qstart,qend,qlen,qcov,tstart,tend,tlen,tcov,evalue,bits'
 
 # logging consts
 JOB_NAME_ENVIRONMENT_VARIABLE = 'PBS_JOBNAME'

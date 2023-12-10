@@ -6,6 +6,7 @@ import sys
 from time import time
 import traceback
 import json
+import itertools
 
 import matplotlib.pyplot as plt
 import mmap
@@ -503,7 +504,7 @@ def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_pa
 
 
 def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
-                            done_files_dir, orfs_dir, translated_orfs_dir):
+                            done_files_dir, translated_orfs_dir):
     if consts.USE_DIFFERENT_QUEUE_FOR_MMSEQS:
         mmseqs_queue_name = consts.QUEUE_FOR_MMSEQS_COMMANDS
         mmseqs_memory = None
@@ -511,62 +512,14 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
         mmseqs_queue_name = args.queue_name
         mmseqs_memory = consts.MMSEQS_REQUIRED_MEMORY
 
-    # 4a.  create_mmseqs2_DB.py
-    # Input: path to gene file to create DB from
-    # Output: DB of the input file for mmseqs2
-    # Can be parallelized on cluster
-    step_number = '04a'
-    logger.info(f'Step {step_number}: {"_" * 100}')
-    previous_pipeline_step_output_dir = orfs_dir
-    step_name = f'{step_number}_dbs'
-    script_path = os.path.join(args.src_dir, 'steps/create_mmseqs2_DB.py')
-    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-    if not os.path.exists(done_file_path):
-        logger.info('Creating DBs...')
-        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-        for fasta_file in os.listdir(previous_pipeline_step_output_dir):
-            file_path = os.path.join(previous_pipeline_step_output_dir, fasta_file)
-            fasta_file_prefix = os.path.splitext(fasta_file)[0]
-            output_file_name = f'{fasta_file_prefix}'
-            output_prefix = os.path.join(pipeline_step_output_dir, output_file_name)
-
-            single_cmd_params = [file_path,
-                                 output_prefix,
-                                 output_prefix,  # instead of tmp_dir
-                                 '-t']  # translate to peptides # Should we let the user decide?
-            all_cmds_params.append(single_cmd_params)
-
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                   num_of_cmds_per_job=10,
-                                                   job_name_suffix='DB_creation',
-                                                   queue_name=mmseqs_queue_name,
-                                                   memory=mmseqs_memory,
-                                                   required_modules_as_list=[consts.MMSEQS])
-
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
-                         num_of_batches, error_file_path, email=args.email)
-
-        write_to_file(logger, done_file_path, '.')
-    else:
-        logger.info(f'done file {done_file_path} already exists. Skipping step...')
-
-    # send a subjob that removes all mmseqs intermediate *FOLDERS* (e.g., 3465136234521948 etc..) in tmp_dir
-    # does not remove (sge/cmds/log) files. only folders.
-    # MMSEQS generates tons of intermediate files that abuse the inodes so they are deleted once the step is over!
-    submit_mini_batch(logger, os.path.join(args.src_dir, 'auxiliaries/remove_tmp_folders.py'),
-                      [[pipeline_step_tmp_dir]], pipeline_step_tmp_dir, args.queue_name,
-                      job_name='remove_dirs_from_tmp')
-
-    # 4b.	mmseqs2_all_vs_all.py
+    # 4a.	mmseqs2_all_vs_all.py
     # Input: (1) 2 input paths for 2 (different) genome files (query and target), g1 and g2
     #        (2) an output file path (with a suffix as follows: i_vs_j.tsv. especially relevant for the wrapper).
     # Output: a tsv file where the first column contains g1 genes and the second column includes the corresponding best match.
     # Precisely, for each gene x in g1, query x among all the genes of g2. Let y be the gene in g2 that is the most similar to x among all g2 genes. Append a row to the output file with: ‘{x}\t{y}’.
     # Can be parallelized on cluster
-    step_number = '04b'
+    step_number = '04a'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    previous_pipeline_step_output_dir = pipeline_step_output_dir
     step_name = f'{step_number}_all_vs_all_analysis'
     script_path = os.path.join(args.src_dir, 'steps/mmseqs2_all_vs_all.py')
     pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
@@ -574,37 +527,23 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
     if not os.path.exists(done_file_path):
         logger.info(f'Querying all VS all (using mmseqs2)...')
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-        for db1 in os.listdir(orfs_dir):
-            strain1_name = os.path.splitext(db1)[0]
-            for db2 in os.listdir(orfs_dir):
-                strain2_name = os.path.splitext(db2)[0]
+        for fasta1, fasta2 in itertools.combinations(os.listdir(translated_orfs_dir), 2):
+            strain1_name = os.path.splitext(fasta1)[0]
+            strain2_name = os.path.splitext(fasta2)[0]
 
-                logger.debug(f'{"#" * 100}\nGot {strain1_name} and {strain2_name}')
-                if strain1_name >= strain2_name:
-                    logger.debug(f'Skipping {strain1_name} >= {strain2_name}')
-                    continue  # no need to query strain against itself or a pair that was already seen
-                logger.info(f'Querying {strain1_name} against {strain2_name}')
+            logger.info(f'Querying {strain1_name} against {strain2_name}')
+            output_file_name = f'{strain1_name}_vs_{strain2_name}.m8'
+            output_file_path = os.path.join(pipeline_step_output_dir, output_file_name)
 
-                query_aa_db = os.path.splitext(os.path.join(previous_pipeline_step_output_dir, db1))[0] + '_aa'
+            single_cmd_params = [os.path.join(translated_orfs_dir, fasta1),
+                                 os.path.join(translated_orfs_dir, fasta2),
+                                 output_file_path,
+                                 error_file_path]
 
-                target_aa_db = os.path.splitext(os.path.join(previous_pipeline_step_output_dir, db2))[0] + '_aa'
-
-                aln_offsetted_db = os.path.join(pipeline_step_tmp_dir,
-                                                f'{strain1_name}_vs_{strain2_name}.alnOffsettedDB')
-
-                output_file_name = f'{strain1_name}_vs_{strain2_name}.m8'
-                output_file_path = os.path.join(pipeline_step_output_dir, output_file_name)
-
-                single_cmd_params = [query_aa_db,
-                                     target_aa_db,
-                                     aln_offsetted_db,
-                                     f'{pipeline_step_tmp_dir}/{strain1_name}_vs_{strain2_name}',
-                                     output_file_path]
-
-                all_cmds_params.append(single_cmd_params)
+            all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                   num_of_cmds_per_job=100 if len(os.listdir(orfs_dir)) > 25 else 5,
+                                                   num_of_cmds_per_job=100 if len(os.listdir(translated_orfs_dir)) > 25 else 5,
                                                    job_name_suffix='rbh_analysis',
                                                    queue_name=mmseqs_queue_name,
                                                    memory=mmseqs_memory,
@@ -617,16 +556,7 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # send a subjob that removes (now instead of at the end) all mmseqs intermediate *FOLDERS*
-    # (e.g., 3465136234521948 etc..) in tmp_dir
-    # does not remove (sge/cmds/log) files. only folders.
-    submit_mini_batch(logger, os.path.join(args.src_dir, 'auxiliaries/remove_tmp_folders.py'),
-                      [[pipeline_step_tmp_dir]],
-                      pipeline_step_tmp_dir, args.queue_name, job_name='remove_m8_files')
-
-    # 4b2.
-
-    # 4c.	filter_rbh_results.py
+    # 4b.	filter_rbh_results.py
     # Input: (1) a path for a i_vs_j.tsv file (2) an output path (with a suffix as follows: i_vs_j_filtered.tsv.
     #            especially relevant for the wrapper).
     # Output: the same format of the input file containing only pairs that passed the filtration. For each row in
@@ -635,7 +565,7 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
     # 2. at least X% of the length
     # 3. write each pair to the output file if it passed all the above filters.
     # Can be parallelized on cluster
-    step_number = '04c'
+    step_number = '04b'
     logger.info(f'Step {step_number}: {"_" * 100}')
     previous_pipeline_step_output_dir = pipeline_step_output_dir
     step_name = f'{step_number}_blast_filtered'
@@ -658,7 +588,7 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                   num_of_cmds_per_job=100 if len(os.listdir(orfs_dir)) > 100 else 50,
+                                                   num_of_cmds_per_job=100 if len(os.listdir(translated_orfs_dir)) > 100 else 50,
                                                    job_name_suffix='hits_filtration',
                                                    queue_name=args.queue_name)
 
@@ -668,11 +598,11 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # 4d. concatenate_reciprocal_hits
+    # 4c. concatenate_reciprocal_hits
     # Input: path to folder with all reciprocal hits files
     # Output: concatenated file of all reciprocal hits files
     # CANNOT be parallelized on cluster
-    step_number = '04d'
+    step_number = '04c'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_concatenate_reciprocal_hits'
     concatenate_output_dir, concatenate_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
@@ -1319,7 +1249,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
         return
 
     all_reciprocal_hits_file = step_4_search_orthologs(args, logger, times_logger, error_file_path,
-                                                       output_dir, tmp_dir, done_files_dir, orfs_dir, translated_orfs_dir)
+                                                       output_dir, tmp_dir, done_files_dir, translated_orfs_dir)
     edit_progress(output_html_path, progress=25)
 
     if args.step_to_complete == '4':

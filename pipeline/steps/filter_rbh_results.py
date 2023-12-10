@@ -22,7 +22,7 @@ def filter_rbh_results(logger, query_vs_reference, output_path, precent_identity
     logger.info(f'Filtering rbh results of {query_vs_reference}')
 
     # Here is the last time that '\t' is used as a delimiter!! from here and on, only ','
-    mmseqs_output_columns_headers = consts.MMSEQS_CONVERTALIS_OUTPUT_FORMAT.split(',')
+    mmseqs_output_columns_headers = consts.MMSEQS_EASY_RBH_OUTPUT_FORMAT.split(',')
     df = pd.read_csv(query_vs_reference, sep='\t', names=mmseqs_output_columns_headers)
 
     result = df[(df['fident'] >= precent_identity_cutoff) & (df['evalue'] <= e_value_cutoff) &
@@ -30,8 +30,8 @@ def filter_rbh_results(logger, query_vs_reference, output_path, precent_identity
     columns_to_write = mmseqs_output_columns_headers[:2] + mmseqs_output_columns_headers[-1:]
 
     # e.g., ..../outputs/04_blast_filtered/Sflexneri_5_8401_vs_Ssonnei_Ss046.05_reciprocal_hits
-    file_name = os.path.split(query_vs_reference)[-1]
-    strain1_name, strain2_name = os.path.splitext(file_name)[0].split(names_delimiter)
+    query_vs_reference_file_name = os.path.splitext(os.path.basename(query_vs_reference))[0]
+    strain1_name, strain2_name = query_vs_reference_file_name.split(names_delimiter)
     result.to_csv(output_path, sep=delimiter, index=False, header=[strain1_name, strain2_name, 'bitscore'],
                   columns=columns_to_write)
 
