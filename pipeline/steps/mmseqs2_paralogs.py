@@ -71,8 +71,8 @@ def search_paralogs(logger, protein_fasta, m8_outfile, genome_max_scores_path, e
     df['query_max_score'] = df['query'].map(genome_max_scores)
     df['target_max_score'] = df['target'].map(genome_max_scores)
     df = df.loc[(~df['query_max_score'].isna()) | (~df['target_max_score'].isna())]
-    df = df.loc[((df['score'] > df['query_max_score']) | (df['query_max_score'].isna())) &
-                ((df['score'] > df['target_max_score']) | (df['target_max_score'].isna()))]
+    df = df.loc[((df['score'] >= df['query_max_score']) | (df['query_max_score'].isna())) &
+                ((df['score'] >= df['target_max_score']) | (df['target_max_score'].isna()))]
 
     # Keep only 1 record for each genes pair
     df = df.loc[df['query'] < df['target']]
