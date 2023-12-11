@@ -27,7 +27,7 @@ def construct_table(logger, all_reciprocal_hits_path, putative_orthologs_path, d
             if i % 1_000_000 == 0:
                 logger.info(f'Reciprocal pair number {i}')
             line_tokens = line.rstrip().split(delimiter)
-            if 'bitscore' in line:
+            if 'score' in line:
                 # new reciprocal hits file starts
                 strain1, strain2 = line_tokens[:2]
             else:

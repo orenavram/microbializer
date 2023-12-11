@@ -6,6 +6,8 @@ from sys import argv
 import argparse
 import logging
 import shutil
+import pandas as pd
+import numpy as np
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -50,6 +52,15 @@ def search_all_vs_all(logger, protein_fasta_1, protein_fasta_2, m8_outfile, erro
         time.sleep(1)
 
     shutil.rmtree(tmp_dir)
+
+    # Add 'score' column to mmseqs output
+    df = pd.read_csv(m8_outfile, sep='\t', names=consts.MMSEQS_OUTPUT_HEADER)
+    df['score'] = -np.log10(df['evalue'])
+
+    # Change Infinity scores (evalue = 0) to the max hit score
+    max_score = max(set(df['score']) - {np.inf})
+    df.loc[df['score'] == np.inf, 'score'] = max_score
+    df.to_csv(m8_outfile, sep='\t', index=False)
 
 
 if __name__ == '__main__':

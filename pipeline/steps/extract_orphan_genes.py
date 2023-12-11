@@ -28,7 +28,7 @@ def get_all_genes_with_orthologs(orthologs_file):
     all_genes_with_orthologs = set()
     with open(orthologs_file) as orthologs_file_fp:
         for line in orthologs_file_fp:
-            if 'bitscore' in line:
+            if 'score' in line:
                 continue
             gene_1, gene_2, _ = line.split(',')
             all_genes_with_orthologs.add(gene_1)

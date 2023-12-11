@@ -558,10 +558,39 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # 4b. mmseqs2_paralogs.py
-    # Input: max orthologs bitscore for each gene
-    # Output: paralogs in each genome
+    # 4b. get_max_score_per_gene
+    # Input: path to folder with all reciprocal hits files
+    # Output: Dictionary with max score per gene
+    # CANNOT be parallelized on cluster
     step_number = '04b'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    max_rbh_scores_step_name = f'{step_number}_max_rbh_scores'
+    max_rbh_scores_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, max_rbh_scores_step_name)
+    done_file_path = os.path.join(done_files_dir, f'{max_rbh_scores_step_name}.txt')
+    if not os.path.exists(done_file_path):
+        logger.info('Calculating max rbh scores per gene...')
+        max_score_per_gene = defaultdict(dict)  # {'strain1': {'strain1_gene1': 100, 'strain1_gene2': 200, ... }, 'strain2': ... }
+        for rbh_hits_file in os.listdir(orthologs_output_dir):
+            rbh_hits_df = pd.read_csv(os.path.join(orthologs_output_dir, rbh_hits_file), sep='\t')
+            query_vs_reference_file_name = os.path.splitext(rbh_hits_file)[0]
+            query_strain, target_strain = query_vs_reference_file_name.split('_vs_')
+            queries_max_score = rbh_hits_df.groupby(['query']).max(numeric_only=True)['score']
+            targets_max_score = rbh_hits_df.groupby(['target']).max(numeric_only=True)['score']
+            max_score_per_gene[query_strain] = pd.DataFrame([max_score_per_gene[query_strain], queries_max_score]).max().to_dict()
+            max_score_per_gene[target_strain] = pd.DataFrame([max_score_per_gene[target_strain], targets_max_score]).max().to_dict()
+
+        for strain, strain_genes_max_score in max_score_per_gene.items():
+            with open(os.path.join(max_rbh_scores_output_dir, f'{strain}.{max_rbh_scores_step_name}'), 'w') as fp:
+                json.dump(strain_genes_max_score, fp)
+
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+    # 4c. mmseqs2_paralogs.py
+    # Input: max orthologs score for each gene
+    # Output: paralogs in each genome
+    step_number = '04c'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_mmseqs_paralogs'
     script_path = os.path.join(args.src_dir, 'steps/mmseqs2_paralogs.py')
@@ -576,9 +605,11 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
             logger.info(f'Querying {fasta_file} for paralogs')
             output_file_name = f'{strain_name}_vs_{strain_name}.m8'
             output_file_path = os.path.join(paralogs_output_dir, output_file_name)
+            max_scores_file_path = os.path.join(max_rbh_scores_output_dir, f"{strain_name}.{max_rbh_scores_step_name}")
 
             single_cmd_params = [os.path.join(translated_orfs_dir, fasta_file),
                                  output_file_path,
+                                 max_scores_file_path,
                                  error_file_path]
 
             all_cmds_params.append(single_cmd_params)
@@ -598,7 +629,7 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # 4c.	filter_rbh_results.py
+    # 4d.	filter_rbh_results.py
     # Input: (1) a path for a i_vs_j.tsv file (2) an output path (with a suffix as follows: i_vs_j_filtered.tsv.
     #            especially relevant for the wrapper).
     # Output: the same format of the input file containing only pairs that passed the filtration. For each row in
@@ -607,7 +638,7 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
     # 2. at least X% of the length
     # 3. write each pair to the output file if it passed all the above filters.
     # Can be parallelized on cluster
-    step_number = '04c'
+    step_number = '04d'
     logger.info(f'Step {step_number}: {"_" * 100}')
     filtered_step_name = f'{step_number}_blast_filtered'
     script_path = os.path.join(args.src_dir, 'steps/filter_rbh_results.py')
@@ -635,6 +666,8 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
             all_cmds_params.append(single_cmd_params)
 
         for blast_results_file in os.listdir(paralogs_output_dir):
+            if not blast_results_file.endswith('m8_filtered'):
+                continue
             fasta_file_prefix = os.path.splitext(blast_results_file)[0]
             output_file_name = f'{fasta_file_prefix}.{filtered_step_name}'
 
@@ -661,8 +694,8 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # 4d. normalize_scores
-    step_number = '04d'
+    # 4e. normalize_scores
+    step_number = '04e'
     script_path = os.path.join(args.src_dir, 'steps/normalize_hits_scores.py')
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_normalize_scores'
@@ -695,20 +728,20 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # 4e. concatenate_reciprocal_hits
-    # Input: path to folder with all reciprocal hits files
-    # Output: concatenated file of all reciprocal hits files
+    # 4f. concatenate_all_hits
+    # Input: path to folder with all hits files
+    # Output: concatenated file of all hits files
     # CANNOT be parallelized on cluster
-    step_number = '04e'
+    step_number = '04f'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_concatenate_reciprocal_hits'
+    step_name = f'{step_number}_concatenate_hits'
     concatenate_output_dir, concatenate_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-    all_reciprocal_hits_file = os.path.join(concatenate_output_dir, 'concatenated_all_reciprocal_hits.txt')
+    all_hits_file = os.path.join(concatenate_output_dir, 'concatenated_all_hits.txt')
     if not os.path.exists(done_file_path):
-        logger.info('Concatenating reciprocal hits...')
-        for filtered_hits_file in os.listdir(normalized_hits_output_dir):
-            execute(logger, f'cat {normalized_hits_output_dir}/{filtered_hits_file} >> {all_reciprocal_hits_file}',
+        logger.info('Concatenating hits...')
+        for hits_file in os.listdir(normalized_hits_output_dir):
+            execute(logger, f'cat {normalized_hits_output_dir}/{hits_file} >> {all_hits_file}',
                     process_is_string=True)
         # avoid cat {pipeline_step_output_dir}/* because arguments list might be too long!
         # No need to wait...
@@ -717,7 +750,7 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    return all_reciprocal_hits_file
+    return all_hits_file
 
 
 def step_5_extract_orphan_genes(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,

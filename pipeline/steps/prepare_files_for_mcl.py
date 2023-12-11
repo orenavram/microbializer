@@ -49,7 +49,7 @@ def load_reciprocal_hits_to_dictionary(all_reciprocal_hits_path, group_name_to_p
     with open(all_reciprocal_hits_path) as f:
         for line in f:
             line_tokens = line.rstrip().split(delimiter)
-            if 'bitscore' in line:
+            if 'score' in line:
                 # new reciprocal hits file starts
                 continue
             pair = tuple(line_tokens[:2])
