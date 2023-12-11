@@ -22,7 +22,8 @@ from auxiliaries.pipeline_auxiliaries import measure_time, execute, wait_for_res
 from auxiliaries.html_editor import edit_success_html, edit_failure_html, edit_progress
 from auxiliaries import consts, flask_interface_consts
 from auxiliaries.plots_generator import generate_violinplot, generate_bar_plot
-from auxiliaries.logic_auxiliaries import mimic_prodigal_output, aggregate_ani_results, remove_bootstrap_values
+from auxiliaries.logic_auxiliaries import mimic_prodigal_output, aggregate_ani_results, remove_bootstrap_values, \
+    aggregate_mmseqs_scores
 
 PIPELINE_STEPS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11']
 
@@ -610,28 +611,32 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_blast_filtered'
     script_path = os.path.join(args.src_dir, 'steps/filter_rbh_results.py')
-    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    filtered_hits_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    scores_statistics_file = os.path.join(filtered_hits_output_dir, 'scores_stats.json')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Filtering all vs all + paralogs results...\n')
+        scores_statistics_dir = os.path.join(filtered_hits_output_dir, 'scores_statistics')
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
         for blast_results_file in os.listdir(orthologs_output_dir):
             fasta_file_prefix = os.path.splitext(blast_results_file)[0]
             output_file_name = f'{fasta_file_prefix}.{step_name}'
 
             single_cmd_params = [os.path.join(orthologs_output_dir, blast_results_file),
-                                 os.path.join(pipeline_step_output_dir, output_file_name),
+                                 os.path.join(filtered_hits_output_dir, output_file_name),
+                                 scores_statistics_dir,
                                  f'--identity_cutoff {args.identity_cutoff / 100}',
                                  f'--coverage_cutoff {args.coverage_cutoff / 100}',
                                  # needs to be normalized between 0 and 1
-                                 f'--e_value_cutoff {args.e_value_cutoff}']
+                                 f'--e_value_cutoff {args.e_value_cutoff}'
+                                 ]
             all_cmds_params.append(single_cmd_params)
         for blast_results_file in os.listdir(paralogs_output_dir):
             fasta_file_prefix = os.path.splitext(blast_results_file)[0]
             output_file_name = f'{fasta_file_prefix}.{step_name}'
 
             single_cmd_params = [os.path.join(paralogs_output_dir, blast_results_file),
-                                 os.path.join(pipeline_step_output_dir, output_file_name),
+                                 os.path.join(filtered_hits_output_dir, output_file_name),
                                  f'--identity_cutoff {args.identity_cutoff / 100}',
                                  f'--coverage_cutoff {args.coverage_cutoff / 100}',
                                  # needs to be normalized between 0 and 1
@@ -645,15 +650,50 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
+
+        aggregate_mmseqs_scores(scores_statistics_dir, scores_statistics_file)
+
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # 4d. concatenate_reciprocal_hits
+    # 4d. normalize_scores
+    step_number = '04d'
+    script_path = os.path.join(args.src_dir, 'steps/normalize_hits_scores.py')
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_normalize_scores'
+    normalized_hits_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        with open(scores_statistics_file) as fp:
+            scores_normalize_coefficients = json.load(fp)['scores_normalize_coefficients']
+
+        all_cmds_params = []
+        for filtered_hits_file in os.listdir(filtered_hits_output_dir):
+            strains_names = os.path.splitext(filtered_hits_file)[0]
+            single_cmd_params = [os.path.join(filtered_hits_output_dir, filtered_hits_file),
+                                 os.path.join(normalized_hits_output_dir, strains_names),
+                                 scores_normalize_coefficients[strains_names]
+                                 ]
+            all_cmds_params.append(single_cmd_params)
+
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+                                                   num_of_cmds_per_job=100 if len(os.listdir(translated_orfs_dir)) > 100 else 50,
+                                                   job_name_suffix='hits_normalize',
+                                                   queue_name=args.queue_name)
+
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+                         num_of_batches, error_file_path, email=args.email)
+
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+    # 4e. concatenate_reciprocal_hits
     # Input: path to folder with all reciprocal hits files
     # Output: concatenated file of all reciprocal hits files
     # CANNOT be parallelized on cluster
-    step_number = '04d'
+    step_number = '04e'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_concatenate_reciprocal_hits'
     concatenate_output_dir, concatenate_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
@@ -661,8 +701,8 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
     all_reciprocal_hits_file = os.path.join(concatenate_output_dir, 'concatenated_all_reciprocal_hits.txt')
     if not os.path.exists(done_file_path):
         logger.info('Concatenating reciprocal hits...')
-        for filtered_hits_file in os.listdir(pipeline_step_output_dir):
-            execute(logger, f'cat {pipeline_step_output_dir}/{filtered_hits_file} >> {all_reciprocal_hits_file}',
+        for filtered_hits_file in os.listdir(normalized_hits_output_dir):
+            execute(logger, f'cat {normalized_hits_output_dir}/{filtered_hits_file} >> {all_reciprocal_hits_file}',
                     process_is_string=True)
         # avoid cat {pipeline_step_output_dir}/* because arguments list might be too long!
         # No need to wait...

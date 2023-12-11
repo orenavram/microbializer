@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import re
+import json
 
 
 def aggregate_ani_results(ani_tmp_files, ani_output_dir):
@@ -72,6 +73,29 @@ def mimic_prodigal_output(orfs_dir, output_orf_file_extension):
 
         # change file name to match the output of step 2
         os.rename(file_path, f'{os.path.splitext(file_path)[0]}.{output_orf_file_extension}')
+
+
+def aggregate_mmseqs_scores(scores_statistics_dir, output_file):
+    scores_means_per_strains_pair = {}
+    scores_total_sum = 0
+    scores_total_records = 0
+    for scores_statistics_file in os.listdir(scores_statistics_dir):
+        strains_names = os.path.splitext(scores_statistics_file)[0]
+        with open(scores_statistics_file) as fp:
+            strains_statistics = json.load(fp)
+        scores_means_per_strains_pair[strains_names] = strains_statistics['mean']
+        scores_total_sum += strains_statistics['sum']
+        scores_total_records += strains_statistics['number of records']
+
+    scores_total_mean = scores_total_sum / scores_total_records
+
+    scores_normalize_coefficients = {strains_names: scores_mean / scores_total_mean for strains_names, scores_mean in scores_means_per_strains_pair.items()}
+    scores_statistics = {'mean_per_strain_pair': scores_means_per_strains_pair, 'total_scores_mean': scores_total_mean,
+                         'scores_normalize_coefficients': scores_normalize_coefficients}
+    with open(output_file) as fp:
+        json.dump(scores_statistics, fp)
+
+    return scores_normalize_coefficients
 
 
 def get_strain_name(gene_name):

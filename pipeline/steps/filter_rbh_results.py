@@ -1,9 +1,11 @@
+import numpy as np
 import pandas as pd
 from sys import argv
 import argparse
 import os
 import sys
 import logging
+import json
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -12,8 +14,8 @@ from auxiliaries.pipeline_auxiliaries import get_job_logger
 from auxiliaries import consts
 
 
-def filter_rbh_results(logger, query_vs_reference, output_path, precent_identity_cutoff, coverage_cutoff,
-                       e_value_cutoff, delimiter, names_delimiter):
+def filter_rbh_results(logger, query_vs_reference, output_path, scores_statistics_dir, precent_identity_cutoff,
+                       coverage_cutoff, e_value_cutoff, delimiter, names_delimiter):
     '''
     input:  path to file of blast results
             desired cutoff values
@@ -26,13 +28,18 @@ def filter_rbh_results(logger, query_vs_reference, output_path, precent_identity
 
     result = df[(df['fident'] >= precent_identity_cutoff) & (df['evalue'] <= e_value_cutoff) &
                 (df['qcov'] >= coverage_cutoff) & (df['tcov'] >= coverage_cutoff)]
-    columns_to_write = consts.MMSEQS_OUTPUT_HEADER[:2] + consts.MMSEQS_OUTPUT_HEADER[-1:]
+    result['score'] = -np.log10(result['evalue'])
 
     # e.g., ..../outputs/04_blast_filtered/Sflexneri_5_8401_vs_Ssonnei_Ss046.05_reciprocal_hits
     query_vs_reference_file_name = os.path.splitext(os.path.basename(query_vs_reference))[0]
     strain1_name, strain2_name = query_vs_reference_file_name.split(names_delimiter)
-    result.to_csv(output_path, sep=delimiter, index=False, header=[strain1_name, strain2_name, 'bitscore'],
-                  columns=columns_to_write)
+    result.to_csv(output_path, sep=delimiter, index=False, header=[strain1_name, strain2_name, 'score'],
+                  columns=['query', 'target', 'score'])
+
+    score_avg_file = os.path.join(scores_statistics_dir, f'{query_vs_reference_file_name}.stats')
+    statistics = {'mean': np.mean(result['score']), 'sum': np.sum(result['score']), 'number of records': len(result['score'])}
+    with open(score_avg_file) as fp:
+        json.dump(statistics, fp)
 
 
 if __name__ == '__main__':
@@ -42,6 +49,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('blast_result', help='path to fasta genome file')
     parser.add_argument('output_path', help='path to output file')
+    parser.add_argument('scores_statistics_dir', help='path to output dir of score statistics')
     parser.add_argument('--identity_cutoff', type=float)
     parser.add_argument('--coverage_cutoff', type=float)
     parser.add_argument('--e_value_cutoff', type=float)
@@ -56,7 +64,7 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        filter_rbh_results(logger, args.blast_result, args.output_path, args.identity_cutoff, args.coverage_cutoff,
-                           args.e_value_cutoff, args.delimiter, args.names_delimiter)
+        filter_rbh_results(logger, args.blast_result, args.output_path, args.scores_statistics_dir, args.identity_cutoff,
+                           args.coverage_cutoff, args.e_value_cutoff, args.delimiter, args.names_delimiter)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
