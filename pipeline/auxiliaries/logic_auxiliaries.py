@@ -81,7 +81,7 @@ def aggregate_mmseqs_scores(scores_statistics_dir, output_file):
     scores_total_records = 0
     for scores_statistics_file in os.listdir(scores_statistics_dir):
         strains_names = os.path.splitext(scores_statistics_file)[0]
-        with open(scores_statistics_file) as fp:
+        with open(os.path.join(scores_statistics_dir, scores_statistics_file)) as fp:
             strains_statistics = json.load(fp)
         scores_means_per_strains_pair[strains_names] = strains_statistics['mean']
         scores_total_sum += strains_statistics['sum']
@@ -89,10 +89,11 @@ def aggregate_mmseqs_scores(scores_statistics_dir, output_file):
 
     scores_total_mean = scores_total_sum / scores_total_records
 
-    scores_normalize_coefficients = {strains_names: scores_mean / scores_total_mean for strains_names, scores_mean in scores_means_per_strains_pair.items()}
+    scores_normalize_coefficients = {strains_names: scores_mean / scores_total_mean
+                                     for strains_names, scores_mean in scores_means_per_strains_pair.items()}
     scores_statistics = {'mean_per_strain_pair': scores_means_per_strains_pair, 'total_scores_mean': scores_total_mean,
                          'scores_normalize_coefficients': scores_normalize_coefficients}
-    with open(output_file) as fp:
+    with open(output_file, 'w') as fp:
         json.dump(scores_statistics, fp)
 
     return scores_normalize_coefficients

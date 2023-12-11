@@ -598,7 +598,7 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # 4b.	filter_rbh_results.py
+    # 4c.	filter_rbh_results.py
     # Input: (1) a path for a i_vs_j.tsv file (2) an output path (with a suffix as follows: i_vs_j_filtered.tsv.
     #            especially relevant for the wrapper).
     # Output: the same format of the input file containing only pairs that passed the filtration. For each row in
@@ -609,18 +609,20 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
     # Can be parallelized on cluster
     step_number = '04c'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_blast_filtered'
+    filtered_step_name = f'{step_number}_blast_filtered'
     script_path = os.path.join(args.src_dir, 'steps/filter_rbh_results.py')
-    filtered_hits_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    filtered_hits_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, filtered_step_name)
     scores_statistics_file = os.path.join(filtered_hits_output_dir, 'scores_stats.json')
-    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    done_file_path = os.path.join(done_files_dir, f'{filtered_step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Filtering all vs all + paralogs results...\n')
         scores_statistics_dir = os.path.join(filtered_hits_output_dir, 'scores_statistics')
+        os.makedirs(scores_statistics_dir, exist_ok=True)
+
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
         for blast_results_file in os.listdir(orthologs_output_dir):
             fasta_file_prefix = os.path.splitext(blast_results_file)[0]
-            output_file_name = f'{fasta_file_prefix}.{step_name}'
+            output_file_name = f'{fasta_file_prefix}.{filtered_step_name}'
 
             single_cmd_params = [os.path.join(orthologs_output_dir, blast_results_file),
                                  os.path.join(filtered_hits_output_dir, output_file_name),
@@ -631,12 +633,14 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
                                  f'--e_value_cutoff {args.e_value_cutoff}'
                                  ]
             all_cmds_params.append(single_cmd_params)
+
         for blast_results_file in os.listdir(paralogs_output_dir):
             fasta_file_prefix = os.path.splitext(blast_results_file)[0]
-            output_file_name = f'{fasta_file_prefix}.{step_name}'
+            output_file_name = f'{fasta_file_prefix}.{filtered_step_name}'
 
             single_cmd_params = [os.path.join(paralogs_output_dir, blast_results_file),
                                  os.path.join(filtered_hits_output_dir, output_file_name),
+                                 scores_statistics_dir,
                                  f'--identity_cutoff {args.identity_cutoff / 100}',
                                  f'--coverage_cutoff {args.coverage_cutoff / 100}',
                                  # needs to be normalized between 0 and 1
@@ -648,7 +652,7 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
                                                    job_name_suffix='hits_filtration',
                                                    queue_name=args.queue_name)
 
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, filtered_step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
         aggregate_mmseqs_scores(scores_statistics_dir, scores_statistics_file)
@@ -670,6 +674,8 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
 
         all_cmds_params = []
         for filtered_hits_file in os.listdir(filtered_hits_output_dir):
+            if not filtered_hits_file.endswith(filtered_step_name):
+                continue
             strains_names = os.path.splitext(filtered_hits_file)[0]
             single_cmd_params = [os.path.join(filtered_hits_output_dir, filtered_hits_file),
                                  os.path.join(normalized_hits_output_dir, strains_names),

@@ -17,7 +17,7 @@ def normalize_hits_scores(logger, filtered_blast_result, output_path, scores_nor
 
     df = pd.read_csv(filtered_blast_result)
     df['score'] = df['score'] / scores_normalize_coefficient
-    df.to_csv(output_path)
+    df.to_csv(output_path, index=False)
 
 
 if __name__ == '__main__':
@@ -37,6 +37,7 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        normalize_hits_scores(logger, args.filtered_blast_result, args.output_path, args.scores_normalize_coefficient)
+        normalize_hits_scores(logger, args.filtered_blast_result, args.output_path,
+                              float(args.scores_normalize_coefficient))
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')

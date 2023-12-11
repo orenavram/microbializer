@@ -30,15 +30,20 @@ def filter_rbh_results(logger, query_vs_reference, output_path, scores_statistic
                 (df['qcov'] >= coverage_cutoff) & (df['tcov'] >= coverage_cutoff)]
     result['score'] = -np.log10(result['evalue'])
 
+    # Change Infinity scores (evalue = 0) to the max hit score
+    max_score = max(set(result['score']) - {np.inf})
+    result.loc[result['score'] == np.inf, 'score'] = max_score
+
     # e.g., ..../outputs/04_blast_filtered/Sflexneri_5_8401_vs_Ssonnei_Ss046.05_reciprocal_hits
     query_vs_reference_file_name = os.path.splitext(os.path.basename(query_vs_reference))[0]
     strain1_name, strain2_name = query_vs_reference_file_name.split(names_delimiter)
     result.to_csv(output_path, sep=delimiter, index=False, header=[strain1_name, strain2_name, 'score'],
                   columns=['query', 'target', 'score'])
 
-    score_avg_file = os.path.join(scores_statistics_dir, f'{query_vs_reference_file_name}.stats')
-    statistics = {'mean': np.mean(result['score']), 'sum': np.sum(result['score']), 'number of records': len(result['score'])}
-    with open(score_avg_file) as fp:
+    score_stats_file = os.path.join(scores_statistics_dir, f'{query_vs_reference_file_name}.stats')
+    statistics = {'mean': np.mean(result['score']), 'sum': np.sum(result['score']),
+                  'number of records': len(result['score'])}
+    with open(score_stats_file, 'w') as fp:
         json.dump(statistics, fp)
 
 
