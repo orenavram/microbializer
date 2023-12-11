@@ -89,8 +89,8 @@ def aggregate_mmseqs_scores(scores_statistics_dir, output_file):
 
     scores_total_mean = scores_total_sum / scores_total_records
 
-    scores_normalize_coefficients = {strains_names: scores_mean / scores_total_mean
-                                     for strains_names, scores_mean in scores_means_per_strains_pair.items()}
+    scores_normalize_coefficients = {strains_names: strains_scores_mean / scores_total_mean
+                                     for strains_names, strains_scores_mean in scores_means_per_strains_pair.items()}
     scores_statistics = {'mean_per_strain_pair': scores_means_per_strains_pair, 'total_scores_mean': scores_total_mean,
                          'scores_normalize_coefficients': scores_normalize_coefficients}
     with open(output_file, 'w') as fp:

@@ -586,7 +586,7 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                    num_of_cmds_per_job=100 if len(
                                                        os.listdir(translated_orfs_dir)) > 25 else 5,
-                                                   job_name_suffix='rbh_analysis',
+                                                   job_name_suffix='paralogs_analysis',
                                                    queue_name=mmseqs_queue_name,
                                                    memory=mmseqs_memory,
                                                    required_modules_as_list=[consts.MMSEQS])
@@ -678,7 +678,7 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
                 continue
             strains_names = os.path.splitext(filtered_hits_file)[0]
             single_cmd_params = [os.path.join(filtered_hits_output_dir, filtered_hits_file),
-                                 os.path.join(normalized_hits_output_dir, strains_names),
+                                 os.path.join(normalized_hits_output_dir, f"{strains_names}.{step_name}"),
                                  scores_normalize_coefficients[strains_names]
                                  ]
             all_cmds_params.append(single_cmd_params)

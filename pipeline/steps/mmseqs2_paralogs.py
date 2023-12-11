@@ -51,7 +51,7 @@ def search_paralogs(logger, protein_fasta, m8_outfile, error_file_path, verbosit
 
     shutil.rmtree(tmp_dir)
 
-    # Remove all rows that contain the same gene as query and subject
+    # Keep only 1 record for each genes pair
     df = pd.read_csv(m8_outfile, sep='\t', names=consts.MMSEQS_OUTPUT_HEADER)
     df = df.loc[df['query'] < df['target']]
     df.to_csv(m8_outfile, index=False, sep='\t', header=False)

@@ -15,9 +15,12 @@ from auxiliaries import consts
 def normalize_hits_scores(logger, filtered_blast_result, output_path, scores_normalize_coefficient):
     logger.info(f'Normalize scores of {filtered_blast_result}')
 
+    query_vs_reference_file_name = os.path.splitext(os.path.basename(filtered_blast_result))[0]
+    strain1_name, strain2_name = query_vs_reference_file_name.split('_vs_')
+
     df = pd.read_csv(filtered_blast_result)
     df['score'] = df['score'] / scores_normalize_coefficient
-    df.to_csv(output_path, index=False)
+    df.to_csv(output_path, index=False, header=[strain1_name, strain2_name, 'score'])
 
 
 if __name__ == '__main__':
