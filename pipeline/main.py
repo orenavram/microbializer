@@ -1837,7 +1837,7 @@ def main(args):
         if args.step_to_complete is None or args.step_to_complete == PIPELINE_STEPS[-1] or args.only_calc_ogs \
                 or args.zip_results_in_partial_pipeline:
             logger.info('Zipping results folder...')
-            shutil.make_archive(final_output_dir_name, 'zip', meta_output_dir, final_output_dir)
+            shutil.make_archive(final_output_dir, 'zip', meta_output_dir, final_output_dir_name)
 
         logger.info('Editing results html...')
         edit_success_html(logger, output_html_path, meta_output_dir, final_output_dir_name, run_number)
