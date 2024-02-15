@@ -1,4 +1,7 @@
-# M1CR0B1AL1Z3R<br>https://microbializer.tau.ac.il/ <img align="right" src="html/pics/logo.gif" width="134" height="100"> 
+# M1CR0B1AL1Z3R<br><strike>https://microbializer.tau.ac.il/</strike><img align="right" src="html/pics/logo.gif" width="134" height="100"> <br>
+The main website is under constrction. The web server was temporarily moved to: <br>
+https://tau.evolseq.net/microbializer/
+
 A pipeline for analyzing bacterial genomic sequences. Easily.
 
 <p align="justify">
