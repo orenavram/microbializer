@@ -301,7 +301,26 @@ def unpack_data(data_path, meta_output_dir, error_file_path):
             if tarfile.is_tarfile(data_path):
                 logger.info('UnTARing')
                 with tarfile.open(data_path, 'r:gz') as f:
-                    f.extractall(path=unzipped_data_path)  # unzip tar folder to parent dir
+                    def is_within_directory(directory, target):
+                        
+                        abs_directory = os.path.abspath(directory)
+                        abs_target = os.path.abspath(target)
+                    
+                        prefix = os.path.commonprefix([abs_directory, abs_target])
+                        
+                        return prefix == abs_directory
+                    
+                    def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
+                    
+                        for member in tar.getmembers():
+                            member_path = os.path.join(path, member.name)
+                            if not is_within_directory(path, member_path):
+                                raise Exception("Attempted Path Traversal in Tar File")
+                    
+                        tar.extractall(path, members, numeric_owner=numeric_owner) 
+                        
+                    
+                    safe_extract(f, path=unzipped_data_path)
                 logger.info('Succeeded!')
                 # data_path = data_path.split('.tar')[0] # e.g., /groups/pupko/orenavr2/microbializer/example_data.tar.gz
                 # logger.info(f'Updated data_path is:\n{data_path}')
