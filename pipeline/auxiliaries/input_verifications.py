@@ -8,6 +8,13 @@ from . import consts
 from .pipeline_auxiliaries import execute, remove_path, fail
 
 
+ILLEGAL_CHARS = '\\|()[]{}<>;:,.!@#$%^&*+=?/`~\'\"'
+
+
+def has_illegal_chars(s):
+    return any(char.isspace() or s in ILLEGAL_CHARS for char in s)
+
+
 def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path, output_dir):
     # extract zip and detect data folder
     primary_data_path = unpack_data(logger, args.contigs_dir, meta_output_dir, error_file_path)
@@ -193,6 +200,8 @@ def verify_fasta_format(logger, data_path):
                     return f'Illegal <a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a>. First line in "{file_name}" is empty.'
                 if not line.startswith('>'):
                     return f'Illegal <a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a>. First line in "{file_name}" starts with "{line[0]}" instead of ">".'
+                if has_illegal_chars(line):
+                    return f'Illegal format. First line in "{file_name}" contains an illegal character (one of: {ILLEGAL_CHARS} or a whitespace).'
                 previous_line_was_header = True
                 putative_end_of_file = False
                 curated_content = f'>{strain_name}:{line[1:]}'
@@ -209,6 +218,8 @@ def verify_fasta_format(logger, data_path):
                     if line.startswith('>'):
                         if previous_line_was_header:
                             return f'Illegal <a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a>. "{file_name}" contains an empty record. Both lines {line_number - 1} and {line_number} start with ">".'
+                        elif has_illegal_chars(line):
+                            return f'Illegal format. Line {line_number} in "{file_name}" contains an illegal character (one of: {ILLEGAL_CHARS} or a whitespace).'
                         else:
                             previous_line_was_header = True
                             curated_content += f'>{strain_name}:{line[1:]}\n'
