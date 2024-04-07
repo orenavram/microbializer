@@ -38,13 +38,15 @@ def search_all_vs_all(logger, protein_fasta_1, protein_fasta_2, m8_outfile, erro
     strain_2 = os.path.splitext(os.path.basename(protein_fasta_2))[0]
     tmp_dir = os.path.join(os.path.dirname(m8_outfile), f'tmp_{strain_1}_vs_{strain_2}')
 
+    mmseqs_sensitivity_threshold = convert_required_sequence_identity_to_mmseqs_threshold(identity_cutoff)
+
     i = 1
     while not os.path.exists(m8_outfile):
         # when the data set is very big some files are not generated because of the heavy load
         # so we need to make sure they will be generated!
         logger.info(f'Iteration #{i}: easy-rbh. Result should be at {m8_outfile}')
         # control verbosity level by -v [3] param ; verbosity levels: 0=nothing, 1: +errors, 2: +warnings, 3: +info
-        cmd = f'mmseqs easy-rbh {protein_fasta_1} {protein_fasta_2} {m8_outfile} {tmp_dir} --format-output {consts.MMSEQS_OUTPUT_FORMAT} -v {verbosity_level}'
+        cmd = f'mmseqs easy-rbh {protein_fasta_1} {protein_fasta_2} {m8_outfile} {tmp_dir} --format-output {consts.MMSEQS_OUTPUT_FORMAT} -v {verbosity_level} -s {mmseqs_sensitivity_threshold}'
         logger.info(f'Calling:\n{cmd}')
         subprocess.run(cmd, shell=True)
         i += 1

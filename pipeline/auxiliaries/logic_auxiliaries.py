@@ -104,14 +104,24 @@ def get_strain_name(gene_name):
 
 
 def convert_required_sequence_identity_to_mmseqs_threshold(required_sequence_identity):
+    # Formula taken from: https://github.com/soedinglab/MMseqs2/issues/777
+
     if required_sequence_identity <= 0.3:
         sens = 6
     elif required_sequence_identity > 0.8:
         sens = 1.0
     else:
-        sens = 1.0 + (1.0 * (0.7 - required_sequence_identity) * 10)
+        sens = 1.0 + (1.0 * (0.8 - required_sequence_identity) * 10)
 
     return sens + 1
+
+
+def max_with_nan(x, y):
+    if np.isnan(x):
+        return y
+    if np.isnan(y):
+        return x
+    return max(x, y)
 
 
 def remove_bootstrap_values(in_tree_path, out_tree_path):

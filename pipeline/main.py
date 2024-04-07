@@ -23,7 +23,7 @@ from auxiliaries.html_editor import edit_success_html, edit_failure_html, edit_p
 from auxiliaries import consts, flask_interface_consts
 from auxiliaries.plots_generator import generate_violinplot, generate_bar_plot
 from auxiliaries.logic_auxiliaries import mimic_prodigal_output, aggregate_ani_results, remove_bootstrap_values, \
-    aggregate_mmseqs_scores
+    aggregate_mmseqs_scores, max_with_nan
 
 PIPELINE_STEPS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11']
 
@@ -571,19 +571,18 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
     done_file_path = os.path.join(done_files_dir, f'{max_rbh_scores_step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Calculating max rbh scores per gene...')
-        max_score_per_gene = defaultdict(dict)  # {'strain1': {'strain1_gene1': 100, 'strain1_gene2': 200, ... }, 'strain2': ... }
+        max_score_per_gene = defaultdict(pd.Series)  # {'strain1': {'strain1:gene1': 100, 'strain1:gene2': 200, ... }, 'strain2': ... }
         for rbh_hits_file in os.listdir(orthologs_output_dir):
             rbh_hits_df = pd.read_csv(os.path.join(orthologs_output_dir, rbh_hits_file), sep='\t')
             query_vs_reference_file_name = os.path.splitext(rbh_hits_file)[0]
             query_strain, target_strain = query_vs_reference_file_name.split('_vs_')
             queries_max_score = rbh_hits_df.groupby(['query']).max(numeric_only=True)['score']
             targets_max_score = rbh_hits_df.groupby(['target']).max(numeric_only=True)['score']
-            max_score_per_gene[query_strain] = pd.DataFrame([max_score_per_gene[query_strain], queries_max_score]).max().to_dict()
-            max_score_per_gene[target_strain] = pd.DataFrame([max_score_per_gene[target_strain], targets_max_score]).max().to_dict()
+            max_score_per_gene[query_strain] = max_score_per_gene[query_strain].combine(queries_max_score, max_with_nan)
+            max_score_per_gene[target_strain] = max_score_per_gene[target_strain].combine(targets_max_score, max_with_nan)
 
-        for strain, strain_genes_max_score in max_score_per_gene.items():
-            with open(os.path.join(max_rbh_scores_output_dir, f'{strain}.{max_rbh_scores_step_name}'), 'w') as fp:
-                json.dump(strain_genes_max_score, fp)
+        for strain, genes_max_score in max_score_per_gene.items():
+            genes_max_score.to_csv(os.path.join(max_rbh_scores_output_dir, f'{strain}.{max_rbh_scores_step_name}'), index_label='gene', header=['max_ortholog_score'])
 
         write_to_file(logger, done_file_path, '.')
     else:
@@ -612,7 +611,9 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
             single_cmd_params = [os.path.join(translated_orfs_dir, fasta_file),
                                  output_file_path,
                                  max_scores_file_path,
-                                 error_file_path]
+                                 error_file_path,
+                                 f'--identity_cutoff {args.identity_cutoff / 100}',
+                                 ]
 
             all_cmds_params.append(single_cmd_params)
 
