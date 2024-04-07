@@ -540,7 +540,9 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
             single_cmd_params = [os.path.join(translated_orfs_dir, fasta1),
                                  os.path.join(translated_orfs_dir, fasta2),
                                  output_file_path,
-                                 error_file_path]
+                                 error_file_path,
+                                 f'--identity_cutoff {args.identity_cutoff / 100}',
+                                 ]
 
             all_cmds_params.append(single_cmd_params)
 

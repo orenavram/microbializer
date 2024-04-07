@@ -13,6 +13,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from auxiliaries.pipeline_auxiliaries import fail, get_job_logger
+from auxiliaries.logic_auxiliaries import convert_required_sequence_identity_to_mmseqs_threshold
 from auxiliaries import consts
 
 
@@ -28,7 +29,7 @@ def too_many_trials(logger, cmd, error_file_path):
     raise OSError(msg)
 
 
-def search_all_vs_all(logger, protein_fasta_1, protein_fasta_2, m8_outfile, error_file_path, verbosity_level):
+def search_all_vs_all(logger, protein_fasta_1, protein_fasta_2, m8_outfile, error_file_path, identity_cutoff, verbosity_level):
     """
     input:  2 protein fastas
     output: query_vs_reference "mmseqs2 easy-rbh" results file
@@ -72,6 +73,7 @@ if __name__ == '__main__':
     parser.add_argument('protein_fasta_2', help='path to another protein fasta')
     parser.add_argument('output_path', help='path to which the results will be written (blast m8 format)')
     parser.add_argument('error_file_path', help='path to which errors are written')
+    parser.add_argument('--identity_cutoff', type=float)
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     args = parser.parse_args()
@@ -82,6 +84,6 @@ if __name__ == '__main__':
     logger.info(script_run_message)
     try:
         search_all_vs_all(logger, args.protein_fasta_1, args.protein_fasta_2, args.output_path,
-                          args.error_file_path, 3 if args.verbose else 1)
+                          args.error_file_path, args.identity_cutoff, 3 if args.verbose else 1)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')

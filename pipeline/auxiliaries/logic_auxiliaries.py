@@ -103,6 +103,17 @@ def get_strain_name(gene_name):
     return gene_name.split(':')[0]
 
 
+def convert_required_sequence_identity_to_mmseqs_threshold(required_sequence_identity):
+    if required_sequence_identity <= 0.3:
+        sens = 6
+    elif required_sequence_identity > 0.8:
+        sens = 1.0
+    else:
+        sens = 1.0 + (1.0 * (0.7 - required_sequence_identity) * 10)
+
+    return sens + 1
+
+
 def remove_bootstrap_values(in_tree_path, out_tree_path):
     with open(in_tree_path) as f:
         tree_as_str = f.read()
