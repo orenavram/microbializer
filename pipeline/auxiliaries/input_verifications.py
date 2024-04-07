@@ -8,11 +8,11 @@ from . import consts
 from .pipeline_auxiliaries import execute, remove_path, fail
 
 
-ILLEGAL_CHARS = '\\|()[]{}<>;:,.!@#$%^&*+=?/`~\'\"'
+ILLEGAL_CHARS = '\\<;:,!@#$%^&?`~\'\"'
 
 
 def has_illegal_chars(s):
-    return any(char.isspace() or s in ILLEGAL_CHARS for char in s)
+    return any(char in ILLEGAL_CHARS for char in s)
 
 
 def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path, output_dir):
