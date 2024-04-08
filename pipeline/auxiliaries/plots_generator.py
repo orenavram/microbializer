@@ -9,7 +9,7 @@ import pylab as pb
 
 
 def generate_violinplot(path_to_data, output_file_path, title='', xlabel='', ylabel='', dpi=300):
-    data = np.loadtxt(path_to_data)
+    data = np.atleast_1d(np.loadtxt(path_to_data))
     fig = plt.figure(figsize=(10, 10))
 
     ax = sns.violinplot(x=data, inner=None, color='lavender', cut=5)

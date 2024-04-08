@@ -506,7 +506,7 @@ def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_pa
 
 
 def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
-                            done_files_dir, translated_orfs_dir):
+                            done_files_dir, translated_orfs_dir, strains_names_path):
     if consts.USE_DIFFERENT_QUEUE_FOR_MMSEQS:
         mmseqs_queue_name = consts.QUEUE_FOR_MMSEQS_COMMANDS
         mmseqs_memory = None
@@ -527,34 +527,35 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
     orthologs_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
-        logger.info(f'Querying all VS all (using mmseqs2)...')
-        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-        for fasta1, fasta2 in itertools.combinations(os.listdir(translated_orfs_dir), 2):
-            strain1_name = os.path.splitext(fasta1)[0]
-            strain2_name = os.path.splitext(fasta2)[0]
+        if len(os.listdir(translated_orfs_dir)) > 2:
+            logger.info(f'Querying all VS all (using mmseqs2)...')
+            all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
+            for fasta1, fasta2 in itertools.combinations(os.listdir(translated_orfs_dir), 2):
+                strain1_name = os.path.splitext(fasta1)[0]
+                strain2_name = os.path.splitext(fasta2)[0]
 
-            logger.info(f'Querying {strain1_name} against {strain2_name}')
-            output_file_name = f'{strain1_name}_vs_{strain2_name}.m8'
-            output_file_path = os.path.join(orthologs_output_dir, output_file_name)
+                logger.info(f'Querying {strain1_name} against {strain2_name}')
+                output_file_name = f'{strain1_name}_vs_{strain2_name}.m8'
+                output_file_path = os.path.join(orthologs_output_dir, output_file_name)
 
-            single_cmd_params = [os.path.join(translated_orfs_dir, fasta1),
-                                 os.path.join(translated_orfs_dir, fasta2),
-                                 output_file_path,
-                                 error_file_path,
-                                 f'--identity_cutoff {args.identity_cutoff / 100}',
-                                 ]
+                single_cmd_params = [os.path.join(translated_orfs_dir, fasta1),
+                                     os.path.join(translated_orfs_dir, fasta2),
+                                     output_file_path,
+                                     error_file_path,
+                                     f'--identity_cutoff {args.identity_cutoff / 100}',
+                                     ]
 
-            all_cmds_params.append(single_cmd_params)
+                all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                   num_of_cmds_per_job=100 if len(os.listdir(translated_orfs_dir)) > 25 else 5,
-                                                   job_name_suffix='rbh_analysis',
-                                                   queue_name=mmseqs_queue_name,
-                                                   memory=mmseqs_memory,
-                                                   required_modules_as_list=[consts.MMSEQS])
+            num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+                                                       num_of_cmds_per_job=100 if len(os.listdir(translated_orfs_dir)) > 25 else 5,
+                                                       job_name_suffix='rbh_analysis',
+                                                       queue_name=mmseqs_queue_name,
+                                                       memory=mmseqs_memory,
+                                                       required_modules_as_list=[consts.MMSEQS])
 
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
-                         num_of_batches, error_file_path, email=args.email)
+            wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+                             num_of_batches, error_file_path, email=args.email)
 
         write_to_file(logger, done_file_path, '.')
     else:
@@ -571,7 +572,11 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
     done_file_path = os.path.join(done_files_dir, f'{max_rbh_scores_step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Calculating max rbh scores per gene...')
-        max_score_per_gene = defaultdict(pd.Series)  # {'strain1': {'strain1:gene1': 100, 'strain1:gene2': 200, ... }, 'strain2': ... }
+
+        with open(strains_names_path) as f:
+            strains_names = f.read().rstrip().split('\n')
+
+        max_score_per_gene = {strain: pd.Series() for strain in strains_names}  # {'strain1': {'strain1:gene1': 100, 'strain1:gene2': 200, ... }, 'strain2': ... }
         for rbh_hits_file in os.listdir(orthologs_output_dir):
             rbh_hits_df = pd.read_csv(os.path.join(orthologs_output_dir, rbh_hits_file), sep='\t')
             query_vs_reference_file_name = os.path.splitext(rbh_hits_file)[0]
@@ -1330,7 +1335,7 @@ def step_11_codon_bias(args, logger, times_logger, error_file_path, output_dir, 
 
 
 def step_12_phylogeny(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
-                      done_files_dir, number_of_genomes, aligned_core_proteome_file_path, genomes_names_path):
+                      done_files_dir, aligned_core_proteome_file_path, genomes_names_path):
     # 12.	reconstruct_species_phylogeny.py
     step_number = '12'
     logger.info(f'Step {step_number}: {"_" * 100}')
@@ -1411,7 +1416,8 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
         return
 
     all_reciprocal_hits_file = step_4_search_orthologs(args, logger, times_logger, error_file_path,
-                                                       output_dir, tmp_dir, done_files_dir, translated_orfs_dir)
+                                                       output_dir, tmp_dir, done_files_dir, translated_orfs_dir,
+                                                       genomes_names_path)
     edit_progress(output_html_path, progress=25)
 
     if args.step_to_complete == '4':
@@ -1483,9 +1489,10 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
         logger.info("Step 11 completed.")
         return
 
-    step_12_phylogeny(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
-                      done_files_dir, number_of_genomes, aligned_core_proteome_file_path, genomes_names_path)
-    edit_progress(output_html_path, progress=95)
+    if number_of_genomes > 1:
+        step_12_phylogeny(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
+                          done_files_dir, aligned_core_proteome_file_path, genomes_names_path)
+        edit_progress(output_html_path, progress=95)
 
     if args.step_to_complete == '12':
         logger.info("Step 12 completed.")

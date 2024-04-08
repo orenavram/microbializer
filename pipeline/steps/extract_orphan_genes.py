@@ -12,7 +12,6 @@ import logging
 import os
 import sys
 import pandas as pd
-import numpy as np
 from Bio import SeqIO
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -98,4 +97,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

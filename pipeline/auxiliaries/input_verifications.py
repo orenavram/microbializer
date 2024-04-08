@@ -56,7 +56,7 @@ def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path
 
     # check MINimal number of genomes
     min_number_of_genomes_to_analyze = 2
-    if number_of_genomes < min_number_of_genomes_to_analyze:
+    if number_of_genomes < min_number_of_genomes_to_analyze and not args.bypass_number_of_genomes_limit:
         error_msg = f'The dataset contains too few genomes ({consts.WEBSERVER_NAME} does comparative analysis and ' \
                     f'thus needs at least 2 genomes).'
         fail(logger, error_msg, error_file_path)
