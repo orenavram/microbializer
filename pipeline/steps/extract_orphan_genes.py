@@ -12,6 +12,7 @@ import logging
 import os
 import sys
 import pandas as pd
+import numpy as np
 from Bio import SeqIO
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -22,7 +23,7 @@ from auxiliaries.plots_generator import generate_violinplot
 
 
 def flatten(l):
-    return [item.strip() for sublist in l for item in sublist]
+    return [item.strip() for sublist in l for item in sublist if pd.notna(item)]
 
 
 def get_all_genes_with_orthologs(orthologs_file):
