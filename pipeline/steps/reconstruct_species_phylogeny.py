@@ -6,6 +6,7 @@ import os
 import shutil
 import sys
 from Bio import SeqIO
+from ete3 import Tree, TreeStyle
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -88,6 +89,27 @@ def fasttree_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, n
     subprocess.run(cmd, shell=True)
 
 
+def draw_tree(phylogenetic_tree_path):
+    # Needed to avoid an error in drawing the tree. Taken from: https://github.com/NVlabs/instant-ngp/discussions/300
+    cmd = "export QT_QPA_PLATFORM=offscreen"
+    subprocess.run(cmd, shell=True)
+
+    with open(phylogenetic_tree_path, "r") as f:
+        tree = Tree(f.readline().strip())
+
+    ts = TreeStyle()
+    ts.show_leaf_name = True
+    ts.show_branch_length = True
+    ts.show_branch_support = True
+
+    tree_image_png_path = phylogenetic_tree_path.replace('.newick', '.png')
+    tree_image_svg_path = phylogenetic_tree_path.replace('.newick', '.svg')
+    tree_image_pdf_path = phylogenetic_tree_path.replace('.newick', '.pdf')
+    tree.render(tree_image_png_path, tree_style=ts)
+    tree.render(tree_image_svg_path, tree_style=ts)
+    tree.render(tree_image_pdf_path, tree_style=ts)
+
+
 def generate_phylogenetic_tree(logger, msa_path, phylogenetic_tree_path, tmp_folder, seed, tree_search_software, outgroup,
                                bootstrap, num_of_cpus):
     # optionally use to decide which program to use
@@ -102,6 +124,8 @@ def generate_phylogenetic_tree(logger, msa_path, phylogenetic_tree_path, tmp_fol
     elif tree_search_software == 'fasttree':
         fasttree_tree_search(tmp_folder, msa_path,phylogenetic_tree_path, logger, num_of_cpus, outgroup,
                              bootstrap, seed)
+
+    draw_tree(phylogenetic_tree_path)
 
 
 if __name__ == '__main__':
