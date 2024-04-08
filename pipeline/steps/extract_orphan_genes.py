@@ -11,6 +11,7 @@ import argparse
 import logging
 import os
 import sys
+import pandas as pd
 from Bio import SeqIO
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -25,15 +26,11 @@ def flatten(l):
 
 
 def get_all_genes_with_orthologs(orthologs_file):
-    all_genes_with_orthologs = set()
-    with open(orthologs_file) as orthologs_file_fp:
-        for line in orthologs_file_fp:
-            if 'score' in line:
-                continue
-            gene_1, gene_2, _ = line.split(',')
-            all_genes_with_orthologs.add(gene_1)
-            all_genes_with_orthologs.add(gene_2)
+    orthologs_df = pd.read_csv(orthologs_file)
+    orthologs_df.drop(columns=['OG_name'], inplace=True)
+    all_df_values = flatten(orthologs_df.values)
 
+    all_genes_with_orthologs = flatten([value.split(';') for value in all_df_values])
     return all_genes_with_orthologs
 
 
@@ -82,7 +79,7 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('orfs_dir', help='path to the ORFs dir')
-    parser.add_argument('orthologs_file', help='path to the the concatenated orthologs file')
+    parser.add_argument('orthologs_file', help='path to the the orthologs table')
     parser.add_argument('output_dir', help='path to which the orphan proteins will be written')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')

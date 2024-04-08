@@ -1,4 +1,5 @@
 import itertools
+import shutil
 from sys import argv
 import argparse
 import logging
@@ -145,48 +146,11 @@ def build_orthoxml_and_tsv_output(logger, all_clusters_df, output_dir, qfo_bench
     logger.info(f'Created orthoxml and tsv outputs at {orthoxml_output_file_path} and {tsv_output_file_path}')
 
 
-def get_verified_clusters_set(verified_clusters_path):
-    return set([os.path.splitext(file)[0]
-                for file in os.listdir(verified_clusters_path) if file.endswith('verified_cluster')])
-
-
-def finalize_table(logger, putative_orthologs_path, verified_clusters_path, orphan_genes_dir, finalized_table_path,
-                   finalized_table_no_paralogs_path, qfo_benchmark, delimiter):
-    output_dir = os.path.dirname(finalized_table_path)
-    putative_orthologs_df = pd.read_csv(putative_orthologs_path)
-    strain_names = list(putative_orthologs_df.columns[1:])
-
-    # Keep only the verified clusters
-    verified_clusters_set = get_verified_clusters_set(verified_clusters_path)
-    verified_clusters_df = putative_orthologs_df.loc[putative_orthologs_df['OG_name'].isin(verified_clusters_set)]
-
-    logger.info(f'Found {len(verified_clusters_df.index)} verified clusters from previous steps, out of '
-                f'{len(putative_orthologs_df.index)} putative clusters overall. Starting to add putative clusters '
-                f'that were split by MCL algorithm...')
-
-    # Iterate through new clusters (that were split from the putative clusters) and create Series objects from them
-    new_clusters = []
-    for cluster_file_name in os.listdir(verified_clusters_path):
-        if cluster_file_name.endswith('verified_cluster'):
-            continue
-        with open(os.path.join(verified_clusters_path, cluster_file_name), 'r') as new_cluster:
-            genes = new_cluster.readline().strip().split('\t')
-        strain_to_genes = defaultdict(list)
-        for gene in genes:
-            strain = get_strain_name(gene)
-            strain_to_genes[strain].append(gene)
-        strain_to_genes = {strain: ';'.join(genes) for strain, genes in strain_to_genes.items()}
-        strain_to_genes['OG_name'] = ''  # Set a temp empty OG name
-        new_cluster = pd.Series(strain_to_genes)
-        new_clusters.append(new_cluster)
-
-    # Merge new clusters and verified clusters
-    new_clusters_df = pd.DataFrame(new_clusters)
-    all_clusters_df = pd.concat([verified_clusters_df, new_clusters_df], ignore_index=True)
-    all_clusters_df['OG_name'] = [f'OG_{i}' for i in range(len(all_clusters_df.index))]
-    logger.info(f'Finished adding split clusters. OG table now contains {len(all_clusters_df.index)} groups.')
-
+def finalize_table(logger, orthologs_table_path, finalized_table_path, finalized_table_no_paralogs_path,
+                   orphan_genes_dir, qfo_benchmark):
     if orphan_genes_dir:
+        orthologs_df = pd.read_csv(orthologs_table_path)
+
         # Add orphan genes as new OGs
         orphan_clusters = []
         for filename in os.listdir(orphan_genes_dir):
@@ -199,14 +163,21 @@ def finalize_table(logger, putative_orthologs_path, verified_clusters_path, orph
             orphan_clusters.extend([pd.Series({'OG_name': '', strain: gene}) for gene in genes])
 
         orphan_clusters_df = pd.DataFrame(orphan_clusters)
-        all_clusters_df = pd.concat([all_clusters_df, orphan_clusters_df], ignore_index=True)
+        all_clusters_df = pd.concat([orthologs_df, orphan_clusters_df], ignore_index=True)
         all_clusters_df['OG_name'] = [f'OG_{i}' for i in range(len(all_clusters_df.index))]
         logger.info(f'Finished adding orphan genes as clusters. OG table now contains {len(all_clusters_df.index)} groups.')
 
-    all_clusters_df.to_csv(finalized_table_path, index=False)
+        all_clusters_df.to_csv(finalized_table_path, index=False)
+
+    else:
+        shutil.copyfile(orthologs_table_path, finalized_table_path)
+
+    orthologs_df = pd.read_csv(finalized_table_path)
+    strain_names = list(orthologs_df.columns[1:])
+    output_dir = os.path.dirname(finalized_table_path)
 
     # Create OG table with only 0 or 1 gene for each genome in each OG
-    all_clusters_no_paralogs_df = all_clusters_df.copy()
+    all_clusters_no_paralogs_df = orthologs_df.copy()
     for index, row in all_clusters_no_paralogs_df.iterrows():
         for strain in strain_names:
             if pd.notnull(row[strain]) and ';' in row[strain]:
@@ -216,7 +187,7 @@ def finalize_table(logger, putative_orthologs_path, verified_clusters_path, orph
     # Create phyletic pattern
     phyletic_patterns_str = ''
     for strain_name in strain_names:
-        phyletic_pattern = ''.join(pd.notnull(all_clusters_df[strain_name]).astype(int).astype(str))
+        phyletic_pattern = ''.join(pd.notnull(orthologs_df[strain_name]).astype(int).astype(str))
         phyletic_patterns_str += f'>{strain_name}\n{phyletic_pattern}\n'
 
     phyletic_patterns_path = os.path.join(output_dir, 'phyletic_pattern.fas')
@@ -224,7 +195,7 @@ def finalize_table(logger, putative_orthologs_path, verified_clusters_path, orph
         f.write(phyletic_patterns_str)
     logger.info(f'Created phyletic pattern at {phyletic_patterns_path}')
 
-    build_orthoxml_and_tsv_output(logger, all_clusters_df, output_dir, qfo_benchmark)
+    build_orthoxml_and_tsv_output(logger, orthologs_df, output_dir, qfo_benchmark)
 
 
 if __name__ == '__main__':
@@ -232,13 +203,11 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('putative_orthologs_path', help='path to a file with the putative orthologs sets')
-    parser.add_argument('verified_clusters_path', help='path to a directory with the verified clusters')
-    parser.add_argument('finalized_table_path', help='path to an output file in which the final table will be written')
+    parser.add_argument('orthologs_table_path', help='path to the orthologs table (input)')
+    parser.add_argument('finalized_table_path', help='path to the output orthologs table')
     parser.add_argument('finalized_table_no_paralogs_path', help='path to an output file in which the final table with no paralogs will be written')
-    parser.add_argument('--delimiter', help='delimiter for the putative orthologs table', default=consts.CSV_DELIMITER)
-    parser.add_argument('--qfo_benchmark', help='whether the output OrthoXml should be in QfO benchmark format', action='store_true')
     parser.add_argument('--orphan_genes_dir', help='path to a directory with the orphan genes')
+    parser.add_argument('--qfo_benchmark', help='whether the output OrthoXml should be in QfO benchmark format', action='store_true')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     args = parser.parse_args()
@@ -248,7 +217,8 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        finalize_table(logger, args.putative_orthologs_path, args.verified_clusters_path, args.orphan_genes_dir,
-                       args.finalized_table_path, args.finalized_table_no_paralogs_path, args.qfo_benchmark, args.delimiter)
+        finalize_table(logger, args.orthologs_table_path, args.finalized_table_path,
+                       args.finalized_table_no_paralogs_path, args.orphan_genes_dir,
+                       args.qfo_benchmark)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
