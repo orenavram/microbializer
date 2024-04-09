@@ -19,7 +19,7 @@ def extract_orfs_statistics(logger, orf_path, orfs_statistics_dir):
     for seq_record in SeqIO.parse(orf_path, 'fasta'):
         orfs_count += 1
         total_num_of_nucleotides += len(seq_record)
-        total_num_of_GC += seq_record.count('G') + seq_record.count('C')
+        total_num_of_GC += seq_record.count('G') + seq_record.count('C') + seq_record.count('g') + seq_record.count('c')
 
     orfs_statistics = {}
     orfs_statistics['orfs_count'] = orfs_count
