@@ -7,7 +7,6 @@ import argparse
 import logging
 import shutil
 import pandas as pd
-import numpy as np
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))

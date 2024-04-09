@@ -115,7 +115,7 @@ def convert_required_sequence_identity_to_mmseqs_threshold(required_sequence_ide
     else:
         sens = 1.0 + (1.0 * (0.8 - required_sequence_identity) * 10)
 
-    return sens + 1
+    return min(sens + 1, 6)
 
 
 def max_with_nan(x, y):
