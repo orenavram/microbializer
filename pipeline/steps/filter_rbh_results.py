@@ -1,4 +1,3 @@
-import numpy as np
 import pandas as pd
 from sys import argv
 import argparse
@@ -6,6 +5,7 @@ import os
 import sys
 import logging
 import json
+import statistics
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -29,17 +29,16 @@ def filter_rbh_results(logger, query_vs_reference, output_path, scores_statistic
     result = df[(df['fident'] >= precent_identity_cutoff) & (df['evalue'] <= e_value_cutoff) &
                 (df['qcov'] >= coverage_cutoff) & (df['tcov'] >= coverage_cutoff)]
 
-    # e.g., ..../outputs/04_blast_filtered/Sflexneri_5_8401_vs_Ssonnei_Ss046.05_reciprocal_hits
-    query_vs_reference_file_name = os.path.splitext(os.path.basename(query_vs_reference))[0]
-    strain1_name, strain2_name = query_vs_reference_file_name.split(names_delimiter)
-    result.to_csv(output_path, sep=delimiter, index=False, header=[strain1_name, strain2_name, 'score'],
-                  columns=['query', 'target', 'score'])
-
-    score_stats_file = os.path.join(scores_statistics_dir, f'{query_vs_reference_file_name}.stats')
-    statistics = {'mean': np.mean(result['score']), 'sum': np.sum(result['score']),
-                  'number of records': len(result['score'])}
-    with open(score_stats_file, 'w') as fp:
-        json.dump(statistics, fp)
+    if not result.empty:
+        query_vs_reference_file_name = os.path.splitext(os.path.basename(query_vs_reference))[0]
+        strain1_name, strain2_name = query_vs_reference_file_name.split(names_delimiter)
+        result.to_csv(output_path, sep=delimiter, index=False, header=[strain1_name, strain2_name, 'score'],
+                      columns=['query', 'target', 'score'])
+        score_stats_file = os.path.join(scores_statistics_dir, f'{query_vs_reference_file_name}.stats')
+        scores_statistics = {'mean': statistics.mean(result['score']), 'sum': sum(result['score']),
+                             'number of records': len(result['score'])}
+        with open(score_stats_file, 'w') as fp:
+            json.dump(scores_statistics, fp)
 
 
 if __name__ == '__main__':

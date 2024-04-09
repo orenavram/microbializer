@@ -6,6 +6,8 @@ import numpy as np
 import re
 import json
 
+from . import consts
+
 
 def aggregate_ani_results(ani_tmp_files, ani_output_dir):
     all_dfs = []
@@ -122,6 +124,17 @@ def max_with_nan(x, y):
     if np.isnan(y):
         return x
     return max(x, y)
+
+
+def add_score_column_to_mmseqs_output(mmseqs_output_df):
+    if consts.SIMILARITY_SCORE_CRITERION == consts.SimilarityScore.BITS:
+        mmseqs_output_df['score'] = mmseqs_output_df['bits']
+    else:  # consts.SIMILARITY_SCORE_CRITERION == consts.SimilarityScore.EVALUE
+        mmseqs_output_df['score'] = -np.log10(mmseqs_output_df['evalue'])
+
+        # Change Infinity scores (evalue = 0) to the max hit score
+        max_score = max(set(mmseqs_output_df['score']) - {np.inf})
+        mmseqs_output_df.loc[mmseqs_output_df['score'] == np.inf, 'score'] = max_score
 
 
 def remove_bootstrap_values(in_tree_path, out_tree_path):

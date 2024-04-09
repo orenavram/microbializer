@@ -3,6 +3,7 @@
 #############################################################################################################
 
 import os.path
+from enum import Enum
 from .flask_interface_consts import *
 
 KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR = True
@@ -22,6 +23,14 @@ BACTERIA_CORE_GENES_HMM_PROFILES_PATH = '/groups/pupko/naamawagner/Microbializer
 MAX_NUMBER_OF_GENOMES_TO_ANALYZE = 350
 NUMBER_OF_IQTREE_BOOTSTRAP_ITERATIONS = 1000
 NUMBER_OF_RAXML_BOOTSTRAP_ITERATIONS = 100
+
+
+class SimilarityScore(Enum):
+    BITS = 1
+    EVALUE = 2
+
+
+SIMILARITY_SCORE_CRITERION = SimilarityScore.BITS
 
 ANI_REQUIRED_MEMORY = '120gb'
 # mmseqs command work only on machines with enough memory. we solve this either by navigating to a specific queue

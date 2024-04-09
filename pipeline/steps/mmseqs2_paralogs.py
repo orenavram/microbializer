@@ -14,7 +14,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from auxiliaries.pipeline_auxiliaries import fail, get_job_logger
-from auxiliaries.logic_auxiliaries import convert_required_sequence_identity_to_mmseqs_threshold
+from auxiliaries.logic_auxiliaries import convert_required_sequence_identity_to_mmseqs_threshold, add_score_column_to_mmseqs_output
 from auxiliaries import consts
 
 
@@ -53,16 +53,11 @@ def search_paralogs(logger, protein_fasta, m8_outfile, genome_max_scores_path, e
         if i == 1000:
             too_many_trials(logger, 'mmseqs easy-search', error_file_path)
         time.sleep(1)
-
-    shutil.rmtree(tmp_dir, ignore_errors=True)
+        shutil.rmtree(tmp_dir)
 
     # Add 'score' column to mmseqs output
     df = pd.read_csv(m8_outfile, sep='\t', names=consts.MMSEQS_OUTPUT_HEADER)
-    df['score'] = -np.log10(df['evalue'])
-
-    # Change Infinity scores (evalue = 0) to the max hit score
-    max_score = max(set(df['score']) - {np.inf})
-    df.loc[df['score'] == np.inf, 'score'] = max_score
+    add_score_column_to_mmseqs_output(df)
 
     # Keep only hits that have score higher than the max score of both query and target.
     # If only one of the genes was identified as homolog to a gene in another genome (and thus the other one doesn't

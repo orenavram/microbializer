@@ -13,7 +13,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from auxiliaries.pipeline_auxiliaries import fail, get_job_logger
-from auxiliaries.logic_auxiliaries import convert_required_sequence_identity_to_mmseqs_threshold
+from auxiliaries.logic_auxiliaries import convert_required_sequence_identity_to_mmseqs_threshold, add_score_column_to_mmseqs_output
 from auxiliaries import consts
 
 
@@ -53,16 +53,12 @@ def search_all_vs_all(logger, protein_fasta_1, protein_fasta_2, m8_outfile, erro
         if i == 1000:
             too_many_trials(logger, 'mmseqs easy-rbh', error_file_path)
         time.sleep(1)
-
-    shutil.rmtree(tmp_dir)
+        shutil.rmtree(tmp_dir)
 
     # Add 'score' column to mmseqs output
     df = pd.read_csv(m8_outfile, sep='\t', names=consts.MMSEQS_OUTPUT_HEADER)
-    df['score'] = -np.log10(df['evalue'])
+    add_score_column_to_mmseqs_output(df)
 
-    # Change Infinity scores (evalue = 0) to the max hit score
-    max_score = max(set(df['score']) - {np.inf})
-    df.loc[df['score'] == np.inf, 'score'] = max_score
     df.to_csv(m8_outfile, sep='\t', index=False)
 
 
