@@ -7,15 +7,13 @@ import os
 import sys
 import pandas as pd
 import re
-from collections import defaultdict
 from ete3 import orthoxml
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger
-from auxiliaries.logic_auxiliaries import get_strain_name
-from auxiliaries import consts
+
 
 ORPHANS_FILENAME_GENOME_NAME_PATTERN = re.compile('(.+)_orphans.txt')
 
@@ -146,12 +144,21 @@ def build_orthoxml_and_tsv_output(logger, all_clusters_df, output_dir, qfo_bench
     logger.info(f'Created orthoxml and tsv outputs at {orthoxml_output_file_path} and {tsv_output_file_path}')
 
 
-def finalize_table(logger, orthologs_table_path, finalized_table_path, finalized_table_no_paralogs_path,
-                   orphan_genes_dir, qfo_benchmark):
-    if orphan_genes_dir:
-        orthologs_df = pd.read_csv(orthologs_table_path)
+def create_phyletic_pattern(logger, orthologs_df, strain_names, output_dir):
+    phyletic_patterns_str = ''
+    for strain_name in strain_names:
+        phyletic_pattern = ''.join(pd.notnull(orthologs_df[strain_name]).astype(int).astype(str))
+        phyletic_patterns_str += f'>{strain_name}\n{phyletic_pattern}\n'
 
-        # Add orphan genes as new OGs
+    phyletic_patterns_path = os.path.join(output_dir, 'phyletic_pattern.fas')
+    with open(phyletic_patterns_path, 'w') as f:
+        f.write(phyletic_patterns_str)
+    logger.info(f'Created phyletic pattern at {phyletic_patterns_path}')
+
+
+def finalize_table(logger, orthologs_table_path, finalized_table_path, orphan_genes_dir, qfo_benchmark):
+    orthologs_df = pd.read_csv(orthologs_table_path)
+    if orphan_genes_dir:  # Add orphan genes as new OGs
         orphan_clusters = []
         for filename in os.listdir(orphan_genes_dir):
             strain_match_object = ORPHANS_FILENAME_GENOME_NAME_PATTERN.match(filename)
@@ -170,31 +177,18 @@ def finalize_table(logger, orthologs_table_path, finalized_table_path, finalized
         all_clusters_df.to_csv(finalized_table_path, index=False)
 
     else:
-        shutil.copyfile(orthologs_table_path, finalized_table_path)
+        # Remove all rows that have only 1 strain in them (which are orphan genes that have multiple copies in the
+        # same genome). Those rows will have not-nan values in 2 columns (the OG column and the strain column)
+        all_clusters_no_orphans_df = orthologs_df[orthologs_df.count(axis=1) > 2]
+        all_clusters_no_orphans_df['OG_name'] = [f'OG_{i}' for i in range(len(all_clusters_no_orphans_df.index))]
+        logger.info(f'Removed orphan genes from clusters. OG table now contains {len(all_clusters_no_orphans_df.index)} groups.')
+        all_clusters_no_orphans_df.to_csv(finalized_table_path, index=False)
 
     orthologs_df = pd.read_csv(finalized_table_path)
     strain_names = list(orthologs_df.columns[1:])
     output_dir = os.path.dirname(finalized_table_path)
 
-    # Create OG table with only 0 or 1 gene for each genome in each OG
-    all_clusters_no_paralogs_df = orthologs_df.copy()
-    for index, row in all_clusters_no_paralogs_df.iterrows():
-        for strain in strain_names:
-            if pd.notnull(row[strain]) and ';' in row[strain]:
-                row[strain] = row[strain].split(';')[0]
-    all_clusters_no_paralogs_df.to_csv(finalized_table_no_paralogs_path, index=False)
-
-    # Create phyletic pattern
-    phyletic_patterns_str = ''
-    for strain_name in strain_names:
-        phyletic_pattern = ''.join(pd.notnull(orthologs_df[strain_name]).astype(int).astype(str))
-        phyletic_patterns_str += f'>{strain_name}\n{phyletic_pattern}\n'
-
-    phyletic_patterns_path = os.path.join(output_dir, 'phyletic_pattern.fas')
-    with open(phyletic_patterns_path, 'w') as f:
-        f.write(phyletic_patterns_str)
-    logger.info(f'Created phyletic pattern at {phyletic_patterns_path}')
-
+    create_phyletic_pattern(logger, orthologs_df, strain_names, output_dir)
     build_orthoxml_and_tsv_output(logger, orthologs_df, output_dir, qfo_benchmark)
 
 
@@ -205,7 +199,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('orthologs_table_path', help='path to the orthologs table (input)')
     parser.add_argument('finalized_table_path', help='path to the output orthologs table')
-    parser.add_argument('finalized_table_no_paralogs_path', help='path to an output file in which the final table with no paralogs will be written')
     parser.add_argument('--orphan_genes_dir', help='path to a directory with the orphan genes')
     parser.add_argument('--qfo_benchmark', help='whether the output OrthoXml should be in QfO benchmark format', action='store_true')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
@@ -217,8 +210,7 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        finalize_table(logger, args.orthologs_table_path, args.finalized_table_path,
-                       args.finalized_table_no_paralogs_path, args.orphan_genes_dir,
+        finalize_table(logger, args.orthologs_table_path, args.finalized_table_path, args.orphan_genes_dir,
                        args.qfo_benchmark)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')

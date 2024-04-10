@@ -1,20 +1,16 @@
-import itertools
 from sys import argv
 import argparse
 import logging
 import os
 import sys
 import pandas as pd
-import re
 from collections import defaultdict
-from ete3 import orthoxml
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger
 from auxiliaries.logic_auxiliaries import get_strain_name
-from auxiliaries import consts
 
 
 def get_verified_clusters_set(verified_clusters_path):

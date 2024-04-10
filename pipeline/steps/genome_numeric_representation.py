@@ -8,6 +8,7 @@ import sys
 from sys import argv
 import os
 import argparse
+import pandas as pd
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -108,7 +109,26 @@ def remove_non_core_genes(genome_name_to_gene_name_to_location, genome_name_to_g
     return genome_name_to_core_genes, ref_gene_to_OG, core_genome_size
 
 
-def get_genome_numeric_representation(logger, orthologs_table_path, ORFs_dir_path, output_path, output_delimiter=','):
+def remove_paralogs(orthologs_table_path, genome_names, no_paralogs_path):
+    # Create OG table withhout paralogs
+
+    orthologs_df = pd.read_csv(orthologs_table_path)
+
+    # Remove all rows that have only 1 strain in them (which are orphan genes that have single or multiple copies
+    # in the same genome). Those rows will have not-nan values in 2 columns (the OG column and the strain column)
+    orthologs_df = orthologs_df[orthologs_df.count(axis=1) > 2]
+
+    # In all other rows, keep max 1 gene per genome
+    for index, row in orthologs_df.iterrows():
+        for strain in genome_names:
+            if pd.notnull(row[strain]) and ';' in row[strain]:
+                row[strain] = row[strain].split(';')[0]
+
+    orthologs_df.to_csv(no_paralogs_path, index=False)
+
+
+def get_genome_numeric_representation(logger, orthologs_table_path, ORFs_dir_path, output_path, tmp_dir,
+                                      output_delimiter=','):
     with open(orthologs_table_path) as f:
         genome_names = f.readline().rstrip().split(',')[1:]  # skip OG_name
 
@@ -121,9 +141,12 @@ def get_genome_numeric_representation(logger, orthologs_table_path, ORFs_dir_pat
         genome_name_to_gene_name_to_location[genome_name] = gene_name_to_location
         genome_name_to_gene_name_to_orientation[genome_name] = gene_to_orientation
 
+    no_paralogs_path = os.path.join(tmp_dir, 'no_paralogs.csv')
+    remove_paralogs(orthologs_table_path, genome_names, no_paralogs_path)
+
     genome_name_to_core_genes, ref_gene_to_OG, core_genome_size = \
         remove_non_core_genes(genome_name_to_gene_name_to_location, genome_name_to_gene_name_to_orientation,
-                              reference_genome_name, genome_names, orthologs_table_path)
+                              reference_genome_name, genome_names, no_paralogs_path)
 
     gene_index = 0
     genome_name_to_numeric_genome = {}
@@ -155,6 +178,7 @@ if __name__ == '__main__':
     parser.add_argument('orthologs_table_path', help='A path to an ortholog table (step 11 of microbializer)')
     parser.add_argument('ORFs_dir_path', help='A path to a ORF directory (step 01 of microbializer)')
     parser.add_argument('output_path', help='A path to which the numeric core genomes will be written')
+    parser.add_argument('tmp_dir', help='A path to tmp dir')
     parser.add_argument('-v', '--verbose', action='store_true', help='Increase output verbosity')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     args = parser.parse_args()
@@ -165,6 +189,7 @@ if __name__ == '__main__':
     logger.info(script_run_message)
 
     try:
-        get_genome_numeric_representation(logger, args.orthologs_table_path, args.ORFs_dir_path.rstrip('/'), args.output_path)
+        get_genome_numeric_representation(logger, args.orthologs_table_path, args.ORFs_dir_path.rstrip('/'),
+                                          args.output_path, args.tmp_dir)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')

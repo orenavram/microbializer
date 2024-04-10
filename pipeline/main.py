@@ -458,10 +458,10 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
 
 def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                                        final_output_dir, done_files_dir, translated_orfs_dir_path):
-    # 3a.  assessing_genomes_completeness.py
+    # 3.  assessing_genomes_completeness.py
     # Input: path to faa file
     # Output: calculate proteome completeness based on a dataset of profile-HMMs that represent core bacterial genes.
-    step_number = '03a'
+    step_number = '03'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_genomes_completeness'
     script_path = os.path.join(args.src_dir, 'steps/assessing_genome_completeness.py')
@@ -527,7 +527,7 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
     orthologs_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
-        if len(os.listdir(translated_orfs_dir)) > 2:
+        if len(os.listdir(translated_orfs_dir)) >= 2:
             logger.info(f'Querying all VS all (using mmseqs2)...')
             all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
             for fasta1, fasta2 in itertools.combinations(os.listdir(translated_orfs_dir), 2):
@@ -967,14 +967,12 @@ def step_7_orthologs_table_variations(args, logger, times_logger, error_file_pat
     script_path = os.path.join(args.src_dir, 'steps/orthologs_table_variations.py')
     final_orthologs_table_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     final_orthologs_table_file_path = os.path.join(final_orthologs_table_dir_path, 'final_orthologs_table.csv')
-    final_orthologs_table_no_paralogs_file_path = os.path.join(final_orthologs_table_dir_path,
-                                                               'final_orthologs_table_no_paralogs.csv')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Constructing final orthologs table...')
         params = [orthologs_table_file_path,
-                  final_orthologs_table_file_path,
-                  final_orthologs_table_no_paralogs_file_path]
+                  final_orthologs_table_file_path
+                  ]
         if args.qfo_benchmark:
             params += ['--qfo_benchmark']
         if args.add_orphan_genes_to_ogs:
@@ -1015,7 +1013,7 @@ def step_7_orthologs_table_variations(args, logger, times_logger, error_file_pat
 
         groups_sizes_frequency_png_file_path = groups_sizes_frequency_file_prefix + '.png'
         generate_bar_plot(groups_sizes_frequency_raw_file_path, groups_sizes_frequency_png_file_path,
-                          xlabel='Orthologous group size', ylabel='Count')
+                          xlabel='Orthologous group size (number of genomes)', ylabel='Count')
 
         add_results_to_final_dir(logger, group_sizes_path, final_output_dir,
                                  keep_in_source_dir=consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR)
@@ -1023,12 +1021,12 @@ def step_7_orthologs_table_variations(args, logger, times_logger, error_file_pat
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    return final_orthologs_table_file_path, final_orthologs_table_no_paralogs_file_path
+    return final_orthologs_table_file_path
 
 
 def step_8_genome_numeric_representation(args, logger, times_logger, error_file_path, output_dir,
                                          tmp_dir, final_output_dir, done_files_dir, orfs_dir,
-                                         final_orthologs_table_no_paralogs_file_path):
+                                         final_orthologs_table_file_path):
     # 8.	genome_numeric_representation.py
     step_number = '08'
     logger.info(f'Step {step_number}: {"_" * 100}')
@@ -1040,9 +1038,11 @@ def step_8_genome_numeric_representation(args, logger, times_logger, error_file_
                                                                 'core_genome_numeric_representation.txt')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
-        params = [final_orthologs_table_no_paralogs_file_path,
+        params = [final_orthologs_table_file_path,
                   orfs_dir,
-                  core_genome_numeric_representation_file_path]
+                  core_genome_numeric_representation_file_path,
+                  numeric_representation_tmp_dir
+                  ]
         submit_mini_batch(logger, script_path, [params], numeric_representation_tmp_dir,
                           args.queue_name, job_name='numeric_representation')
 
@@ -1230,18 +1230,18 @@ def step_10_extract_core_genome_and_core_proteome(args, logger, times_logger, er
     aligned_core_proteome_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     aligned_core_proteome_file_path = os.path.join(aligned_core_proteome_path, 'aligned_core_proteome.fas')
-    core_ogs_names_file_path = os.path.join(aligned_core_proteome_path, 'core_ortholog_groups_names.txt')
-    core_length_file_path = os.path.join(aligned_core_proteome_path, 'core_length.txt')
-    number_of_core_members = os.path.join(aligned_core_proteome_path, 'number_of_core_genes.txt')
+    core_proteome_ogs_names_file_path = os.path.join(aligned_core_proteome_path, 'core_ortholog_groups_names.txt')
+    core_proteome_length_file_path = os.path.join(aligned_core_proteome_path, 'core_length.txt')
+    number_of_core_proteome_members_file_path = os.path.join(aligned_core_proteome_path, 'number_of_core_genes.txt')
 
     if not os.path.exists(done_file_path):
         logger.info('Extracting aligned core proteome...')
 
         params = [aa_alignments_path, num_of_strains, strains_names_path,
                   aligned_core_proteome_file_path,
-                  core_ogs_names_file_path,
-                  core_length_file_path,
-                  number_of_core_members,
+                  core_proteome_ogs_names_file_path,
+                  core_proteome_length_file_path,
+                  number_of_core_proteome_members_file_path,
                   f'--core_minimal_percentage {args.core_minimal_percentage}']  # how many members induce a core group?
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir,
                           args.queue_name, job_name='core_proteome')
@@ -1255,6 +1255,10 @@ def step_10_extract_core_genome_and_core_proteome(args, logger, times_logger, er
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
+    with open(core_proteome_length_file_path, 'r') as fp:
+        core_proteome_length = int(fp.read().strip())
+
+
     # 10b.      extract_aligned_core_genome
     step_number = '10b'
     logger.info(f'Step {step_number}: {"_" * 100}')
@@ -1263,17 +1267,17 @@ def step_10_extract_core_genome_and_core_proteome(args, logger, times_logger, er
     aligned_core_genome_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     aligned_core_genome_file_path = os.path.join(aligned_core_genome_path, 'aligned_core_genome.fas')
-    core_ogs_names_file_path = os.path.join(aligned_core_genome_path, 'core_ortholog_groups_names.txt')
-    core_length_file_path = os.path.join(aligned_core_genome_path, 'core_length.txt')
-    number_of_core_members = os.path.join(aligned_core_genome_path, 'number_of_core_genes.txt')
+    core_genome_ogs_names_file_path = os.path.join(aligned_core_genome_path, 'core_ortholog_groups_names.txt')
+    core_genome_length_file_path = os.path.join(aligned_core_genome_path, 'core_length.txt')
+    number_of_core_genome_members_file_path = os.path.join(aligned_core_genome_path, 'number_of_core_genes.txt')
     if not os.path.exists(done_file_path):
         logger.info('Extracting aligned core genome...')
 
         params = [dna_alignments_path, num_of_strains, strains_names_path,
                   aligned_core_genome_file_path,
-                  core_ogs_names_file_path,
-                  core_length_file_path,
-                  number_of_core_members,
+                  core_genome_ogs_names_file_path,
+                  core_genome_length_file_path,
+                  number_of_core_genome_members_file_path,
                   f'--core_minimal_percentage {args.core_minimal_percentage}']  # how many members induce a core group?
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir,
                           args.queue_name, job_name='core_genome')
@@ -1287,7 +1291,7 @@ def step_10_extract_core_genome_and_core_proteome(args, logger, times_logger, er
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    return aligned_core_proteome_file_path
+    return aligned_core_proteome_file_path, core_proteome_length
 
 
 def step_11_codon_bias(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
@@ -1348,7 +1352,7 @@ def step_12_phylogeny(args, logger, times_logger, error_file_path, output_dir, t
         logger.info('Reconstructing species phylogeny...')
 
         params = [aligned_core_proteome_file_path,
-                  os.path.join(phylogeny_path, 'final_species_tree.txt'),
+                  os.path.join(phylogeny_path, 'final_species_tree.newick'),
                   phylogeny_tmp_dir,
                   f'--cpu {consts.PHYLOGENY_NUM_OF_CORES}',
                   f'--bootstrap {args.bootstrap}']
@@ -1363,7 +1367,8 @@ def step_12_phylogeny(args, logger, times_logger, error_file_path, output_dir, t
 
         submit_mini_batch(logger, script_path, [params], phylogeny_tmp_dir,
                           args.queue_name, job_name='tree_reconstruction',
-                          required_modules_as_list=[consts.RAXML], num_of_cpus=consts.PHYLOGENY_NUM_OF_CORES)
+                          required_modules_as_list=[consts.RAXML], num_of_cpus=consts.PHYLOGENY_NUM_OF_CORES,
+                          command_to_run_before_script='export QT_QPA_PLATFORM=offscreen')  # Needed to avoid an error in drawing the tree. Taken from: https://github.com/NVlabs/instant-ngp/discussions/300
 
         # wait for the phylogenetic tree here
         wait_for_results(logger, times_logger, step_name, phylogeny_tmp_dir,
@@ -1440,7 +1445,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
         logger.info("Step 6 completed.")
         return
 
-    final_orthologs_table_file_path, final_orthologs_table_no_paralogs_file_path = \
+    final_orthologs_table_file_path = \
         step_7_orthologs_table_variations(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                                           final_output_dir, done_files_dir, orthologs_table_file_path, orphan_genes_dir)
     edit_progress(output_html_path, progress=55)
@@ -1455,7 +1460,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
     if args.core_minimal_percentage == 100:
         step_8_genome_numeric_representation(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                                              final_output_dir, done_files_dir, orfs_dir,
-                                             final_orthologs_table_no_paralogs_file_path)
+                                             final_orthologs_table_file_path)
         edit_progress(output_html_path, progress=90)
 
     if args.step_to_complete == '8':
@@ -1472,7 +1477,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
         logger.info("Step 9 completed.")
         return
 
-    aligned_core_proteome_file_path = step_10_extract_core_genome_and_core_proteome(
+    aligned_core_proteome_file_path, core_proteome_length = step_10_extract_core_genome_and_core_proteome(
         args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir, done_files_dir,
         number_of_genomes, genomes_names_path, ogs_aa_alignments_path, ogs_dna_alignments_path)
     edit_progress(output_html_path, progress=75)
@@ -1489,10 +1494,12 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
         logger.info("Step 11 completed.")
         return
 
-    if number_of_genomes > 1:
+    if number_of_genomes >= 3 and core_proteome_length > 0:
         step_12_phylogeny(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
                           done_files_dir, aligned_core_proteome_file_path, genomes_names_path)
         edit_progress(output_html_path, progress=95)
+    else:
+        logger.info('Skipping phylogeny reconstruction because there are less than 3 genomes or no core proteome')
 
     if args.step_to_complete == '12':
         logger.info("Step 12 completed.")

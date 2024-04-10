@@ -165,7 +165,8 @@ def fail(logger, error_msg, error_file_path):
 def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir, queue_name, job_name='',
                       new_line_delimiter='!@#', verbose=False, required_modules_as_list=None, num_of_cpus=1,
                       memory=None, submit_as_a_job=True, done_file_is_needed=True,
-                      done_files_script_path=os.path.join(consts.PROJECT_ROOT_DIR, 'pipeline/auxiliaries/file_writer.py')):
+                      done_files_script_path=os.path.join(consts.PROJECT_ROOT_DIR, 'pipeline/auxiliaries/file_writer.py'),
+                      command_to_run_before_script=None):
     """
     :param script_path:
     :param mini_batch_parameters_list: a list of lists. each sublist corresponds to a single command and contain its parameters
@@ -202,7 +203,11 @@ def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir,
 
     example_shell_cmd = ' '.join(['python', script_path, *[str(param) for param in mini_batch_parameters_list[0]]] + (
         ['-v'] if verbose else [])) + ';'
+
     # PREPARING RELEVANT COMMANDS
+    if command_to_run_before_script:
+        shell_cmds_as_str += f'{command_to_run_before_script}{new_line_delimiter}'
+
     for params in mini_batch_parameters_list:
         shell_cmds_as_str += ' '.join(
             ['python', script_path, *[str(param) for param in params]] +
