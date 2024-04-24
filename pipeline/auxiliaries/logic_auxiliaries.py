@@ -145,3 +145,14 @@ def remove_bootstrap_values(in_tree_path, out_tree_path):
     with open(out_tree_path, 'w') as f:
         f.write(tree_as_str)
 
+
+def flatten(l):
+    return [item.strip() for sublist in l for item in sublist if pd.notna(item)]
+
+
+def get_all_genes_in_table(df):
+    # Expect as input a dataframe with genes in the cells (without an OG column)
+    all_df_values = flatten(df.values)
+
+    all_genes = flatten([value.split(';') for value in all_df_values])
+    return all_genes

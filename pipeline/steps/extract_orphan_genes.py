@@ -19,18 +19,18 @@ sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger
 from auxiliaries.plots_generator import generate_violinplot
-
-
-def flatten(l):
-    return [item.strip() for sublist in l for item in sublist if pd.notna(item)]
+from auxiliaries.logic_auxiliaries import get_all_genes_in_table
 
 
 def get_all_genes_with_orthologs(orthologs_file):
     orthologs_df = pd.read_csv(orthologs_file)
     orthologs_df.drop(columns=['OG_name'], inplace=True)
-    all_df_values = flatten(orthologs_df.values)
 
-    all_genes_with_orthologs = flatten([value.split(';') for value in all_df_values])
+    # Remove all rows that have only 1 strain in them (which are orphan genes that have multiple copies in the
+    # same genome). Those rows will have not-nan values in 1 column
+    all_clusters_no_orphans_df = orthologs_df[orthologs_df.count(axis=1) > 1]
+
+    all_genes_with_orthologs = get_all_genes_in_table(all_clusters_no_orphans_df)
     return all_genes_with_orthologs
 
 

@@ -13,6 +13,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger
+from auxiliaries.logic_auxiliaries import get_all_genes_in_table
 
 
 ORPHANS_FILENAME_GENOME_NAME_PATTERN = re.compile('(.+)_orphans.txt')
@@ -159,6 +160,8 @@ def create_phyletic_pattern(logger, orthologs_df, strain_names, output_dir):
 def finalize_table(logger, orthologs_table_path, finalized_table_path, orphan_genes_dir, qfo_benchmark):
     orthologs_df = pd.read_csv(orthologs_table_path)
     if orphan_genes_dir:  # Add orphan genes as new OGs
+        orphans_already_in_orthologs_df = orthologs_df[orthologs_df.count(axis=1) == 2]
+        orphans_already_in_orthologs_df = get_all_genes_in_table(orphans_already_in_orthologs_df)
         orphan_clusters = []
         for filename in os.listdir(orphan_genes_dir):
             strain_match_object = ORPHANS_FILENAME_GENOME_NAME_PATTERN.match(filename)
@@ -166,8 +169,9 @@ def finalize_table(logger, orthologs_table_path, finalized_table_path, orphan_ge
                 continue
             strain = strain_match_object.group(1)
             with open(os.path.join(orphan_genes_dir, filename)) as orphan_genes_file:
-                genes = orphan_genes_file.read().splitlines()
-            orphan_clusters.extend([pd.Series({'OG_name': '', strain: gene}) for gene in genes])
+                orphan_genes = set(orphan_genes_file.read().splitlines())
+            orphan_genes_to_add = orphan_genes.difference(orphans_already_in_orthologs_df)
+            orphan_clusters.extend([pd.Series({'OG_name': '', strain: gene}) for gene in orphan_genes_to_add])
 
         orphan_clusters_df = pd.DataFrame(orphan_clusters)
         all_clusters_df = pd.concat([orthologs_df, orphan_clusters_df], ignore_index=True)
@@ -177,8 +181,8 @@ def finalize_table(logger, orthologs_table_path, finalized_table_path, orphan_ge
         all_clusters_df.to_csv(finalized_table_path, index=False)
 
     else:
-        # Remove all rows that have only 1 strain in them (which are orphan genes that have multiple copies in the
-        # same genome). Those rows will have not-nan values in 2 columns (the OG column and the strain column)
+        # Remove all rows that have only 1 strain in them (which are orphan genes). Those rows will have
+        # not-nan values in 2 columns (the OG column and the strain column)
         all_clusters_no_orphans_df = orthologs_df[orthologs_df.count(axis=1) > 2]
         all_clusters_no_orphans_df['OG_name'] = [f'OG_{i}' for i in range(len(all_clusters_no_orphans_df.index))]
         logger.info(f'Removed orphan genes from clusters. OG table now contains {len(all_clusters_no_orphans_df.index)} groups.')
