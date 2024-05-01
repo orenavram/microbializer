@@ -8,7 +8,7 @@ from . import consts
 from .pipeline_auxiliaries import execute, remove_path, fail
 
 
-ILLEGAL_CHARS = '\\<;:,!@#$%^&?`~\'\"'
+ILLEGAL_CHARS = '\\;:,^`~\'\"'
 
 
 def has_illegal_chars(s):
