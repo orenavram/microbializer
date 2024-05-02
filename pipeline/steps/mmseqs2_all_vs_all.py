@@ -45,7 +45,7 @@ def search_all_vs_all(logger, protein_fasta_1, protein_fasta_2, m8_outfile, erro
         # so we need to make sure they will be generated!
         logger.info(f'Iteration #{i}: easy-rbh. Result should be at {m8_outfile}')
         # control verbosity level by -v [3] param ; verbosity levels: 0=nothing, 1: +errors, 2: +warnings, 3: +info
-        cmd = f'mmseqs easy-rbh {protein_fasta_1} {protein_fasta_2} {m8_outfile} {tmp_dir} --format-output {consts.MMSEQS_OUTPUT_FORMAT} -v {verbosity_level} -s {mmseqs_sensitivity_threshold}'
+        cmd = f'mmseqs easy-rbh {protein_fasta_1} {protein_fasta_2} {m8_outfile} {tmp_dir} --format-output {consts.MMSEQS_OUTPUT_FORMAT} -v {verbosity_level} -s {mmseqs_sensitivity_threshold} --threads 1'
         logger.info(f'Calling:\n{cmd}')
         subprocess.run(cmd, shell=True)
         i += 1
