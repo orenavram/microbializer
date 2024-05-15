@@ -10,7 +10,7 @@ CORE_MINIMAL_PERCENTAGE = "core_minimal_percentage"
 BOOTSTRAP = "bootstrap"
 OUTGROUP = "outgroup"
 FILTER_OUT_PLASMIDS = "filter_out_plasmids"
-INPUTS_ARE_ANNOTATED_PROTEOMES = "inputs_are_annotated_proteomes"
+INPUTS_FASTAS_TYPE = "inputs_fastas_type"
 FILE_NAME_FOR_ARGUMENTS = "arguments.json"
 
 # Error description file (the path is relative to the unique folder of the job)
