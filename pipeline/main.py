@@ -7,12 +7,12 @@ from time import time
 import traceback
 import json
 import itertools
-from collections import defaultdict
 
 import matplotlib.pyplot as plt
 import mmap
 import numpy as np
 import pandas as pd
+import seaborn as sns
 
 from auxiliaries.email_sender import send_email
 from auxiliaries.file_writer import write_to_file
@@ -21,11 +21,10 @@ from auxiliaries.pipeline_auxiliaries import measure_time, execute, wait_for_res
     prepare_directories, fail, submit_mini_batch, submit_batch, notify_admin, add_results_to_final_dir, remove_path
 from auxiliaries.html_editor import edit_success_html, edit_failure_html, edit_progress
 from auxiliaries import consts, flask_interface_consts
-from auxiliaries.plots_generator import generate_violinplot, generate_bar_plot
 from auxiliaries.logic_auxiliaries import mimic_prodigal_output, aggregate_ani_results, remove_bootstrap_values, \
-    aggregate_mmseqs_scores, max_with_nan
+    aggregate_mmseqs_scores, max_with_nan, plot_genomes_histogram
 
-PIPELINE_STEPS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11']
+PIPELINE_STEPS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
 
 
 def get_arguments():
@@ -375,10 +374,6 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orfs_plots'
     orfs_plots_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    orfs_counts_frequency_file = os.path.join(orfs_plots_path, 'orfs_counts.txt')
-    orfs_counts_per_genome_file = os.path.join(orfs_plots_path, 'orfs_counts.json')
-    orfs_gc_content_file = os.path.join(orfs_plots_path, 'orfs_gc_contents.txt')
-    orfs_gc_content_per_genome_file = os.path.join(orfs_plots_path, 'orfs_gc_contents.json')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Concatenating orfs counts and gc contents...')
@@ -393,25 +388,8 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
             gc_content[strain_name] = orfs_statistics['gc_content']
             orf_count[strain_name] = orfs_statistics['orfs_count']
 
-        with open(orfs_gc_content_per_genome_file, 'w') as f:
-            json.dump(gc_content, f)
-        with open(orfs_counts_per_genome_file, 'w') as f:
-            json.dump(orf_count, f)
-
-        with open(orfs_counts_frequency_file, 'w') as fp:
-            fp.write('\n'.join([str(value) for value in orf_count.values()]))
-        with open(orfs_gc_content_file, 'w') as fp:
-            fp.write('\n'.join([str(value) for value in gc_content.values()]))
-
-        # No need to wait...
-        logger.info('Plotting violins...')
-        orfs_counts_frequency_png_file_path = orfs_counts_frequency_file.replace('txt', 'png')
-        generate_violinplot(orfs_counts_frequency_file, orfs_counts_frequency_png_file_path,
-                            xlabel='\nORF count per genome', dpi=300)
-
-        orfs_gc_content_png_file_path = orfs_gc_content_file.replace('txt', 'png')
-        generate_violinplot(orfs_gc_content_file, orfs_gc_content_png_file_path,
-                            xlabel='\nGC content per genome', dpi=300)
+        plot_genomes_histogram(orf_count, orfs_plots_path, 'orfs_counts', 'ORFs count', 'ORFs Count per genome')
+        plot_genomes_histogram(gc_content, orfs_plots_path, 'gc_content', 'GC Content (of ORFs)', 'GC Content per genome')
 
         add_results_to_final_dir(logger, orfs_plots_path, final_output_dir,
                                  keep_in_source_dir=consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR)
@@ -492,8 +470,8 @@ def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_pa
             with open(genome_score_path, 'r') as fp:
                 genomes_completeness_scores[genome_name] = float(fp.read().strip())
 
-        with open(os.path.join(genome_completeness_dir_path, 'genomes_completeness_assessment.json'), 'w') as fp:
-            json.dump(genomes_completeness_scores, fp)
+        plot_genomes_histogram(genomes_completeness_scores, genome_completeness_dir_path, 'genomes_completeness',
+                               'Genome BUSCO completeness score', 'Genome BUSCO completeness score per genome')
 
         # comment the next line if you don't wish to delete hmmer results
         shutil.rmtree(genomes_output_dir_path)
@@ -993,27 +971,19 @@ def step_7_orthologs_table_variations(args, logger, times_logger, error_file_pat
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_groups_sizes_frequency'
     group_sizes_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    groups_sizes_frequency_file_prefix = os.path.join(group_sizes_path, 'groups_sizes_frequency')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Collecting sizes...')
-        group_sizes = []
-        with open(final_orthologs_table_file_path) as f:
-            final_table_header = f.readline().rstrip()
-            for line in f:
-                cluster_members = line.rstrip()
-                size = sum(
-                    bool(item) for item in cluster_members.split(consts.CSV_DELIMITER))  # count non empty entries
-                size -= 1  # don't count group name
-                group_sizes.append(str(size))
 
-        groups_sizes_frequency_raw_file_path = groups_sizes_frequency_file_prefix + '.txt'
-        with open(groups_sizes_frequency_raw_file_path, 'w') as f:
-            f.write('\n'.join(group_sizes))
+        final_orthologs_table_df = pd.read_csv(final_orthologs_table_file_path, index_col='OG_name')
+        group_sizes = final_orthologs_table_df.apply(lambda row: row.count(), axis=1)
+        group_sizes.name = 'OG size (number of genomes)'
+        group_sizes.to_csv(os.path.join(group_sizes_path, 'groups_sizes.csv'))
 
-        groups_sizes_frequency_png_file_path = groups_sizes_frequency_file_prefix + '.png'
-        generate_bar_plot(groups_sizes_frequency_raw_file_path, groups_sizes_frequency_png_file_path,
-                          xlabel='Orthologous group size (number of genomes)', ylabel='Count')
+        sns.histplot(x=group_sizes, binwidth=1)
+        plt.title('Orthologous groups sizes distribution')
+        plt.savefig(os.path.join(group_sizes_path, 'groups_sizes.png'))
+        plt.clf()
 
         add_results_to_final_dir(logger, group_sizes_path, final_output_dir,
                                  keep_in_source_dir=consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR)

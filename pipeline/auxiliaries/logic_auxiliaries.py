@@ -1,10 +1,12 @@
 import os
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-import numpy as np
 import re
 import json
+
+import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
+import seaborn as sns
+import numpy as np
 
 from . import consts
 
@@ -132,9 +134,9 @@ def add_score_column_to_mmseqs_output(mmseqs_output_df):
     else:  # consts.SIMILARITY_SCORE_CRITERION == consts.SimilarityScore.EVALUE
         mmseqs_output_df['score'] = -np.log10(mmseqs_output_df['evalue'])
 
-        # Change Infinity scores (evalue = 0) to the max hit score
+        # Change Infinity scores (evalue = 0) to the max hit score + 1
         max_score = max(set(mmseqs_output_df['score']) - {np.inf})
-        mmseqs_output_df.loc[mmseqs_output_df['score'] == np.inf, 'score'] = max_score
+        mmseqs_output_df.loc[mmseqs_output_df['score'] == np.inf, 'score'] = max_score + 1
 
 
 def remove_bootstrap_values(in_tree_path, out_tree_path):
@@ -156,3 +158,23 @@ def get_all_genes_in_table(df):
 
     all_genes = flatten([value.split(';') for value in all_df_values])
     return all_genes
+
+
+def plot_genomes_histogram(data, output_dir, output_file_name, title, xlabel):
+    # data is expected to be: {'genome1': 54, 'genome2': 20, ...}
+
+    with open(os.path.join(output_dir, f'{output_file_name}.json'), 'w') as fp:
+        json.dump(data, fp)
+
+    output_df = pd.DataFrame.from_dict(data, orient='index', columns=[title])
+    output_df.index.name = 'Genome'
+    output_df.to_csv(os.path.join(output_dir, f'{output_file_name}.csv'))
+
+    sns.histplot(output_df, x=title, kde=True)
+    plt.title(f'Distribution of {title}')
+    plt.xlabel(xlabel)
+    plt.ylabel('Genomes count')
+    plt.gca().yaxis.set_major_locator(MaxNLocator(integer=True))  # make y-axis integer
+    plt.savefig(os.path.join(output_dir, f'{output_file_name}.png'))
+
+    plt.clf()
