@@ -39,6 +39,7 @@ MMSEQS_REQUIRED_MEMORY = '120gb'
 USE_DIFFERENT_QUEUE_FOR_MMSEQS = False
 QUEUE_FOR_MMSEQS_COMMANDS = 'pupkolab'
 PHYLOGENY_NUM_OF_CORES = 20
+CODON_BIAS_NUM_OF_CORES = 20
 
 BLAST_OUTPUT_HEADER = ['query', 'subject', 'identity_percent', 'alignment_length', 'mismatches', 'gap_openings',
                         'query_start', 'query_end', 'subject_start', 'subject_end', 'evalue', 'bit_score']

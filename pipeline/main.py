@@ -1271,7 +1271,7 @@ def step_11_codon_bias(args, logger, times_logger, error_file_path, output_dir, 
     step_number = '11'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_codon_bias'
-    script_path = os.path.join(args.src_dir, 'steps/codon_bias/main.py')
+    script_path = os.path.join(args.src_dir, 'steps/codon_bias.py')
     codon_bias_output_dir_path, codon_bias_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     cai_table_path = os.path.join(codon_bias_output_dir_path, 'CAI_table.csv')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
@@ -1283,12 +1283,10 @@ def step_11_codon_bias(args, logger, times_logger, error_file_path, output_dir, 
             codon_bias_output_dir_path,
             cai_table_path,
             codon_bias_tmp_dir,
-            args.src_dir,
-            args.queue_name,
-            error_file_path,
-            step_number
+            consts.CODON_BIAS_NUM_OF_CORES
         ]
-        submit_mini_batch(logger, script_path, [params], codon_bias_tmp_dir, args.queue_name, job_name='codon_bias')
+        submit_mini_batch(logger, script_path, [params], codon_bias_tmp_dir, args.queue_name, job_name='codon_bias',
+                          num_of_cpus=consts.CODON_BIAS_NUM_OF_CORES)
 
         wait_for_results(logger, times_logger, step_name, codon_bias_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
