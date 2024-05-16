@@ -5,7 +5,7 @@ Created on Tue Jun 13 08:25:48 2023
 
 @author: noa
 """
-import json
+
 from sys import argv
 import argparse
 import logging
