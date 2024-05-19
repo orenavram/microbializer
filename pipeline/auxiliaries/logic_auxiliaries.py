@@ -169,10 +169,11 @@ def plot_genomes_histogram(data, output_dir, output_file_name, title, xlabel):
     output_df.to_csv(os.path.join(output_dir, f'{output_file_name}.csv'))
 
     sns.histplot(output_df, x=title, kde=True)
-    plt.title(f'Distribution of {title}')
-    plt.xlabel(xlabel)
-    plt.ylabel('Genomes count')
+    plt.title(f'Distribution of {title}', fontsize=20, loc='center', wrap=True)
+    plt.xlabel(xlabel, fontsize=15)
+    plt.ylabel('Genomes count', fontsize=15)
     plt.gca().yaxis.set_major_locator(MaxNLocator(integer=True))  # make y-axis integer
+    plt.tight_layout()
     plt.savefig(os.path.join(output_dir, f'{output_file_name}.png'))
 
     plt.clf()

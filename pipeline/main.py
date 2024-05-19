@@ -980,7 +980,10 @@ def step_7_orthologs_table_variations(args, logger, times_logger, error_file_pat
         group_sizes.to_csv(os.path.join(group_sizes_path, 'groups_sizes.csv'))
 
         sns.histplot(x=group_sizes, binwidth=1)
-        plt.title('Orthologous groups sizes distribution')
+        plt.title('Orthologous groups sizes distribution', fontsize=20, loc='center', wrap=True)
+        plt.xlabel('OG size (number of genomes)', fontsize=15)
+        plt.ylabel('Count', fontsize=15)
+        plt.tight_layout()
         plt.savefig(os.path.join(group_sizes_path, 'groups_sizes.png'))
         plt.clf()
 

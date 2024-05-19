@@ -107,6 +107,7 @@ def visualize_Ws_with_PCA(W_vectors, output_dir, logger):
     # Perform PCA dimensionality reduction
     pca = PCA(n_components=2)
     Ws_values_reduced = pca.fit_transform(W_vectors.values)
+    explained_variance_ratio = pca.explained_variance_ratio_ * 100
 
     # Normalize cluster values for consistent colormap
     norm = colors.Normalize(vmin=0, vmax=n_clusters - 1)
@@ -116,7 +117,9 @@ def visualize_Ws_with_PCA(W_vectors, output_dir, logger):
     y = Ws_values_reduced[:, 1]
     plt.axis('equal')
     scatter = plt.scatter(x, y, c=cluster_labels, cmap='viridis', alpha=0.4)
-    plt.title("Relative Adaptiveness (W vectors) of Genomes")
+    plt.title("Relative Adaptiveness (W vectors) of Genomes", fontsize=20, loc='center', wrap=True)
+    plt.xlabel(f"PC1 ({explained_variance_ratio[0]})", fontsize=15)
+    plt.ylabel(f"PC2 ({explained_variance_ratio[1]})", fontsize=15)
 
     cluster_legend = []
     for cluster in range(n_clusters):
@@ -127,6 +130,7 @@ def visualize_Ws_with_PCA(W_vectors, output_dir, logger):
     plt.legend(handles=cluster_legend)
 
     # Save plot to output_dir
+    plt.tight_layout()
     plt.savefig(os.path.join(output_dir, 'Relative_Adaptiveness_scatter_plot.png'))
     plt.close()
 
@@ -162,11 +166,12 @@ def calculate_cai(OG_dir, OG_index, genomes_codon_indexes, cais_output_dir):
 
 
 def plot_CAI_histogram(ogs_cai_info_df, output_dir):
-    plt.title("CAI Mean distribution across OGs")
-    plt.xlabel('CAI value')
-    plt.ylabel('Frequency')
+    plt.title("CAI Mean distribution across OGs", fontsize=20, loc='center', wrap=True)
+    plt.xlabel('CAI value', fontsize=15)
+    plt.ylabel('Frequency', fontsize=15)
     plt.axis('auto')
     plt.hist(ogs_cai_info_df["CAI_mean"], bins=30)
+    plt.tight_layout()
     plt.savefig(os.path.join(output_dir, 'CAI_Histogram.png'))
     plt.close()
 
