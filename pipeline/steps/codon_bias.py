@@ -118,8 +118,8 @@ def visualize_Ws_with_PCA(W_vectors, output_dir, logger):
     plt.axis('equal')
     scatter = plt.scatter(x, y, c=cluster_labels, cmap='viridis', alpha=0.4)
     plt.title("Relative Adaptiveness (W vectors) of Genomes", fontsize=20, loc='center', wrap=True)
-    plt.xlabel(f"PC1 ({explained_variance_ratio[0]})", fontsize=15)
-    plt.ylabel(f"PC2 ({explained_variance_ratio[1]})", fontsize=15)
+    plt.xlabel(f"PC1 ({explained_variance_ratio[0]:.1f}%)", fontsize=15)
+    plt.ylabel(f"PC2 ({explained_variance_ratio[1]:.1f}%)", fontsize=15)
 
     cluster_legend = []
     for cluster in range(n_clusters):
@@ -131,7 +131,7 @@ def visualize_Ws_with_PCA(W_vectors, output_dir, logger):
 
     # Save plot to output_dir
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, 'Relative_Adaptiveness_scatter_plot.png'))
+    plt.savefig(os.path.join(output_dir, 'Relative_Adaptiveness_scatter_plot.png'), dpi=600)
     plt.close()
 
     # Save point labels and coordinates to file
@@ -172,7 +172,7 @@ def plot_CAI_histogram(ogs_cai_info_df, output_dir):
     plt.axis('auto')
     plt.hist(ogs_cai_info_df["CAI_mean"], bins=30)
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, 'CAI_Histogram.png'))
+    plt.savefig(os.path.join(output_dir, 'CAI_Histogram.png'), dpi=600)
     plt.close()
 
 

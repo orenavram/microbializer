@@ -984,7 +984,7 @@ def step_7_orthologs_table_variations(args, logger, times_logger, error_file_pat
         plt.xlabel('OG size (number of genomes)', fontsize=15)
         plt.ylabel('Count', fontsize=15)
         plt.tight_layout()
-        plt.savefig(os.path.join(group_sizes_path, 'groups_sizes.png'))
+        plt.savefig(os.path.join(group_sizes_path, 'groups_sizes.png'), dpi=600)
         plt.clf()
 
         add_results_to_final_dir(logger, group_sizes_path, final_output_dir,

@@ -39,7 +39,7 @@ def aggregate_ani_results(ani_tmp_files, ani_output_dir):
         sns.clustermap(ani_values_df, cmap='Blues')
 
     plt.tight_layout()
-    plt.savefig(os.path.join(ani_output_dir, 'ani_clustermap.png'))
+    plt.savefig(os.path.join(ani_output_dir, 'ani_clustermap.png'), dpi=600)
     plt.clf()
 
     # Iterate over rows and find max value ignoring diagonal
@@ -174,6 +174,6 @@ def plot_genomes_histogram(data, output_dir, output_file_name, title, xlabel):
     plt.ylabel('Genomes count', fontsize=15)
     plt.gca().yaxis.set_major_locator(MaxNLocator(integer=True))  # make y-axis integer
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, f'{output_file_name}.png'))
+    plt.savefig(os.path.join(output_dir, f'{output_file_name}.png'), dpi=600)
 
     plt.clf()
