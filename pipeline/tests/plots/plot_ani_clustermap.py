@@ -21,11 +21,11 @@ def run(
     cbar_pos: tuple[float, float, float, float] = (0.02, 0.8, 0.05, 0.18),
 ) -> None:
     # Read ANI matrix
-    all_values = itertools.chain.from_iterable(ani_df.values.tolist())
+    all_values = itertools.chain.from_iterable(ani_df.values)
     min_ani = min(filter(lambda v: v != 0, all_values))
 
     # Hierarchical clustering ANI matrix
-    linkage = hc.linkage(ani_df, method="average")
+    linkage = hc.linkage(ani_df.values, method="average")
 
     # Draw ANI clustermap
     cmap_colors = ["lime", "yellow", "red"] if cmap_colors is None else cmap_colors
@@ -54,16 +54,14 @@ def run(
             "label": "ANI (%)",
             "orientation": "vertical",
             "spacing": "proportional"
-            # "extend": "min",
-            # "extendfrac": 0.1,
         },
         tree_kws={"linewidths": 1.5},
     )
 
     # Output ANI clustermap figure
     ani_clustermap_file = outdir / "ANIclustermap.png"
-    plt.savefig(ani_clustermap_file)
-    plt.savefig(ani_clustermap_file.with_suffix(".svg"))
+    plt.savefig(ani_clustermap_file, dpi=600)
+    plt.savefig(ani_clustermap_file.with_suffix(".svg"), dpi=600)
     plt.close()
 
 
@@ -71,6 +69,6 @@ if __name__ == "__main__":
     ani_df = pd.read_csv(Path("ani_pairwise_values.csv"), index_col='query')
     ani_df.index.name = "Genome"
     ani_df.drop(columns=['max_value', 'max_column'], inplace=True)
-    df_large = pd.DataFrame(np.tile(ani_df.values, (3, 3)), columns=list(ani_df.columns) * 3, index=list(ani_df.index) * 3)
+    df_large = pd.DataFrame(ani_df.values, columns=list(ani_df.columns), index=list(ani_df.index))
     # ani_df = ani_df.iloc[:2, :2]
     run(df_large, Path.cwd())

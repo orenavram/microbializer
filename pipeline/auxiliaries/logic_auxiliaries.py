@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+import itertools
+from pathlib import Path
 import os
 import re
 import json
@@ -7,6 +11,9 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 import seaborn as sns
 import numpy as np
+import scipy.cluster.hierarchy as hc
+from matplotlib.colors import LinearSegmentedColormap
+from seaborn.matrix import ClusterGrid
 
 from . import consts
 
@@ -26,21 +33,7 @@ def aggregate_ani_results(ani_tmp_files, ani_output_dir):
     combined_df = pd.concat(all_dfs, ignore_index=True)
     ani_values_df = combined_df.pivot_table(index='query', columns='subject', values='ani_value')
 
-    num_of_genomes = len(all_dfs)
-    sns.set_context('paper', font_scale=1.4)
-    if num_of_genomes <= 10:
-        plt.subplots(figsize=(12, 10))
-        sns.clustermap(ani_values_df, annot=True, fmt='.1f', cmap='Blues')
-    elif num_of_genomes <= 20:
-        plt.subplots(figsize=(26, 20))
-        sns.clustermap(ani_values_df, cmap='Blues')
-    else:
-        plt.subplots(figsize=(53, 40))
-        sns.clustermap(ani_values_df, cmap='Blues')
-
-    plt.tight_layout()
-    plt.savefig(os.path.join(ani_output_dir, 'ani_clustermap.png'), dpi=600)
-    plt.clf()
+    plot_ani_clustermap(ani_values_df, Path(ani_output_dir))
 
     # Iterate over rows and find max value ignoring diagonal
     max_values = []
@@ -177,3 +170,55 @@ def plot_genomes_histogram(data, output_dir, output_file_name, title, xlabel):
     plt.savefig(os.path.join(output_dir, f'{output_file_name}.png'), dpi=600)
 
     plt.clf()
+
+
+def plot_ani_clustermap(
+    ani_df: pd.DataFrame,
+    outdir: Path,
+    dendrogram_ratio: float = 0.15,
+    cmap_colors: list[str] | None = None,
+    cmap_gamma: float = 1.0,
+    cbar_pos: tuple[float, float, float, float] = (0.02, 0.8, 0.05, 0.18),
+) -> None:
+    all_values = itertools.chain.from_iterable(ani_df.values)
+    min_ani = min(filter(lambda v: v != 0, all_values))
+
+    # Hierarchical clustering ANI matrix
+    linkage = hc.linkage(ani_df.values, method="average")
+
+    # Draw ANI clustermap
+    cmap_colors = ["lime", "yellow", "red"] if cmap_colors is None else cmap_colors
+    mycmap = LinearSegmentedColormap.from_list(
+        "mycmap", colors=cmap_colors, gamma=cmap_gamma
+    )
+    mycmap.set_under("lightgrey")
+
+    g: ClusterGrid = sns.clustermap(
+        data=np.floor(ani_df * 10) / 10,
+        # method="average",
+        col_linkage=linkage,
+        row_linkage=linkage,
+        figsize=(max(len(ani_df) / 5, 10), max(len(ani_df) / 5, 10)),
+        annot=len(ani_df) <= 10,
+        fmt=".3g",
+        cmap=mycmap,
+        dendrogram_ratio=dendrogram_ratio,
+        xticklabels=False,
+        yticklabels=True,
+        vmin=np.floor(min_ani * 10) / 10,
+        vmax=100,
+        cbar=True,
+        cbar_pos=cbar_pos,
+        cbar_kws={
+            "label": "ANI (%)",
+            "orientation": "vertical",
+            "spacing": "proportional"
+        },
+        tree_kws={"linewidths": 1.5},
+    )
+
+    # Output ANI clustermap figure
+    ani_clustermap_file = outdir / "ani_clustermap.png"
+    plt.savefig(ani_clustermap_file, dpi=600)
+    plt.savefig(ani_clustermap_file.with_suffix(".svg"), dpi=600)
+    plt.close()
