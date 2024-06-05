@@ -57,7 +57,7 @@ def get_arguments():
                         help='The species name used to to root the phylogenetic tree, or None to leave unrooted.')
     parser.add_argument('--filter_out_plasmids', action='store_true',
                         help='whether or not to filter out plasmids from the input files')
-    parser.add_argument('--inputs_fastas_type', choices=['genomes', 'orfs'], default='genomes',
+    parser.add_argument('--inputs_fasta_type', choices=['genomes', 'orfs'], default='genomes',
                         help='whether the input files are fastas of orfs and therefore Prodigal is skipped, '
                              'or genomes assemblies and then the first step is ORFs extraction using Prodigal')
     parser.add_argument('--add_orphan_genes_to_ogs', action='store_true',
