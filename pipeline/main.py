@@ -285,7 +285,7 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
     orfs_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
-        if args.inputs_fastas_type == 'genomes':
+        if args.inputs_fasta_type == 'genomes':
             logger.info('Extracting ORFs...')
             all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
             for fasta_file in os.listdir(data_path):
@@ -302,7 +302,7 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
 
             wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                              num_of_batches, error_file_path, email=args.email)
-        else:  # inputs are annotated genomes
+        else:  # inputs are orfs
             logger.info(f'Inputs are already annotated genomes. Skipping step {step_name}.')
             shutil.copytree(data_path, orfs_dir, dirs_exist_ok=True)
             mimic_prodigal_output(orfs_dir, step_name)
