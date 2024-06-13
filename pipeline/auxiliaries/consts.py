@@ -7,7 +7,7 @@ from enum import Enum
 from .flask_interface_consts import *
 
 KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR = True
-USE_TEST_ROOT_DIR = True
+USE_TEST_ROOT_DIR = False
 USE_CONDA = True
 IGNORE_HTML = True
 LOG_IN_SEPARATE_FILES = True
