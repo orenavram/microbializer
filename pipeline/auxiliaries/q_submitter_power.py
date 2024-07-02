@@ -15,6 +15,7 @@ JOB_EXTENSION = '.pbs' if consts.PBS else '.slurm'
 LOGIN_NODE = 'power9login' if consts.PBS else 'powerslurm-login'
 JOB_SUBMITTER = '/opt/pbs/bin/qsub' if consts.PBS else 'sbatch'
 MEMORY_SUFFIX = 'gb' if consts.PBS else 'G'
+CHECK_JOB_DETAILS_COMMAND = 'qstat -f' if consts.PBS else 'seff'
 
 
 def add_qsub_header(qsub_file_content, queue_name, tmp_dir, prefix_name, CPUs, memory=None):
@@ -46,7 +47,7 @@ def add_slurm_header(sbatch_file_content, queue_name, tmp_dir, prefix_name, CPUs
     sbatch_file_content += f'#SBATCH --output={tmp_dir}/{prefix_name}_%j.out\n'
     sbatch_file_content += f'#SBATCH --error={tmp_dir}/{prefix_name}_%j.err\n'
 
-    sbatch_file_content += f'echo Job ID: {consts.JOB_ID_ENVIRONMENT_VARIABLE}\n'
+    sbatch_file_content += f'echo Job ID: ${consts.JOB_ID_ENVIRONMENT_VARIABLE}\n'
     sbatch_file_content += f'echo Running on nodes: $SLURM_JOB_NODELIST\n'
     sbatch_file_content += f'echo Allocated CPUs: $SLURM_JOB_CPUS_PER_NODE\n'
 
@@ -63,6 +64,11 @@ def generate_job_file(logger, queue_name, tmp_dir, cmd, prefix_name, job_path, C
         job_file_content = add_slurm_header(job_file_content, queue_name, tmp_dir, prefix_name, CPUs, memory)
 
     job_file_content += f'{cmd}\n'
+
+    # log the runtime of the job
+    job_log_file_path = f'{tmp_dir}/$(echo ${consts.JOB_NAME_ENVIRONMENT_VARIABLE})_$(echo ${consts.JOB_ID_ENVIRONMENT_VARIABLE})_log.txt'
+    job_file_content += f'{CHECK_JOB_DETAILS_COMMAND} ${consts.JOB_ID_ENVIRONMENT_VARIABLE} | grep -m 1 "{consts.JOB_CPU_TIME_KEY}" >> {job_log_file_path}\n'
+    job_file_content += f'{CHECK_JOB_DETAILS_COMMAND} ${consts.JOB_ID_ENVIRONMENT_VARIABLE} | grep -m 1 "{consts.JOB_WALL_TIME_KEY}" >> {job_log_file_path}\n'
 
     with open(job_path, 'w') as job_fp:  # write the job
         job_fp.write(job_file_content)

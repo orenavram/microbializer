@@ -111,8 +111,8 @@ def wait_for_results(logger, times_logger, script_name, path, num_of_expected_re
 
 def get_jobs_cummulative_time(path):
     log_files = [file_path for file_path in os.listdir(path) if file_path.endswith('log.txt')]
-    pattern_for_cput = re.compile(r'resources_used.cput = (.+)')
-    pattern_for_walltime = re.compile(r'resources_used.walltime = (.+)')
+    pattern_for_cput = re.compile(f'{consts.JOB_CPU_TIME_KEY}(.+)')
+    pattern_for_walltime = re.compile(f'{consts.JOB_WALL_TIME_KEY}(.+)')
 
     cput_sum = timedelta()
     walltime_sum = timedelta()
@@ -182,8 +182,7 @@ def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir,
     :return: an example command to debug on the shell
     """
 
-    job_log_file_path = f'{logs_dir}/$(echo $PBS_JOBNAME)_$(echo $PBS_JOBID)_log.txt'
-    shell_cmds_as_str = f'hostname >> {job_log_file_path}{new_line_delimiter}'
+    shell_cmds_as_str = ''
 
     if not consts.USE_CONDA:
         # COMMAND FOR LOADING RELEVANT MODULES
@@ -222,10 +221,6 @@ def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir,
         params = [os.path.join(logs_dir, job_name + '.done'), '', f'--logs_dir {logs_dir}']  # write an empty string (like "touch" command)
         shell_cmds_as_str += ' '.join(['python', done_files_script_path, *params]) + ';'
         shell_cmds_as_str += new_line_delimiter
-
-    # log the runtime of the job
-    shell_cmds_as_str += f'qstat -f $PBS_JOBID | grep -m 1 "resources_used.cput" >> {job_log_file_path}{new_line_delimiter}'
-    shell_cmds_as_str += f'qstat -f $PBS_JOBID | grep -m 1 "resources_used.walltime" >> {job_log_file_path}{new_line_delimiter}'
 
     if submit_as_a_job:
         # WRITING CMDS FILE
