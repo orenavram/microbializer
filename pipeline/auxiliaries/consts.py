@@ -20,7 +20,7 @@ OWNER_EMAIL = 'yairshimony@mail.tau.ac.il'
 
 # General Job submission consts
 Q_SUBMITTER_ADD_SSH_PREFIX = False
-PBS = True  # if False, assume slurm
+PBS = False  # if False, assume slurm
 JOB_NAME_ENVIRONMENT_VARIABLE = 'PBS_JOBNAME' if PBS else 'SLURM_JOB_NAME'
 JOB_ID_ENVIRONMENT_VARIABLE = 'PBS_JOBID' if PBS else 'SLURM_JOB_ID'
 JOB_FILES_DEBUG_MODE = False
