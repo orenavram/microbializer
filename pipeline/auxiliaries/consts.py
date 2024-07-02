@@ -5,7 +5,6 @@
 import os.path
 from enum import Enum
 
-
 KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR = True
 USE_TEST_ROOT_DIR = True
 USE_CONDA = True
@@ -28,8 +27,8 @@ PHYLOGENY_NUM_OF_CORES = 20
 CODON_BIAS_NUM_OF_CORES = 20
 # mmseqs and fastANI commands work only on machines with enough memory. we solve this either by navigating to a
 # specific queue or by restrict the compute-nodes with memory threshold.
-MMSEQS_REQUIRED_MEMORY = '120gb'
-ANI_REQUIRED_MEMORY = '120gb'
+MMSEQS_REQUIRED_MEMORY_GB = '120'
+ANI_REQUIRED_MEMORY_GB = '120'
 USE_DIFFERENT_QUEUE_FOR_MMSEQS = False
 QUEUE_FOR_MMSEQS_COMMANDS = 'pupkolab'
 

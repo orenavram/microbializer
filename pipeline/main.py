@@ -20,7 +20,7 @@ from auxiliaries.input_verifications import prepare_and_verify_input_data
 from auxiliaries.pipeline_auxiliaries import measure_time, execute, wait_for_results, \
     prepare_directories, fail, submit_mini_batch, submit_batch, notify_admin, add_results_to_final_dir, remove_path
 from auxiliaries.html_editor import edit_success_html, edit_failure_html, edit_progress
-from auxiliaries import consts, flask_interface_consts
+from auxiliaries import consts, flask_interface_consts, cgi_consts
 from auxiliaries.logic_auxiliaries import mimic_prodigal_output, aggregate_ani_results, remove_bootstrap_values, \
     aggregate_mmseqs_scores, max_with_nan, plot_genomes_histogram
 
@@ -158,7 +158,7 @@ def prepare_pipeline_framework(args):
     logger.info(f'run_number is {run_number}')
 
     if not consts.IGNORE_HTML:
-        output_html_path = os.path.join(meta_output_dir, consts.RESULT_WEBPAGE_NAME)
+        output_html_path = os.path.join(meta_output_dir, cgi_consts.RESULT_WEBPAGE_NAME)
         logger.info(f'output_html_path is {output_html_path}')
 
         with open(output_html_path) as f:
@@ -169,10 +169,10 @@ def prepare_pipeline_framework(args):
         with open(output_html_path, 'w') as f:
             f.write(html_content)
 
-        output_url = os.path.join(consts.WEBSERVER_RESULTS_URL, run_number, consts.RESULT_WEBPAGE_NAME)
+        output_url = os.path.join(cgi_consts.WEBSERVER_RESULTS_URL, run_number, cgi_consts.RESULT_WEBPAGE_NAME)
         logger.info(f'output_url is {output_url}')
 
-        meta_output_url = os.path.join(consts.WEBSERVER_RESULTS_URL, run_number)
+        meta_output_url = os.path.join(cgi_consts.WEBSERVER_RESULTS_URL, run_number)
     else:
         output_html_path = ''
         output_url = ''
@@ -253,7 +253,7 @@ def step_1_calculate_ani(args, logger, times_logger, error_file_path,  output_di
                                                    num_of_cmds_per_job=1,
                                                    job_name_suffix='calculate_ani',
                                                    queue_name=args.queue_name,
-                                                   memory=consts.ANI_REQUIRED_MEMORY)
+                                                   memory=consts.ANI_REQUIRED_MEMORY_GB)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
@@ -326,7 +326,7 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
         except:
             if not missing_orfs:
                 # add msg prefix when a genome without orfs detected for the first time
-                error_msg = f'{consts.WEBSERVER_NAME} could not detect any ORFs in:\n<br> '
+                error_msg = f'{flask_interface_consts.WEBSERVER_NAME} could not detect any ORFs in:\n<br> '
                 missing_orfs = 1
             # add genome-without-orfs name
             error_msg += f'{os.path.splitext(file)[0]}\n<br>'
@@ -489,7 +489,7 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
         mmseqs_memory = None
     else:
         mmseqs_queue_name = args.queue_name
-        mmseqs_memory = consts.MMSEQS_REQUIRED_MEMORY
+        mmseqs_memory = consts.MMSEQS_REQUIRED_MEMORY_GB
 
     # 4a.	mmseqs2_all_vs_all.py
     # Input: (1) 2 input paths for 2 (different) genome files (query and target), g1 and g2
@@ -1478,7 +1478,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
 
 def report_error_in_main_pipeline_to_admin(logger, e, meta_output_dir, error_file_path, run_number, output_html_path,
                                            meta_output_url):
-    error_msg = f'{consts.WEBSERVER_NAME} failed :('
+    error_msg = f'{flask_interface_consts.WEBSERVER_NAME} failed :('
     if os.path.exists(error_file_path):
         with open(error_file_path) as error_f:
             error_txt = error_f.read()
@@ -1508,7 +1508,7 @@ def report_main_pipeline_result_to_user(args, logger, status, total_time, output
     logger.info(f'Sending a notification email to {args.email}')
     try:
         send_email('mxout.tau.ac.il', 'TAU BioSequence <bioSequence@tauex.tau.ac.il>', args.email,
-                   subject=f'{consts.WEBSERVER_NAME} run number {run_number} {status}.', content=msg)
+                   subject=f'{flask_interface_consts.WEBSERVER_NAME} run number {run_number} {status}.', content=msg)
     except:
         logger.error(f'\nFailed sending notification to {args.email}\n')
 
@@ -1913,7 +1913,7 @@ def main(args):
         data_path, number_of_genomes, genomes_names_path = prepare_and_verify_input_data(
             args, logger, meta_output_dir, error_file_path, output_dir)
 
-        final_output_dir_name = f'{consts.WEBSERVER_NAME}_{args.output_dir}'
+        final_output_dir_name = f'{flask_interface_consts.WEBSERVER_NAME}_{args.output_dir}'
         final_output_dir = os.path.join(meta_output_dir, final_output_dir_name)
 
         run_main_pipeline(args, logger, times_logger, error_file_path,

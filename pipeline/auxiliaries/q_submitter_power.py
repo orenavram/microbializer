@@ -14,6 +14,7 @@ from . import consts
 JOB_EXTENSION = '.pbs' if consts.PBS else '.slurm'
 LOGIN_NODE = 'power9login' if consts.PBS else 'powerslurm-login'
 JOB_SUBMITTER = '/opt/pbs/bin/qsub' if consts.PBS else 'sbatch'
+MEMORY_SUFFIX = 'gb' if consts.PBS else 'G'
 
 
 def add_qsub_header(qsub_file_content, queue_name, tmp_dir, prefix_name, CPUs, memory=None):
@@ -21,7 +22,7 @@ def add_qsub_header(qsub_file_content, queue_name, tmp_dir, prefix_name, CPUs, m
     if int(CPUs) > 1:
         qsub_file_content += f'#PBS -l ncpus={CPUs}\n'
     if memory:
-        qsub_file_content += f'#PBS -l mem={memory}\n'
+        qsub_file_content += f'#PBS -l mem={memory}{MEMORY_SUFFIX}\n'
     qsub_file_content += f'#PBS -q {queue_name}@power9\n'
     qsub_file_content += f'#PBS -N {prefix_name}\n'
     qsub_file_content += f'#PBS -e {tmp_dir}\n'  # error log
@@ -41,11 +42,11 @@ def add_slurm_header(sbatch_file_content, queue_name, tmp_dir, prefix_name, CPUs
     sbatch_file_content += f'#SBATCH --ntasks=1\n'
     sbatch_file_content += f'#SBATCH --cpus-per-task={CPUs}\n'
     if memory:
-        sbatch_file_content += f'#SBATCH --mem-per-cpu={memory}\n'
+        sbatch_file_content += f'#SBATCH --mem={memory}{MEMORY_SUFFIX}\n'
     sbatch_file_content += f'#SBATCH --output={tmp_dir}/{prefix_name}_%j.out\n'
     sbatch_file_content += f'#SBATCH --error={tmp_dir}/{prefix_name}_%j.err\n'
 
-    sbatch_file_content += f'echo job_id: {consts.JOB_ID_ENVIRONMENT_VARIABLE}\n'
+    sbatch_file_content += f'echo Job ID: {consts.JOB_ID_ENVIRONMENT_VARIABLE}\n'
     sbatch_file_content += f'echo Running on nodes: $SLURM_JOB_NODELIST\n'
     sbatch_file_content += f'echo Allocated CPUs: $SLURM_JOB_CPUS_PER_NODE\n'
 
