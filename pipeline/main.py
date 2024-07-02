@@ -67,7 +67,7 @@ def get_arguments():
     # choices=['pupkoweb', 'pupkowebr', 'pupkolab', 'pupkolabr', 'pupkotmp', 'pupkotmpr', 'itaym', 'lilach',
     # 'bioseq', 'bental', 'oren.q', 'bioseq20.q'])
     parser.add_argument('-q', '--queue_name', help='The queue to which the job(s) will be submitted to',
-                        default=consts.QUEUE_FOR_JOBS)
+                        default=consts.PBS_QUEUE if consts.PBS else consts.SLURM_PARTITION)
     parser.add_argument('--step_to_complete', help='The final step to execute', default=None,
                         choices=[*PIPELINE_STEPS, None])
     parser.add_argument('--only_calc_ogs', help='Do only the necessary steps to calculate OGs', action='store_true')

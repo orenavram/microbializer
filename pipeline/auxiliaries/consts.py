@@ -4,10 +4,10 @@
 
 import os.path
 from enum import Enum
-from .flask_interface_consts import *
+
 
 KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR = True
-USE_TEST_ROOT_DIR = False
+USE_TEST_ROOT_DIR = True
 USE_CONDA = True
 IGNORE_HTML = True
 LOG_IN_SEPARATE_FILES = True
@@ -16,8 +16,31 @@ PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer' if USE_TEST_ROOT_DI
 CONDA_INSTALLATION_DIR = r'/groups/pupko/yairshimony/miniconda3'
 CONDA_ENVIRONMENT_DIR = r'/groups/pupko/yairshimony/miniconda3/envs/microbializer'
 OWNER_EMAIL = 'yairshimony@mail.tau.ac.il'
-QUEUE_FOR_JOBS = 'power-pupko'
-Q_SUBMITTER_ASSUME_RUN_FROM_POWER9LOGIN = True
+
+
+# General Job submission consts
+Q_SUBMITTER_ADD_SSH_PREFIX = False
+PBS = True  # if False, assume slurm
+JOB_NAME_ENVIRONMENT_VARIABLE = 'PBS_JOBNAME' if PBS else 'SLURM_JOB_NAME'
+JOB_ID_ENVIRONMENT_VARIABLE = 'PBS_JOBID' if PBS else 'SLURM_JOB_ID'
+JOB_FILES_DEBUG_MODE = False
+PHYLOGENY_NUM_OF_CORES = 20
+CODON_BIAS_NUM_OF_CORES = 20
+# mmseqs and fastANI commands work only on machines with enough memory. we solve this either by navigating to a
+# specific queue or by restrict the compute-nodes with memory threshold.
+MMSEQS_REQUIRED_MEMORY = '120gb'
+ANI_REQUIRED_MEMORY = '120gb'
+USE_DIFFERENT_QUEUE_FOR_MMSEQS = False
+QUEUE_FOR_MMSEQS_COMMANDS = 'pupkolab'
+
+# PBS consts
+PBS_QUEUE = 'power-pupko'
+
+# Slurm consts
+SLURM_ACCOUNT = 'power-general-users'
+SLURM_PARTITION = 'power-general'
+
+
 HEGS_ECOLI_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'HEG_ecoli.txt')
 BACTERIA_CORE_GENES_HMM_PROFILES_PATH = '/groups/pupko/naamawagner/Microbializer/Busco/hmms'
 MAX_NUMBER_OF_GENOMES_TO_ANALYZE = 350
@@ -32,23 +55,12 @@ class SimilarityScore(Enum):
 
 SIMILARITY_SCORE_CRITERION = SimilarityScore.BITS
 
-ANI_REQUIRED_MEMORY = '120gb'
-# mmseqs command work only on machines with enough memory. we solve this either by navigating to a specific queue
-# or by restrict the compute-nodes with memory threshold.
-MMSEQS_REQUIRED_MEMORY = '120gb'
-USE_DIFFERENT_QUEUE_FOR_MMSEQS = False
-QUEUE_FOR_MMSEQS_COMMANDS = 'pupkolab'
-PHYLOGENY_NUM_OF_CORES = 20
-CODON_BIAS_NUM_OF_CORES = 20
-
 BLAST_OUTPUT_HEADER = ['query', 'subject', 'identity_percent', 'alignment_length', 'mismatches', 'gap_openings',
                         'query_start', 'query_end', 'subject_start', 'subject_end', 'evalue', 'bit_score']
 MMSEQS_OUTPUT_FORMAT = 'query,target,fident,alnlen,mismatch,gapopen,qstart,qend,qlen,qcov,tstart,tend,tlen,tcov,evalue,bits'
 MMSEQS_OUTPUT_HEADER = MMSEQS_OUTPUT_FORMAT.split(',')
 
 # logging consts
-JOB_NAME_ENVIRONMENT_VARIABLE = 'PBS_JOBNAME'
-JOB_ID_ENVIRONMENT_VARIABLE = 'PBS_JOBID'
 LOG_MESSAGE_FORMAT = '%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(message)s'
 
 # constants to use when sending e-mails using the server admin's email address.
@@ -56,10 +68,6 @@ ADMIN_EMAIL = 'TAU BioSequence <bioSequence@tauex.tau.ac.il>'
 SMTP_SERVER = 'mxout.tau.ac.il'
 
 # general vars
-SERVERS_RESULTS_DIR = '/bioseq/data/results'
-SERVERS_LOGS_DIR = '/bioseq/data/logs'
-RELOAD_INTERVAL = 5
-RELOAD_TAGS = f'<META HTTP-EQUIV="REFRESH" CONTENT="{RELOAD_INTERVAL}"/>'
 CSV_DELIMITER = ','
 
 # relevant modules
@@ -70,34 +78,3 @@ RAXML = 'raXML'
 PRODIGAL = 'prodigal/prodigal-2.6.3'
 MMSEQS = 'MMseqs2/June2020'
 
-WEBSERVER_URL = 'https://microbializer.tau.ac.il'
-WEBSERVER_TITLE = 'A web server for analyzing bacterial genomics data. Easily.'
-
-WEBSERVER_RESULTS_DIR = os.path.join(SERVERS_RESULTS_DIR, 'microbializer')
-WEBSERVER_LOGS_DIR = os.path.join(SERVERS_LOGS_DIR, 'microbializer')
-WEBSERVER_HTML_DIR = '/data/www/html/microbializer'
-
-WEBSERVER_RESULTS_URL = os.path.join(WEBSERVER_URL, 'results')
-
-Q_SUBMITTER_PATH = os.path.join(PROJECT_ROOT_DIR, 'pipeline/auxiliaries/q_submitter_power.py')
-MAIN_SCRIPT = '/bioseq/microbializer/pipeline/main.py'
-SUBMISSIONS_LOG = '/bioseq/microbializer/submissions_log.txt'
-EMAIL_FILE_NAME = 'email.txt'
-CGI_DEBUG_FILE_NAME = 'cgi_debug.txt'
-RESULT_WEBPAGE_NAME = 'result.html'
-EXAMPLE_DATA_FILE_NAME = 'example_data.zip'
-
-# path to example data
-EXAMPLE_DATA = os.path.join(WEBSERVER_HTML_DIR, EXAMPLE_DATA_FILE_NAME)
-
-WEBSERVER_JUMBOTRON = f'&nbsp;&nbsp;&nbsp;&nbsp;<span id="server-title">{WEBSERVER_NAME}</span>&nbsp;&nbsp;&nbsp;&nbsp;<span id="sub-title">{WEBSERVER_TITLE}</span>'
-
-PROGRESS_BAR_TAG = '''<div class="progress">
-        <div class="progress-bar progress-bar-striped" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width:0%">
-ORFs detection ; Searching homologs ; Clustering homologs ; Aligning homologs ; Core proteome inferrence ; Tree reconstruction ; Additional statistics
-        </div>
-    </div>'''
-
-CONTAINER_WIDTH = 'width: 850px'
-CONTAINER_NO_MARGIN = 'margin: 0 auto'
-CONTAINER_STYLE = f'{CONTAINER_WIDTH}; {CONTAINER_NO_MARGIN}'

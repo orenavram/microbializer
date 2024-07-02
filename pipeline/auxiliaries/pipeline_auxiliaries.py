@@ -244,7 +244,7 @@ def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir,
 
 def submit_batch(logger, script_path, batch_parameters_list, logs_dir, job_name_suffix='', queue_name='pupkolabr',
                  num_of_cmds_per_job=1, new_line_delimiter='!@#', required_modules_as_list=None, num_of_cpus=1,
-                 memory=None, q_submitter_script_path=consts.Q_SUBMITTER_PATH):
+                 memory=None):
     """
     :param script_path:
     :param batch_parameters_list: a list of lists. each sublist corresponds to a single command and contain its parameters
@@ -252,7 +252,6 @@ def submit_batch(logger, script_path, batch_parameters_list, logs_dir, job_name_
     :param job_name_suffix: a string that will be concatenated after the batch number as the job name
     :param queue_name:
     :param num_of_cmds_per_job:
-    :param q_submitter_script_path: leave it as is
     :param new_line_delimiter: leave it as is
     :param required_modules_as_list: a list of strings containing module names that should be loaded before running
     :param num_of_cpus:
