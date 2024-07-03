@@ -109,35 +109,54 @@ def wait_for_results(logger, times_logger, script_name, path, num_of_expected_re
     assert not os.path.exists(error_file_path)
 
 
+def get_job_time_from_log_file(log_file_content, pattern_for_runtime):
+    runtime_string_match = pattern_for_runtime.search(log_file_content)
+    if not runtime_string_match:
+        return None
+
+    runtime_string = runtime_string_match.group(1)
+
+    if consts.PBS:
+        # In PBS the hours might represent a value greater than 24 hours.
+        hours, minutes, seconds = map(float, runtime_string.split(':'))
+        runtime = timedelta(hours=hours, minutes=minutes, seconds=seconds)
+    else:  # slurm
+        if '-' in runtime_string:
+            days, time = runtime_string.split('-')
+        else:
+            days = 0
+            time = runtime_string
+        hours, minutes, seconds = map(float, time.split(':'))
+        runtime = timedelta(days=int(days), hours=hours, minutes=minutes, seconds=seconds)
+
+    return runtime
+
+
 def get_jobs_cummulative_time(path):
     log_files = [file_path for file_path in os.listdir(path) if file_path.endswith('log.txt')]
     pattern_for_cput = re.compile(f'{consts.JOB_CPU_TIME_KEY}(.+)')
-    pattern_for_walltime = re.compile(f'{consts.JOB_WALL_TIME_KEY}(.+)')
+    pattern_for_walltime = re.compile(f'{consts.JOB_WALL_TIME_KEY}(.+)') if consts.PBS else re.compile(
+        f'{consts.JOB_WALL_TIME_KEY}(.+) TimeLimit')
 
-    cput_sum = timedelta()
+    cput_sum = timedelta() if consts.PBS else None # Only in PBS I found a way to the get the job's cpu runtime from within the job (in the compute node)
     walltime_sum = timedelta()
     log_files_without_times = []
     for log_file_name in log_files:
         log_file_full_path = os.path.join(path, log_file_name)
         with open(log_file_full_path, 'r') as log_file:
             content = log_file.read()
-            cput_string_match = pattern_for_cput.search(content)
-            if not cput_string_match:
-                log_files_without_times.append(log_file_full_path)
-                continue
-            cput_string = cput_string_match.group(1)
-            # I used manual parsing instead of datetime.strptime because the string might represent a value greater than 24 hours.
-            cput_hours, cput_minutes, cput_seconds = map(float, cput_string.split(':'))
-            cput = timedelta(hours=cput_hours, minutes=cput_minutes, seconds=cput_seconds)
-            cput_sum += cput
 
-            walltime_string_match = pattern_for_walltime.search(content)
-            if not walltime_string_match:
+            if consts.PBS:
+                cput = get_job_time_from_log_file(content, pattern_for_cput)
+                if cput is None:
+                    log_files_without_times.append(log_file_full_path)
+                    continue
+                cput_sum += cput
+
+            walltime = get_job_time_from_log_file(content, pattern_for_walltime)
+            if walltime is None:
                 log_files_without_times.append(log_file_full_path)
                 continue
-            walltime_string = walltime_string_match.group(1)
-            walltime_hours, walltime_minutes, walltime_seconds = map(float, walltime_string.split(':'))
-            walltime = timedelta(hours=walltime_hours, minutes=walltime_minutes, seconds=walltime_seconds)
             walltime_sum += walltime
 
     return cput_sum, walltime_sum, log_files_without_times

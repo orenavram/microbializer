@@ -15,7 +15,7 @@ JOB_EXTENSION = '.pbs' if consts.PBS else '.slurm'
 LOGIN_NODE = 'power9login' if consts.PBS else 'powerslurm-login'
 JOB_SUBMITTER = '/opt/pbs/bin/qsub' if consts.PBS else 'sbatch'
 MEMORY_SUFFIX = 'gb' if consts.PBS else 'G'
-CHECK_JOB_DETAILS_COMMAND = 'qstat -f' if consts.PBS else 'seff'
+CHECK_JOB_DETAILS_COMMAND = 'qstat -f' if consts.PBS else 'scontrol show job'
 
 
 def add_qsub_header(qsub_file_content, queue_name, tmp_dir, prefix_name, CPUs, memory=None):
@@ -67,7 +67,8 @@ def generate_job_file(logger, queue_name, tmp_dir, cmd, prefix_name, job_path, C
 
     # log the runtime of the job
     job_log_file_path = f'{tmp_dir}/$(echo ${consts.JOB_NAME_ENVIRONMENT_VARIABLE})_$(echo ${consts.JOB_ID_ENVIRONMENT_VARIABLE})_log.txt'
-    job_file_content += f'{CHECK_JOB_DETAILS_COMMAND} ${consts.JOB_ID_ENVIRONMENT_VARIABLE} | grep -m 1 "{consts.JOB_CPU_TIME_KEY}" >> {job_log_file_path}\n'
+    if consts.PBS:  # Only in PBS I found a way to the get the job's cpu runtime from within the job (in the compute node)
+        job_file_content += f'{CHECK_JOB_DETAILS_COMMAND} ${consts.JOB_ID_ENVIRONMENT_VARIABLE} | grep -m 1 "{consts.JOB_CPU_TIME_KEY}" >> {job_log_file_path}\n'
     job_file_content += f'{CHECK_JOB_DETAILS_COMMAND} ${consts.JOB_ID_ENVIRONMENT_VARIABLE} | grep -m 1 "{consts.JOB_WALL_TIME_KEY}" >> {job_log_file_path}\n'
 
     with open(job_path, 'w') as job_fp:  # write the job

@@ -32,6 +32,7 @@ def aggregate_ani_results(ani_tmp_files, ani_output_dir):
 
     combined_df = pd.concat(all_dfs, ignore_index=True)
     ani_values_df = combined_df.pivot_table(index='query', columns='subject', values='ani_value')
+    ani_values_df.to_csv(os.path.join(ani_tmp_files, 'ani_pairwise_values.csv'))
 
     plot_ani_clustermap(ani_values_df, Path(ani_output_dir))
 
