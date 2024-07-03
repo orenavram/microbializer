@@ -24,9 +24,6 @@ def run(
     all_values = itertools.chain.from_iterable(ani_df.values)
     min_ani = min(filter(lambda v: v != 0, all_values))
 
-    # Hierarchical clustering ANI matrix
-    linkage = hc.linkage(ani_df.values, method="average")
-
     # Draw ANI clustermap
     cmap_colors = ["lime", "yellow", "red"] if cmap_colors is None else cmap_colors
     mycmap = LinearSegmentedColormap.from_list(
@@ -34,9 +31,33 @@ def run(
     )
     mycmap.set_under("lightgrey")
 
+    fig, ax = plt.subplots(figsize=(max(len(ani_df) / 5, 10), max(len(ani_df) / 5, 10)))
+    sns.heatmap(
+        data=np.floor(ani_df * 10) / 10,
+        annot=len(ani_df) <= 10,
+        fmt=".3g",
+        cmap=mycmap,
+        xticklabels=False,
+        yticklabels=True,
+        vmin=np.floor(min_ani * 10) / 10,
+        vmax=100,
+        cbar=True,
+        cbar_kws={
+            "label": "ANI (%)",
+            "orientation": "vertical",
+            "spacing": "proportional"
+        },
+        ax=ax
+    )
+    plt.savefig(outdir / "heatmap.png", dpi=600)
+    plt.close()
+    return
+    # Hierarchical clustering ANI matrix
+    linkage = hc.linkage(ani_df.values, method="average")
+
+    # Hierarchical clustering ANI matrix
     g: ClusterGrid = sns.clustermap(
         data=np.floor(ani_df * 10) / 10,
-        # method="average",
         col_linkage=linkage,
         row_linkage=linkage,
         figsize=(max(len(ani_df) / 5, 10), max(len(ani_df) / 5, 10)),
@@ -68,7 +89,8 @@ def run(
 if __name__ == "__main__":
     ani_df = pd.read_csv(Path("ani_pairwise_values.csv"), index_col='query')
     ani_df.index.name = "Genome"
-    ani_df.drop(columns=['max_value', 'max_column'], inplace=True)
+    if 'max_value' in ani_df.columns:
+        ani_df.drop(columns=['max_value', 'max_column'], inplace=True)
     df_large = pd.DataFrame(ani_df.values, columns=list(ani_df.columns), index=list(ani_df.index))
     # ani_df = ani_df.iloc[:2, :2]
     run(df_large, Path.cwd())

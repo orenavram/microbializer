@@ -184,42 +184,60 @@ def plot_ani_clustermap(
     all_values = itertools.chain.from_iterable(ani_df.values)
     min_ani = min(filter(lambda v: v != 0, all_values))
 
-    # Hierarchical clustering ANI matrix
-    linkage = hc.linkage(ani_df.values, method="average")
-
-    # Draw ANI clustermap
     cmap_colors = ["lime", "yellow", "red"] if cmap_colors is None else cmap_colors
     mycmap = LinearSegmentedColormap.from_list(
         "mycmap", colors=cmap_colors, gamma=cmap_gamma
     )
     mycmap.set_under("lightgrey")
 
-    g: ClusterGrid = sns.clustermap(
-        data=np.floor(ani_df * 10) / 10,
-        # method="average",
-        col_linkage=linkage,
-        row_linkage=linkage,
-        figsize=(max(len(ani_df) / 5, 10), max(len(ani_df) / 5, 10)),
-        annot=len(ani_df) <= 10,
-        fmt=".3g",
-        cmap=mycmap,
-        dendrogram_ratio=dendrogram_ratio,
-        xticklabels=False,
-        yticklabels=True,
-        vmin=np.floor(min_ani * 10) / 10,
-        vmax=100,
-        cbar=True,
-        cbar_pos=cbar_pos,
-        cbar_kws={
-            "label": "ANI (%)",
-            "orientation": "vertical",
-            "spacing": "proportional"
-        },
-        tree_kws={"linewidths": 1.5},
-    )
+    if ani_df.isnull().values.any():
+        # Plot heatmap, since clustermap isn't possible with NaN values
+        fig, ax = plt.subplots(figsize=(max(len(ani_df) / 5, 10), max(len(ani_df) / 5, 10)))
+        sns.heatmap(
+            data=np.floor(ani_df * 10) / 10,
+            annot=len(ani_df) <= 10,
+            fmt=".3g",
+            cmap=mycmap,
+            xticklabels=False,
+            yticklabels=True,
+            vmin=np.floor(min_ani * 10) / 10,
+            vmax=100,
+            cbar=True,
+            cbar_kws={
+                "label": "ANI (%)",
+                "orientation": "vertical",
+                "spacing": "proportional"
+            },
+            ax=ax
+        )
+    else:
+        # Hierarchical clustering ANI matrix
+        linkage = hc.linkage(ani_df.values, method="average")
+
+        g: ClusterGrid = sns.clustermap(
+            data=np.floor(ani_df * 10) / 10,
+            # method="average",
+            col_linkage=linkage,
+            row_linkage=linkage,
+            figsize=(max(len(ani_df) / 5, 10), max(len(ani_df) / 5, 10)),
+            annot=len(ani_df) <= 10,
+            fmt=".3g",
+            cmap=mycmap,
+            dendrogram_ratio=dendrogram_ratio,
+            xticklabels=False,
+            yticklabels=True,
+            vmin=np.floor(min_ani * 10) / 10,
+            vmax=100,
+            cbar=True,
+            cbar_pos=cbar_pos,
+            cbar_kws={
+                "label": "ANI (%)",
+                "orientation": "vertical",
+                "spacing": "proportional"
+            },
+            tree_kws={"linewidths": 1.5},
+        )
 
     # Output ANI clustermap figure
-    ani_clustermap_file = outdir / "ani_clustermap.png"
-    plt.savefig(ani_clustermap_file, dpi=600)
-    plt.savefig(ani_clustermap_file.with_suffix(".svg"), dpi=600)
+    plt.savefig(outdir / "ani_clustermap.png", dpi=600)
     plt.close()
