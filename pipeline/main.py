@@ -511,7 +511,6 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
                 strain1_name = os.path.splitext(fasta1)[0]
                 strain2_name = os.path.splitext(fasta2)[0]
 
-                logger.info(f'Querying {strain1_name} against {strain2_name}')
                 output_file_name = f'{strain1_name}_vs_{strain2_name}.m8'
                 output_file_path = os.path.join(orthologs_output_dir, output_file_name)
 
@@ -555,13 +554,17 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
 
         max_score_per_gene = {strain: pd.Series() for strain in strains_names}  # {'strain1': {'strain1:gene1': 100, 'strain1:gene2': 200, ... }, 'strain2': ... }
         for rbh_hits_file in os.listdir(orthologs_output_dir):
-            rbh_hits_df = pd.read_csv(os.path.join(orthologs_output_dir, rbh_hits_file), sep='\t')
-            query_vs_reference_file_name = os.path.splitext(rbh_hits_file)[0]
-            query_strain, target_strain = query_vs_reference_file_name.split('_vs_')
-            queries_max_score = rbh_hits_df.groupby(['query']).max(numeric_only=True)['score']
-            targets_max_score = rbh_hits_df.groupby(['target']).max(numeric_only=True)['score']
-            max_score_per_gene[query_strain] = max_score_per_gene[query_strain].combine(queries_max_score, max_with_nan)
-            max_score_per_gene[target_strain] = max_score_per_gene[target_strain].combine(targets_max_score, max_with_nan)
+            try:
+                rbh_hits_df = pd.read_csv(os.path.join(orthologs_output_dir, rbh_hits_file), sep='\t')
+                query_vs_reference_file_name = os.path.splitext(rbh_hits_file)[0]
+                query_strain, target_strain = query_vs_reference_file_name.split('_vs_')
+                queries_max_score = rbh_hits_df.groupby(['query']).max(numeric_only=True)['score']
+                targets_max_score = rbh_hits_df.groupby(['target']).max(numeric_only=True)['score']
+                max_score_per_gene[query_strain] = max_score_per_gene[query_strain].combine(queries_max_score, max_with_nan)
+                max_score_per_gene[target_strain] = max_score_per_gene[target_strain].combine(targets_max_score, max_with_nan)
+            except Exception as e:
+                logger.exception(f'Error while processing {rbh_hits_file} in step {max_rbh_scores_step_name}: {e}')
+                raise
 
         for strain, genes_max_score in max_score_per_gene.items():
             genes_max_score.to_csv(os.path.join(max_rbh_scores_output_dir, f'{strain}.{max_rbh_scores_step_name}'), index_label='gene', header=['max_ortholog_score'])

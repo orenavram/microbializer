@@ -35,25 +35,31 @@ def clean_seq_records(records):
     """
     Remove all non-complete codons from the records (e.g. NGT)
     """
+    records_were_cleaned = False
+
     for record in records:
         clean_seq = ''
         for i in range(0, len(record.seq), 3):
             codon = record.seq[i: i + 3]
-            if re.compile(r'^[ATGC]*$', re.IGNORECASE).match(str(codon)):
+            if re.compile(r'^[ATGC][ATGC][ATGC]$', re.IGNORECASE).match(str(codon)):
                 clean_seq += codon
+        if record.seq != clean_seq:
+            records_were_cleaned = True
         record.seq = clean_seq
 
+    return records_were_cleaned
 
-def find_HEGs_in_orf_file(ORFs_file, genome_name, tmp_dir, logger):
+
+def find_HEGs_in_orf_file(ORFs_file, genome_name, hegs_output_dir, logger):
     # Create blast db from ORF file
-    db_dir = os.path.join(tmp_dir, f'{genome_name}_db')
+    db_dir = os.path.join(hegs_output_dir, f'{genome_name}_db')
     db_name = os.path.join(db_dir, genome_name + '.db')
     cmd = f'makeblastdb -in {ORFs_file} -out {db_name} -dbtype nucl'
     logger.info('Making blastdb with command: \n' + cmd)
     subprocess.run(cmd, shell=True)
 
     # Query blast db with ecoli HEGs reference file
-    hegs_hits_file = os.path.join(tmp_dir, genome_name + '_HEG_hits.tsv')
+    hegs_hits_file = os.path.join(hegs_output_dir, genome_name + '_HEG_hits.tsv')
     cmd = f'tblastn -db {db_name} -query {consts.HEGS_ECOLI_FILE_PATH} -out {hegs_hits_file} -outfmt 6 ' \
           f'-max_target_seqs {MAX_HITS_TO_KEEP_FOR_EACH_REFERENCE_HEG}'
     logger.info("Finding Hits with command: \n" + cmd)
@@ -70,18 +76,21 @@ def find_HEGs_in_orf_file(ORFs_file, genome_name, tmp_dir, logger):
     return hegs_names
 
 
-def get_W(ORFs_file, tmp_dir, logger):
+def get_W(ORFs_file, hegs_output_dir, logger):
     logger.info("Getting HEGs from the ORFs file: " + str(ORFs_file))
 
     genome_name = os.path.splitext(os.path.basename(ORFs_file))[0]
 
     # Identify HEGs in the ORFs file
-    HEGs_names = find_HEGs_in_orf_file(ORFs_file, genome_name, tmp_dir, logger)
+    HEGs_names = find_HEGs_in_orf_file(ORFs_file, genome_name, hegs_output_dir, logger)
     HEGs_records = [record for record in SeqIO.parse(ORFs_file, "fasta") if record.id in HEGs_names]
-    SeqIO.write(HEGs_records, os.path.join(tmp_dir, genome_name + "_HEGs.fa"), "fasta")  # Write HEGs to a file for logging and debugging
+    SeqIO.write(HEGs_records, os.path.join(hegs_output_dir, genome_name + "_HEGs.fa"), "fasta")  # Write HEGs to a file for logging and debugging
 
     # Find genome codon index of HEGs
-    clean_seq_records(HEGs_records)
+    records_were_cleaned = clean_seq_records(HEGs_records)
+    if records_were_cleaned:
+        logger.warning(f'Non-complete or illegal codons were found in the ORFs of {genome_name}. They were removed.')
+        SeqIO.write(HEGs_records, os.path.join(hegs_output_dir, genome_name + "_HEGs_cleaned.fa"), "fasta")  # Write cleaned HEGs to a file for logging and debugging
     genome_codon_index = CodonAdaptationIndex(HEGs_records)
 
     return genome_name, genome_codon_index
@@ -178,8 +187,10 @@ def plot_CAI_histogram(ogs_cai_info_df, output_dir):
 
 def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, cpus, logger):
     # 1. Calculate W vector for each genome
+    hegs_output_dir = os.path.join(tmp_dir, 'HEGs')
+    os.makedirs(hegs_output_dir, exist_ok=True)
     with Pool(processes=cpus) as pool:
-        params = [(os.path.join(ORF_dir, orf_file), tmp_dir, logger) for orf_file in os.listdir(ORF_dir)]
+        params = [(os.path.join(ORF_dir, orf_file), hegs_output_dir, logger) for orf_file in os.listdir(ORF_dir)]
         genomes_codon_indexes = pool.starmap(get_W, params)
 
     genomes_codon_indexes = dict(genomes_codon_indexes)
