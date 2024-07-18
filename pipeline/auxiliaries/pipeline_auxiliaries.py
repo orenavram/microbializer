@@ -181,7 +181,7 @@ def fail(logger, error_msg, error_file_path):
     raise ValueError(error_msg)
 
 
-def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir, queue_name, job_name='',
+def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir, queue_name, account_name=None, job_name='',
                       new_line_delimiter='!@#', verbose=False, required_modules_as_list=None, num_of_cpus=1,
                       memory=None, submit_as_a_job=True, done_file_is_needed=True,
                       done_files_script_path=os.path.join(consts.PROJECT_ROOT_DIR, 'pipeline/auxiliaries/file_writer.py'),
@@ -247,7 +247,7 @@ def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir,
         with open(cmds_path, 'w') as f:
             f.write(f'{shell_cmds_as_str}\t{job_name}\n')  # ADDING THE JOB NAME
 
-        submit_cmds_from_file_to_q(logger, cmds_path, logs_dir, queue_name, str(num_of_cpus), new_line_delimiter, memory)
+        submit_cmds_from_file_to_q(logger, cmds_path, logs_dir, queue_name, str(num_of_cpus), account_name, new_line_delimiter, memory)
     else:
         # fetch directly on shell
         for shell_cmd in shell_cmds_as_str.split(new_line_delimiter):
@@ -256,7 +256,7 @@ def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir,
     return example_shell_cmd
 
 
-def submit_batch(logger, script_path, batch_parameters_list, logs_dir, job_name_suffix='', queue_name='pupkolabr',
+def submit_batch(logger, script_path, batch_parameters_list, logs_dir, job_name_suffix='', queue_name='pupkolabr', account_name=None,
                  num_of_cmds_per_job=1, new_line_delimiter='!@#', required_modules_as_list=None, num_of_cpus=1,
                  memory=None):
     """
@@ -283,7 +283,7 @@ def submit_batch(logger, script_path, batch_parameters_list, logs_dir, job_name_
         mini_batch_parameters_list = batch_parameters_list[i: i + num_of_cmds_per_job]
         mini_batch_job_name = f'{num_of_mini_batches}_{job_name_suffix}'
         example_cmd_from_last_mini_batch = submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir,
-                                                             queue_name, mini_batch_job_name,
+                                                             queue_name, account_name, mini_batch_job_name,
                                                              new_line_delimiter, verbose=False, num_of_cpus=num_of_cpus,
                                                              required_modules_as_list=required_modules_as_list, memory=memory)
         logger.info(f'Example command from batch {mini_batch_job_name}:\n{example_cmd_from_last_mini_batch}')

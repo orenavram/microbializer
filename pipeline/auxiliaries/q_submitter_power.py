@@ -36,9 +36,9 @@ def add_qsub_header(qsub_file_content, queue_name, tmp_dir, prefix_name, CPUs, m
     return qsub_file_content
 
 
-def add_slurm_header(sbatch_file_content, queue_name, tmp_dir, prefix_name, CPUs, memory=None):
+def add_slurm_header(sbatch_file_content, queue_name, tmp_dir, prefix_name, CPUs, account_name, memory=None):
     sbatch_file_content += f'#SBATCH --job-name={prefix_name}\n'
-    sbatch_file_content += f'#SBATCH --account={consts.SLURM_ACCOUNT}\n'
+    sbatch_file_content += f'#SBATCH --account={account_name}\n'
     sbatch_file_content += f'#SBATCH --partition={queue_name}\n'
     sbatch_file_content += f'#SBATCH --ntasks=1\n'
     sbatch_file_content += f'#SBATCH --cpus-per-task={CPUs}\n'
@@ -54,14 +54,14 @@ def add_slurm_header(sbatch_file_content, queue_name, tmp_dir, prefix_name, CPUs
     return sbatch_file_content
 
 
-def generate_job_file(logger, queue_name, tmp_dir, cmd, prefix_name, job_path, CPUs, memory=None):
+def generate_job_file(logger, queue_name, tmp_dir, cmd, prefix_name, job_path, CPUs, account_name=None, memory=None):
     """compose the job file content and fetches it"""
     job_file_content = f'#!/bin/bash {"-x" if consts.JOB_FILES_DEBUG_MODE else ""}\n'  # 'old bash: #!/bin/tcsh -x\n'
 
     if consts.PBS:
         job_file_content = add_qsub_header(job_file_content, queue_name, tmp_dir, prefix_name, CPUs, memory)
     else:  # slurm
-        job_file_content = add_slurm_header(job_file_content, queue_name, tmp_dir, prefix_name, CPUs, memory)
+        job_file_content = add_slurm_header(job_file_content, queue_name, tmp_dir, prefix_name, CPUs, account_name, memory)
 
     job_file_content += f'{cmd}\n'
 
@@ -83,7 +83,7 @@ def generate_job_file(logger, queue_name, tmp_dir, cmd, prefix_name, job_path, C
     logger.debug('#' * 80)
 
 
-def submit_cmds_from_file_to_q(logger, cmds_file, tmp_dir, queue_name, CPUs, dummy_delimiter='!@#', memory=None,
+def submit_cmds_from_file_to_q(logger, cmds_file, tmp_dir, queue_name, CPUs, account_name=None, dummy_delimiter='!@#', memory=None,
                                start=0, end=float('inf'), additional_params=''):
     logger.debug('-> Jobs will be submitted to ' + queue_name + '\'s queue')
     logger.debug('-> out, err and pbs files will be written to:\n' + tmp_dir + '/')
@@ -104,7 +104,7 @@ def submit_cmds_from_file_to_q(logger, cmds_file, tmp_dir, queue_name, CPUs, dum
                 cmd = cmd.replace(dummy_delimiter, '\n')
                 job_path = os.path.join(tmp_dir, prefix_name + JOB_EXTENSION)  # path to job
 
-                generate_job_file(logger, queue_name, tmp_dir, cmd, prefix_name, job_path, CPUs, memory)
+                generate_job_file(logger, queue_name, tmp_dir, cmd, prefix_name, job_path, CPUs, account_name, memory)
 
                 # execute the job
                 # queue_name may contain more arguments, thus the string of the cmd is generated and raw cmd is called
@@ -132,6 +132,7 @@ if __name__ == '__main__':
     parser.add_argument('tmp_dir', help='A temporary directory where the log files will be written to')
     parser.add_argument('-q', '--queue_name', help='The cluster to which the job(s) will be submitted to',
                         default='pupkolab')  # , choices=['pupko', 'itaym', 'lilach', 'bioseq'])
+    parser.add_argument('--account_name', help='The slurm account', default=consts.DEFAULT_SLURM_ACCOUNT)
     parser.add_argument('--cpu', help='How many CPUs will be used?', choices=[str(i) for i in range(1, 29)],
                         default='1')
     parser.add_argument('--memory', help='How much memory is needed')

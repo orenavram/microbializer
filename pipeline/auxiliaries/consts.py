@@ -6,12 +6,12 @@ import os.path
 from enum import Enum
 
 KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR = True
-USE_TEST_ROOT_DIR = True
 USE_CONDA = True
 IGNORE_HTML = True
 LOG_IN_SEPARATE_FILES = True
-PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer' if USE_TEST_ROOT_DIR else \
-    '/groups/pupko/yairshimony/microbializer_prod'
+# PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer'
+# PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer_prod'
+PROJECT_ROOT_DIR = '/lsweb/pupko/microbializer'
 CONDA_INSTALLATION_DIR = r'/groups/pupko/yairshimony/miniconda3'
 CONDA_ENVIRONMENT_DIR = r'/groups/pupko/yairshimony/miniconda3/envs/microbializer'
 OWNER_EMAIL = 'yairshimony@mail.tau.ac.il'
@@ -35,12 +35,11 @@ USE_DIFFERENT_QUEUE_FOR_MMSEQS = False
 QUEUE_FOR_MMSEQS_COMMANDS = 'pupkolab'
 
 # PBS consts
-PBS_QUEUE = 'power-pupko'
+DEFAULT_PBS_QUEUE = 'power-pupko'
 
 # Slurm consts
-SLURM_ACCOUNT = 'power-general-users'
-SLURM_PARTITION = 'power-general'
-
+DEFAULT_SLURM_ACCOUNT = 'power-general-users'
+DEFAULT_SLURM_PARTITION = 'power-general'
 
 HEGS_ECOLI_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'HEG_ecoli.txt')
 BACTERIA_CORE_GENES_HMM_PROFILES_PATH = '/groups/pupko/naamawagner/Microbializer/Busco/hmms'
