@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 import requests
 import os
 
@@ -68,8 +67,8 @@ def submit_job(script_commands, job_name, logs_path, num_cpus, queue, memory, lo
                 "name": job_name,
                 #"account": "< account_name >",
                 "nodes": "1",
-                "allocation_node_list": "compute-0-299",
-                "cpus_per_task": str(num_cpus),
+                # "allocation_node_list": "compute-0-299",
+                "cpus_per_task": int(num_cpus),
                 "memory_per_node": {
                     "number": str(memory),
                     "set": True,
@@ -78,16 +77,16 @@ def submit_job(script_commands, job_name, logs_path, num_cpus, queue, memory, lo
                 # Full path to your error/output file.
                 "standard_output": os.path.join(logs_path, 'output_%j.txt'),
                 "standard_error": os.path.join(logs_path, 'errors_%j.txt'),
-                "current_working_directory": "/tmp/",
+                "current_working_directory": "/groups/pupko/yairshimony/test/test_slurm_api/",
                 # Environment modules (module load) should not be used directly under the script parameter. Instead, set all necessary environment variables under the environment parameter.
                 "environment": [
-                    "PATH=/powerapps/share/rocky8/gcc-13.1.0/bin:/lsweb/pupko/microbializer/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin:", #/a/home/cc/lifesci/microbializer/.pyenv/shims:/a/home/cc/lifesci/microbializer/.pyenv/bin
-                    "LD_LIBRARY_PATH=/lib/:/lib64/:/usr/local/lib:/powerapps/share/rocky8/gcc-13.1.0/lib64:/powerapps/share/rocky8/gcc-13.1.0/lib:/powerapps/src/rocky8/gcc-13.1.0/isl/lib:/powerapps/src/rocky8/gcc-13.1.0/mpfr-4.2.0/lib:/powerapps/src/rocky8/gcc-13.1.0/gmp-6.2.1/lib"
+                    "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin:",
+                    # "PATH=/powerapps/share/rocky8/gcc-13.1.0/bin:/lsweb/pupko/microbializer/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin:", #/a/home/cc/lifesci/microbializer/.pyenv/shims:/a/home/cc/lifesci/microbializer/.pyenv/bin
+                    # "LD_LIBRARY_PATH=/lib/:/lib64/:/usr/local/lib:/powerapps/share/rocky8/gcc-13.1.0/lib64:/powerapps/share/rocky8/gcc-13.1.0/lib:/powerapps/src/rocky8/gcc-13.1.0/isl/lib:/powerapps/src/rocky8/gcc-13.1.0/mpfr-4.2.0/lib:/powerapps/src/rocky8/gcc-13.1.0/gmp-6.2.1/lib"
                 ],
             },
         }
     )
-    
 
     # Processing the job submission result
     jobs_result = jobs_request.json()
@@ -101,8 +100,8 @@ def submit_job(script_commands, job_name, logs_path, num_cpus, queue, memory, lo
     else:
         logger.error(f'failed to submit job {job_name} return from job = {jobs_result}')
 
-import logging
-
-logger = logging.getLogger(__name__)
-
-submit_job("#!/bin/bash\n\nsource /lsweb/pupko/genomefltr/venv/bin/activate\nsleep 5\npython --version", 'test', "/lsweb/pupko/genomefltr/logs/", "1", "pupkoweb", "1", logger)
+# import logging
+#
+# logger = logging.getLogger(__name__)
+#
+# submit_job("#!/bin/bash\n\nsource /lsweb/pupko/genomefltr/venv/bin/activate\nsleep 5\npython --version", 'test', "/lsweb/pupko/genomefltr/logs/", "1", "pupkoweb", "1", logger)

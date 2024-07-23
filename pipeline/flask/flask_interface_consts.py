@@ -57,12 +57,15 @@ MICROBIALIZER_PROCESSOR_JOB_PREFIX = 'MC'
 MICROBIALIZER_PROCESSOR_RESULTS_FILE_NAME = 'results.txt'
 
 
-MICROBIALIZER_JOB_TEMPLATE = '''#!/bin/bash\n\n
+MICROBIALIZER_JOB_TEMPLATE = '''#!/bin/bash
 
 sleep {sleep_interval}
-sleep {sleep_interval}
 
-python "/lsweb/pupko/microbializer/pipeline/main.py" --{args_json_path_key} {args_json_path}
-cat "OKAY" > {results_file_path}
+echo "Job ID: $SLURM_JOB_ID"
+echo "Running on nodes: $SLURM_JOB_NODELIST"
+echo "Allocated CPUs: $SLURM_JOB_CPUS_PER_NODE"
+
+#python "/lsweb/pupko/microbializer/pipeline/main.py" --{args_json_path_key} {args_json_path}
+echo OKAY > {results_file_path}
 
 '''
