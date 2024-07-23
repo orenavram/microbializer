@@ -2,6 +2,8 @@
 import requests
 import os
 
+from .secrets import API_KEY
+
 # Base URL for authentication and token generation
 base_url_auth = 'https://slurmtron.tau.ac.il'
 generate_token_url = f"{base_url_auth}/slurmapi/generate-token/"
@@ -12,7 +14,6 @@ job_url = f'{base_url}/slurm/v0.0.40/job/submit'
 
 # User credentials
 current_user = "microbi"
-api_key = "pWr9yarUpq7gLUR09wWh_VCNf73S7ySThymB49cYEPVRwaOIu1svzMfi1dSzClnMXgA"
 
 
 def get_api_token(username, api_key):
@@ -51,7 +52,7 @@ def submit_job(script_commands, job_name, logs_path, num_cpus, queue, memory, lo
     # Authorization headers with the obtained token
     headers = {
         'X-SLURM-USER-NAME': current_user,
-        'X-SLURM-USER-TOKEN': get_api_token(current_user, api_key)
+        'X-SLURM-USER-TOKEN': get_api_token(current_user, API_KEY)
     }
 
     # Job submission request

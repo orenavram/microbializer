@@ -1,8 +1,3 @@
-.gitignore
 .idea/
 __pycache__/
-html/pics/
-datasets/
-paper
-Capture.PNG
-pipeline/tests.py
+pipeline/flask/secrets.py

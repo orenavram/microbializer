@@ -1,7 +1,7 @@
 import requests
+from .secrets import API_KEY
 
 current_user = "microbi"
-api_key = "pWr9yarUpq7gLUR09wWh_VCNf73S7ySThymB49cYEPVRwaOIu1svzMfi1dSzClnMXgA"
 base_url = "https://slurmtron.tau.ac.il" # slurprod
 generate_token_url = f"{base_url}/slurmapi/generate-token/"
 slurmrestd_url = f"{base_url}/slurmrestd"
@@ -49,7 +49,7 @@ def get_jobs(account=None, cluster=None, logger=None):
     
     headers = {
         'X-SLURM-USER-NAME': current_user,
-        'X-SLURM-USER-TOKEN': get_api_token(current_user, api_key)
+        'X-SLURM-USER-TOKEN': get_api_token(current_user, API_KEY)
     }
     
     # Sending the GET request to the Slurm REST API
