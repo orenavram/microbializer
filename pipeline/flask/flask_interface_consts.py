@@ -65,7 +65,13 @@ echo "Job ID: $SLURM_JOB_ID"
 echo "Running on nodes: $SLURM_JOB_NODELIST"
 echo "Allocated CPUs: $SLURM_JOB_CPUS_PER_NODE"
 
-#python "/lsweb/pupko/microbializer/pipeline/main.py" --{args_json_path_key} {args_json_path}
+source /groups/pupko/yairshimony/miniconda3/etc/profile.d/conda.sh
+conda activate microbializer
+export PATH=$CONDA_PREFIX/bin:$PATH
+
+echo "PATH: $PATH"
+
+python "/lsweb/pupko/microbializer/pipeline/main.py" --{args_json_path_key} {args_json_path} --account_name pupkoweb-users --queue_name pupkoweb
 echo OKAY > {results_file_path}
 
 '''

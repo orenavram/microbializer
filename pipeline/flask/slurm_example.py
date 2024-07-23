@@ -75,8 +75,8 @@ def submit_job(script_commands, job_name, logs_path, num_cpus, queue, memory, lo
                     "infinite": False
                 },
                 # Full path to your error/output file.
-                "standard_output": os.path.join(logs_path, 'output_%j.txt'),
-                "standard_error": os.path.join(logs_path, 'errors_%j.txt'),
+                "standard_output": os.path.join(logs_path, 'main_%j.out'),
+                "standard_error": os.path.join(logs_path, 'main_%j.err'),
                 "current_working_directory": "/groups/pupko/yairshimony/test/test_slurm_api/",
                 # Environment modules (module load) should not be used directly under the script parameter. Instead, set all necessary environment variables under the environment parameter.
                 "environment": [
