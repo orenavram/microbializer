@@ -6,7 +6,7 @@ ARGS_JSON_PATH_KEY = "args_json_path"
 JOB_PARAMETERS_FILE_NAME = "input_parameters.json"
 CONTIGS_DIR = "contigs_dir"  # can be a path of a directory or a zipped file
 
-# Input parametrs from users
+# Input parameters from users
 IDENTITY_CUTOFF = "identity_cutoff"
 E_VALUE_CUTOFF = "e_value_cutoff"
 CORE_MINIMAL_PERCENTAGE = "core_minimal_percentage"
@@ -16,11 +16,6 @@ OUTGROUP = "outgroup"
 FILTER_OUT_PLASMIDS = "filter_out_plasmids"
 ADD_ORPHAN_GENES_TO_OGS = "add_orphan_genes_to_ogs"
 INPUT_FASTA_TYPE = "inputs_fasta_type"
-
-INPUTS_ARE_ANNOTATED_PROTEOMES = "inputs_are_annotated_proteomes"
-
-
-FILE_NAME_FOR_ARGUMENTS = "arguments.json"
 
 # Error description file (the path is relative to the unique folder of the job)
 ERROR_FILE_PATH = "error.txt"
@@ -73,5 +68,4 @@ echo "PATH: $PATH"
 
 python "/lsweb/pupko/microbializer/pipeline/main.py" --{args_json_path_key} {args_json_path} --account_name pupkoweb-users --queue_name pupkoweb
 echo OKAY > {results_file_path}
-
 '''

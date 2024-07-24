@@ -46,7 +46,7 @@ def get_api_token(username, api_key):
         raise Exception(f"Error: {response.status_code}, {response.text}")
 
 
-def submit_job(script_commands, job_name, logs_path, num_cpus, queue, memory, logger):
+def submit_job(script_commands, job_name, logs_path, num_cpus, queue, memory, logger, current_working_directory="/tmp/"):
     logger.info(f'in submit_job, for {job_name}')
     # Authorization headers with the obtained token
     headers = {
@@ -77,7 +77,7 @@ def submit_job(script_commands, job_name, logs_path, num_cpus, queue, memory, lo
                 # Full path to your error/output file.
                 "standard_output": os.path.join(logs_path, 'main_%j.out'),
                 "standard_error": os.path.join(logs_path, 'main_%j.err'),
-                "current_working_directory": "/groups/pupko/yairshimony/test/test_slurm_api/",
+                "current_working_directory": current_working_directory,
                 # Environment modules (module load) should not be used directly under the script parameter. Instead, set all necessary environment variables under the environment parameter.
                 "environment": [
                     "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin:",

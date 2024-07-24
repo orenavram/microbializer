@@ -38,7 +38,7 @@ def test_slurm_example(input_path, job_arguments, logger):
     run_parameters = {"queue": MICROBIALIZER_PROCESSOR_JOB_QUEUE_NAME,
                       "num_cpus": NUBMER_OF_CPUS_MICROBIALIZER_PROCESSOR_JOB, "job_name": job_name,
                       "logs_path": input_path_parent, "script_commands": command_to_run, "memory": "10",
-                      'logger': logger}
+                      'logger': logger, 'current_working_directory': input_path_parent}
     logger.debug(f'{run_parameters}')
     return submit_job(**run_parameters)
 
