@@ -126,9 +126,12 @@ def validate_arguments(args):
     if args.core_minimal_percentage < 0 or args.core_minimal_percentage > 100:
         raise ValueError(f'core_minimal_percentage argument {args.core_minimal_percentage} has invalid value')
 
-    args.bootstrap = str_to_bool(args.bootstrap)
-    args.filter_out_plasmids = str_to_bool(args.filter_out_plasmids)
-    args.add_orphan_genes_to_ogs = str_to_bool(args.add_orphan_genes_to_ogs)
+    if type(args.bootstrap) == str:
+        args.bootstrap = str_to_bool(args.bootstrap)
+    if type(args.filter_out_plasmids) == str:
+        args.filter_out_plasmids = str_to_bool(args.filter_out_plasmids)
+    if type(args.add_orphan_genes_to_ogs) == str:
+        args.add_orphan_genes_to_ogs = str_to_bool(args.add_orphan_genes_to_ogs)
 
     if args.outgroup == "No outgroup":
         args.outgroup = None
