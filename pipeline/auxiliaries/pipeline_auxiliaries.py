@@ -328,7 +328,8 @@ def notify_admin(meta_output_dir, meta_output_url, run_number):
 
 
 def add_results_to_final_dir(logger, source, final_output_dir, keep_in_source_dir=True):
-    dest = os.path.join(final_output_dir, os.path.split(source)[1])
+    source_dir_name = os.path.split(source)[1]
+    dest = os.path.join(final_output_dir, consts.OUTPUTS_DIRECTORIES_MAP[source_dir_name])
 
     try:
         if not keep_in_source_dir:

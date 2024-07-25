@@ -239,5 +239,5 @@ def plot_ani_clustermap(
         )
 
     # Output ANI clustermap figure
-    plt.savefig(outdir / "ani_clustermap.png", dpi=600)
+    plt.savefig(outdir / "ani_map.png", dpi=600)
     plt.close()

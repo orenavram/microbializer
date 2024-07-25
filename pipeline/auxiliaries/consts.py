@@ -9,9 +9,9 @@ KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR = True
 USE_CONDA = True
 IGNORE_HTML = True
 LOG_IN_SEPARATE_FILES = True
-# PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer'
+PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer'
 # PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer_prod'
-PROJECT_ROOT_DIR = '/lsweb/pupko/microbializer'
+# PROJECT_ROOT_DIR = '/lsweb/pupko/microbializer'
 CONDA_INSTALLATION_DIR = r'/groups/pupko/yairshimony/miniconda3'
 CONDA_ENVIRONMENT_DIR = r'/groups/pupko/yairshimony/miniconda3/envs/microbializer'
 OWNER_EMAIL = 'yairshimony@mail.tau.ac.il'
@@ -62,6 +62,28 @@ MMSEQS_OUTPUT_HEADER = MMSEQS_OUTPUT_FORMAT.split(',')
 
 # logging consts
 LOG_MESSAGE_FORMAT = '%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(message)s'
+
+# outputs directories map
+OUTPUTS_DIRECTORIES_MAP = {
+    '01_ANI': '01_ANI',
+    '02a_orfs': '02a_orfs',
+    '02c_orfs_plots': '02b_orfs_plots',
+    '02d_translated_orfs': '02c_translated_orfs',
+    '03_genomes_completeness': '03_genomes_completeness',
+    '06_orphan_genes': '04_orphan_genes',
+    '07a_final_orthologs_table': '05a_final_orthologs_table',
+    '07b_groups_sizes_frequency': '05b_groups_sizes_frequency',
+    '08_genome_numeric_representation': '06_genome_numeric_representation',
+    '09a_orthologs_groups_dna': '07a_orthologs_groups_dna',
+    '09b_orthologs_groups_aa': '07b_orthologs_groups_aa',
+    '09c_orthologs_groups_aa_msa': '07c_orthologs_groups_aa_msa',
+    '09d_orthologs_groups_induced_dna_msa_by_aa_msa': '07d_orthologs_groups_induced_dna_msa_by_aa_msa',
+    '10a_aligned_core_proteome': '08a_aligned_core_proteome',
+    '10b_aligned_core_genome': '08b_aligned_core_genome',
+    '11_species_phylogeny': '09_species_phylogeny',
+    '12_codon_bias': '10_codon_bias',
+}
+
 
 # constants to use when sending e-mails using the server admin's email address.
 ADMIN_EMAIL = 'TAU BioSequence <bioSequence@tauex.tau.ac.il>'

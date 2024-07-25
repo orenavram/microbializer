@@ -137,7 +137,7 @@ def get_genome_numeric_representation(logger, orthologs_table_path, ORFs_dir_pat
     reference_genome_name = genome_names[0]  # the numbers will be set with respect to this (arbitrary) genome
     for genome_name in genome_names:
         gene_name_to_location, gene_to_orientation = get_genes_info_dicts(
-            os.path.join(ORFs_dir_path, f'{genome_name}.02a_ORFs'))
+            os.path.join(ORFs_dir_path, f'{genome_name}.02a_orfs'))
         genome_name_to_gene_name_to_location[genome_name] = gene_name_to_location
         genome_name_to_gene_name_to_orientation[genome_name] = gene_to_orientation
 

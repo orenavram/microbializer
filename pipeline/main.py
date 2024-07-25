@@ -308,9 +308,9 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
     # Can be parallelized on cluster
     # Prodigal ignores newlines in the middle of a sequence, namely, >bac1\nAAA\nAA\nTTT >bac1\nAAAAATTT will be
     # analyzed identically.
-    step_number = orfs_step_number = '02a'  # using orfs_step_number for downstream analysis (extract promoter and gene sequences)
+    step_number = '02a'  # using orfs_step_number for downstream analysis (extract promoter and gene sequences)
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_ORFs'
+    step_name = f'{step_number}_orfs'
     script_path = os.path.join(args.src_dir, 'steps/search_orfs.py')
     orfs_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
@@ -984,7 +984,7 @@ def step_7_orthologs_table_variations(args, logger, times_logger, error_file_pat
     # Output: build variations of the orthologs table.
     step_number = '07a'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_final_table'
+    step_name = f'{step_number}_final_orthologs_table'
     script_path = os.path.join(args.src_dir, 'steps/orthologs_table_variations.py')
     final_orthologs_table_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     final_orthologs_table_file_path = os.path.join(final_orthologs_table_dir_path, 'final_orthologs_table.csv')
@@ -1024,7 +1024,8 @@ def step_7_orthologs_table_variations(args, logger, times_logger, error_file_pat
         group_sizes.to_csv(os.path.join(group_sizes_path, 'groups_sizes.csv'))
 
         sns.histplot(x=group_sizes, discrete=True)
-        plt.xticks(np.unique(group_sizes))
+        if len(np.unique(group_sizes)) < 10:
+            plt.xticks(np.unique(group_sizes))
         plt.title('Orthologous groups sizes distribution', fontsize=20, loc='center', wrap=True)
         plt.xlabel('OG size (number of genomes)', fontsize=15)
         plt.ylabel('Count', fontsize=15)
@@ -1086,7 +1087,7 @@ def step_9_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
     # Output: write the sequences of the orthologs group to the output file.
     step_number = '09a'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_orthologs_groups_dna_sequences'
+    step_name = f'{step_number}_orthologs_groups_dna'
     script_path = os.path.join(args.src_dir, 'steps/extract_orfs.py')
     orthologs_dna_sequences_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir,
                                                                                   step_name)
@@ -1133,7 +1134,7 @@ def step_9_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
     # Can be parallelized on cluster
     step_number = '09b'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_orthologs_groups_aa_sequences'
+    step_name = f'{step_number}_orthologs_groups_aa'
     script_path = os.path.join(args.src_dir, 'steps/translate_fna_to_faa.py')
     orthologs_aa_sequences_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
@@ -1168,7 +1169,7 @@ def step_9_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
     # Can be parallelized on cluster
     step_number = '09c'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_aligned_aa_orthologs_groups'
+    step_name = f'{step_number}_orthologs_groups_aa_msa'
     script_path = os.path.join(args.src_dir, 'steps/align_orthologs_group.py')
     aa_alignments_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
@@ -1206,7 +1207,7 @@ def step_9_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
     # Can be parallelized on cluster
     step_number = '09d'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_induce_dna_msa_by_aa_msa'
+    step_name = f'{step_number}_orthologs_groups_induced_dna_msa_by_aa_msa'
     script_path = os.path.join(args.src_dir, 'steps/induce_dna_msa_by_aa_msa.py')
     dna_alignments_path, induced_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
@@ -1315,12 +1316,56 @@ def step_10_extract_core_genome_and_core_proteome(args, logger, times_logger, er
     return aligned_core_proteome_file_path, core_proteome_length
 
 
-def step_11_codon_bias(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
+def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
+                      done_files_dir, aligned_core_proteome_file_path, genomes_names_path):
+    # 11.	reconstruct_species_phylogeny.py
+    step_number = '11'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_species_phylogeny'
+    script_path = os.path.join(args.src_dir, 'steps/reconstruct_species_phylogeny.py')
+    phylogeny_path, phylogeny_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    start_time = time()
+    if not os.path.exists(done_file_path):
+        logger.info('Reconstructing species phylogeny...')
+
+        params = [aligned_core_proteome_file_path,
+                  os.path.join(phylogeny_path, 'final_species_tree.newick'),
+                  phylogeny_tmp_dir,
+                  f'--cpu {consts.PHYLOGENY_NUM_OF_CORES}',
+                  f'--bootstrap {"yes" if args.bootstrap else "no"}']
+        if args.outgroup:
+            with open(genomes_names_path, 'r') as genomes_names_fp:
+                strains_names = genomes_names_fp.read().split('\n')
+            if args.outgroup in strains_names:
+                params += [f'--outgroup {args.outgroup}']
+            else:
+                logger.info(f'Outgroup {args.outgroup} was specified but it is not one of the input species:\n'
+                            f'{",".join(sorted(strains_names))}\nAn unrooted tree is going to be reconstructed')
+
+        submit_mini_batch(logger, script_path, [params], phylogeny_tmp_dir,
+                          args.queue_name, args.account_name, job_name='tree_reconstruction',
+                          required_modules_as_list=[consts.RAXML], num_of_cpus=consts.PHYLOGENY_NUM_OF_CORES,
+                          command_to_run_before_script='export QT_QPA_PLATFORM=offscreen')  # Needed to avoid an error in drawing the tree. Taken from: https://github.com/NVlabs/instant-ngp/discussions/300
+
+        # wait for the phylogenetic tree here
+        wait_for_results(logger, times_logger, step_name, phylogeny_tmp_dir,
+                         num_of_expected_results=1, error_file_path=error_file_path,
+                         start=start_time, email=args.email)
+
+        add_results_to_final_dir(logger, phylogeny_path, final_output_dir,
+                                 keep_in_source_dir=consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR)
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+
+def step_12_codon_bias(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
                        done_files_dir, orfs_dir, orthologs_dna_sequences_dir_path, final_orthologs_table_file_path):
-    # 11.  codon_bias.py
+    # 12.  codon_bias.py
     # Input: ORF dir and OG dir
     # Output: W_vector for each genome, CAI for each OG
-    step_number = '11'
+    step_number = '12'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_codon_bias'
     script_path = os.path.join(args.src_dir, 'steps/codon_bias.py')
@@ -1357,50 +1402,6 @@ def step_11_codon_bias(args, logger, times_logger, error_file_path, output_dir, 
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
 
-def step_12_phylogeny(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
-                      done_files_dir, aligned_core_proteome_file_path, genomes_names_path):
-    # 12.	reconstruct_species_phylogeny.py
-    step_number = '12'
-    logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_species_phylogeny'
-    script_path = os.path.join(args.src_dir, 'steps/reconstruct_species_phylogeny.py')
-    phylogeny_path, phylogeny_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-    start_time = time()
-    if not os.path.exists(done_file_path):
-        logger.info('Reconstructing species phylogeny...')
-
-        params = [aligned_core_proteome_file_path,
-                  os.path.join(phylogeny_path, 'final_species_tree.newick'),
-                  phylogeny_tmp_dir,
-                  f'--cpu {consts.PHYLOGENY_NUM_OF_CORES}',
-                  f'--bootstrap {args.bootstrap}']
-        if args.outgroup:
-            with open(genomes_names_path, 'r') as genomes_names_fp:
-                strains_names = genomes_names_fp.read().split('\n')
-            if args.outgroup in strains_names:
-                params += [f'--outgroup {args.outgroup}']
-            else:
-                logger.info(f'Outgroup {args.outgroup} was specified but it is not one of the input species:\n'
-                            f'{",".join(sorted(strains_names))}\nAn unrooted tree is going to be reconstructed')
-
-        submit_mini_batch(logger, script_path, [params], phylogeny_tmp_dir,
-                          args.queue_name, args.account_name, job_name='tree_reconstruction',
-                          required_modules_as_list=[consts.RAXML], num_of_cpus=consts.PHYLOGENY_NUM_OF_CORES,
-                          command_to_run_before_script='export QT_QPA_PLATFORM=offscreen')  # Needed to avoid an error in drawing the tree. Taken from: https://github.com/NVlabs/instant-ngp/discussions/300
-
-        # wait for the phylogenetic tree here
-        wait_for_results(logger, times_logger, step_name, phylogeny_tmp_dir,
-                         num_of_expected_results=1, error_file_path=error_file_path,
-                         start=start_time, email=args.email)
-
-        add_results_to_final_dir(logger, phylogeny_path, final_output_dir,
-                                 keep_in_source_dir=consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR)
-        write_to_file(logger, done_file_path, '.')
-    else:
-        logger.info(f'done file {done_file_path} already exists. Skipping step...')
-
-
 def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_path, output_dir, tmp_dir,
                       done_files_dir, data_path, number_of_genomes, genomes_names_path, final_output_dir):
     if args.filter_out_plasmids:
@@ -1413,7 +1414,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
         logger.info("Step 0 completed.")
         return
 
-    if not args.only_calc_ogs:
+    if not args.only_calc_ogs and number_of_genomes <= 100:
         step_1_calculate_ani(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
                              done_files_dir, data_path)
         edit_progress(output_html_path, progress=10)
@@ -1505,20 +1506,20 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
         logger.info("Step 10 completed.")
         return
 
-    step_11_codon_bias(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
-                       done_files_dir, orfs_dir, ogs_dna_sequences_path, final_orthologs_table_file_path)
-    edit_progress(output_html_path, progress=65)
+    if number_of_genomes >= 3 and core_proteome_length > 0:
+        step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
+                          done_files_dir, aligned_core_proteome_file_path, genomes_names_path)
+        edit_progress(output_html_path, progress=95)
+    else:
+        logger.info('Skipping phylogeny reconstruction because there are less than 3 genomes or no core proteome')
 
     if args.step_to_complete == '11':
         logger.info("Step 11 completed.")
         return
 
-    if number_of_genomes >= 3 and core_proteome_length > 0:
-        step_12_phylogeny(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
-                          done_files_dir, aligned_core_proteome_file_path, genomes_names_path)
-        edit_progress(output_html_path, progress=95)
-    else:
-        logger.info('Skipping phylogeny reconstruction because there are less than 3 genomes or no core proteome')
+    step_12_codon_bias(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
+                       done_files_dir, orfs_dir, ogs_dna_sequences_path, final_orthologs_table_file_path)
+    edit_progress(output_html_path, progress=65)
 
     if args.step_to_complete == '12':
         logger.info("Step 12 completed.")
