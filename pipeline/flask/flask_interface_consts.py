@@ -4,7 +4,7 @@ WEBSERVER_NAME = 'M1CR0B1AL1Z3R'
 # Arguments keys to run the pipeline with
 ARGS_JSON_PATH_KEY = "args_json_path"
 JOB_PARAMETERS_FILE_NAME = "input_parameters.json"
-CONTIGS_DIR = "contigs_dir"  # can be a path of a directory or a zipped file
+RUN_DIR = "run_dir"
 
 # Input parameters from users
 IDENTITY_CUTOFF = "identity_cutoff"
@@ -60,7 +60,7 @@ echo "Job ID: $SLURM_JOB_ID"
 echo "Running on nodes: $SLURM_JOB_NODELIST"
 echo "Allocated CPUs: $SLURM_JOB_CPUS_PER_NODE"
 
-source /groups/pupko/yairshimony/miniconda3/etc/profile.d/conda.sh
+source /lsweb/pupko/microbializer/miniconda3/etc/profile.d/conda.sh
 conda activate microbializer
 export PATH=$CONDA_PREFIX/bin:$PATH
 

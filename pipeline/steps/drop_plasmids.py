@@ -17,11 +17,13 @@ def filter_out_plasmids(logger, input_genome_path, output_genome_path):
     """
     logger.info(f'Removing plasmids from {input_genome_path}...')
     header2sequences_dict = load_header2sequences_dict(input_genome_path)
+    headers_to_remove = []
     for fasta_header in header2sequences_dict:
         if 'plasmid' in fasta_header:
             logger.info(f'Dropping plasmid sequence {fasta_header}')
-            header2sequences_dict.pop(fasta_header)
+            headers_to_remove.append(fasta_header)
 
+    header2sequences_dict = {header: sequence for header, sequence in header2sequences_dict.items() if header not in headers_to_remove}
     if not header2sequences_dict:
         logger.info(f'No records left for {input_genome_path} (probably contained only plasmids)')
         return

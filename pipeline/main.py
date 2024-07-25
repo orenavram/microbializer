@@ -18,11 +18,13 @@ from auxiliaries.email_sender import send_email
 from auxiliaries.file_writer import write_to_file
 from auxiliaries.input_verifications import prepare_and_verify_input_data
 from auxiliaries.pipeline_auxiliaries import measure_time, execute, wait_for_results, \
-    prepare_directories, fail, submit_mini_batch, submit_batch, notify_admin, add_results_to_final_dir, remove_path
+    prepare_directories, fail, submit_mini_batch, submit_batch, notify_admin, add_results_to_final_dir, remove_path,\
+    str_to_bool
 from auxiliaries.html_editor import edit_success_html, edit_failure_html, edit_progress
 from auxiliaries import consts, flask_interface_consts, cgi_consts
 from auxiliaries.logic_auxiliaries import mimic_prodigal_output, aggregate_ani_results, remove_bootstrap_values, \
     aggregate_mmseqs_scores, max_with_nan, plot_genomes_histogram
+from flask.SharedConsts import USER_FILE_NAME_ZIP, USER_FILE_NAME_TAR
 
 PIPELINE_STEPS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
 
@@ -31,9 +33,11 @@ def get_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('--args_json_path', help='path to a json file that contains values for arguments which will '
                                                  'override the default values. Optional.')
+    parser.add_argument('--run_dir', help='path to a directory where the pipeline will be run. Should contain a zip of'
+                                          'the genomes. Mutually exclusive with --contigs_dir.')
     parser.add_argument('--contigs_dir',
                         help='path to a folder with the genomic sequences. This folder may be zipped, as well the files'
-                             ' in it.')
+                             ' in it. Mutually exclusive with --run_dir.')
     parser.add_argument('--output_dir', help='relative path of directory where the output files will be written to',
                         default='outputs')
     parser.add_argument('--email', help='A notification will be sent once the pipeline is done',
@@ -105,11 +109,6 @@ def get_arguments():
 
 
 def validate_arguments(args):
-    if os.path.exists(args.contigs_dir):
-        args.contigs_dir = args.contigs_dir.rstrip('/')
-    else:
-        raise ValueError(f'contigs_dir argument {args.contigs_dir} does not exist!')
-
     args.identity_cutoff = float(args.identity_cutoff)
     if args.identity_cutoff < 0 or args.identity_cutoff > 100:
         raise ValueError(f'identity_cutoff argument {args.identity_cutoff} has invalid value')
@@ -126,9 +125,32 @@ def validate_arguments(args):
     if args.core_minimal_percentage < 0 or args.core_minimal_percentage > 100:
         raise ValueError(f'core_minimal_percentage argument {args.core_minimal_percentage} has invalid value')
 
+    args.bootstrap = str_to_bool(args.bootstrap)
+    args.filter_out_plasmids = str_to_bool(args.filter_out_plasmids)
+    args.add_orphan_genes_to_ogs = str_to_bool(args.add_orphan_genes_to_ogs)
+
+    if args.outgroup == "No outgroup":
+        args.outgroup = None
+
 
 def prepare_pipeline_framework(args):
-    meta_output_dir = os.path.dirname(args.contigs_dir.rstrip("/"))
+    if (args.run_dir and args.contigs_dir) or (not args.run_dir and not args.contigs_dir):
+        raise ValueError('Either run_dir or contigs_dir should be provided, but not both.')
+
+    if args.run_dir:
+        meta_output_dir = args.run_dir
+        if os.path.exists(os.path.join(meta_output_dir, USER_FILE_NAME_ZIP)):
+            args.contigs_dir = os.path.join(meta_output_dir, USER_FILE_NAME_ZIP)
+        elif os.path.exists(os.path.join(meta_output_dir, USER_FILE_NAME_TAR)):
+            args.contigs_dir = os.path.join(meta_output_dir, USER_FILE_NAME_TAR)
+        else:
+            raise ValueError(f'No genomes zip or tar file found in {meta_output_dir}')
+    else:  # args.contigs_dir was provided
+        if os.path.exists(args.contigs_dir):
+            args.contigs_dir = args.contigs_dir.rstrip('/')
+            meta_output_dir = os.path.dirname(args.contigs_dir)
+        else:
+            raise ValueError(f'contigs_dir argument {args.contigs_dir} does not exist!')
 
     output_dir = os.path.join(meta_output_dir, args.output_dir)
     os.makedirs(output_dir, exist_ok=True)

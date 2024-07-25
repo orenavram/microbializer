@@ -370,3 +370,7 @@ def get_job_logger(log_file_dir, level=logging.INFO):
 
     logger = logging.getLogger('main')
     return logger
+
+
+def str_to_bool(s):
+    return s.lower() in ['true', '1', 't', 'y', 'yes']
