@@ -1,7 +1,6 @@
 # Consts used by CGI and old frontend
 
 import os
-from .flask_interface_consts import WEBSERVER_NAME
 from .consts import PROJECT_ROOT_DIR
 
 
@@ -30,6 +29,7 @@ EXAMPLE_DATA_FILE_NAME = 'example_data.zip'
 # path to example data
 EXAMPLE_DATA = os.path.join(WEBSERVER_HTML_DIR, EXAMPLE_DATA_FILE_NAME)
 
+WEBSERVER_NAME = 'Microbializer'
 WEBSERVER_JUMBOTRON = f'&nbsp;&nbsp;&nbsp;&nbsp;<span id="server-title">{WEBSERVER_NAME}</span>&nbsp;&nbsp;&nbsp;&nbsp;<span id="sub-title">{WEBSERVER_TITLE}</span>'
 
 PROGRESS_BAR_TAG = '''<div class="progress">

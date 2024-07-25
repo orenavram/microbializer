@@ -21,7 +21,8 @@ from auxiliaries.pipeline_auxiliaries import measure_time, execute, wait_for_res
     prepare_directories, fail, submit_mini_batch, submit_batch, notify_admin, add_results_to_final_dir, remove_path,\
     str_to_bool
 from auxiliaries.html_editor import edit_success_html, edit_failure_html, edit_progress
-from auxiliaries import consts, flask_interface_consts, cgi_consts
+from auxiliaries import consts, cgi_consts
+from flask import flask_interface_consts
 from auxiliaries.logic_auxiliaries import mimic_prodigal_output, aggregate_ani_results, remove_bootstrap_values, \
     aggregate_mmseqs_scores, max_with_nan, plot_genomes_histogram
 from flask.SharedConsts import USER_FILE_NAME_ZIP, USER_FILE_NAME_TAR
@@ -1019,7 +1020,8 @@ def step_7_orthologs_table_variations(args, logger, times_logger, error_file_pat
         group_sizes.name = 'OG size (number of genomes)'
         group_sizes.to_csv(os.path.join(group_sizes_path, 'groups_sizes.csv'))
 
-        sns.histplot(x=group_sizes, binwidth=1)
+        sns.histplot(x=group_sizes, discrete=True)
+        plt.xticks(np.unique(group_sizes))
         plt.title('Orthologous groups sizes distribution', fontsize=20, loc='center', wrap=True)
         plt.xlabel('OG size (number of genomes)', fontsize=15)
         plt.ylabel('Count', fontsize=15)
