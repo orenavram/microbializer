@@ -41,7 +41,9 @@ OG_TABLE_ORTHOXML = f"{ALL_OUTPUTS_DIRECTORY}/05a_final_orthologs_table/ortholog
 PHYLETIC_PATTERN = f"{ALL_OUTPUTS_DIRECTORY}/05a_final_orthologs_table/phyletic_pattern.fas"
 OG_SIZE_HISTOGRAM = f"{ALL_OUTPUTS_DIRECTORY}/05b_groups_sizes_frequency/groups_sizes.png"
 
-GENOME_NUMERIC_REPRESENTATION = f"{ALL_OUTPUTS_DIRECTORY}/06_genome_numeric_representation/core_genome_numeric_representation.txt"
+CORE_PROTEOME = f"{ALL_OUTPUTS_DIRECTORY}/07a_aligned_core_proteome/aligned_core_proteome.fas"
+CORE_GENOME = f"{ALL_OUTPUTS_DIRECTORY}/07b_aligned_core_genome/aligned_core_genome.fas"
+GENOME_NUMERIC_REPRESENTATION = f"{ALL_OUTPUTS_DIRECTORY}/08_genome_numeric_representation/core_genome_numeric_representation.txt"
 
 SPECIES_TREE_NEWICK = f"{ALL_OUTPUTS_DIRECTORY}/09_species_phylogeny/final_species_tree.newick"
 SPECIES_TREE_PNG = f"{ALL_OUTPUTS_DIRECTORY}/09_species_phylogeny/final_species_tree.png"
@@ -63,6 +65,47 @@ DATA_2_VIEW_IN_HISTOGRAM = {
     TITLE_HISTORGRAM_FOR_GC_CONTENT: GC_CONTENT_PER_GENOME,
     TITLE_HISTOGRAM_GENOME_COMPLETENESS: GENOME_COMPLETENESS_PER_GENOME,
     TITLE_HISTOGRAM_ORPHAN_GENES_COUNT: ORPHAN_GENES_PER_GENOME
+}
+
+PATHS_TO_DOWNLOAD = {
+    "All outputs": {
+        "All outputs (zip)": ALL_OUTPUTS_ZIPPED_FORMAT
+    },
+    "ANI (Average Nucleotide Identity": {
+        "ANI table": ANI_CSV,
+        "ANI map": ANI_MAP,
+    },
+    "Genomes statistics": {
+        "ORFs count per genome": ORFS_COUNT_PER_GENOME,
+        "ORFs count histogram": ORFS_COUNT_HISTOGRAM,
+        "GC content per genome": GC_CONTENT_PER_GENOME,
+        "GC content histogram": GC_CONTENT_HISTOGRAM,
+        "Genome completeness score (BUSCO) per genome": GENOME_COMPLETENESS_PER_GENOME,
+        "Genome completeness score (BUSCO) histogram": GENOME_COMPLETENESS_HISTOGRAM,
+        "Orphan genes per genome": ORPHAN_GENES_PER_GENOME,
+        "Orphan genes histogram": ORPHAN_GENES_HISTOGRAM,
+    },
+    "Orthologs groups": {
+        "Orthologs groups (csv)": OG_TABLE,
+        "Orthologs groups (OrthoXML)": OG_TABLE_ORTHOXML,
+        "Phyletic pattern": PHYLETIC_PATTERN,
+        "Orthologs groups sizes histogram": OG_SIZE_HISTOGRAM,
+    },
+    "Core genome": {
+        "Core genome alignment": CORE_GENOME,
+        "Core proteome alignment": CORE_PROTEOME,
+        "Genome numeric representation": GENOME_NUMERIC_REPRESENTATION,
+    },
+    "Species tree": {
+        "Species tree (newick)": SPECIES_TREE_PNG,
+        "Species tree (png)": SPECIES_TREE_PNG,
+    },
+    "Codon bias analysis": {
+        "Orthologs groups (csv) sorted by codon adaptation index": OG_TABLE_WITH_CODODN_BIAS,
+        "Codon adaptation index histogram": CAI_HISTOGRAM,
+        "Genome clusters by codon usage (png)": GENOMES_CLUSTERS_BY_W_VECTORS,
+        "Genome clusters by codon usage (csv)": GENOMES_CLUSTERS_BY_W_VECTORS_CSV
+    }
 }
 
 # Microbializer processor Job variables

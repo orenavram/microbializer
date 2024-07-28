@@ -1042,39 +1042,7 @@ def step_7_orthologs_table_variations(args, logger, times_logger, error_file_pat
     return final_orthologs_table_file_path
 
 
-def step_8_genome_numeric_representation(args, logger, times_logger, error_file_path, output_dir,
-                                         tmp_dir, final_output_dir, done_files_dir, orfs_dir,
-                                         final_orthologs_table_file_path):
-    # 8.	genome_numeric_representation.py
-    step_number = '08'
-    logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_genome_numeric_representation'
-    script_path = os.path.join(args.src_dir, 'steps/genome_numeric_representation.py')
-    numeric_representation_output_dir, numeric_representation_tmp_dir = prepare_directories(logger, output_dir,
-                                                                                            tmp_dir, step_name)
-    core_genome_numeric_representation_file_path = os.path.join(numeric_representation_output_dir,
-                                                                'core_genome_numeric_representation.txt')
-    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-    if not os.path.exists(done_file_path):
-        params = [final_orthologs_table_file_path,
-                  orfs_dir,
-                  core_genome_numeric_representation_file_path,
-                  numeric_representation_tmp_dir
-                  ]
-        submit_mini_batch(logger, script_path, [params], numeric_representation_tmp_dir,
-                          args.queue_name, args.account_name, job_name='numeric_representation')
-
-        wait_for_results(logger, times_logger, step_name, numeric_representation_tmp_dir,
-                         num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
-
-        add_results_to_final_dir(logger, numeric_representation_output_dir, final_output_dir,
-                                 keep_in_source_dir=consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR)
-        write_to_file(logger, done_file_path, '.')
-    else:
-        logger.info(f'done file {done_file_path} already exists. Skipping step...')
-
-
-def step_9_build_orthologous_groups_fastas(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
+def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                                            final_output_dir, done_files_dir, orfs_dir, final_orthologs_table_file_path):
     # extract orthologs table header for sequence extraction later on
     with open(final_orthologs_table_file_path) as f:
@@ -1082,10 +1050,10 @@ def step_9_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
         first_delimiter_index = header_line.index(consts.CSV_DELIMITER)
         final_table_header = header_line.rstrip()[first_delimiter_index + 1:]  # remove "OG_name"
 
-    # 9a.	extract_orfs.py
+    # 8a.	extract_orfs.py
     # Input: (1) a row from the final orthologs table (2) a path for a directory where the genes files are at (3) a path for an output file.
     # Output: write the sequences of the orthologs group to the output file.
-    step_number = '09a'
+    step_number = '08a'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orthologs_groups_dna'
     script_path = os.path.join(args.src_dir, 'steps/extract_orfs.py')
@@ -1128,11 +1096,11 @@ def step_9_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # 9b.  translate_fna_to_faa.py
+    # 8b.  translate_fna_to_faa.py
     # Input: path to fna file and an faa file
     # Output: translate the fna to protein and write to the faa file
     # Can be parallelized on cluster
-    step_number = '09b'
+    step_number = '08b'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orthologs_groups_aa'
     script_path = os.path.join(args.src_dir, 'steps/translate_fna_to_faa.py')
@@ -1163,11 +1131,11 @@ def step_9_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # 9c.	align_orthologs_group.py
+    # 8c.	align_orthologs_group.py
     # Input: (1) A path to an unaligned amino acid sequences file (2) An output file path
     # Output: aligned sequences
     # Can be parallelized on cluster
-    step_number = '09c'
+    step_number = '08c'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orthologs_groups_aa_msa'
     script_path = os.path.join(args.src_dir, 'steps/align_orthologs_group.py')
@@ -1201,11 +1169,11 @@ def step_9_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # 9d.	induce_dna_msa_by_aa_msa.py
+    # 8d.	induce_dna_msa_by_aa_msa.py
     # Input: (1) An aa alignment (2) An unaligned dna file (3) An output file path
     # Output: write the codon alignment induced by the aa alignment to the output file
     # Can be parallelized on cluster
-    step_number = '09d'
+    step_number = '08d'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orthologs_groups_induced_dna_msa_by_aa_msa'
     script_path = os.path.join(args.src_dir, 'steps/induce_dna_msa_by_aa_msa.py')
@@ -1241,11 +1209,11 @@ def step_9_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
     return orthologs_dna_sequences_dir_path, aa_alignments_path, dna_alignments_path
 
 
-def step_10_extract_core_genome_and_core_proteome(args, logger, times_logger, error_file_path,
+def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, error_file_path,
                                                   output_dir, tmp_dir, final_output_dir, done_files_dir, num_of_strains,
                                                   strains_names_path, aa_alignments_path, dna_alignments_path):
-    # 10a.	extract aligned_core_proteome.py
-    step_number = '10a'
+    # 9a.	extract aligned_core_proteome.py
+    step_number = '09a'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_aligned_core_proteome'
     script_path = os.path.join(args.src_dir, 'steps/extract_core_genome.py')
@@ -1281,8 +1249,8 @@ def step_10_extract_core_genome_and_core_proteome(args, logger, times_logger, er
         core_proteome_length = int(fp.read().strip())
 
 
-    # 10b.      extract_aligned_core_genome
-    step_number = '10b'
+    # 9b.      extract_aligned_core_genome
+    step_number = '09b'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_aligned_core_genome'
     script_path = os.path.join(args.src_dir, 'steps/extract_core_genome.py')
@@ -1314,6 +1282,37 @@ def step_10_extract_core_genome_and_core_proteome(args, logger, times_logger, er
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
     return aligned_core_proteome_file_path, core_proteome_length
+
+def step_10_genome_numeric_representation(args, logger, times_logger, error_file_path, output_dir,
+                                         tmp_dir, final_output_dir, done_files_dir, orfs_dir,
+                                         final_orthologs_table_file_path):
+    # 10.	genome_numeric_representation.py
+    step_number = '10'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_genome_numeric_representation'
+    script_path = os.path.join(args.src_dir, 'steps/genome_numeric_representation.py')
+    numeric_representation_output_dir, numeric_representation_tmp_dir = prepare_directories(logger, output_dir,
+                                                                                            tmp_dir, step_name)
+    core_genome_numeric_representation_file_path = os.path.join(numeric_representation_output_dir,
+                                                                'core_genome_numeric_representation.txt')
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        params = [final_orthologs_table_file_path,
+                  orfs_dir,
+                  core_genome_numeric_representation_file_path,
+                  numeric_representation_tmp_dir
+                  ]
+        submit_mini_batch(logger, script_path, [params], numeric_representation_tmp_dir,
+                          args.queue_name, args.account_name, job_name='numeric_representation')
+
+        wait_for_results(logger, times_logger, step_name, numeric_representation_tmp_dir,
+                         num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
+
+        add_results_to_final_dir(logger, numeric_representation_output_dir, final_output_dir,
+                                 keep_in_source_dir=consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR)
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
 
 def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
@@ -1358,9 +1357,9 @@ def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, t
                              num_of_expected_results=1, error_file_path=error_file_path,
                              start=start_time, email=args.email)
 
-            add_results_to_final_dir(logger, phylogeny_path, final_output_dir,
-                                     keep_in_source_dir=consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR)
-            write_to_file(logger, done_file_path, '.')
+        add_results_to_final_dir(logger, phylogeny_path, final_output_dir,
+                                 keep_in_source_dir=consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR)
+        write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
@@ -1482,30 +1481,29 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
     if args.only_calc_ogs:
         return
 
-    if args.core_minimal_percentage == 100:
-        step_8_genome_numeric_representation(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
-                                             final_output_dir, done_files_dir, orfs_dir,
-                                             final_orthologs_table_file_path)
-        edit_progress(output_html_path, progress=90)
+    ogs_dna_sequences_path, ogs_aa_alignments_path, ogs_dna_alignments_path = \
+        step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_file_path,
+                                               output_dir, tmp_dir, final_output_dir, done_files_dir, orfs_dir,
+                                               final_orthologs_table_file_path)
+    edit_progress(output_html_path, progress=60)
 
     if args.step_to_complete == '8':
         logger.info("Step 8 completed.")
         return
 
-    ogs_dna_sequences_path, ogs_aa_alignments_path, ogs_dna_alignments_path = \
-        step_9_build_orthologous_groups_fastas(args, logger, times_logger, error_file_path,
-                                               output_dir, tmp_dir, final_output_dir, done_files_dir, orfs_dir,
-                                               final_orthologs_table_file_path)
-    edit_progress(output_html_path, progress=60)
+    aligned_core_proteome_file_path, core_proteome_length = step_9_extract_core_genome_and_core_proteome(
+        args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir, done_files_dir,
+        number_of_genomes, genomes_names_path, ogs_aa_alignments_path, ogs_dna_alignments_path)
+    edit_progress(output_html_path, progress=75)
 
     if args.step_to_complete == '9':
         logger.info("Step 9 completed.")
         return
 
-    aligned_core_proteome_file_path, core_proteome_length = step_10_extract_core_genome_and_core_proteome(
-        args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir, done_files_dir,
-        number_of_genomes, genomes_names_path, ogs_aa_alignments_path, ogs_dna_alignments_path)
-    edit_progress(output_html_path, progress=75)
+    if args.core_minimal_percentage == 100:
+        step_10_genome_numeric_representation(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
+                                              final_output_dir, done_files_dir, orfs_dir, final_orthologs_table_file_path)
+        edit_progress(output_html_path, progress=90)
 
     if args.step_to_complete == '10':
         logger.info("Step 10 completed.")
