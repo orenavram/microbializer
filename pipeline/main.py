@@ -420,7 +420,7 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
             orf_count[strain_name] = orfs_statistics['orfs_count']
 
         plot_genomes_histogram(orf_count, orfs_plots_path, 'orfs_counts', 'ORFs count', 'ORFs Count per genome')
-        plot_genomes_histogram(gc_content, orfs_plots_path, 'gc_content', 'GC Content (of ORFs)', 'GC Content per genome')
+        plot_genomes_histogram(gc_content, orfs_plots_path, 'orfs_gc_content', 'GC Content (of ORFs)', 'GC Content per genome')
 
         add_results_to_final_dir(logger, orfs_plots_path, final_output_dir,
                                  keep_in_source_dir=consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR)

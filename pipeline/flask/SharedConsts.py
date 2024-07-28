@@ -229,7 +229,7 @@ class UI_CONSTS:
     }
     
     global allowed_files_str  # todo: Edo, do we have to use a global var?
-    ALLOWED_EXTENSIONS = {'zip', 'tar.gz'}
+    ALLOWED_EXTENSIONS = {'zip', 'gz'}
     allowed_files_str = ', '.join(ALLOWED_EXTENSIONS) #better to path string than list
 
     class UI_Errors(Enum):

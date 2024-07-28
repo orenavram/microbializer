@@ -43,8 +43,13 @@ OG_SIZE_HISTOGRAM = f"{ALL_OUTPUTS_DIRECTORY}/05b_groups_sizes_frequency/groups_
 
 GENOME_NUMERIC_REPRESENTATION = f"{ALL_OUTPUTS_DIRECTORY}/06_genome_numeric_representation/core_genome_numeric_representation.txt"
 
-SPECIES_TREE_NEWICK = f"{ALL_OUTPUTS_DIRECTORY}/09_species_phylogeny/final_species_tree.txt"
+SPECIES_TREE_NEWICK = f"{ALL_OUTPUTS_DIRECTORY}/09_species_phylogeny/final_species_tree.newick"
 SPECIES_TREE_PNG = f"{ALL_OUTPUTS_DIRECTORY}/09_species_phylogeny/final_species_tree.png"
+
+OG_TABLE_WITH_CODODN_BIAS = f"{ALL_OUTPUTS_DIRECTORY}/10_codon_bias/final_orthologs_table.csv"
+CAI_HISTOGRAM = f"{ALL_OUTPUTS_DIRECTORY}/10_codon_bias/CAI_histogram.png"
+GENOMES_CLUSTERS_BY_W_VECTORS = f"{ALL_OUTPUTS_DIRECTORY}/10_codon_bias/Relative_Adaptiveness_scatter_plot.png"
+GENOMES_CLUSTERS_BY_W_VECTORS_CSV = f"{ALL_OUTPUTS_DIRECTORY}/10_codon_bias/Relative_Adaptiveness_scatter_plot_clusters.csv"
 
 TITLE_HISTORGRAM_FOR_ORFS = "Open Reading Frames (ORFs)"
 TITLE_HISTORGRAM_FOR_GC_CONTENT = "GC Content"
