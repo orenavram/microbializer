@@ -1317,7 +1317,7 @@ def step_10_extract_core_genome_and_core_proteome(args, logger, times_logger, er
 
 
 def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
-                      done_files_dir, aligned_core_proteome_file_path, genomes_names_path):
+                      done_files_dir, aligned_core_proteome_file_path, genomes_names_path, number_of_genomes, core_proteome_length):
     # 11.	reconstruct_species_phylogeny.py
     step_number = '11'
     logger.info(f'Step {step_number}: {"_" * 100}')
@@ -1327,35 +1327,40 @@ def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, t
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     start_time = time()
     if not os.path.exists(done_file_path):
-        logger.info('Reconstructing species phylogeny...')
+        output_tree_path = os.path.join(phylogeny_path, 'final_species_tree.newick')
+        if number_of_genomes < 3 or core_proteome_length == 0:
+            logger.info('Skipping phylogeny reconstruction because there are less than 3 genomes or no core proteome')
+            open(output_tree_path, 'w').close()
+        else:
+            logger.info('Reconstructing species phylogeny...')
 
-        params = [aligned_core_proteome_file_path,
-                  os.path.join(phylogeny_path, 'final_species_tree.newick'),
-                  phylogeny_tmp_dir,
-                  f'--cpu {consts.PHYLOGENY_NUM_OF_CORES}',
-                  f'--bootstrap {"yes" if args.bootstrap else "no"}']
-        if args.outgroup:
-            with open(genomes_names_path, 'r') as genomes_names_fp:
-                strains_names = genomes_names_fp.read().split('\n')
-            if args.outgroup in strains_names:
-                params += [f'--outgroup {args.outgroup}']
-            else:
-                logger.info(f'Outgroup {args.outgroup} was specified but it is not one of the input species:\n'
-                            f'{",".join(sorted(strains_names))}\nAn unrooted tree is going to be reconstructed')
+            params = [aligned_core_proteome_file_path,
+                      output_tree_path,
+                      phylogeny_tmp_dir,
+                      f'--cpu {consts.PHYLOGENY_NUM_OF_CORES}',
+                      f'--bootstrap {"yes" if args.bootstrap else "no"}']
+            if args.outgroup:
+                with open(genomes_names_path, 'r') as genomes_names_fp:
+                    strains_names = genomes_names_fp.read().split('\n')
+                if args.outgroup in strains_names:
+                    params += [f'--outgroup {args.outgroup}']
+                else:
+                    logger.info(f'Outgroup {args.outgroup} was specified but it is not one of the input species:\n'
+                                f'{",".join(sorted(strains_names))}\nAn unrooted tree is going to be reconstructed')
 
-        submit_mini_batch(logger, script_path, [params], phylogeny_tmp_dir,
-                          args.queue_name, args.account_name, job_name='tree_reconstruction',
-                          required_modules_as_list=[consts.RAXML], num_of_cpus=consts.PHYLOGENY_NUM_OF_CORES,
-                          command_to_run_before_script='export QT_QPA_PLATFORM=offscreen')  # Needed to avoid an error in drawing the tree. Taken from: https://github.com/NVlabs/instant-ngp/discussions/300
+            submit_mini_batch(logger, script_path, [params], phylogeny_tmp_dir,
+                              args.queue_name, args.account_name, job_name='tree_reconstruction',
+                              required_modules_as_list=[consts.RAXML], num_of_cpus=consts.PHYLOGENY_NUM_OF_CORES,
+                              command_to_run_before_script='export QT_QPA_PLATFORM=offscreen')  # Needed to avoid an error in drawing the tree. Taken from: https://github.com/NVlabs/instant-ngp/discussions/300
 
-        # wait for the phylogenetic tree here
-        wait_for_results(logger, times_logger, step_name, phylogeny_tmp_dir,
-                         num_of_expected_results=1, error_file_path=error_file_path,
-                         start=start_time, email=args.email)
+            # wait for the phylogenetic tree here
+            wait_for_results(logger, times_logger, step_name, phylogeny_tmp_dir,
+                             num_of_expected_results=1, error_file_path=error_file_path,
+                             start=start_time, email=args.email)
 
-        add_results_to_final_dir(logger, phylogeny_path, final_output_dir,
-                                 keep_in_source_dir=consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR)
-        write_to_file(logger, done_file_path, '.')
+            add_results_to_final_dir(logger, phylogeny_path, final_output_dir,
+                                     keep_in_source_dir=consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR)
+            write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
@@ -1506,12 +1511,9 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
         logger.info("Step 10 completed.")
         return
 
-    if number_of_genomes >= 3 and core_proteome_length > 0:
-        step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
-                          done_files_dir, aligned_core_proteome_file_path, genomes_names_path)
-        edit_progress(output_html_path, progress=95)
-    else:
-        logger.info('Skipping phylogeny reconstruction because there are less than 3 genomes or no core proteome')
+    step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
+                      done_files_dir, aligned_core_proteome_file_path, genomes_names_path, number_of_genomes, core_proteome_length)
+    edit_progress(output_html_path, progress=95)
 
     if args.step_to_complete == '11':
         logger.info("Step 11 completed.")

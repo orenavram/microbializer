@@ -52,7 +52,7 @@ GENOMES_CLUSTERS_BY_W_VECTORS = f"{ALL_OUTPUTS_DIRECTORY}/10_codon_bias/Relative
 GENOMES_CLUSTERS_BY_W_VECTORS_CSV = f"{ALL_OUTPUTS_DIRECTORY}/10_codon_bias/Relative_Adaptiveness_scatter_plot_clusters.csv"
 
 TITLE_HISTORGRAM_FOR_ORFS = "Open Reading Frames (ORFs)"
-TITLE_HISTORGRAM_FOR_GC_CONTENT = "GC Content"
+TITLE_HISTORGRAM_FOR_GC_CONTENT = "GC Content %"
 TITLE_HISTOGRAM_GENOME_COMPLETENESS = "Genome Completeness (BUSCO)"
 TITLE_HISTOGRAM_ORPHAN_GENES_COUNT = "Orphan Genes Count"
 
@@ -81,7 +81,7 @@ echo "Running on nodes: $SLURM_JOB_NODELIST"
 echo "Allocated CPUs: $SLURM_JOB_CPUS_PER_NODE"
 
 source /lsweb/pupko/microbializer/miniconda3/etc/profile.d/conda.sh
-conda activate microbializer
+conda activate /lsweb/pupko/microbializer/miniconda3/envs/microbializer
 export PATH=$CONDA_PREFIX/bin:$PATH
 
 echo "PATH: $PATH"

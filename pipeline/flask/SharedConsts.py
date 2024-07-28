@@ -250,6 +250,9 @@ class UI_CONSTS:
         INVALID_SPECIES_LIST = 'Some of the species inserted to the custom DB are invalid'
         JOB_CRASHED = 'Your processed crashed... Make sure your input is valid'
         RESULTS_DF_IS_NONE = 'The results cant be found, can be caused by several things, please contact us'
+        UNKNOWN_ACTION = 'Please use send a valid action'
+        NO_ACTION = 'No action was added, please choose'
+        ALL_FILES_NOT_CREATE = 'Cannot find the required zip files for all results'
 
 
     ERROR_CONTACT_INFO = 'For more information, or any other inquiries, please contact yairshsh@gmail.com'

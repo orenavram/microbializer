@@ -215,7 +215,8 @@ def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir,
         # (long lines with ";" are bad practice)
     else:
         # shell_cmds_as_str += f'source ~/.bashrc{new_line_delimiter}'
-        shell_cmds_as_str += f'source {consts.CONDA_INSTALLATION_DIR}/etc/profile.d/conda.sh{new_line_delimiter}'
+        conda_sh_path = os.path.join(consts.CONDA_INSTALLATION_DIR, 'etc/profile.d/conda.sh')
+        shell_cmds_as_str += f'source {conda_sh_path}{new_line_delimiter}'
         shell_cmds_as_str += f'conda activate {consts.CONDA_ENVIRONMENT_DIR}{new_line_delimiter}'
         shell_cmds_as_str += f'export PATH=$CONDA_PREFIX/bin:$PATH{new_line_delimiter}'
 

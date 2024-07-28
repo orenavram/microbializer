@@ -9,11 +9,29 @@ KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR = True
 USE_CONDA = True
 IGNORE_HTML = True
 LOG_IN_SEPARATE_FILES = True
-PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer'
-# PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer_prod'
-# PROJECT_ROOT_DIR = '/lsweb/pupko/microbializer'
-CONDA_INSTALLATION_DIR = r'/groups/pupko/yairshimony/miniconda3'
-CONDA_ENVIRONMENT_DIR = r'/groups/pupko/yairshimony/miniconda3/envs/microbializer'
+
+# ENV = 'yair_test'
+ENV = 'yair_prod'
+# ENV = 'lsweb'
+
+if ENV == 'yair_test':
+    PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer'
+elif ENV == 'yair_prod':
+    PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer_prod'
+elif ENV == 'lsweb':
+    PROJECT_ROOT_DIR = '/lsweb/pupko/microbializer'
+else:
+    raise ValueError(f'Unknown environment: {ENV}')
+
+if ENV == 'yair_test' or ENV == 'yair_prod':
+    CONDA_INSTALLATION_DIR = r'/groups/pupko/yairshimony/miniconda3'
+    CONDA_ENVIRONMENT_DIR = r'/groups/pupko/yairshimony/miniconda3/envs/microbializer'
+elif ENV == 'lsweb':
+    CONDA_INSTALLATION_DIR = r'/lsweb/pupko/microbializer/miniconda3'
+    CONDA_ENVIRONMENT_DIR = r'/lsweb/pupko/microbializer/miniconda3/envs/microbializer'
+else:
+    raise ValueError(f'Unknown environment: {ENV}')
+
 OWNER_EMAIL = 'yairshimony@mail.tau.ac.il'
 
 
