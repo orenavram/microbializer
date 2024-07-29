@@ -48,21 +48,21 @@ GENOME_NUMERIC_REPRESENTATION = f"{ALL_OUTPUTS_DIRECTORY}/08_genome_numeric_repr
 SPECIES_TREE_NEWICK = f"{ALL_OUTPUTS_DIRECTORY}/09_species_phylogeny/final_species_tree.newick"
 SPECIES_TREE_PNG = f"{ALL_OUTPUTS_DIRECTORY}/09_species_phylogeny/final_species_tree.png"
 
-OG_TABLE_WITH_CODODN_BIAS = f"{ALL_OUTPUTS_DIRECTORY}/10_codon_bias/final_orthologs_table.csv"
+OG_TABLE_WITH_CODON_BIAS = f"{ALL_OUTPUTS_DIRECTORY}/10_codon_bias/final_orthologs_table.csv"
 CAI_HISTOGRAM = f"{ALL_OUTPUTS_DIRECTORY}/10_codon_bias/CAI_histogram.png"
 GENOMES_CLUSTERS_BY_W_VECTORS = f"{ALL_OUTPUTS_DIRECTORY}/10_codon_bias/Relative_Adaptiveness_scatter_plot.png"
 GENOMES_CLUSTERS_BY_W_VECTORS_CSV = f"{ALL_OUTPUTS_DIRECTORY}/10_codon_bias/Relative_Adaptiveness_scatter_plot_clusters.csv"
 
-TITLE_HISTORGRAM_FOR_ORFS = "Open Reading Frames (ORFs)"
-TITLE_HISTORGRAM_FOR_GC_CONTENT = "GC Content %"
+TITLE_HISTOGRAM_FOR_ORFS = "Open Reading Frames (ORFs)"
+TITLE_HISTOGRAM_FOR_GC_CONTENT = "GC Content %"
 TITLE_HISTOGRAM_GENOME_COMPLETENESS = "Genome Completeness (BUSCO)"
 TITLE_HISTOGRAM_ORPHAN_GENES_COUNT = "Orphan Genes Count"
 
 DATA_2_VIEW_IN_HISTOGRAM = {
     # use title as key and path to json as value
     # REMEMBER! json file should be a dict with the genome name as key and a scalar as the value
-    TITLE_HISTORGRAM_FOR_ORFS: ORFS_COUNT_PER_GENOME,
-    TITLE_HISTORGRAM_FOR_GC_CONTENT: GC_CONTENT_PER_GENOME,
+    TITLE_HISTOGRAM_FOR_ORFS: ORFS_COUNT_PER_GENOME,
+    TITLE_HISTOGRAM_FOR_GC_CONTENT: GC_CONTENT_PER_GENOME,
     TITLE_HISTOGRAM_GENOME_COMPLETENESS: GENOME_COMPLETENESS_PER_GENOME,
     TITLE_HISTOGRAM_ORPHAN_GENES_COUNT: ORPHAN_GENES_PER_GENOME
 }
@@ -101,7 +101,7 @@ PATHS_TO_DOWNLOAD = {
         "Species tree (png)": SPECIES_TREE_PNG,
     },
     "Codon bias analysis": {
-        "Orthologs groups (csv) sorted by codon adaptation index": OG_TABLE_WITH_CODODN_BIAS,
+        "Orthologs groups (csv) sorted by codon adaptation index": OG_TABLE_WITH_CODON_BIAS,
         "Codon adaptation index histogram": CAI_HISTOGRAM,
         "Genome clusters by codon usage (png)": GENOMES_CLUSTERS_BY_W_VECTORS,
         "Genome clusters by codon usage (csv)": GENOMES_CLUSTERS_BY_W_VECTORS_CSV
