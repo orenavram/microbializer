@@ -43,7 +43,7 @@ def get_arguments():
                         default='outputs')
     parser.add_argument('--email', help='A notification will be sent once the pipeline is done',
                         default=consts.OWNER_EMAIL)
-    parser.add_argument('--identity_cutoff', default=80,
+    parser.add_argument('--identity_cutoff', default=40,
                         help='minimum required percent of identity level (lower values will be filtered out)')
     parser.add_argument('--coverage_cutoff', default=70,
                         help='minimum required coverage percent of homology region between genes (lower values will be filtered out)')
