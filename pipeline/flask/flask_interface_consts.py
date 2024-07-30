@@ -112,8 +112,7 @@ PATHS_TO_DOWNLOAD = {
 MICROBIALIZER_PROCESSOR_JOB_QUEUE_NAME = 'pupkoweb'
 NUBMER_OF_CPUS_MICROBIALIZER_PROCESSOR_JOB = '1'
 MICROBIALIZER_PROCESSOR_JOB_PREFIX = 'MC'
-MICROBIALIZER_PROCESSOR_RESULTS_FILE_NAME = 'results.txt'
-
+MICROBIALIZER_PROCESSOR_RESULTS_FILE_NAME = ALL_OUTPUTS_ZIPPED_FORMAT
 
 MICROBIALIZER_JOB_TEMPLATE = '''#!/bin/bash
 
@@ -130,5 +129,15 @@ export PATH=$CONDA_PREFIX/bin:$PATH
 echo "PATH: $PATH"
 
 python "/lsweb/pupko/microbializer/pipeline/main.py" --{args_json_path_key} {args_json_path} --account_name pupkoweb-users --queue_name pupkoweb
-echo OKAY > {results_file_path}
+'''
+
+MICROBIALIZER_JOB_HEADER_TEMPLATE = '''
+#SBATCH --job-name=microbializer
+#SBATCH --account=pupkoweb-users
+#SBATCH --partition=pupkoweb
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task={num_cpus}
+#SBATCH --mem=4G
+#SBATCH --output={output_file}
+#SBATCH --error={error_file}
 '''

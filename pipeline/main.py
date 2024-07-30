@@ -1543,7 +1543,8 @@ def report_error_in_main_pipeline_to_admin(logger, e, meta_output_dir, error_fil
     edit_failure_html(logger, output_html_path, run_number, error_msg)
     edit_progress(output_html_path, active=False)
 
-    notify_admin(meta_output_dir, meta_output_url, run_number)
+    if consts.SEND_MAILS:
+        notify_admin(meta_output_dir, meta_output_url, run_number)
 
 
 def report_main_pipeline_result_to_user(args, logger, status, total_time, output_url, run_number):
@@ -1555,12 +1556,13 @@ def report_main_pipeline_result_to_user(args, logger, status, total_time, output
         msg += f'. For further information please visit: {output_url}'
     logger.info(msg)
 
-    logger.info(f'Sending a notification email to {args.email}')
-    try:
-        send_email('mxout.tau.ac.il', 'TAU BioSequence <bioSequence@tauex.tau.ac.il>', args.email,
-                   subject=f'{flask_interface_consts.WEBSERVER_NAME} run number {run_number} {status}.', content=msg)
-    except:
-        logger.error(f'\nFailed sending notification to {args.email}\n')
+    if consts.SEND_MAILS:
+        logger.info(f'Sending a notification email to {args.email}')
+        try:
+            send_email('mxout.tau.ac.il', 'TAU BioSequence <bioSequence@tauex.tau.ac.il>', args.email,
+                       subject=f'{flask_interface_consts.WEBSERVER_NAME} run number {run_number} {status}.', content=msg)
+        except:
+            logger.error(f'\nFailed sending notification to {args.email}\n')
 
 
 def run_pipeline_extensions(args, logger, times_logger, error_file_path, run_number, output_dir, tmp_dir,

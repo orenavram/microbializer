@@ -8,11 +8,12 @@ from enum import Enum
 KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR = True
 USE_CONDA = True
 IGNORE_HTML = True
+SEND_MAILS = False
 LOG_IN_SEPARATE_FILES = True
 
 # ENV = 'yair_test'
-ENV = 'yair_prod'
-# ENV = 'lsweb'
+# ENV = 'yair_prod'
+ENV = 'lsweb'
 
 if ENV == 'yair_test':
     PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer'

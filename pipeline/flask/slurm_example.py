@@ -1,6 +1,7 @@
 import requests
 import os
 import secrets
+import flask_interface_consts
 
 # Base URL for authentication and token generation
 base_url_auth = 'https://slurmtron.tau.ac.il'
@@ -53,6 +54,18 @@ def submit_job(script_commands, job_name, logs_path, num_cpus, queue, memory, lo
         'X-SLURM-USER-TOKEN': get_api_token(current_user, secrets.API_KEY)
     }
 
+    slurm_output_file = os.path.join(logs_path, 'main_%j.out')
+    slurm_error_file = os.path.join(logs_path, 'main_%j.err')
+
+    slurm_script_path = os.path.join(logs_path, 'job.slurm')
+    with open(slurm_script_path, 'w') as f:
+        slurm_header = flask_interface_consts.MICROBIALIZER_JOB_HEADER_TEMPLATE.format(
+            output_file=slurm_output_file, error_file=slurm_error_file, num_cpus=num_cpus)
+        shebang, commands = script_commands.split('\n', 1)
+        full_slurm_script = f"{shebang}\n{slurm_header}\n{commands}"
+        f.write(full_slurm_script)
+        logger.info(f"Wrote slurm script to {slurm_script_path}")
+
     # Job submission request
     jobs_request = requests.post(
         job_url,
@@ -74,8 +87,8 @@ def submit_job(script_commands, job_name, logs_path, num_cpus, queue, memory, lo
                     "infinite": False
                 },
                 # Full path to your error/output file.
-                "standard_output": os.path.join(logs_path, 'main_%j.out'),
-                "standard_error": os.path.join(logs_path, 'main_%j.err'),
+                "standard_output": slurm_output_file,
+                "standard_error": slurm_error_file,
                 "current_working_directory": current_working_directory,
                 # Environment modules (module load) should not be used directly under the script parameter. Instead, set all necessary environment variables under the environment parameter.
                 "environment": [
