@@ -1,6 +1,6 @@
 import requests
 import os
-import secrets
+import api_secrets
 import flask_interface_consts
 
 # Base URL for authentication and token generation
@@ -51,7 +51,7 @@ def submit_job(script_commands, job_name, logs_path, num_cpus, queue, memory, lo
     # Authorization headers with the obtained token
     headers = {
         'X-SLURM-USER-NAME': current_user,
-        'X-SLURM-USER-TOKEN': get_api_token(current_user, secrets.API_KEY)
+        'X-SLURM-USER-TOKEN': get_api_token(current_user, api_secrets.API_KEY)
     }
 
     slurm_output_file = os.path.join(logs_path, 'main_%j.out')

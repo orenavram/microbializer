@@ -1,3 +1,3 @@
 .idea/
 __pycache__/
-pipeline/flask/secrets.py
+pipeline/flask/api_secrets.py
