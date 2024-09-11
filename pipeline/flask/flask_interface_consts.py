@@ -7,6 +7,8 @@ JOB_PARAMETERS_FILE_NAME = "input_parameters.json"
 RUN_DIR = "run_dir"
 
 # Input parameters from users
+JOB_NAME = "job_name"
+EMAIL = "email"
 IDENTITY_CUTOFF = "identity_cutoff"
 E_VALUE_CUTOFF = "e_value_cutoff"
 CORE_MINIMAL_PERCENTAGE = "core_minimal_percentage"
@@ -20,12 +22,15 @@ INPUT_FASTA_TYPE = "inputs_fasta_type"
 # Error description file (the path is relative to the unique folder of the job)
 ERROR_FILE_PATH = "error.txt"
 
+# Input file
+INPUTS_GENOMES_ZIPPED = "genomes.zip"
+
 # Output files (the paths are relative to the unique folder of the job)
 ALL_OUTPUTS_DIRECTORY = WEBSERVER_NAME + "_outputs"
-ALL_OUTPUTS_ZIPPED_FORMAT = WEBSERVER_NAME + "_outputs.zip"
+ALL_OUTPUTS_ZIPPED = WEBSERVER_NAME + "_outputs.zip"
 
 ANI_CSV = f"{ALL_OUTPUTS_DIRECTORY}/01_ANI/ani_pairwise_values.csv"
-ANI_MAP = f"{ALL_OUTPUTS_DIRECTORY}/01_ANI/ani_map.json"
+ANI_MAP = f"{ALL_OUTPUTS_DIRECTORY}/01_ANI/ani_map.png"
 
 ORFS_COUNT_PER_GENOME = f"{ALL_OUTPUTS_DIRECTORY}/02b_orfs_plots/orfs_counts.json"
 ORFS_COUNT_HISTOGRAM = f"{ALL_OUTPUTS_DIRECTORY}/02b_orfs_plots/orfs_counts.png"
@@ -68,43 +73,44 @@ DATA_2_VIEW_IN_HISTOGRAM = {
 }
 
 PATHS_TO_DOWNLOAD = {
-    "All outputs": {
-        "All outputs (zip)": ALL_OUTPUTS_ZIPPED_FORMAT
+    "General": {
+        "Inputs_(zip)": INPUTS_GENOMES_ZIPPED,
+        "All_outputs_(zip)": ALL_OUTPUTS_ZIPPED
     },
     "ANI (Average Nucleotide Identity": {
-        "ANI table": ANI_CSV,
-        "ANI map": ANI_MAP,
+        "ANI_table": ANI_CSV,
+        "ANI_map": ANI_MAP,
     },
     "Genomes statistics": {
-        "ORFs count per genome": ORFS_COUNT_PER_GENOME,
-        "ORFs count histogram": ORFS_COUNT_HISTOGRAM,
-        "GC content per genome": GC_CONTENT_PER_GENOME,
-        "GC content histogram": GC_CONTENT_HISTOGRAM,
-        "Genome completeness score (BUSCO) per genome": GENOME_COMPLETENESS_PER_GENOME,
-        "Genome completeness score (BUSCO) histogram": GENOME_COMPLETENESS_HISTOGRAM,
-        "Orphan genes per genome": ORPHAN_GENES_PER_GENOME,
-        "Orphan genes histogram": ORPHAN_GENES_HISTOGRAM,
+        "ORFs_count_per_genome": ORFS_COUNT_PER_GENOME,
+        "ORFs_count_histogram": ORFS_COUNT_HISTOGRAM,
+        "GC_content_per_genome": GC_CONTENT_PER_GENOME,
+        "GC_content_histogram": GC_CONTENT_HISTOGRAM,
+        "Genome_completeness_score_(BUSCO)_per_genome": GENOME_COMPLETENESS_PER_GENOME,
+        "Genome_completeness_score_(BUSCO)_histogram": GENOME_COMPLETENESS_HISTOGRAM,
+        "Orphan_genes_per_genome": ORPHAN_GENES_PER_GENOME,
+        "Orphan_genes_histogram": ORPHAN_GENES_HISTOGRAM,
     },
     "Orthologs groups": {
-        "Orthologs groups (csv)": OG_TABLE,
-        "Orthologs groups (OrthoXML)": OG_TABLE_ORTHOXML,
-        "Phyletic pattern": PHYLETIC_PATTERN,
-        "Orthologs groups sizes histogram": OG_SIZE_HISTOGRAM,
+        "Orthologs_groups_(csv)": OG_TABLE,
+        "Orthologs_groups_(OrthoXML)": OG_TABLE_ORTHOXML,
+        "Phyletic_pattern": PHYLETIC_PATTERN,
+        "Orthologs_groups_sizes_histogram": OG_SIZE_HISTOGRAM,
     },
     "Core genome": {
-        "Core genome alignment": CORE_GENOME,
-        "Core proteome alignment": CORE_PROTEOME,
-        "Genome numeric representation": GENOME_NUMERIC_REPRESENTATION,
+        "Core_genome_alignment": CORE_GENOME,
+        "Core_proteome_alignment": CORE_PROTEOME,
+        "Genome_numeric_representation": GENOME_NUMERIC_REPRESENTATION,
     },
     "Species tree": {
-        "Species tree (newick)": SPECIES_TREE_PNG,
-        "Species tree (png)": SPECIES_TREE_PNG,
+        "Species_tree_(newick)": SPECIES_TREE_NEWICK,
+        "Species_tree_(png)": SPECIES_TREE_PNG,
     },
     "Codon bias analysis": {
-        "Orthologs groups (csv) sorted by codon adaptation index": OG_TABLE_WITH_CODON_BIAS,
-        "Codon adaptation index histogram": CAI_HISTOGRAM,
-        "Genome clusters by codon usage (png)": GENOMES_CLUSTERS_BY_W_VECTORS,
-        "Genome clusters by codon usage (csv)": GENOMES_CLUSTERS_BY_W_VECTORS_CSV
+        "Orthologs_groups_(csv)_sorted_by_codon_adaptation_index": OG_TABLE_WITH_CODON_BIAS,
+        "Codon_adaptation_index_histogram": CAI_HISTOGRAM,
+        "Genome_clusters_by_codon_usage_(png)": GENOMES_CLUSTERS_BY_W_VECTORS,
+        "Genome_clusters_by_codon_usage_(csv)": GENOMES_CLUSTERS_BY_W_VECTORS_CSV
     }
 }
 

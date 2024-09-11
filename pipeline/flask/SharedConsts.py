@@ -253,6 +253,7 @@ class UI_CONSTS:
         UNKNOWN_ACTION = 'Please use send a valid action'
         NO_ACTION = 'No action was added, please choose'
         ALL_FILES_NOT_CREATE = 'Cannot find the required zip files for all results'
+        FILE_NOT_FOUND = 'Cannot file the required file'
 
 
     ERROR_CONTACT_INFO = 'For more information, or any other inquiries, please contact yairshsh@gmail.com'
