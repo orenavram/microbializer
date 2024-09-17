@@ -24,7 +24,7 @@ from auxiliaries.html_editor import edit_success_html, edit_failure_html, edit_p
 from auxiliaries import consts, cgi_consts
 from flask import flask_interface_consts
 from auxiliaries.logic_auxiliaries import mimic_prodigal_output, aggregate_ani_results, remove_bootstrap_values, \
-    aggregate_mmseqs_scores, max_with_nan, plot_genomes_histogram
+    aggregate_mmseqs_scores, max_with_nan, plot_genomes_histogram, update_progressbar
 from flask.SharedConsts import USER_FILE_NAME_ZIP, USER_FILE_NAME_TAR
 
 PIPELINE_STEPS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
@@ -109,34 +109,6 @@ def get_arguments():
     return args
 
 
-def validate_arguments(args):
-    args.identity_cutoff = float(args.identity_cutoff)
-    if args.identity_cutoff < 0 or args.identity_cutoff > 100:
-        raise ValueError(f'identity_cutoff argument {args.identity_cutoff} has invalid value')
-
-    args.coverage_cutoff = float(args.coverage_cutoff)
-    if args.coverage_cutoff < 0 or args.coverage_cutoff > 100:
-        raise ValueError(f'coverage_cutoff argument {args.coverage_cutoff} has invalid value')
-
-    args.e_value_cutoff = float(args.e_value_cutoff)
-    if args.e_value_cutoff < 0 or args.e_value_cutoff > 1:
-        raise ValueError(f'e_value_cutoff argument {args.e_value_cutoff} has invalid value')
-
-    args.core_minimal_percentage = float(args.core_minimal_percentage)
-    if args.core_minimal_percentage < 0 or args.core_minimal_percentage > 100:
-        raise ValueError(f'core_minimal_percentage argument {args.core_minimal_percentage} has invalid value')
-
-    if type(args.bootstrap) == str:
-        args.bootstrap = str_to_bool(args.bootstrap)
-    if type(args.filter_out_plasmids) == str:
-        args.filter_out_plasmids = str_to_bool(args.filter_out_plasmids)
-    if type(args.add_orphan_genes_to_ogs) == str:
-        args.add_orphan_genes_to_ogs = str_to_bool(args.add_orphan_genes_to_ogs)
-
-    if args.outgroup == "No outgroup":
-        args.outgroup = None
-
-
 def prepare_pipeline_framework(args):
     if (args.run_dir and args.contigs_dir) or (not args.run_dir and not args.contigs_dir):
         raise ValueError('Either run_dir or contigs_dir should be provided, but not both.')
@@ -181,6 +153,7 @@ def prepare_pipeline_framework(args):
     logger.info(f'Created output_dir in: {output_dir}')
 
     error_file_path = os.path.join(meta_output_dir, flask_interface_consts.ERROR_FILE_PATH)
+    progressbar_file_path = os.path.join(meta_output_dir, flask_interface_consts.PROGRESSBAR_FILE_PATH)
 
     run_number = os.path.join(os.path.split(meta_output_dir)[1])
     logger.info(f'run_number is {run_number}')
@@ -218,8 +191,58 @@ def prepare_pipeline_framework(args):
     logger.info(f'Creating results_dir in: {steps_results_dir}')
     os.makedirs(steps_results_dir, exist_ok=True)
 
-    return logger, times_logger, meta_output_dir, error_file_path, run_number, output_html_path, output_url, \
-        meta_output_url, output_dir, tmp_dir, done_files_dir, steps_results_dir
+    return logger, times_logger, meta_output_dir, error_file_path, progressbar_file_path, run_number, output_html_path, \
+        output_url, meta_output_url, output_dir, tmp_dir, done_files_dir, steps_results_dir
+
+
+def validate_arguments(args):
+    args.identity_cutoff = float(args.identity_cutoff)
+    if args.identity_cutoff < 0 or args.identity_cutoff > 100:
+        raise ValueError(f'identity_cutoff argument {args.identity_cutoff} has invalid value')
+
+    args.coverage_cutoff = float(args.coverage_cutoff)
+    if args.coverage_cutoff < 0 or args.coverage_cutoff > 100:
+        raise ValueError(f'coverage_cutoff argument {args.coverage_cutoff} has invalid value')
+
+    args.e_value_cutoff = float(args.e_value_cutoff)
+    if args.e_value_cutoff < 0 or args.e_value_cutoff > 1:
+        raise ValueError(f'e_value_cutoff argument {args.e_value_cutoff} has invalid value')
+
+    args.core_minimal_percentage = float(args.core_minimal_percentage)
+    if args.core_minimal_percentage < 0 or args.core_minimal_percentage > 100:
+        raise ValueError(f'core_minimal_percentage argument {args.core_minimal_percentage} has invalid value')
+
+    if type(args.bootstrap) == str:
+        args.bootstrap = str_to_bool(args.bootstrap)
+    if type(args.filter_out_plasmids) == str:
+        args.filter_out_plasmids = str_to_bool(args.filter_out_plasmids)
+    if type(args.add_orphan_genes_to_ogs) == str:
+        args.add_orphan_genes_to_ogs = str_to_bool(args.add_orphan_genes_to_ogs)
+
+    if args.outgroup == "No outgroup":
+        args.outgroup = None
+
+
+def initialize_progressbar(args, progressbar_file_path):
+    if args.only_calc_ogs:
+        steps = consts.ONLY_CALC_OGS_TABLE_STEPS_NAMES_FOR_PROGRESS_BAR
+    else:
+        steps = consts.FULL_STEPS_NAMES_FOR_PROGRESS_BAR
+
+    if not args.filter_out_plasmids:
+        steps.remove('Filter out plasmids')
+
+    if args.inputs_fasta_type == 'orfs':
+        for i in range(len(steps)):
+            if steps[i] == 'Predict and translate ORFs':
+                steps[i] = 'Translate ORFs'
+                break
+
+    if args.core_minimal_percentage != 100:
+        steps.remove('Calculate genomes numeric representation')
+
+    df = pd.DataFrame({'Step': steps, 'Finished': [False] * len(steps)})
+    df.to_csv(progressbar_file_path, index=False)
 
 
 def step_0_filter_out_plasmids(args, logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
@@ -1406,12 +1429,13 @@ def step_12_codon_bias(args, logger, times_logger, error_file_path, output_dir, 
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
 
-def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_path, output_dir, tmp_dir,
-                      done_files_dir, data_path, number_of_genomes, genomes_names_path, final_output_dir):
+def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_file_path, output_html_path, output_dir,
+                      tmp_dir, done_files_dir, data_path, number_of_genomes, genomes_names_path, final_output_dir):
     if args.filter_out_plasmids:
         filtered_inputs_dir = step_0_filter_out_plasmids(args, logger, times_logger, error_file_path, output_dir,
                                                          tmp_dir, done_files_dir, data_path)
         data_path = filtered_inputs_dir
+        update_progressbar(progressbar_file_path, 'Filter out plasmids')
         edit_progress(output_html_path, progress=5)
 
     if args.step_to_complete == '0':
@@ -1421,6 +1445,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
     if not args.only_calc_ogs and number_of_genomes <= 100:
         step_1_calculate_ani(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
                              done_files_dir, data_path)
+        update_progressbar(progressbar_file_path, 'Calculate ANI (Average Nucleotide Identity)')
         edit_progress(output_html_path, progress=10)
 
     if args.step_to_complete == '1':
@@ -1429,6 +1454,8 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
 
     orfs_dir, translated_orfs_dir = step_2_search_orfs(args, logger, times_logger, error_file_path, output_dir,
                                                             tmp_dir, final_output_dir, done_files_dir, data_path)
+    update_progressbar(progressbar_file_path, 'Predict and translate ORFs')
+    update_progressbar(progressbar_file_path, 'Translate ORFs')
     edit_progress(output_html_path, progress=15)
 
     if args.step_to_complete == '2':
@@ -1438,6 +1465,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
     if not args.only_calc_ogs:
         step_3_analyze_genome_completeness(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                                            final_output_dir, done_files_dir, translated_orfs_dir)
+        update_progressbar(progressbar_file_path, 'Calculate genomes completeness')
         edit_progress(output_html_path, progress=20)
 
     if args.step_to_complete == '3':
@@ -1447,6 +1475,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
     all_reciprocal_hits_file = step_4_search_orthologs(args, logger, times_logger, error_file_path,
                                                        output_dir, tmp_dir, done_files_dir, translated_orfs_dir,
                                                        genomes_names_path)
+    update_progressbar(progressbar_file_path, 'Calculate blast scores between all protein sequences')
     edit_progress(output_html_path, progress=25)
 
     if args.step_to_complete == '4':
@@ -1455,6 +1484,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
 
     orthologs_table_file_path = step_5_cluster_orthologs(args, logger, times_logger, error_file_path, output_dir,
                                                                tmp_dir, done_files_dir, all_reciprocal_hits_file)
+    update_progressbar(progressbar_file_path, 'Cluster protein sequences')
     edit_progress(output_html_path, progress=55)
 
     if args.step_to_complete == '5':
@@ -1463,6 +1493,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
 
     orphan_genes_dir = step_6_extract_orphan_genes(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                                                    final_output_dir, done_files_dir, orfs_dir, orthologs_table_file_path)
+    update_progressbar(progressbar_file_path, 'Find orphan genes')
     edit_progress(output_html_path, progress=35)
 
     if args.step_to_complete == '6':
@@ -1472,6 +1503,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
     final_orthologs_table_file_path = \
         step_7_orthologs_table_variations(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                                           final_output_dir, done_files_dir, orthologs_table_file_path, orphan_genes_dir)
+    update_progressbar(progressbar_file_path, 'Construct orthogroups')
     edit_progress(output_html_path, progress=55)
 
     if args.step_to_complete == '7':
@@ -1485,6 +1517,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
         step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_file_path,
                                                output_dir, tmp_dir, final_output_dir, done_files_dir, orfs_dir,
                                                final_orthologs_table_file_path)
+    update_progressbar(progressbar_file_path, 'Prepare orthogroups fasta files')
     edit_progress(output_html_path, progress=60)
 
     if args.step_to_complete == '8':
@@ -1494,6 +1527,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
     aligned_core_proteome_file_path, core_proteome_length = step_9_extract_core_genome_and_core_proteome(
         args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir, done_files_dir,
         number_of_genomes, genomes_names_path, ogs_aa_alignments_path, ogs_dna_alignments_path)
+    update_progressbar(progressbar_file_path, 'Infer core genome')
     edit_progress(output_html_path, progress=75)
 
     if args.step_to_complete == '9':
@@ -1503,6 +1537,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
     if args.core_minimal_percentage == 100:
         step_10_genome_numeric_representation(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                                               final_output_dir, done_files_dir, orfs_dir, final_orthologs_table_file_path)
+        update_progressbar(progressbar_file_path, 'Calculate genomes numeric representation')
         edit_progress(output_html_path, progress=90)
 
     if args.step_to_complete == '10':
@@ -1511,6 +1546,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
 
     step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
                       done_files_dir, aligned_core_proteome_file_path, genomes_names_path, number_of_genomes, core_proteome_length)
+    update_progressbar(progressbar_file_path, 'Reconstruct species phylogeny')
     edit_progress(output_html_path, progress=95)
 
     if args.step_to_complete == '11':
@@ -1519,6 +1555,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, output_html_p
 
     step_12_codon_bias(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
                        done_files_dir, orfs_dir, ogs_dna_sequences_path, final_orthologs_table_file_path)
+    update_progressbar(progressbar_file_path, 'Analyze codon bias')
     edit_progress(output_html_path, progress=65)
 
     if args.step_to_complete == '12':
@@ -1957,18 +1994,21 @@ def run_pipeline_extensions(args, logger, times_logger, error_file_path, run_num
 def main(args):
     start_time = time()
 
-    logger, times_logger, meta_output_dir, error_file_path, run_number, output_html_path, output_url, meta_output_url, \
-        output_dir, tmp_dir, done_files_dir, steps_results_dir = prepare_pipeline_framework(args)
+    logger, times_logger, meta_output_dir, error_file_path, progressbar_file_path, run_number, output_html_path, \
+        output_url, meta_output_url, output_dir, tmp_dir, done_files_dir, steps_results_dir = prepare_pipeline_framework(args)
 
     try:
         validate_arguments(args)
+        initialize_progressbar(args, progressbar_file_path)
+
         data_path, number_of_genomes, genomes_names_path = prepare_and_verify_input_data(
             args, logger, meta_output_dir, error_file_path, output_dir)
+        update_progressbar(progressbar_file_path, 'Validate input files')
 
         final_output_dir_name = f'{flask_interface_consts.WEBSERVER_NAME}_{args.output_dir}'
         final_output_dir = os.path.join(meta_output_dir, final_output_dir_name)
 
-        run_main_pipeline(args, logger, times_logger, error_file_path,
+        run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_file_path,
                           output_html_path, steps_results_dir, tmp_dir, done_files_dir,
                           data_path, number_of_genomes, genomes_names_path, final_output_dir)
 
@@ -1976,6 +2016,7 @@ def main(args):
                 or args.zip_results_in_partial_pipeline:
             logger.info('Zipping results folder...')
             shutil.make_archive(final_output_dir, 'zip', meta_output_dir, final_output_dir_name)
+            update_progressbar(progressbar_file_path, 'Zipping results')
 
         logger.info('Editing results html...')
         edit_success_html(logger, output_html_path, meta_output_dir, final_output_dir_name, run_number)

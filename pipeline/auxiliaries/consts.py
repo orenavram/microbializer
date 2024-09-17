@@ -11,9 +11,9 @@ IGNORE_HTML = True
 SEND_MAILS = False
 LOG_IN_SEPARATE_FILES = True
 
-# ENV = 'yair_test'
+ENV = 'yair_test'
 # ENV = 'yair_prod'
-ENV = 'lsweb'
+# ENV = 'lsweb'
 
 if ENV == 'yair_test':
     PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer'
@@ -102,6 +102,36 @@ OUTPUTS_DIRECTORIES_MAP = {
     '11_species_phylogeny': '09_species_phylogeny',
     '12_codon_bias': '10_codon_bias',
 }
+
+# steps for progress bar
+FULL_STEPS_NAMES_FOR_PROGRESS_BAR = [
+    'Validate input files',
+    'Filter out plasmids',
+    'Calculate ANI (Average Nucleotide Identity)',
+    'Predict and translate ORFs',
+    'Calculate genomes completeness',
+    'Calculate blast scores between all protein sequences',
+    'Cluster protein sequences',
+    'Find orphan genes',
+    'Construct orthogroups',
+    'Prepare orthogroups fasta files',
+    'Infer core genome',
+    'Calculate genomes numeric representation',
+    'Reconstruct species phylogeny',
+    'Analyze codon bias',
+    'Finalize results',
+]
+
+ONLY_CALC_OGS_TABLE_STEPS_NAMES_FOR_PROGRESS_BAR = [
+    'Validate input files',
+    'Filter out plasmids',
+    'Predict and translate ORFs',
+    'Calculate blast scores between all protein sequences',
+    'Cluster protein sequences',
+    'Find orphan genes',
+    'Construct orthogroups',
+    'Finalize results',
+]
 
 
 # constants to use when sending e-mails using the server admin's email address.

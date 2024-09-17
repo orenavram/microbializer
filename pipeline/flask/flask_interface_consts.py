@@ -22,6 +22,9 @@ INPUT_FASTA_TYPE = "inputs_fasta_type"
 # Error description file (the path is relative to the unique folder of the job)
 ERROR_FILE_PATH = "error.txt"
 
+# Progress bar file (the path is relative to the unique folder of the job)
+PROGRESSBAR_FILE_PATH = "progressbar.csv"
+
 # Input file
 INPUTS_GENOMES_ZIPPED = "genomes.zip"
 
@@ -118,7 +121,7 @@ PATHS_TO_DOWNLOAD = {
 MICROBIALIZER_PROCESSOR_JOB_QUEUE_NAME = 'pupkoweb'
 NUBMER_OF_CPUS_MICROBIALIZER_PROCESSOR_JOB = '1'
 MICROBIALIZER_PROCESSOR_JOB_PREFIX = 'MC'
-MICROBIALIZER_PROCESSOR_RESULTS_FILE_NAME = ALL_OUTPUTS_ZIPPED_FORMAT
+MICROBIALIZER_PROCESSOR_RESULTS_FILE_NAME = ALL_OUTPUTS_ZIPPED
 
 MICROBIALIZER_JOB_TEMPLATE = '''#!/bin/bash
 
@@ -128,6 +131,7 @@ echo "Job ID: $SLURM_JOB_ID"
 echo "Running on nodes: $SLURM_JOB_NODELIST"
 echo "Allocated CPUs: $SLURM_JOB_CPUS_PER_NODE"
 
+export HOME=/lsweb/pupko/microbializer
 source /lsweb/pupko/microbializer/miniconda3/etc/profile.d/conda.sh
 conda activate /lsweb/pupko/microbializer/miniconda3/envs/microbializer
 export PATH=$CONDA_PREFIX/bin:$PATH

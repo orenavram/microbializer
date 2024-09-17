@@ -241,3 +241,9 @@ def plot_ani_clustermap(
     # Output ANI clustermap figure
     plt.savefig(outdir / "ani_map.png", dpi=600)
     plt.close()
+
+
+def update_progressbar(progressbar_file_path, step_name_finished):
+    df = pd.read_csv(progressbar_file_path)
+    df.loc[df['Step'] == step_name_finished, 'Finished'] = True
+    df.to_csv(progressbar_file_path, index=False)
