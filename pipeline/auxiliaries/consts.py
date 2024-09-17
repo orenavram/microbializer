@@ -61,7 +61,7 @@ DEFAULT_SLURM_ACCOUNT = 'power-general-users'
 DEFAULT_SLURM_PARTITION = 'power-general'
 
 HEGS_ECOLI_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'HEG_ecoli.txt')
-BACTERIA_CORE_GENES_HMM_PROFILES_PATH = '/groups/pupko/naamawagner/Microbializer/Busco/hmms'
+BACTERIA_CORE_GENES_HMM_PROFILES_PATH = os.path.join(PROJECT_ROOT_DIR, 'pipeline', 'data', 'busco_hmms')
 MAX_NUMBER_OF_GENOMES_TO_ANALYZE = 350
 NUMBER_OF_IQTREE_BOOTSTRAP_ITERATIONS = 1000
 NUMBER_OF_RAXML_BOOTSTRAP_ITERATIONS = 100
