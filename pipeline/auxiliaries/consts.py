@@ -57,8 +57,8 @@ QUEUE_FOR_MMSEQS_COMMANDS = 'pupkolab'
 DEFAULT_PBS_QUEUE = 'power-pupko'
 
 # Slurm consts
-DEFAULT_SLURM_ACCOUNT = 'power-general-users'
-DEFAULT_SLURM_PARTITION = 'power-general'
+DEFAULT_SLURM_ACCOUNT = 'pupko-users'
+DEFAULT_SLURM_PARTITION = 'pupko'
 
 HEGS_ECOLI_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'HEG_ecoli.txt')
 BACTERIA_CORE_GENES_HMM_PROFILES_PATH = os.path.join(PROJECT_ROOT_DIR, 'pipeline', 'data', 'busco_hmms')
