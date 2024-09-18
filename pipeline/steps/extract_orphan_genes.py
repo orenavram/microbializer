@@ -18,19 +18,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger
-from auxiliaries.logic_auxiliaries import get_all_genes_in_table, plot_genomes_histogram
-
-
-def get_all_genes_with_orthologs(orthologs_file):
-    orthologs_df = pd.read_csv(orthologs_file)
-    orthologs_df.drop(columns=['OG_name'], inplace=True)
-
-    # Remove all rows that have only 1 strain in them (which are orphan genes that have multiple copies in the
-    # same genome). Those rows will have not-nan values in 1 column
-    all_clusters_no_orphans_df = orthologs_df[orthologs_df.count(axis=1) > 1]
-
-    all_genes_with_orthologs = get_all_genes_in_table(all_clusters_no_orphans_df)
-    return all_genes_with_orthologs
+from auxiliaries.logic_auxiliaries import get_all_genes_in_table, plot_genomes_histogram, flatten
 
 
 def extract_gene_names_from_fasta(orfs_file):
@@ -41,17 +29,25 @@ def extract_gene_names_from_fasta(orfs_file):
 
 
 def extract_orphan_proteins(logger, orfs_dir, orthologs_file, output_dir):
-    genes_with_orthologs = get_all_genes_with_orthologs(orthologs_file)
+    orthologs_df = pd.read_csv(orthologs_file)
+    orthologs_df.drop(columns=['OG_name'], inplace=True)
+
+    orthogroups_with_one_strain = orthologs_df[orthologs_df.count(axis=1) == 1]
+
+    all_genes_in_orthogroups = get_all_genes_in_table(orthologs_df)
+
     number_of_orphans_per_file = {}
     for orfs_file_name in os.listdir(orfs_dir):
         species_name = os.path.splitext(orfs_file_name)[0]
         orfs_file_path = os.path.join(orfs_dir, orfs_file_name)
         if os.path.isfile(orfs_file_path):
             gene_names = set(extract_gene_names_from_fasta(orfs_file_path))
-            orphans = list(gene_names.difference(genes_with_orthologs))
-            number_of_orphans_per_file[species_name] = len(orphans)
+            orphan_orthogroups = list(orthogroups_with_one_strain[species_name].dropna())
+            orphans = list(gene_names.difference(all_genes_in_orthogroups))
+            number_of_orphans_per_file[species_name] = len(flatten([orthogroup.split(';') for orthogroup in orphan_orthogroups])) + len(orphans)
             orphans_path = os.path.join(output_dir, f'{species_name}_orphans.txt')
             with open(orphans_path, 'w') as orphans_path_fp:
+                orphans_path_fp.write('\n'.join(orphan_orthogroups))
                 orphans_path_fp.write('\n'.join(orphans))
 
     plot_genomes_histogram(number_of_orphans_per_file, output_dir, 'orphan_genes_count', 'Orphan genes count',

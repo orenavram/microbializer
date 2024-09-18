@@ -1,3 +1,4 @@
 .idea/
 __pycache__/
 pipeline/flask/api_secrets.py
+pipeline_output_example

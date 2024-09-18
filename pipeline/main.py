@@ -539,6 +539,19 @@ def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_pa
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
 
+def step_infer_orthogroups(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
+                            done_files_dir, translated_orfs_dir, genomes_names_path, number_of_genomes):
+    all_reciprocal_hits_file = step_4_search_orthologs(args, logger, times_logger, error_file_path,
+                                                       output_dir, tmp_dir, done_files_dir, translated_orfs_dir,
+                                                       genomes_names_path)
+
+    orthologs_table_file_path = step_5_cluster_orthologs(args, logger, times_logger, error_file_path, output_dir,
+                                                               tmp_dir, done_files_dir, all_reciprocal_hits_file)
+
+    return orthologs_table_file_path
+
+
+
 def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                             done_files_dir, translated_orfs_dir, strains_names_path):
     if consts.USE_DIFFERENT_QUEUE_FOR_MMSEQS:
@@ -1472,20 +1485,8 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         logger.info("Step 3 completed.")
         return
 
-    all_reciprocal_hits_file = step_4_search_orthologs(args, logger, times_logger, error_file_path,
-                                                       output_dir, tmp_dir, done_files_dir, translated_orfs_dir,
-                                                       genomes_names_path)
-    update_progressbar(progressbar_file_path, 'Calculate blast scores between all protein sequences')
-    edit_progress(output_html_path, progress=25)
-
-    if args.step_to_complete == '4':
-        logger.info("Step 4 completed.")
-        return
-
-    orthologs_table_file_path = step_5_cluster_orthologs(args, logger, times_logger, error_file_path, output_dir,
-                                                               tmp_dir, done_files_dir, all_reciprocal_hits_file)
-    update_progressbar(progressbar_file_path, 'Cluster protein sequences')
-    edit_progress(output_html_path, progress=55)
+    orthologs_table_file_path = step_infer_orthogroups(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
+                           done_files_dir, translated_orfs_dir, genomes_names_path, number_of_genomes)
 
     if args.step_to_complete == '5':
         logger.info("Step 5 completed.")
