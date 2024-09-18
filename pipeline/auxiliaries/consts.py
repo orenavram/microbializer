@@ -24,6 +24,8 @@ elif ENV == 'lsweb':
 else:
     raise ValueError(f'Unknown environment: {ENV}')
 
+SRC_DIR = os.path.join(PROJECT_ROOT_DIR, 'pipeline')
+
 if ENV == 'yair_test' or ENV == 'yair_prod':
     CONDA_INSTALLATION_DIR = r'/groups/pupko/yairshimony/miniconda3'
     CONDA_ENVIRONMENT_DIR = r'/groups/pupko/yairshimony/miniconda3/envs/microbializer'
