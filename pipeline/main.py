@@ -537,17 +537,14 @@ def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_pa
 
 def step_infer_orthogroups(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                             done_files_dir, translated_orfs_dir, genomes_names_path, number_of_genomes):
-    all_reciprocal_hits_file = step_4_search_orthologs(args, logger, times_logger, error_file_path,
+    orthologs_table_file_path = step_4_5_full_orthogroups_infernece(args, logger, times_logger, error_file_path,
                                                        output_dir, tmp_dir, done_files_dir, translated_orfs_dir,
                                                        genomes_names_path)
-
-    orthologs_table_file_path = step_5_cluster_orthologs(args, logger, times_logger, error_file_path, output_dir,
-                                                               tmp_dir, done_files_dir, all_reciprocal_hits_file)
 
     return orthologs_table_file_path
 
 
-def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
+def step_4_5_full_orthogroups_infernece(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                             done_files_dir, translated_orfs_dir, strains_names_path):
     if consts.USE_DIFFERENT_QUEUE_FOR_MMSEQS:
         mmseqs_queue_name = consts.QUEUE_FOR_MMSEQS_COMMANDS
@@ -807,11 +804,6 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    return all_hits_file
-
-
-def step_5_cluster_orthologs(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
-                             done_files_dir, all_reciprocal_hits_file):
     # 5a.	construct_putative_orthologs_table.py
     # Input: (1) a path for a i_vs_j_reciprocal_hits.tsv file (2) a path for a putative orthologs file (with a single line).
     # Output: updates the table with the info from the reciprocal hit file.
@@ -826,7 +818,7 @@ def step_5_cluster_orthologs(args, logger, times_logger, error_file_path, output
     if not os.path.exists(done_file_path):
         logger.info('Constructing putative orthologs table...')
         job_name = os.path.split(script_path)[-1]
-        params = [all_reciprocal_hits_file,
+        params = [all_hits_file,
                   putative_orthologs_table_path]
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, args.queue_name, args.account_name, job_name=job_name)
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
@@ -860,7 +852,7 @@ def step_5_cluster_orthologs(args, logger, times_logger, error_file_path, output
             last_mcl = str(min(i + clusters_to_prepare_per_job - 1,
                                num_of_putative_sets))  # 1-10, 11-20, etc... for clusters_to_prepare_per_job=10
 
-            single_cmd_params = [all_reciprocal_hits_file,
+            single_cmd_params = [all_hits_file,
                                  putative_orthologs_table_path,
                                  first_mcl,
                                  last_mcl,
