@@ -79,7 +79,9 @@ def get_arguments():
                         choices=[*PIPELINE_STEPS, None])
     parser.add_argument('--only_calc_ogs', help='Do only the necessary steps to calculate OGs', action='store_true')
     parser.add_argument('--zip_results_in_partial_pipeline', help='Zip results also when the pipeline is partially run', action='store_true')
-    parser.add_argument('--bypass_number_of_genomes_limit', help='bypass the limit on number of genomes',
+    parser.add_argument('--bypass_number_of_genomes_limit', help='Bypass the limit on number of genomes',
+                        action='store_true')
+    parser.add_argument('--optimize_orthogroups_inference', help='Optimize the orthogroups inference using heuristics',
                         action='store_true')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
 
@@ -543,7 +545,6 @@ def step_infer_orthogroups(args, logger, times_logger, error_file_path, output_d
                                                                tmp_dir, done_files_dir, all_reciprocal_hits_file)
 
     return orthologs_table_file_path
-
 
 
 def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
