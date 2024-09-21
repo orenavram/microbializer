@@ -620,6 +620,8 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
 
         max_score_per_gene = {strain: pd.Series() for strain in strains_names}  # {'strain1': {'strain1:gene1': 100, 'strain1:gene2': 200, ... }, 'strain2': ... }
         for rbh_hits_file in os.listdir(orthologs_output_dir):
+            if 'm8' not in rbh_hits_file:
+                continue
             try:
                 rbh_hits_df = pd.read_csv(os.path.join(orthologs_output_dir, rbh_hits_file), sep='\t')
                 query_vs_reference_file_name = os.path.splitext(rbh_hits_file)[0]
