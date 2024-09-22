@@ -187,8 +187,12 @@ def prepare_pipeline_framework(args):
     logger.info(f'Creating results_dir in: {steps_results_dir}')
     os.makedirs(steps_results_dir, exist_ok=True)
 
+    data_path = os.path.join(output_dir, 'inputs')
+    logger.info(f'Creating data_path is: {data_path}')
+    os.makedirs(data_path, exist_ok=True)
+
     return logger, times_logger, meta_output_dir, error_file_path, progressbar_file_path, run_number, output_html_path, \
-        output_url, meta_output_url, output_dir, tmp_dir, done_files_dir, steps_results_dir
+        output_url, meta_output_url, output_dir, tmp_dir, done_files_dir, steps_results_dir, data_path
 
 
 def validate_arguments(args):
@@ -609,6 +613,7 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
     # CANNOT be parallelized on cluster
     step_number = '04b'
     logger.info(f'Step {step_number}: {"_" * 100}')
+    script_path = os.path.join(consts.SRC_DIR, 'steps/max_rbh_score.py')
     max_rbh_scores_step_name = f'{step_number}_max_rbh_scores'
     max_rbh_scores_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, max_rbh_scores_step_name)
     done_file_path = os.path.join(done_files_dir, f'{max_rbh_scores_step_name}.txt')
@@ -618,24 +623,20 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
         with open(strains_names_path) as f:
             strains_names = f.read().rstrip().split('\n')
 
-        max_score_per_gene = {strain: pd.Series() for strain in strains_names}  # {'strain1': {'strain1:gene1': 100, 'strain1:gene2': 200, ... }, 'strain2': ... }
-        for rbh_hits_file in os.listdir(orthologs_output_dir):
-            if 'm8' not in rbh_hits_file:
-                continue
-            try:
-                rbh_hits_df = pd.read_csv(os.path.join(orthologs_output_dir, rbh_hits_file), sep='\t')
-                query_vs_reference_file_name = os.path.splitext(rbh_hits_file)[0]
-                query_strain, target_strain = query_vs_reference_file_name.split('_vs_')
-                queries_max_score = rbh_hits_df.groupby(['query']).max(numeric_only=True)['score']
-                targets_max_score = rbh_hits_df.groupby(['target']).max(numeric_only=True)['score']
-                max_score_per_gene[query_strain] = max_score_per_gene[query_strain].combine(queries_max_score, max_with_nan)
-                max_score_per_gene[target_strain] = max_score_per_gene[target_strain].combine(targets_max_score, max_with_nan)
-            except Exception as e:
-                logger.exception(f'Error while processing {rbh_hits_file} in step {max_rbh_scores_step_name}: {e}')
-                raise
+        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
+        for strain_name in strains_names:
+            single_cmd_params = [orthologs_output_dir, strain_name, max_rbh_scores_output_dir, max_rbh_scores_step_name,
+                                 error_file_path]
+            all_cmds_params.append(single_cmd_params)
 
-        for strain, genes_max_score in max_score_per_gene.items():
-            genes_max_score.to_csv(os.path.join(max_rbh_scores_output_dir, f'{strain}.{max_rbh_scores_step_name}'), index_label='gene', header=['max_ortholog_score'])
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+                                                   num_of_cmds_per_job=1 if len(strains_names) > 20 else 5,
+                                                   job_name_suffix='max_rbh_score',
+                                                   queue_name=args.queue_name,
+                                                   account_name=args.account_name)
+
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+                         num_of_batches, error_file_path, email=args.email)
 
         write_to_file(logger, done_file_path, '.')
     else:
@@ -1440,7 +1441,11 @@ def step_12_codon_bias(args, logger, times_logger, error_file_path, output_dir, 
 
 
 def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_file_path, output_html_path, output_dir,
-                      tmp_dir, done_files_dir, data_path, number_of_genomes, genomes_names_path, final_output_dir):
+                      tmp_dir, done_files_dir, data_path, genomes_names_path, final_output_dir):
+    with open(genomes_names_path, 'r') as genomes_names_fp:
+        genomes_names = genomes_names_fp.read().split('\n')
+    number_of_genomes = len(genomes_names)
+
     if args.filter_out_plasmids:
         filtered_inputs_dir = step_0_filter_out_plasmids(args, logger, times_logger, error_file_path, output_dir,
                                                          tmp_dir, done_files_dir, data_path)
@@ -1993,14 +1998,21 @@ def main(args):
     start_time = time()
 
     logger, times_logger, meta_output_dir, error_file_path, progressbar_file_path, run_number, output_html_path, \
-        output_url, meta_output_url, output_dir, tmp_dir, done_files_dir, steps_results_dir = prepare_pipeline_framework(args)
+        output_url, meta_output_url, output_dir, tmp_dir, done_files_dir, steps_results_dir, data_path = \
+        prepare_pipeline_framework(args)
 
     try:
         validate_arguments(args)
         initialize_progressbar(args, progressbar_file_path)
 
-        data_path, number_of_genomes, genomes_names_path = prepare_and_verify_input_data(
-            args, logger, meta_output_dir, error_file_path, output_dir)
+        done_file_path = os.path.join(done_files_dir, f'prepare_and_verify_inputs.txt')
+        genomes_names_path = os.path.join(output_dir, 'genomes_names.txt')
+        if not os.path.exists(done_file_path):
+            prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path, data_path, genomes_names_path)
+            write_to_file(logger, done_file_path, '.')
+        else:
+            logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
         update_progressbar(progressbar_file_path, 'Validate input files')
 
         final_output_dir_name = f'{flask_interface_consts.WEBSERVER_NAME}_{args.output_dir}'
@@ -2008,7 +2020,7 @@ def main(args):
 
         run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_file_path,
                           output_html_path, steps_results_dir, tmp_dir, done_files_dir,
-                          data_path, number_of_genomes, genomes_names_path, final_output_dir)
+                          data_path, genomes_names_path, final_output_dir)
 
         if args.step_to_complete is None or args.step_to_complete == PIPELINE_STEPS[-1] or args.only_calc_ogs \
                 or args.zip_results_in_partial_pipeline:

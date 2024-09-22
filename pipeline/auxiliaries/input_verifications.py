@@ -3,9 +3,14 @@ import Bio.SeqUtils
 import shutil
 import tarfile
 import collections
+import sys
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from . import consts
 from .pipeline_auxiliaries import execute, remove_path, fail
+from flask import flask_interface_consts
 
 
 ILLEGAL_CHARS = '\\;:,^`~\'\"'
@@ -17,7 +22,7 @@ def has_illegal_chars(s):
     return any(char in ILLEGAL_CHARS for char in record_id)
 
 
-def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path, output_dir):
+def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path, data_path, genomes_names_path):
     # extract zip and detect data folder
     primary_data_path = unpack_data(logger, args.contigs_dir, meta_output_dir, error_file_path)
 
@@ -28,9 +33,8 @@ def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path
             remove_path(logger, system_file_path)
 
     # copies input contigs_dir because we edit the files and want to keep the input directory as is
-    data_path = os.path.join(output_dir, 'inputs')
     shutil.copytree(primary_data_path, data_path, dirs_exist_ok=True)
-    logger.info(f'data_path is: {data_path}')
+    logger.info(f'Copied {primary_data_path} to {data_path}')
 
     # have to be AFTER system files removal (in the weird case a file name starts with a space)
     filename_prefixes = set()
@@ -59,14 +63,14 @@ def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path
     # check MINimal number of genomes
     min_number_of_genomes_to_analyze = 2
     if number_of_genomes < min_number_of_genomes_to_analyze and not args.bypass_number_of_genomes_limit:
-        error_msg = f'The dataset contains too few genomes ({consts.WEBSERVER_NAME} does comparative analysis and ' \
+        error_msg = f'The dataset contains too few genomes ({flask_interface_consts.WEBSERVER_NAME} does comparative analysis and ' \
                     f'thus needs at least 2 genomes).'
         fail(logger, error_msg, error_file_path)
 
     # check MAXimal number of genomes
     if number_of_genomes > consts.MAX_NUMBER_OF_GENOMES_TO_ANALYZE and 'oren' not in args.email.lower() \
             and not args.bypass_number_of_genomes_limit:
-        error_msg = f'The dataset contains too many genomes. {consts.WEBSERVER_NAME} allows analyzing up to ' \
+        error_msg = f'The dataset contains too many genomes. {flask_interface_consts.WEBSERVER_NAME} allows analyzing up to ' \
                     f'{consts.MAX_NUMBER_OF_GENOMES_TO_ANALYZE} genomes due to the high resource consumption. However, ' \
                     f'upon request (and supervision), we do allow analyzing large datasets. Please contact us ' \
                     f'directly and we will do that for you.'
@@ -79,11 +83,9 @@ def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path
         fail(logger, verification_error, error_file_path)
 
     genomes_names = [os.path.splitext(genome_name)[0] for genome_name in os.listdir(data_path)]
-    genomes_names_path = os.path.join(output_dir, 'genomes_names.txt')
+
     with open(genomes_names_path, 'w') as genomes_name_fp:
         genomes_name_fp.write('\n'.join(genomes_names))
-
-    return data_path, number_of_genomes, genomes_names_path
 
 
 def unpack_data(logger, data_path, meta_output_dir, error_file_path):
