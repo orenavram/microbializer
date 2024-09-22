@@ -630,7 +630,7 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                   num_of_cmds_per_job=1 if len(strains_names) > 20 else 5,
+                                                   num_of_cmds_per_job=1 if len(strains_names) > 100 else 5,
                                                    job_name_suffix='max_rbh_score',
                                                    queue_name=args.queue_name,
                                                    account_name=args.account_name)
