@@ -635,7 +635,7 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
                                                    queue_name=args.queue_name,
                                                    account_name=args.account_name)
 
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, max_rbh_scores_step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, email=args.email)
 
         write_to_file(logger, done_file_path, '.')
@@ -672,8 +672,7 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                   num_of_cmds_per_job=100 if len(
-                                                       os.listdir(translated_orfs_dir)) > 25 else 5,
+                                                   num_of_cmds_per_job=10,
                                                    job_name_suffix='paralogs_analysis',
                                                    queue_name=mmseqs_queue_name,
                                                    account_name=args.account_name,
