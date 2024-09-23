@@ -1141,7 +1141,6 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
                 first_delimiter_index = line.index(consts.CSV_DELIMITER)
                 og_name = line[:first_delimiter_index]
                 cluster_members = line.rstrip()[first_delimiter_index + 1:]  # remove "OG_name"
-                output_file_name = og_name
 
                 single_cmd_params = [orfs_dir,
                                      f'"{final_table_header}"',
@@ -1149,7 +1148,7 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
                                      f'"{cluster_members}"',
                                      # should be flanked by quotes because it might contain spaces...
                                      f'"{og_name}"',  # should be flanked by quotes because it might contain spaces...
-                                     os.path.join(orthologs_dna_sequences_dir_path, f'{output_file_name}_dna.fas')]
+                                     os.path.join(orthologs_dna_sequences_dir_path, f'{og_name}_dna.fas')]
                 all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
@@ -1353,6 +1352,7 @@ def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, err
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
     return aligned_core_proteome_file_path, core_proteome_length
+
 
 def step_10_genome_numeric_representation(args, logger, times_logger, error_file_path, output_dir,
                                          tmp_dir, final_output_dir, done_files_dir, orfs_dir,
