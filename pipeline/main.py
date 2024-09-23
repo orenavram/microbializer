@@ -1012,13 +1012,33 @@ def step_6_extract_orphan_genes(args, logger, times_logger, error_file_path, out
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Extracting orphan genes...')
-        job_name = os.path.split(script_path)[-1]
-        params = [orfs_dir,
-                  orthologs_table_file_path,
-                  orphan_genes_dir]
-        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, args.queue_name, args.account_name, job_name=job_name)
+        all_cmds_params = []
+        for orf_file in os.listdir(orfs_dir):
+            single_cmd_params = [os.path.join(orfs_dir, orf_file), orthologs_table_file_path, orphan_genes_dir]
+            all_cmds_params.append(single_cmd_params)
+
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+                                                   num_of_cmds_per_job=20,
+                                                   job_name_suffix='extract_orphans',
+                                                   queue_name=args.queue_name,
+                                                   account_name=args.account_name)
+
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
-                         num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
+                         num_of_batches, error_file_path, email=args.email)
+
+        all_stat_dfs = []
+        for file_name in os.listdir(orphan_genes_dir):
+            if 'orphans_stats.csv' not in file_name:
+                continue
+            df = pd.read_csv(os.path.join(orphan_genes_dir, file_name), index_col=0)
+            all_stat_dfs.append(df)
+
+        combined_df = pd.concat(all_stat_dfs)
+        combined_df.to_csv(os.path.join(orphan_genes_dir, 'orphans_genes_stats.csv'))
+
+        number_of_orphans_per_file = combined_df['Total orphans count'].to_dict()
+        plot_genomes_histogram(number_of_orphans_per_file, orphan_genes_dir, 'orphan_genes_count', 'Orphan genes count',
+                               'Orphan genes count per Genome')
 
         add_results_to_final_dir(logger, orphan_genes_dir, final_output_dir, keep_in_source_dir=True)
         write_to_file(logger, done_file_path, '.')
