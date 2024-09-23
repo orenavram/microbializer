@@ -868,7 +868,7 @@ def step_5_cluster_orthologs(args, logger, times_logger, error_file_path, output
     if not os.path.exists(done_file_path):
         logger.info('Preparing files for MCL...')
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-        clusters_to_prepare_per_job = 10
+        clusters_to_prepare_per_job = 100
         with open(os.path.join(os.path.split(putative_orthologs_table_path)[0], 'num_of_putative_sets.txt')) as f:
             num_of_putative_sets = int(f.read())
         if num_of_putative_sets == 0:
@@ -888,7 +888,7 @@ def step_5_cluster_orthologs(args, logger, times_logger, error_file_path, output
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                   num_of_cmds_per_job=10,
+                                                   num_of_cmds_per_job=1,
                                                    # *times* the number of clusters_to_prepare_per_job above. 50 in total per batch!
                                                    job_name_suffix='mcl_preparation',
                                                    queue_name=args.queue_name,

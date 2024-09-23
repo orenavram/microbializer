@@ -61,7 +61,6 @@ def load_reciprocal_hits_to_dictionary(all_reciprocal_hits_path, group_name_to_p
 
 
 def generate_text_to_mcl_input_file(logger, gene_pair_to_score_dict, gene_pairs):
-    first_non_existing_pair = True
     text_to_mcl_file = ''
     logger.debug(f'gene_pair_to_score_dict content is:\n{gene_pair_to_score_dict}')
     for pair in gene_pairs:
@@ -71,16 +70,10 @@ def generate_text_to_mcl_input_file(logger, gene_pair_to_score_dict, gene_pairs)
             # both pairs are not in the dictionary gene_pair_to_score_dict (meaning they were not detected as homologs
             # in all-vs-all RBH)!
             # E.g., say we found these pairs a1-b1 (A:B), a1-c2 (A:C), b1-c1 (B:C), c1-a2 (C:A)
-            # a1-c1 was discarded earlier because it is not *best* hit (best hit was with paralogs, a2 and c2, respectively)
+            # a1-c1 was detected as rbh because it is not *best* hit (best hit was with paralogs, a2 and c2, respectively)
             # Thus, it will not appear in the concatenated best hits.
-            if first_non_existing_pair:
-                logger.fatal(f'Pair {pair} does not exist in gene_pair_to_score_dict!! Setting score to 1\n'
-                             f'Notice that there might be some more non existing pairs (turn on debug mode to get the full log).')
-                first_non_existing_pair = False
-            else:
-                # avoid flooding the logs
-                logger.debug(f'Pair {pair} does not exist in gene_pair_to_score_dict!! Setting score to 1')
-            score = '1'
+            # In this case, we will not add it to the mcl input file.
+            continue
 
         text_to_mcl_file += f'{pair[0]}\t{pair[1]}\t{score}\n'
     return text_to_mcl_file
