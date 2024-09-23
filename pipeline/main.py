@@ -24,7 +24,7 @@ from auxiliaries.html_editor import edit_success_html, edit_failure_html, edit_p
 from auxiliaries import consts, cgi_consts
 from flask import flask_interface_consts
 from auxiliaries.logic_auxiliaries import mimic_prodigal_output, aggregate_ani_results, remove_bootstrap_values, \
-    aggregate_mmseqs_scores, max_with_nan, plot_genomes_histogram, update_progressbar
+    aggregate_mmseqs_scores, max_with_nan, plot_genomes_histogram, update_progressbar, define_intervals
 from flask.SharedConsts import USER_FILE_NAME_ZIP, USER_FILE_NAME_TAR
 
 PIPELINE_STEPS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
@@ -560,6 +560,10 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
         mmseqs_queue_name = args.queue_name
         mmseqs_memory = consts.MMSEQS_REQUIRED_MEMORY_GB
 
+    with open(strains_names_path) as f:
+        strains_names = f.read().rstrip().split('\n')
+    number_of_strains = len(strains_names)
+
     # 4a.	mmseqs2_all_vs_all.py
     # Input: (1) 2 input paths for 2 (different) genome files (query and target), g1 and g2
     #        (2) an output file path (with a suffix as follows: i_vs_j.tsv. especially relevant for the wrapper).
@@ -620,9 +624,6 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
     if not os.path.exists(done_file_path):
         logger.info('Calculating max rbh scores per gene...')
 
-        with open(strains_names_path) as f:
-            strains_names = f.read().rstrip().split('\n')
-
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
         for strain_name in strains_names:
             single_cmd_params = [orthologs_output_dir, strain_name, max_rbh_scores_output_dir, max_rbh_scores_step_name,
@@ -630,7 +631,7 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                   num_of_cmds_per_job=1 if len(strains_names) > 100 else 5,
+                                                   num_of_cmds_per_job=1 if number_of_strains > 100 else 5,
                                                    job_name_suffix='max_rbh_score',
                                                    queue_name=args.queue_name,
                                                    account_name=args.account_name)
@@ -738,7 +739,7 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                   num_of_cmds_per_job=100 if len(os.listdir(translated_orfs_dir)) > 100 else 50,
+                                                   num_of_cmds_per_job=100 if number_of_strains > 100 else 50,
                                                    job_name_suffix='hits_filtration',
                                                    queue_name=args.queue_name,
                                                    account_name=args.account_name)
@@ -775,7 +776,7 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                   num_of_cmds_per_job=100 if len(os.listdir(translated_orfs_dir)) > 100 else 50,
+                                                   num_of_cmds_per_job=100 if number_of_strains > 100 else 50,
                                                    job_name_suffix='hits_normalize',
                                                    queue_name=args.queue_name,
                                                    account_name=args.account_name)
@@ -792,18 +793,35 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
     # Output: concatenated file of all hits files
     # CANNOT be parallelized on cluster
     step_number = '04f'
+    script_path = os.path.join(consts.SRC_DIR, 'steps/concatenate_hits.py')
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_concatenate_hits'
-    concatenate_output_dir, concatenate_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    concatenate_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     all_hits_file = os.path.join(concatenate_output_dir, 'concatenated_all_hits.txt')
     if not os.path.exists(done_file_path):
         logger.info('Concatenating hits...')
-        for hits_file in os.listdir(normalized_hits_output_dir):
-            execute(logger, f'cat {normalized_hits_output_dir}/{hits_file} >> {all_hits_file}',
-                    process_is_string=True)
-        # avoid cat {pipeline_step_output_dir}/* because arguments list might be too long!
-        # No need to wait...
+
+        n_jobs = 100 if number_of_strains > 100 else 10
+        number_of_hits_files = len(os.listdir(normalized_hits_output_dir))
+        intervals = define_intervals(0, number_of_hits_files, n_jobs)
+
+        concatenated_chunks_dir = os.path.join(concatenate_output_dir, 'temp_chunks')
+        os.makedirs(concatenated_chunks_dir, exist_ok=True)
+        all_cmds_params = [[normalized_hits_output_dir, start, end, concatenated_chunks_dir]
+                           for (start, end) in intervals]
+
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+                                                   num_of_cmds_per_job=1,
+                                                   job_name_suffix='concatenate_hits',
+                                                   queue_name=args.queue_name,
+                                                   account_name=args.account_name)
+
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+                         num_of_batches, error_file_path, email=args.email)
+
+        execute(logger, f'cat {concatenated_chunks_dir}/* >> {all_hits_file}', process_is_string=True)
+        execute(logger, f'rm -rf {concatenated_chunks_dir}', process_is_string=True)
 
         write_to_file(logger, done_file_path, '.')
     else:
