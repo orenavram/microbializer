@@ -48,6 +48,7 @@ def extract_orphan_proteins(logger, orfs_file_path, orthogroups_file, output_dir
     orphans_path = os.path.join(output_dir, f'{strain_name}_orphans.txt')
     with open(orphans_path, 'w') as orphans_path_fp:
         orphans_path_fp.write('\n'.join(orphan_orthogroups_of_strain))
+        orphans_path_fp.write('\n')
         orphans_path_fp.write('\n'.join(orphans))
 
     orphans_count_path = os.path.join(output_dir, f'{strain_name}_orphans_stats.csv')
@@ -57,7 +58,7 @@ def extract_orphan_proteins(logger, orfs_file_path, orthogroups_file, output_dir
         'Total orphans count': len(genes_in_orphan_orthogroups_of_strain) + len(orphans)
     }
     orphans_count_df = pd.DataFrame(orphans_stats, index=[strain_name])
-    orphans_count_df.to_csv(orphans_count_path, index=False)
+    orphans_count_df.to_csv(orphans_count_path)
 
 
 def main():
@@ -77,9 +78,9 @@ def main():
 
     logger.info(script_run_message)
     try:
-        if not os.path.exists(args.orfs_dir):
-            logger.exception(f'ORFs dir does not exist in {args.orfs_dir}')
-        if not os.path.exists(args.orthologs_file):
+        if not os.path.exists(args.orfs_file_name):
+            logger.exception(f'ORFs file name does not exist in {args.orfs_dir}')
+        if not os.path.exists(args.orthogroups_file):
             logger.exception(f'Orthogroups file does not exist in {args.orthologs_file}')
         if not os.path.exists(args.output_dir):
             logger.exception(f'Output path does not exist in {args.output_dir}')

@@ -1013,8 +1013,10 @@ def step_6_extract_orphan_genes(args, logger, times_logger, error_file_path, out
     if not os.path.exists(done_file_path):
         logger.info('Extracting orphan genes...')
         all_cmds_params = []
+        orphan_genes_internal_dir = os.path.join(orphan_genes_dir, 'orphans_lists_per_genome')
+        os.makedirs(orphan_genes_internal_dir, exist_ok=True)
         for orf_file in os.listdir(orfs_dir):
-            single_cmd_params = [os.path.join(orfs_dir, orf_file), orthologs_table_file_path, orphan_genes_dir]
+            single_cmd_params = [os.path.join(orfs_dir, orf_file), orthologs_table_file_path, orphan_genes_internal_dir]
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
@@ -1027,10 +1029,10 @@ def step_6_extract_orphan_genes(args, logger, times_logger, error_file_path, out
                          num_of_batches, error_file_path, email=args.email)
 
         all_stat_dfs = []
-        for file_name in os.listdir(orphan_genes_dir):
+        for file_name in os.listdir(orphan_genes_internal_dir):
             if 'orphans_stats.csv' not in file_name:
                 continue
-            df = pd.read_csv(os.path.join(orphan_genes_dir, file_name), index_col=0)
+            df = pd.read_csv(os.path.join(orphan_genes_internal_dir, file_name), index_col=0)
             all_stat_dfs.append(df)
 
         combined_df = pd.concat(all_stat_dfs)
