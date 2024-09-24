@@ -553,13 +553,6 @@ def step_infer_orthogroups(args, logger, times_logger, error_file_path, output_d
 
 def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                             done_files_dir, translated_orfs_dir, strains_names_path):
-    if consts.USE_DIFFERENT_QUEUE_FOR_MMSEQS:
-        mmseqs_queue_name = consts.QUEUE_FOR_MMSEQS_COMMANDS
-        mmseqs_memory = None
-    else:
-        mmseqs_queue_name = args.queue_name
-        mmseqs_memory = consts.MMSEQS_REQUIRED_MEMORY_GB
-
     with open(strains_names_path) as f:
         strains_names = f.read().rstrip().split('\n')
     number_of_strains = len(strains_names)
@@ -599,9 +592,9 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
             num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                        num_of_cmds_per_job=100 if len(os.listdir(translated_orfs_dir)) > 25 else 5,
                                                        job_name_suffix='rbh_analysis',
-                                                       queue_name=mmseqs_queue_name,
+                                                       queue_name=args.queue_name,
                                                        account_name=args.account_name,
-                                                       memory=mmseqs_memory,
+                                                       memory=consts.MMSEQS_REQUIRED_MEMORY_GB,
                                                        required_modules_as_list=[consts.MMSEQS])
 
             wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
@@ -675,9 +668,9 @@ def step_4_search_orthologs(args, logger, times_logger, error_file_path, output_
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                    num_of_cmds_per_job=10,
                                                    job_name_suffix='paralogs_analysis',
-                                                   queue_name=mmseqs_queue_name,
+                                                   queue_name=args.queue_name,
                                                    account_name=args.account_name,
-                                                   memory=mmseqs_memory,
+                                                   memory=consts.MMSEQS_REQUIRED_MEMORY_GB,
                                                    required_modules_as_list=[consts.MMSEQS])
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
@@ -1413,6 +1406,7 @@ def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, t
             submit_mini_batch(logger, script_path, [params], phylogeny_tmp_dir,
                               args.queue_name, args.account_name, job_name='tree_reconstruction',
                               required_modules_as_list=[consts.RAXML], num_of_cpus=consts.PHYLOGENY_NUM_OF_CORES,
+                              memory=consts.PHYLOGENY_REQUIRED_MEMORY_GB,
                               command_to_run_before_script='export QT_QPA_PLATFORM=offscreen')  # Needed to avoid an error in drawing the tree. Taken from: https://github.com/NVlabs/instant-ngp/discussions/300
 
             # wait for the phylogenetic tree here
