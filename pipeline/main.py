@@ -1117,12 +1117,6 @@ def step_7_orthologs_table_variations(args, logger, times_logger, error_file_pat
 
 def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                                            final_output_dir, done_files_dir, orfs_dir, final_orthologs_table_file_path):
-    # extract orthologs table header for sequence extraction later on
-    with open(final_orthologs_table_file_path) as f:
-        header_line = f.readline()
-        first_delimiter_index = header_line.index(consts.CSV_DELIMITER)
-        final_table_header = header_line.rstrip()[first_delimiter_index + 1:]  # remove "OG_name"
-
     # 8a.	extract_orfs.py
     # Input: (1) a row from the final orthologs table (2) a path for a directory where the genes files are at (3) a path for an output file.
     # Output: write the sequences of the orthologs group to the output file.
@@ -1136,25 +1130,21 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
     if not os.path.exists(done_file_path):
         logger.info('Extracting orthologs groups sequences according to final orthologs table...')
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-        # og_number = 0
-        with open(final_orthologs_table_file_path) as f:
-            f.readline()  # skip header
-            for line in f:
-                first_delimiter_index = line.index(consts.CSV_DELIMITER)
-                og_name = line[:first_delimiter_index]
-                cluster_members = line.rstrip()[first_delimiter_index + 1:]  # remove "OG_name"
+        with open(final_orthologs_table_file_path, 'r') as fp:
+            number_of_ogs = sum(1 for _ in fp) - 1
 
-                single_cmd_params = [orfs_dir,
-                                     f'"{final_table_header}"',
-                                     # should be flanked by quotes because it might contain spaces...
-                                     f'"{cluster_members}"',
-                                     # should be flanked by quotes because it might contain spaces...
-                                     f'"{og_name}"',  # should be flanked by quotes because it might contain spaces...
-                                     os.path.join(orthologs_dna_sequences_dir_path, f'{og_name}_dna.fas')]
-                all_cmds_params.append(single_cmd_params)
+        ogs_to_process_per_job = 250
+        lines_intervals = define_intervals(0, number_of_ogs, ogs_to_process_per_job)
+        for (start_index, end_index_exclusive) in lines_intervals:
+            single_cmd_params = [orfs_dir,
+                                 final_orthologs_table_file_path,
+                                 start_index,
+                                 end_index_exclusive,
+                                 orthologs_dna_sequences_dir_path]
+            all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                   num_of_cmds_per_job=250,
+                                                   num_of_cmds_per_job=1,
                                                    job_name_suffix='orfs_extraction',
                                                    queue_name=args.queue_name,
                                                    account_name=args.account_name)
