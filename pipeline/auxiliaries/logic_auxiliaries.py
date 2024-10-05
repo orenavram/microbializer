@@ -247,3 +247,20 @@ def update_progressbar(progressbar_file_path, step_name_finished):
     df = pd.read_csv(progressbar_file_path)
     df.loc[df['Step'] == step_name_finished, 'Finished'] = True
     df.to_csv(progressbar_file_path, index=False)
+
+
+def define_intervals(start, end, number_of_intervals):
+    # Calculate the interval length
+    interval_length = (end - start) // number_of_intervals
+
+    # Create the intervals
+    intervals = []
+    for i in range(number_of_intervals):
+        interval_start = start + i * interval_length
+        interval_end = interval_start + interval_length
+        intervals.append((interval_start, interval_end))
+
+    # Adjust the last interval to ensure it ends exactly at x
+    intervals[-1] = (intervals[-1][0], end)
+
+    return intervals

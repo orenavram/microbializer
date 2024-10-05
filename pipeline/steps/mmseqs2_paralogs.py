@@ -66,8 +66,8 @@ def search_paralogs(logger, protein_fasta, m8_outfile, genome_max_scores_path, e
     # keep also paralogs that don't have orthologs in other genomes).
     genome_max_scores = pd.read_csv(genome_max_scores_path).set_index('gene')['max_ortholog_score']
 
-    df['query_max_score'] = genome_max_scores.get(df['query'], np.nan)
-    df['target_max_score'] = genome_max_scores.get(df['target'], np.nan)
+    df['query_max_score'] = df['query'].map(genome_max_scores)
+    df['target_max_score'] = df['target'].map(genome_max_scores)
     df = df.loc[((df['score'] >= df['query_max_score']) | (df['query_max_score'].isna())) &
                 ((df['score'] >= df['target_max_score']) | (df['target_max_score'].isna()))]
 

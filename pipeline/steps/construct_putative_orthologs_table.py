@@ -91,14 +91,16 @@ def construct_table(logger, all_reciprocal_hits_path, putative_orthologs_path, d
     header = delimiter.join(['OG_name'] + sorted_strains) + '\n'
     result = ''
     result += header
-    for group, group_genes in group_name_to_member_genes.items():
+    # Ignore the group id in group_name_to_member_genes and set a new group id (in the original group id there are
+    # many missing ids due to the merging of groups)
+    for group_index, (group, group_genes) in enumerate(group_name_to_member_genes.items()):
         # dictionary that holds for each strain the members of the current group
         strain_to_members = defaultdict(list)
         for member in group_genes:
             strain = member_gene_to_strain_name_dict[member]
             strain_to_members[strain].append(member)
         strain_to_members = {strain: ';'.join(members) for strain, members in strain_to_members.items()}
-        group_row_str = delimiter.join([group] + [strain_to_members.get(strain, '') for strain in sorted_strains])
+        group_row_str = delimiter.join([f'OG_{group_index}'] + [strain_to_members.get(strain, '') for strain in sorted_strains])
         result += group_row_str + '\n'
 
     with open(putative_orthologs_path, 'w') as f:

@@ -16,57 +16,50 @@ from auxiliaries.pipeline_auxiliaries import get_job_logger
 from auxiliaries import consts
 
 
-def get_sequences_by_genes_names(fasta_path, genes_names):
-    sequences = {}
-    for seq_record in SeqIO.parse(fasta_path, 'fasta'):
-        if seq_record.id in genes_names:
-            sequences[seq_record.id] = seq_record.seq
-        if len(sequences) == len(genes_names):  # We found all genes_names
-            break
+def extract_orfs_of_og(logger, strain_to_gene_to_sequence_dict, strain_name_to_genes_names, og_name, output_dir):
+    og_sequences = ''
+    for strain, genes_names in strain_name_to_genes_names.items():
+        if not genes_names:
+            continue
 
-    if len(sequences) != len(genes_names):
-        raise ValueError(f'Not all genes names ({genes_names}) were found in {fasta_path}!')
-    return sequences
+        # current strain has members in this cluster
+        gene_to_sequence = strain_to_gene_to_sequence_dict[strain]
+        og_gene_to_sequence = {gene: gene_to_sequence[gene] for gene in genes_names.split(';')}
+        for gene_name, sequence in og_gene_to_sequence.items():
+            og_sequences += f'>{gene_name}\n{sequence}\n'
 
-
-def get_orthologs_group_sequences(logger, orfs_dir, strain_name_to_genes_names, strains):
-    result = ''
-
-    strain_to_orfs_path_dict = {}
-    for orfs_file in os.listdir(orfs_dir):
-        strain = os.path.splitext(orfs_file)[0]
-        strain_to_orfs_path_dict[strain] = os.path.join(orfs_dir, orfs_file)
-
-    for strain in strains:
-        genes_names = strain_name_to_genes_names[strain]
-        if genes_names != '':
-            # current strain has members in this cluster
-            if strain_to_orfs_path_dict.get(strain) is not None:
-                orfs_path = strain_to_orfs_path_dict[strain]
-                genes_sequences = get_sequences_by_genes_names(orfs_path, genes_names.split(';'))
-                for gene_name, sequence in genes_sequences.items():
-                    result += f'>{gene_name}\n{sequence}\n'
-            else:
-                logger.error(f'Could not extract {strain_name_to_genes_names[strain]} genes of strain {strain} as '
-                             f'its ORFs file does not exist at {orfs_dir} (probably ORFs sequence extraction for was '
-                             f'failed due to multiple contigs in the corresponding genomic file. Try to grep "failed" '
-                             f'on ORFs extraction ER log files)')
-
-    return result
-
-
-def extract_orfs(logger, sequences_dir, final_table_header_line, cluster_members_line,
-                 cluster_name, output_path, delimiter):
-    strains = final_table_header_line.rstrip().split(delimiter)
-    cluster_members = cluster_members_line.rstrip().split(delimiter)
-    strain_name_to_genes_names = dict(zip(strains, cluster_members))
-    orthologs_sequences = get_orthologs_group_sequences(logger, sequences_dir, strain_name_to_genes_names, strains)
-    if not orthologs_sequences:
-        logger.error(f'Failed to extract any sequence for {cluster_name}.')
+    if not og_sequences:
+        logger.error(f'Failed to extract any sequence for {og_name}.')
         return
 
+    output_path = os.path.join(output_dir, f'{og_name}_dna.fas')
     with open(os.path.join(output_path), 'w') as f:
-        f.write(orthologs_sequences)
+        f.write(og_sequences)
+
+
+def extract_orfs(logger, orfs_dir, orthogroups_file_path, start_line_index, end_line_index_exclusive, output_dir, delimiter):
+    strain_to_gene_to_sequence_dict = {}
+    for orfs_file in os.listdir(orfs_dir):
+        strain = os.path.splitext(orfs_file)[0]
+        gene_to_sequence = {}
+        for seq_record in SeqIO.parse(os.path.join(orfs_dir, orfs_file), 'fasta'):
+            gene_to_sequence[seq_record.id] = seq_record.seq
+        strain_to_gene_to_sequence_dict[strain] = gene_to_sequence
+
+    with open(orthogroups_file_path) as f:
+        header_line = f.readline()
+        first_delimiter_index = header_line.index(delimiter)
+        final_table_header = header_line.rstrip()[first_delimiter_index + 1:]  # remove "OG_name"
+        strains = final_table_header.rstrip().split(delimiter)
+
+        for i, line in enumerate(f):
+            if i < start_line_index or i >= end_line_index_exclusive:
+                continue
+            first_delimiter_index = line.index(consts.CSV_DELIMITER)
+            og_name = line[:first_delimiter_index]
+            cluster_members = line.rstrip()[first_delimiter_index + 1:].split(delimiter)  # remove "OG_name" and split
+            strain_name_to_genes_names = dict(zip(strains, cluster_members))
+            extract_orfs_of_og(logger, strain_to_gene_to_sequence_dict, strain_name_to_genes_names, og_name, output_dir)
 
 
 if __name__ == '__main__':
@@ -74,12 +67,11 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('sequences_dir', help='path to a directory with the bacterial gene sequences (aka ORFs)')
-    parser.add_argument('final_table_header', help='string that is the header of the final table')
-    parser.add_argument('cluster_members', help='string that is the cluster members that is handled'
-                                                '(a row from the final orthologs table)')
-    parser.add_argument('cluster_name', help='the name of orthologs group being extracted')
-    parser.add_argument('output_path', help='path to an output directory (aka orthologs sets sequences)')
+    parser.add_argument('orfs_dir', help='path to a directory with the bacterial gene sequences (aka ORFs)')
+    parser.add_argument('orthogroups_file_path', help='path of the orthogroups file')
+    parser.add_argument('start_line_index', help='', type=int)
+    parser.add_argument('end_line_index_exclusive', help='', type=int)
+    parser.add_argument('output_dir', help='path to an output directory (aka orthologs sets sequences)')
     parser.add_argument('--delimiter', help='orthologs table delimiter', default=consts.CSV_DELIMITER)
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
@@ -90,7 +82,7 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        extract_orfs(logger, args.sequences_dir, args.final_table_header, args.cluster_members,
-                     args.cluster_name, args.output_path, args.delimiter)
+        extract_orfs(logger, args.orfs_dir, args.orthogroups_file_path, args.start_line_index,
+                     args.end_line_index_exclusive, args.output_dir, args.delimiter)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')

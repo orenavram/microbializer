@@ -13,7 +13,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger
-from auxiliaries.logic_auxiliaries import get_all_genes_in_table
+from auxiliaries import consts
 
 
 ORPHANS_FILENAME_GENOME_NAME_PATTERN = re.compile('(.+)_orphans.txt')
@@ -133,16 +133,17 @@ def build_orthoxml_and_tsv_output(logger, all_clusters_df, output_dir, qfo_bench
         oxml.export(oxml_file, level=0)
 
     fix_orthoxml_output_file(orthoxml_output_file_path)
+    logger.info(f'Created orthoxml output at {orthoxml_output_file_path}')
 
     # write to tsv output all ortholog pairs
-    tsv_output_file_path = os.path.join(output_dir, 'ortholog_pairs.tsv')
-    with open(tsv_output_file_path, "w") as tsv_file:
-        for og_list in ortholog_groups:
-            for strain1_genes, strain2_genes in itertools.combinations(og_list, 2):
-                for strain1_gene, strain2_gene in itertools.product(strain1_genes, strain2_genes):
-                    tsv_file.write(f'{strain1_gene}\t{strain2_gene}\n')
-
-    logger.info(f'Created orthoxml and tsv outputs at {orthoxml_output_file_path} and {tsv_output_file_path}')
+    if consts.OUTPUT_TSV_OF_ORTHOLOGS_PAIRS:
+        tsv_output_file_path = os.path.join(output_dir, 'ortholog_pairs.tsv')
+        with open(tsv_output_file_path, "w") as tsv_file:
+            for og_list in ortholog_groups:
+                for strain1_genes, strain2_genes in itertools.combinations(og_list, 2):
+                    for strain1_gene, strain2_gene in itertools.product(strain1_genes, strain2_genes):
+                        tsv_file.write(f'{strain1_gene}\t{strain2_gene}\n')
+        logger.info(f'Created tsv orthologs pairs output at {tsv_output_file_path}')
 
 
 def create_phyletic_pattern(logger, orthologs_df, strain_names, output_dir):
@@ -166,6 +167,7 @@ def finalize_table(logger, orthologs_table_path, finalized_table_path, orphan_ge
                 continue
             strain = strain_match_object.group(1)
             with open(os.path.join(orphan_genes_dir, filename)) as orphan_genes_file:
+                # add only single orphans and not orthogroup orphans since those already are in the orthogroups table.
                 orphan_genes_to_add = [gene for gene in orphan_genes_file.read().splitlines() if ';' not in gene]
 
             orphan_clusters.extend([pd.Series({'OG_name': '', strain: gene}) for gene in orphan_genes_to_add])

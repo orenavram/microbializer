@@ -61,6 +61,8 @@ CAI_HISTOGRAM = f"{ALL_OUTPUTS_DIRECTORY}/10_codon_bias/CAI_histogram.png"
 GENOMES_CLUSTERS_BY_W_VECTORS = f"{ALL_OUTPUTS_DIRECTORY}/10_codon_bias/Relative_Adaptiveness_scatter_plot.png"
 GENOMES_CLUSTERS_BY_W_VECTORS_CSV = f"{ALL_OUTPUTS_DIRECTORY}/10_codon_bias/Relative_Adaptiveness_scatter_plot_clusters.csv"
 
+PROGRESS_BAR = "progressbar.csv"
+
 TITLE_HISTOGRAM_FOR_ORFS = "Open Reading Frames (ORFs)"
 TITLE_HISTOGRAM_FOR_GC_CONTENT = "GC Content %"
 TITLE_HISTOGRAM_GENOME_COMPLETENESS = "Genome Completeness (BUSCO)"

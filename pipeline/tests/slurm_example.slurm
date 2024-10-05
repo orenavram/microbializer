@@ -6,6 +6,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=4G
+#SBATCH --time=120:00:00
 #SBATCH --output=/groups/pupko/yairshimony/microbializer_runs/example_data/outputs/4genomes_%j.out
 #SBATCH --error=/groups/pupko/yairshimony/microbializer_runs/example_data/outputs/4genomes_%j.err
 

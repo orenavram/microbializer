@@ -11,8 +11,8 @@ IGNORE_HTML = True
 SEND_MAILS = False
 LOG_IN_SEPARATE_FILES = True
 
-ENV = 'yair_test'
-# ENV = 'yair_prod'
+# ENV = 'yair_test'
+ENV = 'yair_prod'
 # ENV = 'lsweb'
 
 if ENV == 'yair_test':
@@ -52,8 +52,7 @@ JOB_WALL_TIME_KEY = 'resources_used.walltime = ' if PBS else 'RunTime='
 # specific queue or by restrict the compute-nodes with memory threshold.
 MMSEQS_REQUIRED_MEMORY_GB = '120'
 ANI_REQUIRED_MEMORY_GB = '120'
-USE_DIFFERENT_QUEUE_FOR_MMSEQS = False
-QUEUE_FOR_MMSEQS_COMMANDS = 'pupkolab'
+PHYLOGENY_REQUIRED_MEMORY_GB = '120'
 
 # PBS consts
 DEFAULT_PBS_QUEUE = 'power-pupko'
@@ -67,6 +66,7 @@ BACTERIA_CORE_GENES_HMM_PROFILES_PATH = os.path.join(PROJECT_ROOT_DIR, 'pipeline
 MAX_NUMBER_OF_GENOMES_TO_ANALYZE = 350
 NUMBER_OF_IQTREE_BOOTSTRAP_ITERATIONS = 1000
 NUMBER_OF_RAXML_BOOTSTRAP_ITERATIONS = 100
+OUTPUT_TSV_OF_ORTHOLOGS_PAIRS = False
 
 
 class SimilarityScore(Enum):
