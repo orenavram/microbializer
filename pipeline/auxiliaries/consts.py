@@ -46,6 +46,7 @@ JOB_ID_ENVIRONMENT_VARIABLE = 'PBS_JOBID' if PBS else 'SLURM_JOB_ID'
 JOB_FILES_DEBUG_MODE = False
 PHYLOGENY_NUM_OF_CORES = 20
 CODON_BIAS_NUM_OF_CORES = 20
+CLUSTER_PROTEOMES_NUM_OF_CORES = 20
 JOB_CPU_TIME_KEY = 'resources_used.cput = ' if PBS else '' # Only in PBS I found a way to the get the job's cpu runtime from within the job (in the compute node)
 JOB_WALL_TIME_KEY = 'resources_used.walltime = ' if PBS else 'RunTime='
 # mmseqs and fastANI commands work only on machines with enough memory. we solve this either by navigating to a

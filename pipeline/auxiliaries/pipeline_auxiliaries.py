@@ -68,12 +68,12 @@ def execute(logger, process, process_is_string=False):
 
 
 def wait_for_results(logger, times_logger, script_name, path, num_of_expected_results, error_file_path, suffix='done',
-                     time_to_wait=10, start=0, error_message=None, email=""):
+                     time_to_wait=10, start=0, error_message=None):
     """waits until path contains num_of_expected_results $suffix files"""
     if not start:
         start = time()
     logger.info(f'Waiting for {script_name}... Continues when {num_of_expected_results} results will be in: {path}')
-    if num_of_expected_results == 0 and 'oren' not in email:
+    if num_of_expected_results == 0:
         if error_message:
             fail(logger, error_message, error_file_path)
         raise ValueError(
