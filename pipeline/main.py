@@ -303,7 +303,7 @@ def step_1_calculate_ani(args, logger, times_logger, error_file_path,  output_di
             single_cmd_params = [os.path.join(data_path, fasta_file), genomes_list_path, ani_tmp_files]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=1,
                                                    job_name_suffix='calculate_ani',
                                                    queue_name=args.queue_name,
@@ -349,7 +349,7 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
                                      step_name]
                 all_cmds_params.append(single_cmd_params)
 
-            num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+            num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
                                                        num_of_cmds_per_job=5,
                                                        job_name_suffix='search_orfs',
                                                        queue_name=args.queue_name,
@@ -411,7 +411,7 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
             all_cmds_params.append(single_cmd_params)
 
         num_of_expected_orfs_results, example_cmd = submit_batch(logger, script_path, all_cmds_params,
-                                                                 orfs_statistics_tmp_dir,
+                                                                 orfs_statistics_tmp_dir, error_file_path,
                                                                  num_of_cmds_per_job=200,
                                                                  job_name_suffix='orfs_statistics',
                                                                  queue_name=args.queue_name,
@@ -472,7 +472,7 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
             single_cmd_params = [file_path, output_path]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=250,
                                                    job_name_suffix='orfs_dna_translation',
                                                    queue_name=args.queue_name,
@@ -511,7 +511,7 @@ def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_pa
             single_cmd_params = [file_path, genomes_output_dir_path]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=10,
                                                    job_name_suffix='genomes_completeness',
                                                    queue_name=args.queue_name,
@@ -562,7 +562,7 @@ def step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output
         if args.optimize_orthogroups_inference:
             params.append('--do_cluster')
 
-        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, args.queue_name, args.account_name,
+        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path, args.queue_name, args.account_name,
                           job_name='cluster_proteomes', num_of_cpus=consts.CLUSTER_PROTEOMES_NUM_OF_CORES, memory=consts.MMSEQS_REQUIRED_MEMORY_GB)
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path)
@@ -595,7 +595,7 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
                       args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff]
             all_cmds_params.append(params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=10,
                                                    job_name_suffix='infer_orthogroups',
                                                    queue_name=args.queue_name,
@@ -631,7 +631,7 @@ def step_6_extract_orphan_genes(args, logger, times_logger, error_file_path, out
             single_cmd_params = [os.path.join(orfs_dir, orf_file), orthologs_table_file_path, orphan_genes_internal_dir]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=20,
                                                    job_name_suffix='extract_orphans',
                                                    queue_name=args.queue_name,
@@ -683,7 +683,7 @@ def step_7_orthologs_table_variations(args, logger, times_logger, error_file_pat
             params += ['--qfo_benchmark']
         if args.add_orphan_genes_to_ogs:
             params += [f'--orphan_genes_dir {orphan_genes_dir}']
-        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, args.queue_name, args.account_name,
+        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path, args.queue_name, args.account_name,
                           job_name='final_ortholog_groups')
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path)
@@ -755,7 +755,7 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
                                  orthologs_dna_sequences_dir_path]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=1,
                                                    job_name_suffix='orfs_extraction',
                                                    queue_name=args.queue_name,
@@ -790,7 +790,7 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
             single_cmd_params = [file_path, output_path]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=250,
                                                    job_name_suffix='dna_translation',
                                                    queue_name=args.queue_name,
@@ -827,7 +827,7 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params,
-                                                   pipeline_step_tmp_dir,
+                                                   pipeline_step_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=100,
                                                    job_name_suffix='genes_alignment',
                                                    queue_name=args.queue_name,
@@ -865,7 +865,7 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
             all_cmds_params.append(single_cmd_params)
 
         num_of_expected_induced_results, example_cmd = submit_batch(logger, script_path, all_cmds_params,
-                                                                    induced_tmp_dir,
+                                                                    induced_tmp_dir, error_file_path,
                                                                     num_of_cmds_per_job=250,
                                                                     job_name_suffix='induce_msa',
                                                                     queue_name=args.queue_name,
@@ -906,7 +906,7 @@ def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, err
                   core_proteome_length_file_path,
                   number_of_core_proteome_members_file_path,
                   f'--core_minimal_percentage {args.core_minimal_percentage}']  # how many members induce a core group?
-        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir,
+        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path,
                           args.queue_name, args.account_name, job_name='core_proteome')
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
@@ -942,7 +942,7 @@ def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, err
                   core_genome_length_file_path,
                   number_of_core_genome_members_file_path,
                   f'--core_minimal_percentage {args.core_minimal_percentage}']  # how many members induce a core group?
-        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir,
+        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path,
                           args.queue_name, args.account_name, job_name='core_genome')
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
@@ -976,7 +976,7 @@ def step_10_genome_numeric_representation(args, logger, times_logger, error_file
                   core_genome_numeric_representation_file_path,
                   numeric_representation_tmp_dir
                   ]
-        submit_mini_batch(logger, script_path, [params], numeric_representation_tmp_dir,
+        submit_mini_batch(logger, script_path, [params], numeric_representation_tmp_dir, error_file_path,
                           args.queue_name, args.account_name, job_name='numeric_representation')
 
         wait_for_results(logger, times_logger, step_name, numeric_representation_tmp_dir,
@@ -1021,7 +1021,7 @@ def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, t
                     logger.info(f'Outgroup {args.outgroup} was specified but it is not one of the input species:\n'
                                 f'{",".join(sorted(strains_names))}\nAn unrooted tree is going to be reconstructed')
 
-            submit_mini_batch(logger, script_path, [params], phylogeny_tmp_dir,
+            submit_mini_batch(logger, script_path, [params], phylogeny_tmp_dir, error_file_path,
                               args.queue_name, args.account_name, job_name='tree_reconstruction',
                               required_modules_as_list=[consts.RAXML], num_of_cpus=consts.PHYLOGENY_NUM_OF_CORES,
                               memory=consts.PHYLOGENY_REQUIRED_MEMORY_GB,
@@ -1061,7 +1061,7 @@ def step_12_codon_bias(args, logger, times_logger, error_file_path, output_dir, 
             codon_bias_tmp_dir,
             consts.CODON_BIAS_NUM_OF_CORES
         ]
-        submit_mini_batch(logger, script_path, [params], codon_bias_tmp_dir, args.queue_name, args.account_name, job_name='codon_bias',
+        submit_mini_batch(logger, script_path, [params], codon_bias_tmp_dir, error_file_path, args.queue_name, args.account_name, job_name='codon_bias',
                           num_of_cpus=consts.CODON_BIAS_NUM_OF_CORES)
 
         wait_for_results(logger, times_logger, step_name, codon_bias_tmp_dir,
@@ -1697,6 +1697,8 @@ def main(args):
             remove_path(logger, steps_results_dir)
     except Exception as e:
         status = 'was failed'
+        with open(error_file_path, 'a+') as f:
+            f.write(f'Internal Error in {__file__}: {e}\n')
         report_error_in_main_pipeline_to_admin(logger, e, meta_output_dir, error_file_path, run_number,
                                                output_html_path,
                                                meta_output_url)

@@ -181,6 +181,7 @@ if __name__ == '__main__':
     parser.add_argument('tmp_dir', help='A path to tmp dir')
     parser.add_argument('-v', '--verbose', action='store_true', help='Increase output verbosity')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
+    parser.add_argument('--error_file_path', help='path to error file')
     args = parser.parse_args()
 
     level = logging.DEBUG if args.verbose else logging.INFO
@@ -193,3 +194,5 @@ if __name__ == '__main__':
                                           args.output_path, args.tmp_dir)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
+        with open(args.error_file_path, 'a+') as f:
+            f.write(f'Internal Error in {__file__}: {e}\n')

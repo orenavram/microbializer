@@ -17,7 +17,7 @@ def fna_to_faa(logger, nucleotide_path, protein_path, ):
         # Iterate through each sequence record in the input file
         for record in SeqIO.parse(in_handle, "fasta"):
             # Translate the DNA sequence into a protein sequence
-            translated_record = record.translate()
+            translated_record = record.translate(id=True, name=True, description=True)
 
             # Write the translated record to the output file
             SeqIO.write(translated_record, out_handle, "fasta")
@@ -36,6 +36,7 @@ if __name__ == '__main__':
     parser.add_argument('protein_path', help='A path to which the translated dna will be written')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
+    parser.add_argument('--error_file_path', help='path to error file')
     args = parser.parse_args()
 
     level = logging.DEBUG if args.verbose else logging.INFO
@@ -46,3 +47,5 @@ if __name__ == '__main__':
         fna_to_faa(logger, args.nucleotide_path, args.protein_path)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
+        with open(args.error_file_path, 'a+') as f:
+            f.write(f'Internal Error in {__file__}: {e}\n')

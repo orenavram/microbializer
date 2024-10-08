@@ -56,6 +56,7 @@ if __name__ == '__main__':
     parser.add_argument('--names_delimiter', help='delimiter between the to species names', default='_vs_')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
+    parser.add_argument('--error_file_path', help='path to error file')
     args = parser.parse_args()
 
     level = logging.DEBUG if args.verbose else logging.INFO
@@ -67,3 +68,5 @@ if __name__ == '__main__':
                            args.coverage_cutoff, args.e_value_cutoff, args.delimiter, args.names_delimiter)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
+        with open(args.error_file_path, 'a+') as f:
+            f.write(f'Internal Error in {__file__}: {e}\n')

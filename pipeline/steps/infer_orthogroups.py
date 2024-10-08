@@ -87,7 +87,7 @@ def full_orthogroups_infernece(logger, times_logger, step_number, error_file_pat
 
                 all_cmds_params.append(single_cmd_params)
 
-            num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+            num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
                                                        num_of_cmds_per_job=100 if len(os.listdir(cluster_translated_orfs_dir)) > 25 else 5,
                                                        job_name_suffix='rbh_analysis',
                                                        queue_name=queue_name,
@@ -121,7 +121,7 @@ def full_orthogroups_infernece(logger, times_logger, step_number, error_file_pat
                                  error_file_path]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=1 if number_of_strains > 100 else 5,
                                                    job_name_suffix='max_rbh_score',
                                                    queue_name=queue_name,
@@ -163,7 +163,7 @@ def full_orthogroups_infernece(logger, times_logger, step_number, error_file_pat
 
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=10,
                                                    job_name_suffix='paralogs_analysis',
                                                    queue_name=queue_name,
@@ -229,7 +229,7 @@ def full_orthogroups_infernece(logger, times_logger, step_number, error_file_pat
                                  f'--e_value_cutoff {e_value_cutoff}']
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=100 if number_of_strains > 100 else 50,
                                                    job_name_suffix='hits_filtration',
                                                    queue_name=queue_name,
@@ -266,7 +266,7 @@ def full_orthogroups_infernece(logger, times_logger, step_number, error_file_pat
                                  ]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=100 if number_of_strains > 100 else 50,
                                                    job_name_suffix='hits_normalize',
                                                    queue_name=queue_name,
@@ -302,7 +302,7 @@ def full_orthogroups_infernece(logger, times_logger, step_number, error_file_pat
         all_cmds_params = [[normalized_hits_output_dir, start, end, concatenated_chunks_dir]
                            for (start, end) in intervals]
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=1,
                                                    job_name_suffix='concatenate_hits',
                                                    queue_name=queue_name,
@@ -334,7 +334,7 @@ def full_orthogroups_infernece(logger, times_logger, step_number, error_file_pat
         job_name = os.path.split(script_path)[-1]
         params = [all_hits_file,
                   putative_orthologs_table_path]
-        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, queue_name, account_name, job_name=job_name)
+        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path, queue_name, account_name, job_name=job_name)
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path)
         write_to_file(logger, done_file_path, '.')
@@ -373,7 +373,7 @@ def full_orthogroups_infernece(logger, times_logger, step_number, error_file_pat
                                  pipeline_step_output_dir]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=1,
                                                    # *times* the number of clusters_to_prepare_per_job above. 50 in total per batch!
                                                    job_name_suffix='mcl_preparation',
@@ -408,7 +408,7 @@ def full_orthogroups_infernece(logger, times_logger, step_number, error_file_pat
                                  f'"{os.path.join(pipeline_step_output_dir, output_file_name)}"']
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=100,
                                                    job_name_suffix='mcl_execution',
                                                    queue_name=queue_name,
@@ -440,7 +440,7 @@ def full_orthogroups_infernece(logger, times_logger, step_number, error_file_pat
                                  pipeline_step_output_dir]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=100,
                                                    job_name_suffix='clusters_verification',
                                                    queue_name=queue_name,
@@ -472,7 +472,7 @@ def full_orthogroups_infernece(logger, times_logger, step_number, error_file_pat
                   previous_pipeline_step_output_dir,
                   verified_orthologs_table_file_path]
 
-        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, queue_name, account_name,
+        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path, queue_name, account_name,
                           job_name='verified_ortholog_groups')
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path,
@@ -505,6 +505,7 @@ if __name__ == '__main__':
     parser.add_argument('coverage_cutoff', help='')
     parser.add_argument('e_value_cutoff', help='')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
+    parser.add_argument('--error_file_path', help='path to error file')
     args = parser.parse_args()
 
     level = logging.DEBUG if args.verbose else logging.INFO
@@ -519,3 +520,5 @@ if __name__ == '__main__':
                                    args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
+        with open(args.error_file_path, 'a+') as f:
+            f.write(f'Internal Error in {__file__}: {e}\n')

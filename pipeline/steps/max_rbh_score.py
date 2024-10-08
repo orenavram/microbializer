@@ -51,6 +51,7 @@ if __name__ == '__main__':
     parser.add_argument('error_file_path', help='path to which errors are written')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
+    parser.add_argument('--error_file_path', help='path to error file')
     args = parser.parse_args()
 
     level = logging.DEBUG if args.verbose else logging.INFO
@@ -61,3 +62,5 @@ if __name__ == '__main__':
         max_rbh_score_per_gene(logger, args.rbh_m8_dir, args.strain_name, args.output_dir, args.step_name, args.error_file_path)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
+        with open(args.error_file_path, 'a+') as f:
+            f.write(f'Internal Error in {__file__}: {e}\n')

@@ -11,7 +11,7 @@ from Bio import SeqIO
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger, write_done_file_inside_script
+from auxiliaries.pipeline_auxiliaries import get_job_logger
 
 
 def prepare_proteomes_subsets(logger, translated_orfs_dir, output_dir, clusters_file_path, min_seq_identity,
@@ -20,7 +20,7 @@ def prepare_proteomes_subsets(logger, translated_orfs_dir, output_dir, clusters_
     os.makedirs(temp_outputs, exist_ok=True)
 
     # create a fasta files of all proteomes
-    all_proteins_fasta_path = os.path.join(temp_outputs, 'all_proteomes.faa')
+    all_proteins_fasta_path = os.path.join(output_dir, 'all_proteomes.faa')
     cmd = f"cat {os.path.join(translated_orfs_dir, '*')} > {all_proteins_fasta_path}"
     logger.info(f'Calling:\n{cmd}')
     subprocess.run(cmd, shell=True)
@@ -28,8 +28,7 @@ def prepare_proteomes_subsets(logger, translated_orfs_dir, output_dir, clusters_
     if do_cluster:
         # cluster all proteins
         cluster_result_prefix = os.path.join(temp_outputs, 'clusterRes')
-        cluster_tmp_dir = os.path.join(output_dir, 'tmp')
-        cmd = f'mmseqs easy-cluster {all_proteins_fasta_path} {cluster_result_prefix} {cluster_tmp_dir} --min-seq-id {min_seq_identity} -c {min_coverage} --cov-mode 0 --threads {threads} --remove-tmp-files'
+        cmd = f'mmseqs easy-cluster {all_proteins_fasta_path} {cluster_result_prefix} {temp_outputs} --min-seq-id {min_seq_identity / 100} -c {min_coverage / 100} --cov-mode 0 --threads {threads} --remove-tmp-files'
         logger.info(f'Calling:\n{cmd}')
         subprocess.run(cmd, shell=True)
 
@@ -59,8 +58,8 @@ if __name__ == '__main__':
     parser.add_argument('translated_orfs_dir', help='')
     parser.add_argument('output_dir', help='')
     parser.add_argument('clusters_file_path', help='')
-    parser.add_argument('min_seq_identity', help='')
-    parser.add_argument('min_coverage', help='')
+    parser.add_argument('min_seq_identity', help='', type=float)
+    parser.add_argument('min_coverage', help='', type=float)
     parser.add_argument('threads', help='')
     parser.add_argument('--do_cluster', help='', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
@@ -75,5 +74,5 @@ if __name__ == '__main__':
                                   args.min_seq_identity, args.min_coverage, args.threads, args.do_cluster)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
-        with open(args.error_file_path, 'a') as f:
-            f.write(f'Internal Error in cluster_proteomes.py: {e}\n')
+        with open(args.error_file_path, 'a+') as f:
+            f.write(f'Internal Error in {__file__}: {e}\n')

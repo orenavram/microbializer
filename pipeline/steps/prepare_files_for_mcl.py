@@ -134,6 +134,7 @@ if __name__ == '__main__':
     parser.add_argument('--delimiter', help='delimiter for the input and output files', default=consts.CSV_DELIMITER)
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
+    parser.add_argument('--error_file_path', help='path to error file')
     args = parser.parse_args()
 
     level = logging.DEBUG if args.verbose else logging.INFO
@@ -145,3 +146,5 @@ if __name__ == '__main__':
                               args.start, args.end, args.output_path, args.delimiter)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
+        with open(args.error_file_path, 'a+') as f:
+            f.write(f'Internal Error in {__file__}: {e}\n')
