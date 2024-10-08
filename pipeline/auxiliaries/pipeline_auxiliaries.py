@@ -182,7 +182,7 @@ def fail(logger, error_msg, error_file_path):
     raise ValueError(error_msg)
 
 
-def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir, queue_name, account_name=None, job_name='',
+def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir, error_file_path, queue_name, account_name=None, job_name='',
                       new_line_delimiter='!@#', verbose=False, required_modules_as_list=None, num_of_cpus=1,
                       memory=None, submit_as_a_job=True, done_file_is_needed=True,
                       done_files_script_path=os.path.join(consts.PROJECT_ROOT_DIR, 'pipeline/auxiliaries/file_writer.py'),
@@ -230,8 +230,8 @@ def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir,
 
     for params in mini_batch_parameters_list:
         shell_cmds_as_str += ' '.join(
-            ['python', script_path, *[str(param) for param in params]] +
-            (['-v'] if verbose else []) + [f'--logs_dir {logs_dir}']) + ';'
+            ['python', script_path, *[str(param) for param in params],
+            '-v' if verbose else '', f'--logs_dir {logs_dir}', f'--error_file_path {error_file_path}']) + ';'
         shell_cmds_as_str += new_line_delimiter
 
     if not job_name:
@@ -258,7 +258,7 @@ def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir,
     return example_shell_cmd
 
 
-def submit_batch(logger, script_path, batch_parameters_list, logs_dir, job_name_suffix='', queue_name='pupkolabr', account_name=None,
+def submit_batch(logger, script_path, batch_parameters_list, logs_dir, error_file_path, job_name_suffix='', queue_name='pupkolabr', account_name=None,
                  num_of_cmds_per_job=1, new_line_delimiter='!@#', required_modules_as_list=None, num_of_cpus=1,
                  memory=None):
     """
@@ -285,7 +285,7 @@ def submit_batch(logger, script_path, batch_parameters_list, logs_dir, job_name_
         mini_batch_parameters_list = batch_parameters_list[i: i + num_of_cmds_per_job]
         mini_batch_job_name = f'{num_of_mini_batches}_{job_name_suffix}'
         example_cmd_from_last_mini_batch = submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir,
-                                                             queue_name, account_name, mini_batch_job_name,
+                                                             error_file_path, queue_name, account_name, mini_batch_job_name,
                                                              new_line_delimiter, verbose=False, num_of_cpus=num_of_cpus,
                                                              required_modules_as_list=required_modules_as_list, memory=memory)
         logger.info(f'Example command from batch {mini_batch_job_name}:\n{example_cmd_from_last_mini_batch}')
@@ -372,6 +372,23 @@ def get_job_logger(log_file_dir, level=logging.INFO):
                             level=level)
 
     logger = logging.getLogger('main')
+    return logger
+
+
+def get_job_times_logger(log_file_dir, level=logging.INFO):
+    job_name = os.environ.get(consts.JOB_NAME_ENVIRONMENT_VARIABLE, None)
+    job_id = os.environ.get(consts.JOB_ID_ENVIRONMENT_VARIABLE, None)
+
+    if consts.LOG_IN_SEPARATE_FILES and job_name and job_id:
+        logging.basicConfig(filename=os.path.join(log_file_dir, f'{job_name}_{job_id}_times_log.txt'),
+                            filemode='a',
+                            format=consts.LOG_MESSAGE_FORMAT,
+                            level=level)
+    else:
+        logging.basicConfig(format=consts.LOG_MESSAGE_FORMAT,
+                            level=level)
+
+    logger = logging.getLogger('times')
     return logger
 
 

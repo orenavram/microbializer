@@ -11,10 +11,11 @@ from Bio import SeqIO
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger
+from auxiliaries.pipeline_auxiliaries import get_job_logger, write_done_file_inside_script
 
 
-def prepare_proteomes_subsets(logger, translated_orfs_dir, output_dir, clusters_file_path, min_seq_identity, min_coverage, threads):
+def prepare_proteomes_subsets(logger, translated_orfs_dir, output_dir, clusters_file_path, min_seq_identity,
+                              min_coverage, threads, do_cluster):
     temp_outputs = os.path.join(output_dir, 'temp')
     os.makedirs(temp_outputs, exist_ok=True)
 
@@ -24,7 +25,7 @@ def prepare_proteomes_subsets(logger, translated_orfs_dir, output_dir, clusters_
     logger.info(f'Calling:\n{cmd}')
     subprocess.run(cmd, shell=True)
 
-    if cluster:
+    if do_cluster:
         # cluster all proteins
         cluster_result_prefix = os.path.join(temp_outputs, 'clusterRes')
         cluster_tmp_dir = os.path.join(output_dir, 'tmp')
@@ -61,15 +62,18 @@ if __name__ == '__main__':
     parser.add_argument('min_seq_identity', help='')
     parser.add_argument('min_coverage', help='')
     parser.add_argument('threads', help='')
+    parser.add_argument('--do_cluster', help='', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
+    parser.add_argument('--error_file_path', help='path to error file')
     args = parser.parse_args()
 
-    level = logging.DEBUG if args.verbose else logging.INFO
-    logger = get_job_logger(args.logs_dir, level)
+    logger = get_job_logger(args.logs_dir)
 
     logger.info(script_run_message)
     try:
         prepare_proteomes_subsets(logger, args.translated_orfs_dir, args.output_dir, args.clusters_file_path,
-                                  args.min_seq_identity, args.min_coverage, args.threads)
+                                  args.min_seq_identity, args.min_coverage, args.threads, args.do_cluster)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
+        with open(args.error_file_path, 'a') as f:
+            f.write(f'Internal Error in cluster_proteomes.py: {e}\n')

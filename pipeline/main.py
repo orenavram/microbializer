@@ -264,7 +264,7 @@ def step_0_filter_out_plasmids(args, logger, times_logger, error_file_path, outp
                                  os.path.join(filtered_inputs_dir, fasta_file)]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=5,
                                                    job_name_suffix='drop_plasmids',
                                                    queue_name=args.queue_name,
@@ -551,19 +551,21 @@ def step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output
     clusters_file_path = os.path.join(pipeline_step_output_dir, 'clusters.tsv')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
-        if args.optimize_orthogroups_inference:
-            params = [translated_orfs_dir,
-                      pipeline_step_output_dir,
-                      clusters_file_path,
-                      args.identity_cutoff,
-                      args.coverage_cutoff,
-                      consts.CLUSTER_PROTEOMES_NUM_OF_CORES
-                      ]
+        params = [translated_orfs_dir,
+                  pipeline_step_output_dir,
+                  clusters_file_path,
+                  args.identity_cutoff,
+                  args.coverage_cutoff,
+                  consts.CLUSTER_PROTEOMES_NUM_OF_CORES
+                  ]
 
-            submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, args.queue_name, args.account_name,
-                              job_name='cluster_proteomes', num_of_cpus=consts.CLUSTER_PROTEOMES_NUM_OF_CORES, memory=consts.MMSEQS_REQUIRED_MEMORY_GB)
-            wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
-                             num_of_expected_results=1, error_file_path=error_file_path)
+        if args.optimize_orthogroups_inference:
+            params.append('--do_cluster')
+
+        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, args.queue_name, args.account_name,
+                          job_name='cluster_proteomes', num_of_cpus=consts.CLUSTER_PROTEOMES_NUM_OF_CORES, memory=consts.MMSEQS_REQUIRED_MEMORY_GB)
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+                         num_of_expected_results=1, error_file_path=error_file_path)
 
         write_to_file(logger, done_file_path, '.')
     else:

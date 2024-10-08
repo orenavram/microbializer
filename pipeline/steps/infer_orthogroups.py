@@ -509,6 +509,7 @@ if __name__ == '__main__':
 
     level = logging.DEBUG if args.verbose else logging.INFO
     logger = get_job_logger(args.logs_dir, level)
+    times_logger = get_job_logger(args.logs_dir, level)
 
     logger.info(script_run_message)
     try:
