@@ -14,7 +14,6 @@ import mmap
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from Bio import SeqIO
 
 from auxiliaries.email_sender import send_email
 from auxiliaries.file_writer import write_to_file
@@ -554,8 +553,8 @@ def step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output
         params = [translated_orfs_dir,
                   pipeline_step_output_dir,
                   clusters_file_path,
-                  args.identity_cutoff,
-                  args.coverage_cutoff,
+                  10,
+                  20,
                   consts.CLUSTER_PROTEOMES_NUM_OF_CORES
                   ]
 
@@ -582,6 +581,8 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
     step_name = f'{step_number}_infer_orthogroups'
     script_path = os.path.join(consts.SRC_DIR, 'steps/infer_orthogroups.py')
     pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    pipeline_step_done_dir = os.path.join(done_files_dir, step_name)
+    os.makedirs(pipeline_step_done_dir, exist_ok=True)
     orthogroups_file_path = os.path.join(pipeline_step_output_dir, 'orthogroups.csv')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
@@ -590,7 +591,7 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
         clusters_df = pd.read_csv(clusters_file_path)
         all_cluster_ids = set(clusters_df['cluster_id'].tolist())
         for cluster_id in all_cluster_ids:
-            params = [step_number, error_file_path, pipeline_step_output_dir, pipeline_step_tmp_dir, done_files_dir, translated_orfs_dir,
+            params = [step_number, pipeline_step_output_dir, pipeline_step_tmp_dir, pipeline_step_done_dir, translated_orfs_dir,
                       genomes_names_path, clusters_file_path, cluster_id, args.queue_name, args.account_name,
                       args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff]
             all_cmds_params.append(params)
