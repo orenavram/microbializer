@@ -597,7 +597,7 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
             all_cmds_params.append(params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
-                                                   num_of_cmds_per_job=10,
+                                                   num_of_cmds_per_job=1,
                                                    job_name_suffix='infer_orthogroups',
                                                    queue_name=args.queue_name,
                                                    account_name=args.account_name,)
