@@ -6,6 +6,7 @@ import argparse
 import logging
 import pandas as pd
 import shutil
+from Bio import SeqIO
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -23,17 +24,26 @@ def prepare_proteomes_subsets(logger, translated_orfs_dir, output_dir, clusters_
     logger.info(f'Calling:\n{cmd}')
     subprocess.run(cmd, shell=True)
 
-    # cluster all proteins
-    cluster_result_prefix = os.path.join(temp_outputs, 'clusterRes')
-    cluster_tmp_dir = os.path.join(output_dir, 'tmp')
-    cmd = f'mmseqs easy-cluster {all_proteins_fasta_path} {cluster_result_prefix} {cluster_tmp_dir} --min-seq-id {min_seq_identity} -c {min_coverage} --cov-mode 0 --threads {threads} --remove-tmp-files'
-    logger.info(f'Calling:\n{cmd}')
-    subprocess.run(cmd, shell=True)
+    if cluster:
+        # cluster all proteins
+        cluster_result_prefix = os.path.join(temp_outputs, 'clusterRes')
+        cluster_tmp_dir = os.path.join(output_dir, 'tmp')
+        cmd = f'mmseqs easy-cluster {all_proteins_fasta_path} {cluster_result_prefix} {cluster_tmp_dir} --min-seq-id {min_seq_identity} -c {min_coverage} --cov-mode 0 --threads {threads} --remove-tmp-files'
+        logger.info(f'Calling:\n{cmd}')
+        subprocess.run(cmd, shell=True)
 
-    # number clusters
-    clusters_df = pd.read_csv(f'{cluster_result_prefix}_cluster.tsv', sep='\t',
-                              names=['cluster_representative', 'cluster_member'])
-    clusters_df['cluster_id'] = pd.factorize(clusters_df['cluster_representative'])[0]
+        # number clusters
+        clusters_df = pd.read_csv(f'{cluster_result_prefix}_cluster.tsv', sep='\t',
+                                  names=['cluster_representative', 'cluster_member'])
+        clusters_df['cluster_id'] = pd.factorize(clusters_df['cluster_representative'])[0]
+    else:
+        all_record_ids = [record.id for record in SeqIO.parse(all_proteins_fasta_path, "fasta")]
+        clusters_df = pd.DataFrame({
+            'cluster_id': 1,
+            'cluster_representative': 'nan',
+            'cluster_member': all_record_ids
+        })
+
     clusters_df.to_csv(clusters_file_path, index=False)
 
     # remove temp dir

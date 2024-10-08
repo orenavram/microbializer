@@ -6,6 +6,7 @@ import sys
 from time import time
 import traceback
 import json
+import subprocess
 import itertools
 
 import matplotlib.pyplot as plt
@@ -13,6 +14,7 @@ import mmap
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from Bio import SeqIO
 
 from auxiliaries.email_sender import send_email
 from auxiliaries.file_writer import write_to_file
@@ -549,18 +551,19 @@ def step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output
     clusters_file_path = os.path.join(pipeline_step_output_dir, 'clusters.tsv')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
-        params = [translated_orfs_dir,
-                  pipeline_step_output_dir,
-                  clusters_file_path,
-                  args.identity_cutoff,
-                  args.coverage_cutoff,
-                  consts.CLUSTER_PROTEOMES_NUM_OF_CORES
-                  ]
+        if args.optimize_orthogroups_inference:
+            params = [translated_orfs_dir,
+                      pipeline_step_output_dir,
+                      clusters_file_path,
+                      args.identity_cutoff,
+                      args.coverage_cutoff,
+                      consts.CLUSTER_PROTEOMES_NUM_OF_CORES
+                      ]
 
-        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, args.queue_name, args.account_name,
-                          job_name='cluster_proteomes', num_of_cpus=consts.CLUSTER_PROTEOMES_NUM_OF_CORES, memory=consts.MMSEQS_REQUIRED_MEMORY_GB)
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
-                         num_of_expected_results=1, error_file_path=error_file_path)
+            submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, args.queue_name, args.account_name,
+                              job_name='cluster_proteomes', num_of_cpus=consts.CLUSTER_PROTEOMES_NUM_OF_CORES, memory=consts.MMSEQS_REQUIRED_MEMORY_GB)
+            wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+                             num_of_expected_results=1, error_file_path=error_file_path)
 
         write_to_file(logger, done_file_path, '.')
     else:
@@ -585,7 +588,7 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
         clusters_df = pd.read_csv(clusters_file_path)
         all_cluster_ids = set(clusters_df['cluster_id'].tolist())
         for cluster_id in all_cluster_ids:
-            params = [step_number, error_file_path, output_dir, tmp_dir, done_files_dir, translated_orfs_dir,
+            params = [step_number, error_file_path, pipeline_step_output_dir, pipeline_step_tmp_dir, done_files_dir, translated_orfs_dir,
                       genomes_names_path, clusters_file_path, cluster_id, args.queue_name, args.account_name,
                       args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff]
             all_cmds_params.append(params)
@@ -599,7 +602,7 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)
 
-        aggreagte_orthogroups(orthogroups_file_path)
+        #aggreagte_orthogroups(orthogroups_file_path)
 
         write_to_file(logger, done_file_path, '.')
     else:
@@ -1123,8 +1126,19 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         logger.info("Step 3 completed.")
         return
 
-    orthologs_table_file_path = step_infer_orthogroups(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
-                           done_files_dir, translated_orfs_dir, genomes_names_path)
+    clusters_file_path = step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
+                             done_files_dir, translated_orfs_dir)
+    update_progressbar(progressbar_file_path, 'Initial orfs clustering')
+    edit_progress(output_html_path, progress=35)
+
+    if args.step_to_complete == '4':
+        logger.info("Step 4 completed.")
+        return
+
+    orthologs_table_file_path = step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
+                             done_files_dir, clusters_file_path, translated_orfs_dir, genomes_names_path)
+    update_progressbar(progressbar_file_path, 'Orthogroup inference')
+    edit_progress(output_html_path, progress=35)
 
     if args.step_to_complete == '5':
         logger.info("Step 5 completed.")
