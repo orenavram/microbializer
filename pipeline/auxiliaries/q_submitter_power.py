@@ -11,29 +11,11 @@ import os
 from subprocess import call
 from . import consts
 
-JOB_EXTENSION = '.pbs' if consts.PBS else '.slurm'
-LOGIN_NODE = 'power9login' if consts.PBS else 'powerslurm-login'
-JOB_SUBMITTER = '/opt/pbs/bin/qsub' if consts.PBS else 'sbatch'
-MEMORY_SUFFIX = 'gb' if consts.PBS else 'G'
-CHECK_JOB_DETAILS_COMMAND = 'qstat -f' if consts.PBS else 'scontrol show job'
-
-
-def add_qsub_header(qsub_file_content, queue_name, tmp_dir, prefix_name, CPUs, memory=None):
-    qsub_file_content += '#PBS -S /bin/bash\n'  # '#PBS -S /bin/tcsh\n'
-    if int(CPUs) > 1:
-        qsub_file_content += f'#PBS -l ncpus={CPUs}\n'
-    if memory:
-        qsub_file_content += f'#PBS -l mem={memory}{MEMORY_SUFFIX}\n'
-    qsub_file_content += f'#PBS -q {queue_name}@power9\n'
-    qsub_file_content += f'#PBS -N {prefix_name}\n'
-    qsub_file_content += f'#PBS -e {tmp_dir}\n'  # error log
-    qsub_file_content += f'#PBS -o {tmp_dir}\n'  # output log
-    qsub_file_content += f'#PBS -r y\n'  # makes the job Rerunnable
-    qsub_file_content += f'hostname\n'
-    qsub_file_content += f'echo job_name: {prefix_name}\n'
-    qsub_file_content += f'echo $PBS_JOBID\n'
-
-    return qsub_file_content
+JOB_EXTENSION = '.slurm'
+LOGIN_NODE = 'powerslurm-login'
+JOB_SUBMITTER = 'sbatch'
+MEMORY_SUFFIX = 'G'
+CHECK_JOB_DETAILS_COMMAND = 'scontrol show job'
 
 
 def add_slurm_header(sbatch_file_content, queue_name, tmp_dir, prefix_name, CPUs, account_name, memory=None):
@@ -57,18 +39,11 @@ def add_slurm_header(sbatch_file_content, queue_name, tmp_dir, prefix_name, CPUs
 def generate_job_file(logger, queue_name, tmp_dir, cmd, prefix_name, job_path, CPUs, account_name=None, memory=None):
     """compose the job file content and fetches it"""
     job_file_content = f'#!/bin/bash {"-x" if consts.JOB_FILES_DEBUG_MODE else ""}\n'  # 'old bash: #!/bin/tcsh -x\n'
-
-    if consts.PBS:
-        job_file_content = add_qsub_header(job_file_content, queue_name, tmp_dir, prefix_name, CPUs, memory)
-    else:  # slurm
-        job_file_content = add_slurm_header(job_file_content, queue_name, tmp_dir, prefix_name, CPUs, account_name, memory)
-
+    job_file_content = add_slurm_header(job_file_content, queue_name, tmp_dir, prefix_name, CPUs, account_name, memory)
     job_file_content += f'{cmd}\n'
 
     # log the runtime of the job
     job_log_file_path = f'{tmp_dir}/$(echo ${consts.JOB_NAME_ENVIRONMENT_VARIABLE})_$(echo ${consts.JOB_ID_ENVIRONMENT_VARIABLE})_log.txt'
-    if consts.PBS:  # Only in PBS I found a way to the get the job's cpu runtime from within the job (in the compute node)
-        job_file_content += f'{CHECK_JOB_DETAILS_COMMAND} ${consts.JOB_ID_ENVIRONMENT_VARIABLE} | grep -m 1 "{consts.JOB_CPU_TIME_KEY}" >> {job_log_file_path}\n'
     job_file_content += f'{CHECK_JOB_DETAILS_COMMAND} ${consts.JOB_ID_ENVIRONMENT_VARIABLE} | grep -m 1 "{consts.JOB_WALL_TIME_KEY}" >> {job_log_file_path}\n'
 
     with open(job_path, 'w') as job_fp:  # write the job
@@ -86,7 +61,7 @@ def generate_job_file(logger, queue_name, tmp_dir, cmd, prefix_name, job_path, C
 def submit_cmds_from_file_to_q(logger, cmds_file, tmp_dir, queue_name, CPUs, account_name=None, dummy_delimiter='!@#', memory=None,
                                start=0, end=float('inf'), additional_params=''):
     logger.debug('-> Jobs will be submitted to ' + queue_name + '\'s queue')
-    logger.debug('-> out, err and pbs files will be written to:\n' + tmp_dir + '/')
+    logger.debug('-> out, err and slurm files will be written to:\n' + tmp_dir + '/')
     logger.debug('-> Jobs are based on cmds ' + str(start) + ' to ' + str(end) + ' (excluding) from:\n' + cmds_file)
     logger.debug('-> Each job will use ' + CPUs + ' CPU(s)\n')
 

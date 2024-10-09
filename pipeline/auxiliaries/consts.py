@@ -40,23 +40,19 @@ OWNER_EMAIL = 'yairshimony@mail.tau.ac.il'
 
 # General Job submission consts
 Q_SUBMITTER_ADD_SSH_PREFIX = False
-PBS = False  # if False, assume slurm
-JOB_NAME_ENVIRONMENT_VARIABLE = 'PBS_JOBNAME' if PBS else 'SLURM_JOB_NAME'
-JOB_ID_ENVIRONMENT_VARIABLE = 'PBS_JOBID' if PBS else 'SLURM_JOB_ID'
+
+JOB_NAME_ENVIRONMENT_VARIABLE = 'SLURM_JOB_NAME'
+JOB_ID_ENVIRONMENT_VARIABLE = 'SLURM_JOB_ID'
 JOB_FILES_DEBUG_MODE = False
 PHYLOGENY_NUM_OF_CORES = 20
 CODON_BIAS_NUM_OF_CORES = 20
 CLUSTER_PROTEOMES_NUM_OF_CORES = 20
-JOB_CPU_TIME_KEY = 'resources_used.cput = ' if PBS else '' # Only in PBS I found a way to the get the job's cpu runtime from within the job (in the compute node)
-JOB_WALL_TIME_KEY = 'resources_used.walltime = ' if PBS else 'RunTime='
+JOB_WALL_TIME_KEY ='RunTime='
 # mmseqs and fastANI commands work only on machines with enough memory. we solve this either by navigating to a
 # specific queue or by restrict the compute-nodes with memory threshold.
 MMSEQS_REQUIRED_MEMORY_GB = '120'
 ANI_REQUIRED_MEMORY_GB = '120'
 PHYLOGENY_REQUIRED_MEMORY_GB = '120'
-
-# PBS consts
-DEFAULT_PBS_QUEUE = 'power-pupko'
 
 # Slurm consts
 DEFAULT_SLURM_ACCOUNT = 'pupko-users'

@@ -73,7 +73,7 @@ def get_arguments():
     # choices=['pupkoweb', 'pupkowebr', 'pupkolab', 'pupkolabr', 'pupkotmp', 'pupkotmpr', 'itaym', 'lilach',
     # 'bioseq', 'bental', 'oren.q', 'bioseq20.q'])
     parser.add_argument('-q', '--queue_name', help='The queue to which the job(s) will be submitted to',
-                        default=consts.DEFAULT_PBS_QUEUE if consts.PBS else consts.DEFAULT_SLURM_PARTITION)
+                        default=consts.DEFAULT_SLURM_PARTITION)
     parser.add_argument('--account_name', help='The slurm account to submit jobs to',
                         default=consts.DEFAULT_SLURM_ACCOUNT)
     parser.add_argument('--step_to_complete', help='The final step to execute', default=None,
@@ -603,7 +603,7 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
                                                    account_name=args.account_name,)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
-                         num_of_batches, error_file_path)
+                         num_of_batches, error_file_path, recursive_step=True)
 
         #aggreagte_orthogroups(orthogroups_file_path)
 

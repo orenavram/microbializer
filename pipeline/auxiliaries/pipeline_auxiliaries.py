@@ -68,7 +68,7 @@ def execute(logger, process, process_is_string=False):
 
 
 def wait_for_results(logger, times_logger, script_name, path, num_of_expected_results, error_file_path, suffix='done',
-                     time_to_wait=10, start=0, error_message=None):
+                     time_to_wait=10, start=0, error_message=None, recursive_step=False):
     """waits until path contains num_of_expected_results $suffix files"""
     if not start:
         start = time()
@@ -100,10 +100,10 @@ def wait_for_results(logger, times_logger, script_name, path, num_of_expected_re
     total_time_waited = measure_time(int(end - start))
     logger.info(f'Done waiting for: {script_name} (took {total_time_waited}).')
 
-    cput_sum, walltime_sum, log_files_without_times = get_jobs_cummulative_time(path)
+    walltime_sum, log_files_without_times = get_jobs_cummulative_time(path, recursive_step)
     times_logger.info(f'Step {script_name} took {total_time_waited}. '
                       f'There were {num_of_expected_results} jobs and '
-                      f'cumulatively they took {cput_sum} cputime and {walltime_sum} wallclock time. ' +
+                      f'cumulatively they took {walltime_sum} wallclock time. ' +
                       (f'Times are not complete since files {log_files_without_times} do not have times records'
                        if log_files_without_times else ''))
 
@@ -117,29 +117,22 @@ def get_job_time_from_log_file(log_file_content, pattern_for_runtime):
 
     runtime_string = runtime_string_match.group(1)
 
-    if consts.PBS:
-        # In PBS the hours might represent a value greater than 24 hours.
-        hours, minutes, seconds = map(float, runtime_string.split(':'))
-        runtime = timedelta(hours=hours, minutes=minutes, seconds=seconds)
-    else:  # slurm
-        if '-' in runtime_string:
-            days, time = runtime_string.split('-')
-        else:
-            days = 0
-            time = runtime_string
-        hours, minutes, seconds = map(float, time.split(':'))
-        runtime = timedelta(days=int(days), hours=hours, minutes=minutes, seconds=seconds)
+    if '-' in runtime_string:
+        days, time = runtime_string.split('-')
+    else:
+        days = 0
+        time = runtime_string
+    hours, minutes, seconds = map(float, time.split(':'))
+    runtime = timedelta(days=int(days), hours=hours, minutes=minutes, seconds=seconds)
 
     return runtime
 
 
-def get_jobs_cummulative_time(path):
+def get_jobs_cummulative_time(path, recursive_step=False):
     log_files = [file_path for file_path in os.listdir(path) if file_path.endswith('log.txt')]
-    pattern_for_cput = re.compile(f'{consts.JOB_CPU_TIME_KEY}(.+)')
-    pattern_for_walltime = re.compile(f'{consts.JOB_WALL_TIME_KEY}(.+)') if consts.PBS else re.compile(
-        f'{consts.JOB_WALL_TIME_KEY}(.+) TimeLimit')
 
-    cput_sum = timedelta() if consts.PBS else None # Only in PBS I found a way to the get the job's cpu runtime from within the job (in the compute node)
+    pattern_for_walltime = re.compile(f'{consts.JOB_WALL_TIME_KEY}(.+) TimeLimit')
+
     walltime_sum = timedelta()
     log_files_without_times = []
     for log_file_name in log_files:
@@ -147,20 +140,13 @@ def get_jobs_cummulative_time(path):
         with open(log_file_full_path, 'r') as log_file:
             content = log_file.read()
 
-            if consts.PBS:
-                cput = get_job_time_from_log_file(content, pattern_for_cput)
-                if cput is None:
-                    log_files_without_times.append(log_file_full_path)
-                    continue
-                cput_sum += cput
-
             walltime = get_job_time_from_log_file(content, pattern_for_walltime)
             if walltime is None:
                 log_files_without_times.append(log_file_full_path)
                 continue
             walltime_sum += walltime
 
-    return cput_sum, walltime_sum, log_files_without_times
+    return walltime_sum, log_files_without_times
 
 
 def prepare_directories(logger, outputs_dir_prefix, tmp_dir_prefix, dir_name):
