@@ -1,11 +1,11 @@
 import os
 import shutil
 import subprocess
-
 from time import time, sleep
 import re
 import logging
 from datetime import timedelta
+import pandas as pd
 
 from . import consts
 from . import cgi_consts
@@ -100,7 +100,13 @@ def wait_for_results(logger, times_logger, script_name, path, num_of_expected_re
     total_time_waited = measure_time(int(end - start))
     logger.info(f'Done waiting for: {script_name} (took {total_time_waited}).')
 
-    walltime_sum, log_files_without_times = get_jobs_cummulative_time(path, recursive_step)
+    if not recursive_step:
+        walltime_sum, log_files_without_times = get_jobs_cummulative_time(path)
+    else:
+        walltime_sum, log_files_without_times, sub_steps_cummulative_times = get_recursive_step_cummulative_times(path)
+        for step_name, step_time in sub_steps_cummulative_times.items():
+            times_logger.info(f'Sub-step {step_name} took cumulatively {step_time} wallclock time')
+
     times_logger.info(f'Step {script_name} took {total_time_waited}. '
                       f'There were {num_of_expected_results} jobs and '
                       f'cumulatively they took {walltime_sum} wallclock time. ' +
@@ -128,9 +134,8 @@ def get_job_time_from_log_file(log_file_content, pattern_for_runtime):
     return runtime
 
 
-def get_jobs_cummulative_time(path, recursive_step=False):
+def get_jobs_cummulative_time(path):
     log_files = [file_path for file_path in os.listdir(path) if file_path.endswith('log.txt')]
-
     pattern_for_walltime = re.compile(f'{consts.JOB_WALL_TIME_KEY}(.+) TimeLimit')
 
     walltime_sum = timedelta()
@@ -147,6 +152,32 @@ def get_jobs_cummulative_time(path, recursive_step=False):
             walltime_sum += walltime
 
     return walltime_sum, log_files_without_times
+
+
+def get_recursive_step_cummulative_times(path):
+    times_log_files = [file_path for file_path in os.listdir(path) if file_path.endswith('times_log.txt')]
+    pattern = re.compile(f'Step (.+) took (.+) cumulatively they took (.+) wallclock time')
+
+    log_files_without_times = []
+    sub_steps_cummulative_times = {}
+    for log_file_name in times_log_files:
+        log_file_full_path = os.path.join(path, log_file_name)
+        with open(log_file_full_path, 'r') as log_file:
+            content = log_file.read()
+            regex_search_result = pattern.finditer(content)
+            if regex_search_result is None:
+                log_files_without_times.append(log_file_full_path)
+                continue
+
+            for match in regex_search_result:
+                step_name, step_cummulative_time = match.group(1), match.group(3)
+                if step_name in sub_steps_cummulative_times:
+                    sub_steps_cummulative_times[step_name] += pd.Timedelta(step_cummulative_time)
+                else:
+                    sub_steps_cummulative_times[step_name] = pd.Timedelta(step_cummulative_time)
+
+    total_duration = sum(sub_steps_cummulative_times.values(), pd.Timedelta(0))
+    return total_duration, log_files_without_times, sub_steps_cummulative_times
 
 
 def prepare_directories(logger, outputs_dir_prefix, tmp_dir_prefix, dir_name):

@@ -605,7 +605,15 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, recursive_step=True)
 
-        #aggreagte_orthogroups(orthogroups_file_path)
+        # Aggregate OG tables of all clusters
+        all_og_tables = []
+        for cluster_dir_name in os.listdir(pipeline_step_output_dir):
+            cluster_og_table = os.path.join(pipeline_step_output_dir, cluster_dir_name, '05k_verified_table', 'verified_orthologs_table.csv')
+            cluster_og_df = pd.read_csv(cluster_og_table)
+            all_og_tables.append(cluster_og_df)
+        unified_og_table = pd.concat(all_og_tables, axis=0, ignore_index=True)
+        unified_og_table['OG_name'] = [f'OG_{i}' for i in range(len(unified_og_table.index))]
+        unified_og_table.to_csv(orthogroups_file_path, index=False)
 
         write_to_file(logger, done_file_path, '.')
     else:
