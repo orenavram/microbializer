@@ -630,12 +630,13 @@ def step_6_extract_orphan_genes(args, logger, times_logger, error_file_path, out
     step_name = f'{step_number}_orphan_genes'
     script_path = os.path.join(consts.SRC_DIR, 'steps/extract_orphan_genes.py')
     orphan_genes_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    orphan_genes_internal_dir = os.path.join(orphan_genes_dir, 'orphans_lists_per_genome')
+    os.makedirs(orphan_genes_internal_dir, exist_ok=True)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Extracting orphan genes...')
         all_cmds_params = []
-        orphan_genes_internal_dir = os.path.join(orphan_genes_dir, 'orphans_lists_per_genome')
-        os.makedirs(orphan_genes_internal_dir, exist_ok=True)
+
         for orf_file in os.listdir(orfs_dir):
             single_cmd_params = [os.path.join(orfs_dir, orf_file), orthologs_table_file_path, orphan_genes_internal_dir]
             all_cmds_params.append(single_cmd_params)
@@ -668,7 +669,7 @@ def step_6_extract_orphan_genes(args, logger, times_logger, error_file_path, out
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    return orphan_genes_dir
+    return orphan_genes_internal_dir
 
 
 def step_7_orthologs_table_variations(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
