@@ -553,8 +553,8 @@ def step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output
         params = [translated_orfs_dir,
                   pipeline_step_output_dir,
                   clusters_file_path,
+                  5,
                   10,
-                  20,
                   consts.CLUSTER_PROTEOMES_NUM_OF_CORES
                   ]
 

@@ -12,7 +12,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from auxiliaries.pipeline_auxiliaries import fail, get_job_logger, prepare_directories, submit_batch, \
-    wait_for_results, submit_mini_batch, execute
+    wait_for_results, submit_mini_batch, execute, get_job_times_logger
 from auxiliaries.logic_auxiliaries import aggregate_mmseqs_scores, define_intervals
 from auxiliaries import consts
 from auxiliaries.file_writer import write_to_file
@@ -25,11 +25,11 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
         strains_names = f.read().rstrip().split('\n')
     number_of_strains = len(strains_names)
 
-    cluster_output_dir = os.path.join(output_dir, cluster_id)
+    cluster_output_dir = os.path.join(output_dir, str(cluster_id))
     os.makedirs(cluster_output_dir, exist_ok=True)
-    cluster_tmp_dir = os.path.join(tmp_dir, cluster_id)
+    cluster_tmp_dir = os.path.join(tmp_dir, str(cluster_id))
     os.makedirs(cluster_tmp_dir, exist_ok=True)
-    cluster_done_dir = os.path.join(done_files_dir, cluster_id)
+    cluster_done_dir = os.path.join(done_files_dir, str(cluster_id))
     os.makedirs(cluster_done_dir, exist_ok=True)
 
     # 0.    prepare directory of cluster fasta files
@@ -40,7 +40,7 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
     done_file_path = os.path.join(cluster_done_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         clusters_df = pd.read_csv(clusters_file_path)
-        cluster_members = clusters_df.loc[clusters_df['cluster_id'] == cluster_id, 'cluster_member']
+        cluster_members = list(clusters_df.loc[clusters_df['cluster_id'] == cluster_id, 'cluster_member'])
 
         for filename in os.listdir(translated_orfs_dir):
             if not filename.endswith('02d_translated_orfs'):
@@ -48,9 +48,12 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
 
             infile_path = os.path.join(translated_orfs_dir, filename)
             outfile_path = os.path.join(cluster_translated_orfs_dir, filename)
-            with open(infile_path, "r") as infile, open(outfile_path, "w") as outfile:
-                records = (record for record in SeqIO.parse(infile, "fasta") if record.id in cluster_members)
-                SeqIO.write(records, outfile, "fasta")
+            with open(infile_path, "r") as infile:
+                records = list(record for record in SeqIO.parse(infile, "fasta") if record.id in cluster_members)
+
+            if records:
+                with open(outfile_path, "w") as outfile:
+                    SeqIO.write(records, outfile, "fasta")
 
         write_to_file(logger, done_file_path, '.')
     else:
@@ -69,10 +72,11 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
     orthologs_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, cluster_output_dir, cluster_tmp_dir, step_name)
     done_file_path = os.path.join(cluster_done_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
-        if len(os.listdir(cluster_translated_orfs_dir)) >= 2:
+        orfs_files = [filename for filename in os.listdir(cluster_translated_orfs_dir) if filename.endswith('02d_translated_orfs')]
+        if len(orfs_files) >= 2:
             logger.info(f'Querying all VS all (using mmseqs2)...')
             all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-            for fasta1, fasta2 in itertools.combinations(os.listdir(cluster_translated_orfs_dir), 2):
+            for fasta1, fasta2 in itertools.combinations(orfs_files, 2):
                 strain1_name = os.path.splitext(fasta1)[0]
                 strain2_name = os.path.splitext(fasta2)[0]
 
@@ -509,7 +513,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     logger = get_job_logger(args.logs_dir)
-    times_logger = get_job_logger(args.logs_dir)
+    times_logger = get_job_times_logger(args.logs_dir)
 
     logger.info(script_run_message)
     try:

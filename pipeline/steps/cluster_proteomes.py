@@ -35,7 +35,17 @@ def prepare_proteomes_subsets(logger, translated_orfs_dir, output_dir, clusters_
         # number clusters
         clusters_df = pd.read_csv(f'{cluster_result_prefix}_cluster.tsv', sep='\t',
                                   names=['cluster_representative', 'cluster_member'])
-        clusters_df['cluster_id'] = pd.factorize(clusters_df['cluster_representative'])[0]
+        clusters_df['rep_id'] = pd.factorize(clusters_df['cluster_representative'])[0]
+
+        # Number of unique IDs to reduce to
+        target_num_ids = 5
+
+        # Create a mapping from original IDs to the target number of IDs using pandas.cut
+        # Create 10 equally spaced bins and assign each ID to one of these bins
+        clusters_df['cluster_id'] = pd.cut(clusters_df['rep_id'], bins=target_num_ids, labels=range(0, target_num_ids))
+
+        # Convert to integer type
+        clusters_df['cluster_id'] = clusters_df['cluster_id'].astype(int)
     else:
         all_record_ids = [record.id for record in SeqIO.parse(all_proteins_fasta_path, "fasta")]
         clusters_df = pd.DataFrame({

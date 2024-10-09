@@ -362,16 +362,14 @@ def get_job_logger(log_file_dir, level=logging.INFO):
     job_name = os.environ.get(consts.JOB_NAME_ENVIRONMENT_VARIABLE, None)
     job_id = os.environ.get(consts.JOB_ID_ENVIRONMENT_VARIABLE, None)
 
-    if consts.LOG_IN_SEPARATE_FILES and job_name and job_id:
-        logging.basicConfig(filename=os.path.join(log_file_dir, f'{job_name}_{job_id}_log.txt'),
-                            filemode='a',
-                            format=consts.LOG_MESSAGE_FORMAT,
-                            level=level)
-    else:
-        logging.basicConfig(format=consts.LOG_MESSAGE_FORMAT,
-                            level=level)
-
+    logging.basicConfig(format=consts.LOG_MESSAGE_FORMAT,
+                        level=level)
     logger = logging.getLogger('main')
+
+    if consts.LOG_IN_SEPARATE_FILES and job_name and job_id:
+        file_handler = logging.FileHandler(os.path.join(log_file_dir, f'{job_name}_{job_id}_log.txt'))
+        logger.addHandler(file_handler)
+
     return logger
 
 
@@ -379,16 +377,14 @@ def get_job_times_logger(log_file_dir, level=logging.INFO):
     job_name = os.environ.get(consts.JOB_NAME_ENVIRONMENT_VARIABLE, None)
     job_id = os.environ.get(consts.JOB_ID_ENVIRONMENT_VARIABLE, None)
 
-    if consts.LOG_IN_SEPARATE_FILES and job_name and job_id:
-        logging.basicConfig(filename=os.path.join(log_file_dir, f'{job_name}_{job_id}_times_log.txt'),
-                            filemode='a',
-                            format=consts.LOG_MESSAGE_FORMAT,
-                            level=level)
-    else:
-        logging.basicConfig(format=consts.LOG_MESSAGE_FORMAT,
-                            level=level)
-
+    logging.basicConfig(format=consts.LOG_MESSAGE_FORMAT,
+                        level=level)
     logger = logging.getLogger('times')
+
+    if consts.LOG_IN_SEPARATE_FILES and job_name and job_id:
+        file_handler = logging.FileHandler(os.path.join(log_file_dir, f'{job_name}_{job_id}_times_log.txt'))
+        logger.addHandler(file_handler)
+
     return logger
 
 
