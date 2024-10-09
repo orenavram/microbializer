@@ -49,7 +49,7 @@ def prepare_proteomes_subsets(logger, translated_orfs_dir, output_dir, clusters_
     else:
         all_record_ids = [record.id for record in SeqIO.parse(all_proteins_fasta_path, "fasta")]
         clusters_df = pd.DataFrame({
-            'cluster_id': 1,
+            'cluster_id': 0,
             'cluster_representative': 'nan',
             'cluster_member': all_record_ids
         })
@@ -58,6 +58,11 @@ def prepare_proteomes_subsets(logger, translated_orfs_dir, output_dir, clusters_
 
     # remove temp dir
     shutil.rmtree(temp_outputs)
+
+    # count number of sequence comparisons to be done
+    cluster_counts = clusters_df.groupby('cluster_id').size().reset_index(name='count')
+    number_of_comparison = sum(cluster_counts['count'] * (cluster_counts['count'] - 1) / 2)
+    logger.info(f'Number of clusters: {len(cluster_counts)}, Number of sequence comparisons to be done: {number_of_comparison}')
 
 
 if __name__ == '__main__':
