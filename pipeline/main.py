@@ -84,6 +84,8 @@ def get_arguments():
                         action='store_true')
     parser.add_argument('--optimize_orthogroups_inference', help='Optimize the orthogroups inference using heuristics',
                         action='store_true')
+    parser.add_argument('--num_of_clusters_in_orthogroup_inference', help='Number of clusters in the optimization of the orthogroups inference',
+                        default=5)
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
 
     # parser.add_argument('--promoters_length', default=300,
@@ -553,9 +555,10 @@ def step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output
         params = [translated_orfs_dir,
                   pipeline_step_output_dir,
                   clusters_file_path,
-                  5,
-                  10,
-                  consts.CLUSTER_PROTEOMES_NUM_OF_CORES
+                  consts.MMSEQS_CLUSTER_MIN_SEQ_ID,
+                  consts.MMSEQS_CLUSTER_MIN_COVERAGE,
+                  consts.CLUSTER_PROTEOMES_NUM_OF_CORES,
+                  f'--num_of_clusters_in_orthogroup_inference {args.num_of_clusters_in_orthogroup_inference}'
                   ]
 
         if args.optimize_orthogroups_inference:

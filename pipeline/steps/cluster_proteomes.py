@@ -15,7 +15,7 @@ from auxiliaries.pipeline_auxiliaries import get_job_logger
 
 
 def prepare_proteomes_subsets(logger, translated_orfs_dir, output_dir, clusters_file_path, min_seq_identity,
-                              min_coverage, threads, do_cluster):
+                              min_coverage, threads, do_cluster, num_of_clusters_in_orthogroup_inference):
     temp_outputs = os.path.join(output_dir, 'temp')
     os.makedirs(temp_outputs, exist_ok=True)
 
@@ -37,12 +37,10 @@ def prepare_proteomes_subsets(logger, translated_orfs_dir, output_dir, clusters_
                                   names=['cluster_representative', 'cluster_member'])
         clusters_df['rep_id'] = pd.factorize(clusters_df['cluster_representative'])[0]
 
-        # Number of unique IDs to reduce to
-        target_num_ids = 5
-
         # Create a mapping from original IDs to the target number of IDs using pandas.cut
         # Create 10 equally spaced bins and assign each ID to one of these bins
-        clusters_df['cluster_id'] = pd.cut(clusters_df['rep_id'], bins=target_num_ids, labels=range(0, target_num_ids))
+        clusters_df['cluster_id'] = pd.cut(clusters_df['rep_id'], bins=num_of_clusters_in_orthogroup_inference,
+                                           labels=range(0, num_of_clusters_in_orthogroup_inference))
 
         # Convert to integer type
         clusters_df['cluster_id'] = clusters_df['cluster_id'].astype(int)
@@ -77,6 +75,7 @@ if __name__ == '__main__':
     parser.add_argument('min_coverage', help='', type=float)
     parser.add_argument('threads', help='')
     parser.add_argument('--do_cluster', help='', action='store_true')
+    parser.add_argument('--num_of_clusters_in_orthogroup_inference', help='', default=5)
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('--error_file_path', help='path to error file')
     args = parser.parse_args()
@@ -86,7 +85,8 @@ if __name__ == '__main__':
     logger.info(script_run_message)
     try:
         prepare_proteomes_subsets(logger, args.translated_orfs_dir, args.output_dir, args.clusters_file_path,
-                                  args.min_seq_identity, args.min_coverage, args.threads, args.do_cluster)
+                                  args.min_seq_identity, args.min_coverage, args.threads, args.do_cluster,
+                                  args.num_of_clusters_in_orthogroup_inference)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:
