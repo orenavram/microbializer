@@ -60,7 +60,7 @@ PHYLOGENY_REQUIRED_MEMORY_GB = '120'
 DEFAULT_SLURM_ACCOUNT = 'pupko-users'
 DEFAULT_SLURM_PARTITION = 'pupko'
 
-HEGS_ECOLI_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'HEG_ecoli.txt')
+HEGS_ECOLI_FILE_PATH = os.path.join(SRC_DIR, 'data', 'HEG_ecoli.txt')
 BACTERIA_CORE_GENES_HMM_PROFILES_PATH = os.path.join(PROJECT_ROOT_DIR, 'pipeline', 'data', 'busco_hmms')
 MAX_NUMBER_OF_GENOMES_TO_ANALYZE = 350
 NUMBER_OF_IQTREE_BOOTSTRAP_ITERATIONS = 1000
