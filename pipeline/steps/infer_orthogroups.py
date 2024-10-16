@@ -33,7 +33,7 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
     os.makedirs(cluster_done_dir, exist_ok=True)
 
     # a.    prepare directory of cluster fasta files
-    step_number = f'{base_step_number}0'
+    step_number = f'{base_step_number}a'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_cluster_fasta_files'
     cluster_translated_orfs_dir, pipeline_step_tmp_dir = prepare_directories(logger, cluster_output_dir, cluster_tmp_dir, step_name)
@@ -42,6 +42,7 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
         clusters_df = pd.read_csv(clusters_file_path)
         cluster_members = list(clusters_df.loc[clusters_df['cluster_id'] == cluster_id, 'cluster_member'])
 
+        logger.info(f'Creating fasta files for cluster {cluster_id}...')
         for filename in os.listdir(translated_orfs_dir):
             if not filename.endswith('02d_translated_orfs'):
                 continue
@@ -65,7 +66,7 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
     # Output: a tsv file where the first column contains g1 genes and the second column includes the corresponding best match.
     # Precisely, for each gene x in g1, query x among all the genes of g2. Let y be the gene in g2 that is the most similar to x among all g2 genes. Append a row to the output file with: ‘{x}\t{y}’.
     # Can be parallelized on cluster
-    step_number = f'{base_step_number}a'
+    step_number = f'{base_step_number}b'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_all_vs_all_analysis'
     script_path = os.path.join(consts.SRC_DIR, 'steps/mmseqs2_all_vs_all.py')
@@ -111,7 +112,7 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
     # Input: path to folder with all reciprocal hits files
     # Output: Dictionary with max score per gene
     # CANNOT be parallelized on cluster
-    step_number = f'{base_step_number}b'
+    step_number = f'{base_step_number}c'
     logger.info(f'Step {step_number}: {"_" * 100}')
     script_path = os.path.join(consts.SRC_DIR, 'steps/max_rbh_score.py')
     max_rbh_scores_step_name = f'{step_number}_max_rbh_scores'
@@ -142,7 +143,7 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
     # d. mmseqs2_paralogs.py
     # Input: max orthologs score for each gene
     # Output: paralogs in each genome
-    step_number = f'{base_step_number}c'
+    step_number = f'{base_step_number}d'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_mmseqs_paralogs'
     script_path = os.path.join(consts.SRC_DIR, 'steps/mmseqs2_paralogs.py')
@@ -192,7 +193,7 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
     # 2. at least X% of the length
     # 3. write each pair to the output file if it passed all the above filters.
     # Can be parallelized on cluster
-    step_number = f'{base_step_number}d'
+    step_number = f'{base_step_number}e'
     logger.info(f'Step {step_number}: {"_" * 100}')
     filtered_step_name = f'{step_number}_blast_filtered'
     script_path = os.path.join(consts.SRC_DIR, 'steps/filter_rbh_results.py')
@@ -250,7 +251,7 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
     # f. normalize_scores
-    step_number = f'{base_step_number}e'
+    step_number = f'{base_step_number}f'
     script_path = os.path.join(consts.SRC_DIR, 'steps/normalize_hits_scores.py')
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_normalize_scores'
@@ -288,7 +289,7 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
     # Input: path to folder with all hits files
     # Output: concatenated file of all hits files
     # CANNOT be parallelized on cluster
-    step_number = f'{base_step_number}f'
+    step_number = f'{base_step_number}g'
     script_path = os.path.join(consts.SRC_DIR, 'steps/concatenate_hits.py')
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_concatenate_hits'
@@ -327,7 +328,7 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
     # Input: (1) a path for a i_vs_j_reciprocal_hits.tsv file (2) a path for a putative orthologs file (with a single line).
     # Output: updates the table with the info from the reciprocal hit file.
     # CANNOT be parallelized on cluster
-    step_number = f'{base_step_number}g'
+    step_number = f'{base_step_number}h'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_putative_table'
     script_path = os.path.join(consts.SRC_DIR, 'steps/construct_putative_orthologs_table.py')
@@ -350,7 +351,7 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
     # Input: (1) a path for a concatenated all reciprocal hits file (2) a path for a putative orthologs file (3) a path for an output folder
     # Output: an input file for MCL for each putative orthologs group
     # CANNOT be parallelized on cluster (if running on the concatenated file)
-    step_number = f'{base_step_number}h'
+    step_number = f'{base_step_number}i'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_mcl_input_files'
     script_path = os.path.join(consts.SRC_DIR, 'steps/prepare_files_for_mcl.py')
@@ -395,7 +396,7 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
     # Input: (1) a path to an MCL input file (2) a path to MCL's output.
     # Output: MCL analysis.
     # Can be parallelized on cluster
-    step_number = f'{base_step_number}i'
+    step_number = f'{base_step_number}j'
     logger.info(f'Step {step_number}: {"_" * 100}')
     previous_pipeline_step_output_dir = pipeline_step_output_dir
     step_name = f'{step_number}_mcl_analysis'
@@ -430,7 +431,7 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
     # Input: (1) mcl analysis file (2) a path to which the file will be moved if relevant (3) optional: maximum number of clusters allowed [default=1]
     # Output: filter irrelevant clusters by moving the relevant to an output directory
     # Can be parallelized on cluster
-    step_number = f'{base_step_number}j'
+    step_number = f'{base_step_number}k'
     logger.info(f'Step {step_number}: {"_" * 100}')
     previous_pipeline_step_output_dir = pipeline_step_output_dir
     step_name = f'{step_number}_verified_clusters'
@@ -463,7 +464,7 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
     # l.	construct_verified_orthologs_table.py
     # Input: (1) a path for directory with all the verified OGs (2) an output path to a final OGs table.
     # Output: aggregates all the well-clustered OGs to the final table.
-    step_number = f'{base_step_number}k'
+    step_number = f'{base_step_number}l'
     logger.info(f'Step {step_number}: {"_" * 100}')
     previous_pipeline_step_output_dir = pipeline_step_output_dir
     step_name = f'{step_number}_verified_table'

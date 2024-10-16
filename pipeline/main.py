@@ -215,12 +215,18 @@ def validate_arguments(args):
     if args.core_minimal_percentage < 0 or args.core_minimal_percentage > 100:
         raise ValueError(f'core_minimal_percentage argument {args.core_minimal_percentage} has invalid value')
 
+    args.num_of_clusters_in_orthogroup_inference = int(args.num_of_clusters_in_orthogroup_inference)
+    if args.num_of_clusters_in_orthogroup_inference <= 1:
+        raise ValueError(f'num_of_clusters_in_orthogroup_inference argument {args.num_of_clusters_in_orthogroup_inference} has invalid value')
+
     if type(args.bootstrap) == str:
         args.bootstrap = str_to_bool(args.bootstrap)
     if type(args.filter_out_plasmids) == str:
         args.filter_out_plasmids = str_to_bool(args.filter_out_plasmids)
     if type(args.add_orphan_genes_to_ogs) == str:
         args.add_orphan_genes_to_ogs = str_to_bool(args.add_orphan_genes_to_ogs)
+    if type(args.optimize_orthogroups_inference) == str:
+        args.optimize_orthogroups_inference = str_to_bool(args.optimize_orthogroups_inference)
 
     if args.outgroup == "No outgroup":
         args.outgroup = None
@@ -611,7 +617,7 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
         # Aggregate OG tables of all clusters
         all_og_tables = []
         for cluster_dir_name in os.listdir(pipeline_step_output_dir):
-            cluster_og_table = os.path.join(pipeline_step_output_dir, cluster_dir_name, '05k_verified_table', 'verified_orthologs_table.csv')
+            cluster_og_table = os.path.join(pipeline_step_output_dir, cluster_dir_name, '05l_verified_table', 'verified_orthologs_table.csv')
             cluster_og_df = pd.read_csv(cluster_og_table)
             all_og_tables.append(cluster_og_df)
         unified_og_table = pd.concat(all_og_tables, axis=0, ignore_index=True)

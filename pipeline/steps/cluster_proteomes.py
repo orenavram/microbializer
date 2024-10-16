@@ -75,7 +75,7 @@ if __name__ == '__main__':
     parser.add_argument('min_coverage', help='', type=float)
     parser.add_argument('threads', help='')
     parser.add_argument('--do_cluster', help='', action='store_true')
-    parser.add_argument('--num_of_clusters_in_orthogroup_inference', help='', default=5)
+    parser.add_argument('--num_of_clusters_in_orthogroup_inference', help='', default=5, type=int)
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('--error_file_path', help='path to error file')
     args = parser.parse_args()
