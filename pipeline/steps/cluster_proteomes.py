@@ -20,7 +20,7 @@ def prepare_proteomes_subsets(logger, translated_orfs_dir, output_dir, clusters_
     os.makedirs(temp_outputs, exist_ok=True)
 
     # create a fasta files of all proteomes
-    all_proteins_fasta_path = os.path.join(output_dir, 'all_proteomes.faa')
+    all_proteins_fasta_path = os.path.join(temp_outputs, 'all_proteomes.faa')
     cmd = f"cat {os.path.join(translated_orfs_dir, '*')} > {all_proteins_fasta_path}"
     logger.info(f'Calling:\n{cmd}')
     subprocess.run(cmd, shell=True)
@@ -61,6 +61,11 @@ def prepare_proteomes_subsets(logger, translated_orfs_dir, output_dir, clusters_
     cluster_counts = clusters_df.groupby('cluster_id').size().reset_index(name='count')
     number_of_comparison = sum(cluster_counts['count'] * (cluster_counts['count'] - 1) / 2)
     logger.info(f'Number of clusters: {len(cluster_counts)}, Number of sequence comparisons to be done: {number_of_comparison}')
+
+    # write cluster members to separate files
+    for cluster_id, group in clusters_df.groupby('cluster_id'):
+        filename = os.path.join(output_dir, f"cluster_{cluster_id}.txt")
+        group['cluster_member'].to_csv(filename, index=False, header=False)
 
 
 if __name__ == '__main__':

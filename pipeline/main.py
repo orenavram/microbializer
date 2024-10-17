@@ -579,11 +579,51 @@ def step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    return clusters_file_path
+    return pipeline_step_output_dir
 
 
-def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
-                             done_files_dir, clusters_file_path, translated_orfs_dir, genomes_names_path):
+def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
+                             done_files_dir, clusters_dir, translated_orfs_dir, genomes_names_path):
+    # 50.  filter_fasta_files_by_cluster.py
+    step_number = '050'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_filter_fastas_by_cluster'
+    script_path = os.path.join(consts.SRC_DIR, 'steps/filter_fasta_file.py')
+    clusters_fasta_files, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
+
+        for filename in os.listdir(clusters_dir):
+            if 'cluster_' not in filename:
+                continue
+            cluster_genes_path = os.path.join(clusters_dir, filename)
+            cluster_id = os.path.splitext(filename)[0].split('_')[1]
+            cluster_fasta_files = os.path.join(clusters_fasta_files, f'cluster_{cluster_id}_proteomes')
+            os.makedirs(cluster_fasta_files, exist_ok=True)
+
+            for protein_fasta_file in os.listdir(translated_orfs_dir):
+                params = [
+                    cluster_genes_path,
+                    os.path.join(translated_orfs_dir, protein_fasta_file),
+                    os.path.join(cluster_fasta_files, protein_fasta_file)
+                ]
+                all_cmds_params.append(params)
+
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
+                                                   num_of_cmds_per_job=20,
+                                                   job_name_suffix='filter_fastas_by_clusters',
+                                                   queue_name=args.queue_name,
+                                                   account_name=args.account_name)
+
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+                         num_of_batches, error_file_path, recursive_step=True)
+
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+
     # 5.  infer_orthogroups.py
     step_number = '05'
     logger.info(f'Step {step_number}: {"_" * 100}')
@@ -597,11 +637,19 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
     if not os.path.exists(done_file_path):
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
 
-        clusters_df = pd.read_csv(clusters_file_path)
-        all_cluster_ids = set(clusters_df['cluster_id'].tolist())
-        for cluster_id in all_cluster_ids:
-            params = [step_number, pipeline_step_output_dir, pipeline_step_tmp_dir, pipeline_step_done_dir, translated_orfs_dir,
-                      genomes_names_path, clusters_file_path, cluster_id, args.queue_name, args.account_name,
+        for cluster_fastas_dir_name in os.listdir(clusters_fasta_files):
+            cluster_fastas_dir_path = os.path.join(clusters_fasta_files, cluster_fastas_dir_name)
+            cluster_id = cluster_fastas_dir_name.split('_')[1]
+
+            cluster_output_dir = os.path.join(pipeline_step_output_dir, str(cluster_id))
+            os.makedirs(cluster_output_dir, exist_ok=True)
+            cluster_tmp_dir = os.path.join(pipeline_step_tmp_dir, str(cluster_id))
+            os.makedirs(cluster_tmp_dir, exist_ok=True)
+            cluster_done_dir = os.path.join(pipeline_step_done_dir, str(cluster_id))
+            os.makedirs(cluster_done_dir, exist_ok=True)
+
+            params = [step_number, cluster_output_dir, cluster_tmp_dir, cluster_done_dir, cluster_fastas_dir_path,
+                      genomes_names_path, args.queue_name, args.account_name,
                       args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff]
             all_cmds_params.append(params)
 
@@ -609,7 +657,7 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
                                                    num_of_cmds_per_job=1,
                                                    job_name_suffix='infer_orthogroups',
                                                    queue_name=args.queue_name,
-                                                   account_name=args.account_name,)
+                                                   account_name=args.account_name)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, recursive_step=True)
@@ -1147,7 +1195,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         logger.info("Step 3 completed.")
         return
 
-    clusters_file_path = step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
+    clusters_output_dir = step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                              done_files_dir, translated_orfs_dir)
     update_progressbar(progressbar_file_path, 'Initial orfs clustering')
     edit_progress(output_html_path, progress=35)
@@ -1156,8 +1204,8 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         logger.info("Step 4 completed.")
         return
 
-    orthologs_table_file_path = step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
-                             done_files_dir, clusters_file_path, translated_orfs_dir, genomes_names_path)
+    orthologs_table_file_path = step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
+                             done_files_dir, clusters_output_dir, translated_orfs_dir, genomes_names_path)
     update_progressbar(progressbar_file_path, 'Orthogroup inference')
     edit_progress(output_html_path, progress=35)
 
