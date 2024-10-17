@@ -63,6 +63,8 @@ DEFAULT_SLURM_PARTITION = 'pupko'
 
 HEGS_ECOLI_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'HEG_ecoli.txt')
 BACTERIA_CORE_GENES_HMM_PROFILES_PATH = os.path.join(PROJECT_ROOT_DIR, 'pipeline', 'data', 'busco_hmms')
+KEGG_DATABASE_PATH = os.path.join(SRC_DIR, 'data', 'kegg', 'cleaned_data', 'prokaryote_database.hmm')
+KEGG_KO_LIST_PATH = os.path.join(SRC_DIR, 'data', 'kegg', 'cleaned_data', 'ko_list')
 MAX_NUMBER_OF_GENOMES_TO_ANALYZE = 350
 NUMBER_OF_IQTREE_BOOTSTRAP_ITERATIONS = 1000
 NUMBER_OF_RAXML_BOOTSTRAP_ITERATIONS = 100
@@ -80,6 +82,9 @@ BLAST_OUTPUT_HEADER = ['query', 'subject', 'identity_percent', 'alignment_length
                         'query_start', 'query_end', 'subject_start', 'subject_end', 'evalue', 'bit_score']
 MMSEQS_OUTPUT_FORMAT = 'query,target,fident,alnlen,mismatch,gapopen,qstart,qend,qlen,qcov,tstart,tend,tlen,tcov,evalue,bits'
 MMSEQS_OUTPUT_HEADER = MMSEQS_OUTPUT_FORMAT.split(',')
+HMMSEARCH_OUTPUT_HEADER = ['target_name', 'target_accession', 'query_name', 'query_accession', 'full_e_value',
+                           'full_score', 'full_bias', 'domain_e_Value', 'domain_score', 'domain_bias', 'exp', 'reg',
+                           'clu', 'ov', 'env', 'dom', 'rep', 'inc', 'description_of_target']
 
 # logging consts
 LOG_MESSAGE_FORMAT = '%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(message)s'
