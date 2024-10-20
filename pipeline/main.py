@@ -84,7 +84,9 @@ def get_arguments():
                         action='store_true')
     parser.add_argument('--optimize_orthogroups_inference', help='Optimize the orthogroups inference using heuristics',
                         action='store_true')
-    parser.add_argument('--num_of_clusters_in_orthogroup_inference', help='Number of clusters in the optimization of the orthogroups inference',
+    parser.add_argument('--num_of_clusters_in_orthogroup_inference', help='Number of clusters in the optimization of '
+                                                                          'the orthogroups inference. Relevant only if '
+                                                                          'optimize_orthogroups_inference is True',
                         default=5)
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
 
@@ -199,6 +201,18 @@ def prepare_pipeline_framework(args):
 
 
 def validate_arguments(args):
+    if type(args.bootstrap) == str:
+        args.bootstrap = str_to_bool(args.bootstrap)
+    if type(args.filter_out_plasmids) == str:
+        args.filter_out_plasmids = str_to_bool(args.filter_out_plasmids)
+    if type(args.add_orphan_genes_to_ogs) == str:
+        args.add_orphan_genes_to_ogs = str_to_bool(args.add_orphan_genes_to_ogs)
+    if type(args.optimize_orthogroups_inference) == str:
+        args.optimize_orthogroups_inference = str_to_bool(args.optimize_orthogroups_inference)
+
+    if args.outgroup == "No outgroup":
+        args.outgroup = None
+
     args.identity_cutoff = float(args.identity_cutoff)
     if args.identity_cutoff < 0 or args.identity_cutoff > 100:
         raise ValueError(f'identity_cutoff argument {args.identity_cutoff} has invalid value')
@@ -219,17 +233,8 @@ def validate_arguments(args):
     if args.num_of_clusters_in_orthogroup_inference <= 1:
         raise ValueError(f'num_of_clusters_in_orthogroup_inference argument {args.num_of_clusters_in_orthogroup_inference} has invalid value')
 
-    if type(args.bootstrap) == str:
-        args.bootstrap = str_to_bool(args.bootstrap)
-    if type(args.filter_out_plasmids) == str:
-        args.filter_out_plasmids = str_to_bool(args.filter_out_plasmids)
-    if type(args.add_orphan_genes_to_ogs) == str:
-        args.add_orphan_genes_to_ogs = str_to_bool(args.add_orphan_genes_to_ogs)
-    if type(args.optimize_orthogroups_inference) == str:
-        args.optimize_orthogroups_inference = str_to_bool(args.optimize_orthogroups_inference)
-
-    if args.outgroup == "No outgroup":
-        args.outgroup = None
+    if not args.optimize_orthogroups_inference:
+        args.num_of_clusters_in_orthogroup_inference = 1
 
 
 def initialize_progressbar(args, progressbar_file_path):
@@ -272,7 +277,7 @@ def step_0_filter_out_plasmids(args, logger, times_logger, error_file_path, outp
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
-                                                   num_of_cmds_per_job=5,
+                                                   num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                    job_name_suffix='drop_plasmids',
                                                    queue_name=args.queue_name,
                                                    account_name=args.account_name)
@@ -311,7 +316,7 @@ def step_1_calculate_ani(args, logger, times_logger, error_file_path,  output_di
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
-                                                   num_of_cmds_per_job=1,
+                                                   num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                    job_name_suffix='calculate_ani',
                                                    queue_name=args.queue_name,
                                                    account_name=args.account_name,
@@ -357,7 +362,7 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
                 all_cmds_params.append(single_cmd_params)
 
             num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
-                                                       num_of_cmds_per_job=5,
+                                                       num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                        job_name_suffix='search_orfs',
                                                        queue_name=args.queue_name,
                                                        account_name=args.account_name,
@@ -419,7 +424,7 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
 
         num_of_expected_orfs_results, example_cmd = submit_batch(logger, script_path, all_cmds_params,
                                                                  orfs_statistics_tmp_dir, error_file_path,
-                                                                 num_of_cmds_per_job=200,
+                                                                 num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                                  job_name_suffix='orfs_statistics',
                                                                  queue_name=args.queue_name,
                                                                  account_name=args.account_name,)
@@ -480,7 +485,7 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
-                                                   num_of_cmds_per_job=250,
+                                                   num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                    job_name_suffix='orfs_dna_translation',
                                                    queue_name=args.queue_name,
                                                    account_name=args.account_name,)
@@ -519,7 +524,7 @@ def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_pa
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
-                                                   num_of_cmds_per_job=10,
+                                                   num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                    job_name_suffix='genomes_completeness',
                                                    queue_name=args.queue_name,
                                                    account_name=args.account_name,)
@@ -611,7 +616,7 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
                 all_cmds_params.append(params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
-                                                   num_of_cmds_per_job=20,
+                                                   num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                    job_name_suffix='filter_fastas_by_clusters',
                                                    queue_name=args.queue_name,
                                                    account_name=args.account_name)
@@ -650,11 +655,12 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
 
             params = [step_number, cluster_output_dir, cluster_tmp_dir, cluster_done_dir, cluster_fastas_dir_path,
                       genomes_names_path, args.queue_name, args.account_name,
-                      args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff]
+                      args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff,
+                      args.num_of_clusters_in_orthogroup_inference]
             all_cmds_params.append(params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
-                                                   num_of_cmds_per_job=1,
+                                                   num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                    job_name_suffix='infer_orthogroups',
                                                    queue_name=args.queue_name,
                                                    account_name=args.account_name)
@@ -699,7 +705,7 @@ def step_6_extract_orphan_genes(args, logger, times_logger, error_file_path, out
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
-                                                   num_of_cmds_per_job=20,
+                                                   num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                    job_name_suffix='extract_orphans',
                                                    queue_name=args.queue_name,
                                                    account_name=args.account_name)
@@ -823,7 +829,7 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
-                                                   num_of_cmds_per_job=1,
+                                                   num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                    job_name_suffix='orfs_extraction',
                                                    queue_name=args.queue_name,
                                                    account_name=args.account_name)
@@ -858,7 +864,7 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
-                                                   num_of_cmds_per_job=250,
+                                                   num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                    job_name_suffix='dna_translation',
                                                    queue_name=args.queue_name,
                                                    account_name=args.account_name)
@@ -895,7 +901,7 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params,
                                                    pipeline_step_tmp_dir, error_file_path,
-                                                   num_of_cmds_per_job=100,
+                                                   num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                    job_name_suffix='genes_alignment',
                                                    queue_name=args.queue_name,
                                                    account_name=args.account_name,
@@ -933,7 +939,7 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
 
         num_of_expected_induced_results, example_cmd = submit_batch(logger, script_path, all_cmds_params,
                                                                     induced_tmp_dir, error_file_path,
-                                                                    num_of_cmds_per_job=250,
+                                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                                     job_name_suffix='induce_msa',
                                                                     queue_name=args.queue_name,
                                                                     account_name=args.account_name)
