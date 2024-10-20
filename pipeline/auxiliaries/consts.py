@@ -6,13 +6,13 @@ import os.path
 from enum import Enum
 
 KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR = True
-USE_CONDA = True
 IGNORE_HTML = True
 SEND_MAILS = False
 LOG_IN_SEPARATE_FILES = True
 
+ENV = 'wsl'
 # ENV = 'yair_test'
-ENV = 'yair_prod'
+# ENV = 'yair_prod'
 # ENV = 'lsweb'
 
 if ENV == 'yair_test':
@@ -21,6 +21,8 @@ elif ENV == 'yair_prod':
     PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer_prod'
 elif ENV == 'lsweb':
     PROJECT_ROOT_DIR = '/lsweb/pupko/microbializer'
+elif ENV == 'wsl':
+    PROJECT_ROOT_DIR = '/home/yair/microbializer'
 else:
     raise ValueError(f'Unknown environment: {ENV}')
 
@@ -32,8 +34,13 @@ if ENV == 'yair_test' or ENV == 'yair_prod':
 elif ENV == 'lsweb':
     CONDA_INSTALLATION_DIR = r'/lsweb/pupko/microbializer/miniconda3'
     CONDA_ENVIRONMENT_DIR = r'/lsweb/pupko/microbializer/miniconda3/envs/microbializer'
+elif ENV == 'wsl':
+    CONDA_INSTALLATION_DIR = r'/home/yair/miniconda3'
+    CONDA_ENVIRONMENT_DIR = r'/home/yair/miniconda3/envs/microbializer'
 else:
     raise ValueError(f'Unknown environment: {ENV}')
+
+USE_JOB_MANAGER = False if ENV == 'wsl' else True
 
 OWNER_EMAIL = 'yairshimony@mail.tau.ac.il'
 
