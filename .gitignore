@@ -3,5 +3,5 @@ __pycache__/
 pipeline/flask/api_secrets.py
 pipeline_output_example
 benchmark_data
-pipeline/data/kegg/cleaned_data/prokaryote_database.*
+pipeline/data/kegg/prokaryote_database.*
 pipeline/tests/kegg_prepare/raw_data/profiles

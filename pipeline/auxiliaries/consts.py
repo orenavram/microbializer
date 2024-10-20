@@ -51,8 +51,9 @@ PBS = False  # if False, assume slurm
 JOB_NAME_ENVIRONMENT_VARIABLE = 'PBS_JOBNAME' if PBS else 'SLURM_JOB_NAME'
 JOB_ID_ENVIRONMENT_VARIABLE = 'PBS_JOBID' if PBS else 'SLURM_JOB_ID'
 JOB_FILES_DEBUG_MODE = False
-PHYLOGENY_NUM_OF_CORES = 20
-CODON_BIAS_NUM_OF_CORES = 20
+PHYLOGENY_NUM_OF_CORES = 20 if USE_JOB_MANAGER else 1
+CODON_BIAS_NUM_OF_CORES = 20 if USE_JOB_MANAGER else 1
+KEGG_NUM_OF_CORES = 20 if USE_JOB_MANAGER else 1
 JOB_CPU_TIME_KEY = 'resources_used.cput = ' if PBS else '' # Only in PBS I found a way to the get the job's cpu runtime from within the job (in the compute node)
 JOB_WALL_TIME_KEY = 'resources_used.walltime = ' if PBS else 'RunTime='
 # mmseqs and fastANI commands work only on machines with enough memory. we solve this either by navigating to a
@@ -70,8 +71,8 @@ DEFAULT_SLURM_PARTITION = 'pupko'
 
 HEGS_ECOLI_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'HEG_ecoli.txt')
 BACTERIA_CORE_GENES_HMM_PROFILES_PATH = os.path.join(PROJECT_ROOT_DIR, 'pipeline', 'data', 'busco_hmms')
-KEGG_DATABASE_PATH = os.path.join(SRC_DIR, 'data', 'kegg', 'cleaned_data', 'prokaryote_database.hmm')
-KEGG_KO_LIST_PATH = os.path.join(SRC_DIR, 'data', 'kegg', 'cleaned_data', 'ko_list')
+KEGG_DATABASE_PATH = os.path.join(SRC_DIR, 'data', 'kegg', 'prokaryote_database.hmm')
+KEGG_KO_LIST_PATH = os.path.join(SRC_DIR, 'data', 'kegg', 'ko_list')
 MAX_NUMBER_OF_GENOMES_TO_ANALYZE = 350
 NUMBER_OF_IQTREE_BOOTSTRAP_ITERATIONS = 1000
 NUMBER_OF_RAXML_BOOTSTRAP_ITERATIONS = 100
@@ -115,6 +116,7 @@ OUTPUTS_DIRECTORIES_MAP = {
     '10_genome_numeric_representation': '08_genome_numeric_representation',
     '11_species_phylogeny': '09_species_phylogeny',
     '12_codon_bias': '10_codon_bias',
+    'final_orthologs_table_annotated.csv': '05a_final_orthologs_table',
 }
 
 # steps for progress bar

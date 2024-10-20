@@ -329,7 +329,10 @@ def add_results_to_final_dir(logger, source, final_output_dir, keep_in_source_di
             shutil.move(source, dest)
         else:
             logger.info(f'Copying {source} TO {dest}')
-            shutil.copytree(source, dest)
+            if os.path.isdir(source):
+                shutil.copytree(source, dest)
+            else:
+                shutil.copy(source, dest)
     except FileExistsError:
         pass
 

@@ -2,10 +2,10 @@ import os
 import pandas as pd
 
 # BASE_PATH = r"/groups/pupko/yairshimony/microbializer_prod/pipeline/data/kegg"
-BASE_PATH = r"C:\repos\microbializer\pipeline\data\kegg"
+BASE_PATH = r"C:\repos\microbializer\pipeline"
 
-RAW_DATA_PATH = os.path.join(BASE_PATH, 'raw_data')
-CLEAN_DATA_PATH = os.path.join(BASE_PATH, 'cleaned_data')
+RAW_DATA_PATH = os.path.join(BASE_PATH, 'tests', 'kegg_prepare', 'raw_data')
+CLEAN_DATA_PATH = os.path.join(BASE_PATH, 'data', 'kegg')
 
 RAW_KO_LIST_PATH = os.path.join(RAW_DATA_PATH, 'ko_list')
 CLEANED_KO_LIST_PATH = os.path.join(CLEAN_DATA_PATH, 'ko_list')

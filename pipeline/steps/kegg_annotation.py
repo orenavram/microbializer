@@ -14,14 +14,17 @@ from auxiliaries import consts
 
 
 def create_fasta_of_unified_ogs_sequences(og_aa_dir, output_fasta, optimize):
-    for filename in os.listdir(og_aa_dir):
-        og_path = os.path.join(og_aa_dir, filename)
-        if optimize:
+    if optimize:
+        records = []
+        for filename in os.listdir(og_aa_dir):
+            og_path = os.path.join(og_aa_dir, filename)
             # read only the first sequence from each og
             first_record = SeqIO.parse(og_path, 'fasta').__next__()
-            SeqIO.write(first_record, output_fasta, 'fasta')
-        else:
-            subprocess.run(f'cat {og_path} >> {output_fasta}', shell=True)
+            records.append(first_record)
+
+        SeqIO.write(records, output_fasta, 'fasta')
+    else:
+        subprocess.run(f'cat {og_aa_dir}/* >> {output_fasta}', shell=True)
 
 
 def filter_hmmsearh_output(hmmsearch_output):
@@ -76,7 +79,7 @@ def add_kegg_annotations_to_og_table(og_table_path, hmmsearch_output_df):
     og_to_knums_df['knum_description'] = og_to_knums_df['knum'].apply(map_descriptions)
 
     # Merge the new columns into the original table
-    og_table_with_kegg_df = og_table_df.merge(og_to_knums_df, left_on='OG_name', right_on='OG_name', how='left')
+    og_table_with_kegg_df = og_table_df[['OG_name']].merge(og_to_knums_df, left_on='OG_name', right_on='OG_name', how='left')
     return og_table_with_kegg_df
 
 
@@ -107,7 +110,7 @@ if __name__ == '__main__':
     parser.add_argument('output_dir', help='path to the output dir')
     parser.add_argument('output_og_table_path', help='path to the output og table with kegg annotations')
     parser.add_argument('cpus', help='number of cpus to use')
-    parser.add_argument('--optimize', help='whether to use only 1 gene from each og or all genes')
+    parser.add_argument('--optimize', help='whether to use only 1 gene from each og or all genes', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     args = parser.parse_args()
 
