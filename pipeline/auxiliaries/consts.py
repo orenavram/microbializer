@@ -6,13 +6,13 @@ import os.path
 from enum import Enum
 
 KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR = True
-USE_CONDA = True
 IGNORE_HTML = True
 SEND_MAILS = False
 LOG_IN_SEPARATE_FILES = True
 
-# ENV = 'yair_test'
-ENV = 'yair_prod'
+# ENV = 'wsl'
+ENV = 'yair_test'
+# ENV = 'yair_prod'
 # ENV = 'lsweb'
 
 if ENV == 'yair_test':
@@ -21,6 +21,8 @@ elif ENV == 'yair_prod':
     PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer_prod'
 elif ENV == 'lsweb':
     PROJECT_ROOT_DIR = '/lsweb/pupko/microbializer'
+elif ENV == 'wsl':
+    PROJECT_ROOT_DIR = '/home/yair/microbializer'
 else:
     raise ValueError(f'Unknown environment: {ENV}')
 
@@ -32,8 +34,13 @@ if ENV == 'yair_test' or ENV == 'yair_prod':
 elif ENV == 'lsweb':
     CONDA_INSTALLATION_DIR = r'/lsweb/pupko/microbializer/miniconda3'
     CONDA_ENVIRONMENT_DIR = r'/lsweb/pupko/microbializer/miniconda3/envs/microbializer'
+elif ENV == 'wsl':
+    CONDA_INSTALLATION_DIR = r'/home/yair/miniconda3'
+    CONDA_ENVIRONMENT_DIR = r'/home/yair/miniconda3/envs/microbializer'
 else:
     raise ValueError(f'Unknown environment: {ENV}')
+
+USE_JOB_MANAGER = False if ENV == 'wsl' else True
 
 OWNER_EMAIL = 'yairshimony@mail.tau.ac.il'
 
@@ -44,9 +51,10 @@ Q_SUBMITTER_ADD_SSH_PREFIX = False
 JOB_NAME_ENVIRONMENT_VARIABLE = 'SLURM_JOB_NAME'
 JOB_ID_ENVIRONMENT_VARIABLE = 'SLURM_JOB_ID'
 JOB_FILES_DEBUG_MODE = False
-PHYLOGENY_NUM_OF_CORES = 20
-CODON_BIAS_NUM_OF_CORES = 20
-CLUSTER_PROTEOMES_NUM_OF_CORES = 20
+PHYLOGENY_NUM_OF_CORES = 20 if USE_JOB_MANAGER else 1
+CODON_BIAS_NUM_OF_CORES = 20 if USE_JOB_MANAGER else 1
+KEGG_NUM_OF_CORES = 20 if USE_JOB_MANAGER else 1
+CLUSTER_PROTEOMES_NUM_OF_CORES = 20 if USE_JOB_MANAGER else 1
 MMSEQS_CLUSTER_MIN_SEQ_ID = 5
 MMSEQS_CLUSTER_MIN_COVERAGE = 10
 JOB_WALL_TIME_KEY ='RunTime='
@@ -61,7 +69,9 @@ DEFAULT_SLURM_ACCOUNT = 'pupko-users'
 DEFAULT_SLURM_PARTITION = 'pupko'
 
 HEGS_ECOLI_FILE_PATH = os.path.join(SRC_DIR, 'data', 'HEG_ecoli.txt')
-BACTERIA_CORE_GENES_HMM_PROFILES_PATH = os.path.join(PROJECT_ROOT_DIR, 'pipeline', 'data', 'busco_hmms')
+BACTERIA_CORE_GENES_HMM_PROFILES_PATH = os.path.join(SRC_DIR, 'data', 'busco_hmms')
+KEGG_DATABASE_PATH = os.path.join(SRC_DIR, 'data', 'kegg', 'prokaryote_database.hmm')
+KEGG_KO_LIST_PATH = os.path.join(SRC_DIR, 'data', 'kegg', 'ko_list')
 MAX_NUMBER_OF_GENOMES_TO_ANALYZE = 350
 NUMBER_OF_IQTREE_BOOTSTRAP_ITERATIONS = 1000
 NUMBER_OF_RAXML_BOOTSTRAP_ITERATIONS = 100
@@ -79,6 +89,9 @@ BLAST_OUTPUT_HEADER = ['query', 'subject', 'identity_percent', 'alignment_length
                         'query_start', 'query_end', 'subject_start', 'subject_end', 'evalue', 'bit_score']
 MMSEQS_OUTPUT_FORMAT = 'query,target,fident,alnlen,mismatch,gapopen,qstart,qend,qlen,qcov,tstart,tend,tlen,tcov,evalue,bits'
 MMSEQS_OUTPUT_HEADER = MMSEQS_OUTPUT_FORMAT.split(',')
+HMMSEARCH_OUTPUT_HEADER = ['target_name', 'target_accession', 'query_name', 'query_accession', 'full_e_value',
+                           'full_score', 'full_bias', 'domain_e_Value', 'domain_score', 'domain_bias', 'exp', 'reg',
+                           'clu', 'ov', 'env', 'dom', 'rep', 'inc', 'description_of_target']
 
 # logging consts
 LOG_MESSAGE_FORMAT = '%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(message)s'
@@ -102,6 +115,7 @@ OUTPUTS_DIRECTORIES_MAP = {
     '10_genome_numeric_representation': '08_genome_numeric_representation',
     '11_species_phylogeny': '09_species_phylogeny',
     '12_codon_bias': '10_codon_bias',
+    'final_orthologs_table_annotated.csv': '05a_final_orthologs_table',
 }
 
 # steps for progress bar

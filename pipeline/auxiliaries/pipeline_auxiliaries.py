@@ -221,17 +221,7 @@ def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir,
 
     shell_cmds_as_str = ''
 
-    if not consts.USE_CONDA:
-        # COMMAND FOR LOADING RELEVANT MODULES
-        required_modules_as_str = 'python/python-anaconda3.6.5'
-        if required_modules_as_list:
-            # don't forget a space after the python module!!
-            required_modules_as_str += ' ' + ' '.join(required_modules_as_list)
-
-        shell_cmds_as_str = f'module load {required_modules_as_str}'
-        shell_cmds_as_str += new_line_delimiter  # several commands that will be split to different lines
-        # (long lines with ";" are bad practice)
-    else:
+    if consts.USE_JOB_MANAGER:
         # shell_cmds_as_str += f'source ~/.bashrc{new_line_delimiter}'
         conda_sh_path = os.path.join(consts.CONDA_INSTALLATION_DIR, 'etc/profile.d/conda.sh')
         shell_cmds_as_str += f'source {conda_sh_path}{new_line_delimiter}'
@@ -260,7 +250,7 @@ def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir,
         shell_cmds_as_str += ' '.join(['python', done_files_script_path, *params]) + ';'
         shell_cmds_as_str += new_line_delimiter
 
-    if submit_as_a_job:
+    if consts.USE_JOB_MANAGER:
         # WRITING CMDS FILE
         cmds_path = os.path.join(logs_dir, f'{job_name}.cmds')
         with open(cmds_path, 'w') as f:
@@ -356,7 +346,10 @@ def add_results_to_final_dir(logger, source, final_output_dir, keep_in_source_di
             shutil.move(source, dest)
         else:
             logger.info(f'Copying {source} TO {dest}')
-            shutil.copytree(source, dest)
+            if os.path.isdir(source):
+                shutil.copytree(source, dest)
+            else:
+                shutil.copy(source, dest)
     except FileExistsError:
         pass
 

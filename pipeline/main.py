@@ -946,7 +946,7 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    return orthologs_dna_sequences_dir_path, aa_alignments_path, dna_alignments_path
+    return orthologs_dna_sequences_dir_path, orthologs_aa_sequences_dir_path, aa_alignments_path, dna_alignments_path
 
 
 def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, error_file_path,
@@ -1107,7 +1107,7 @@ def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, t
 
 
 def step_12_codon_bias(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
-                       done_files_dir, orfs_dir, orthologs_dna_sequences_dir_path, final_orthologs_table_file_path):
+                       done_files_dir, orfs_dir, orthologs_dna_sequences_dir_path):
     # 12.  codon_bias.py
     # Input: ORF dir and OG dir
     # Output: W_vector for each genome, CAI for each OG
@@ -1134,14 +1134,73 @@ def step_12_codon_bias(args, logger, times_logger, error_file_path, output_dir, 
         wait_for_results(logger, times_logger, step_name, codon_bias_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path)
 
-        final_orthologs_df = pd.read_csv(final_orthologs_table_file_path)
-        if os.path.exists(cai_table_path):
-            cai_df = pd.read_csv(cai_table_path)[['OG_name', 'CAI_mean']]
-            final_orthologs_with_cai_df = pd.merge(cai_df, final_orthologs_df, on='OG_name')
-            final_orthologs_with_cai_df.to_csv(os.path.join(codon_bias_output_dir_path, 'final_orthologs_table.csv'),
-                                               index=False)
-
         add_results_to_final_dir(logger, codon_bias_output_dir_path, final_output_dir,
+                                 keep_in_source_dir=consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR)
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+    return cai_table_path
+
+
+def step_13_kegg_annotation(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
+                            done_files_dir, orthologs_aa_sequences_dir_path, final_orthologs_table_file_path):
+    # 13.  kegg_annotation.py
+    # Input: OG aa dir
+    step_number = '13'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_kegg'
+    script_path = os.path.join(consts.SRC_DIR, 'steps/kegg_annotation.py')
+    output_dir_path, tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    kegg_table_path = os.path.join(output_dir_path, 'og_kegg.csv')
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        logger.info('Annotation with KEGG Orthology...')
+        params = [
+            orthologs_aa_sequences_dir_path,
+            final_orthologs_table_file_path,
+            output_dir_path,
+            kegg_table_path,
+            consts.KEGG_NUM_OF_CORES,
+            '--optimize'
+        ]
+        submit_mini_batch(logger, script_path, [params], tmp_dir, args.queue_name, args.account_name, job_name='kegg',
+                          num_of_cpus=consts.KEGG_NUM_OF_CORES)
+
+        wait_for_results(logger, times_logger, step_name, tmp_dir,
+                         num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
+
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+    return kegg_table_path
+
+
+def step_14_orthogroups_annotations(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
+                                    done_files_dir, final_orthologs_table_file_path, kegg_annotations, codon_bias_annotations):
+    # 14.  add annotations to otrhogroups table
+    step_number = '14'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_orthogroups_annotations'
+    output_dir_path, tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        logger.info('Adding annotations to orthogroups...')
+        final_orthologs_df = pd.read_csv(final_orthologs_table_file_path)
+
+        if os.path.exists(kegg_annotations):
+            kegg_table_df = pd.read_csv(kegg_annotations)[['OG_name', 'knum', 'knum_description']]
+            final_orthologs_df = pd.merge(kegg_table_df, final_orthologs_df, on='OG_name')
+
+        if os.path.exists(codon_bias_annotations):
+            cai_df = pd.read_csv(codon_bias_annotations)[['OG_name', 'CAI_mean']]
+            final_orthologs_df = pd.merge(cai_df, final_orthologs_df, on='OG_name')
+
+        final_orthologs_table_annotated_path = os.path.join(output_dir_path, 'final_orthologs_table_annotated.csv')
+        final_orthologs_df.to_csv(final_orthologs_table_annotated_path, index=False)
+
+        add_results_to_final_dir(logger, final_orthologs_table_annotated_path, final_output_dir,
                                  keep_in_source_dir=consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR)
         write_to_file(logger, done_file_path, '.')
     else:
@@ -1235,7 +1294,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
     if args.only_calc_ogs:
         return
 
-    ogs_dna_sequences_path, ogs_aa_alignments_path, ogs_dna_alignments_path = \
+    ogs_dna_sequences_path, og_aa_sequences_path, ogs_aa_alignments_path, ogs_dna_alignments_path = \
         step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_file_path,
                                                output_dir, tmp_dir, final_output_dir, done_files_dir, orfs_dir,
                                                final_orthologs_table_file_path)
@@ -1275,13 +1334,31 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         logger.info("Step 11 completed.")
         return
 
-    step_12_codon_bias(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
-                       done_files_dir, orfs_dir, ogs_dna_sequences_path, final_orthologs_table_file_path)
+    cai_table_path = step_12_codon_bias(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
+                       done_files_dir, orfs_dir, ogs_dna_sequences_path)
     update_progressbar(progressbar_file_path, 'Analyze codon bias')
     edit_progress(output_html_path, progress=65)
 
     if args.step_to_complete == '12':
         logger.info("Step 12 completed.")
+        return
+
+    kegg_table_path = step_13_kegg_annotation(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
+                            done_files_dir, og_aa_sequences_path, final_orthologs_table_file_path)
+    update_progressbar(progressbar_file_path, 'Add KEGG annotation')
+    edit_progress(output_html_path, progress=65)
+
+    if args.step_to_complete == '13':
+        logger.info("Step 13 completed.")
+        return
+
+    step_14_orthogroups_annotations(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
+                                    done_files_dir, final_orthologs_table_file_path, kegg_table_path, cai_table_path)
+    update_progressbar(progressbar_file_path, 'Add annotations to Orthogroups table')
+    edit_progress(output_html_path, progress=65)
+
+    if args.step_to_complete == '14':
+        logger.info("Step 14 completed.")
         return
 
 
