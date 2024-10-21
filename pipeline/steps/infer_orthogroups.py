@@ -61,7 +61,8 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
                                                        job_name_suffix='rbh_analysis',
                                                        queue_name=queue_name,
                                                        account_name=account_name,
-                                                       memory=consts.MMSEQS_REQUIRED_MEMORY_GB)
+                                                       memory=consts.MMSEQS_REQUIRED_MEMORY_GB,
+                                                       time_in_hours=72)
 
             wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                              num_of_batches, error_file_path)

@@ -660,7 +660,8 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                    job_name_suffix='infer_orthogroups',
                                                    queue_name=args.queue_name,
-                                                   account_name=args.account_name)
+                                                   account_name=args.account_name,
+                                                   time_in_hours=96)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, recursive_step=True)
