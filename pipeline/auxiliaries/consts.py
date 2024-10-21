@@ -116,7 +116,7 @@ OUTPUTS_DIRECTORIES_MAP = {
     '10_genome_numeric_representation': '08_genome_numeric_representation',
     '11_species_phylogeny': '09_species_phylogeny',
     '12_codon_bias': '10_codon_bias',
-    'final_orthologs_table_annotated.csv': '05a_final_orthologs_table',
+    'final_orthologs_table_annotated.csv': '05a_final_orthologs_table',  # copy the annotated OG table (with KEGG+codon bias) to the same directory as the simple OG table
 }
 
 # steps for progress bar

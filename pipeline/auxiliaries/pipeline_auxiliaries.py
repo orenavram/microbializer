@@ -289,6 +289,7 @@ def submit_batch(logger, script_path, batch_parameters_list, logs_dir, error_fil
                                                              memory=memory)
         logger.info(f'Example command from batch {mini_batch_job_name}:\n{example_cmd_from_last_mini_batch}')
         num_of_mini_batches += 1
+        sleep(0.1)
 
     return num_of_mini_batches, example_cmd_from_last_mini_batch
 
