@@ -6,6 +6,7 @@ import re
 import logging
 from datetime import timedelta
 import pandas as pd
+import stat
 
 from . import consts
 from . import cgi_consts
@@ -199,10 +200,8 @@ def fail(logger, error_msg, error_file_path):
     raise ValueError(error_msg)
 
 
-def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir, error_file_path, queue_name, account_name=None, job_name='',
-                      new_line_delimiter='!@#', verbose=False, required_modules_as_list=None, num_of_cpus=1,
-                      memory=None, submit_as_a_job=True, done_file_is_needed=True,
-                      done_files_script_path=os.path.join(consts.PROJECT_ROOT_DIR, 'pipeline/auxiliaries/file_writer.py'),
+def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir, error_file_path, queue_name,
+                      account_name, job_name='', verbose=False, num_of_cpus=1, memory=None, done_file_is_needed=True,
                       command_to_run_before_script=None):
     """
     :param script_path:
@@ -210,12 +209,8 @@ def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir,
     :param logs_dir:
     :param job_name:
     :param queue_name:
-    :param new_line_delimiter: leave it as is
     :param verbose:
-    :param required_modules_as_list: a list of strings containing module names that should be loaded before running
     :param num_of_cpus:
-    :param done_files_script_path: leave it as is
-    :param submit_as_a_job: if False, fetched directly in shell and not as an independent job
     :return: an example command to debug on the shell
     """
 
@@ -224,22 +219,21 @@ def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir,
     if consts.USE_JOB_MANAGER:
         # shell_cmds_as_str += f'source ~/.bashrc{new_line_delimiter}'
         conda_sh_path = os.path.join(consts.CONDA_INSTALLATION_DIR, 'etc/profile.d/conda.sh')
-        shell_cmds_as_str += f'source {conda_sh_path}{new_line_delimiter}'
-        shell_cmds_as_str += f'conda activate {consts.CONDA_ENVIRONMENT_DIR}{new_line_delimiter}'
-        shell_cmds_as_str += f'export PATH=$CONDA_PREFIX/bin:$PATH{new_line_delimiter}'
+        shell_cmds_as_str += f'source {conda_sh_path}\n'
+        shell_cmds_as_str += f'conda activate {consts.CONDA_ENVIRONMENT_DIR}\n'
+        shell_cmds_as_str += f'export PATH=$CONDA_PREFIX/bin:$PATH\n'
 
     example_shell_cmd = ' '.join(['python', script_path, *[str(param) for param in mini_batch_parameters_list[0]]] + (
-        ['-v'] if verbose else [])) + ';'
+        ['-v'] if verbose else []))
 
     # PREPARING RELEVANT COMMANDS
     if command_to_run_before_script:
-        shell_cmds_as_str += f'{command_to_run_before_script}{new_line_delimiter}'
+        shell_cmds_as_str += f'{command_to_run_before_script}\n'
 
     for params in mini_batch_parameters_list:
         shell_cmds_as_str += ' '.join(
             ['python', script_path, *[str(param) for param in params],
-            '-v' if verbose else '', f'--logs_dir {logs_dir}', f'--error_file_path {error_file_path}']) + ';'
-        shell_cmds_as_str += new_line_delimiter
+            '-v' if verbose else '', f'--logs_dir {logs_dir}', f'--error_file_path {error_file_path}']) + '\n'
 
     if not job_name:
         job_name = time()
@@ -247,26 +241,29 @@ def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir,
     if done_file_is_needed:
         # GENERATE DONE FILE
         params = [os.path.join(logs_dir, job_name + '.done'), '', f'--logs_dir {logs_dir}']  # write an empty string (like "touch" command)
-        shell_cmds_as_str += ' '.join(['python', done_files_script_path, *params]) + ';'
-        shell_cmds_as_str += new_line_delimiter
+        shell_cmds_as_str += ' '.join(['python', os.path.join(consts.SRC_DIR, 'auxiliaries/file_writer.py'), *params]) + '\n'
 
     if consts.USE_JOB_MANAGER:
         # WRITING CMDS FILE
-        cmds_path = os.path.join(logs_dir, f'{job_name}.cmds')
+        cmds_path = os.path.join(logs_dir, f'{job_name}.sh')
         with open(cmds_path, 'w') as f:
-            f.write(f'{shell_cmds_as_str}\t{job_name}\n')  # ADDING THE JOB NAME
+            f.write(shell_cmds_as_str)
 
-        submit_cmds_from_file_to_q(logger, cmds_path, logs_dir, queue_name, str(num_of_cpus), account_name, new_line_delimiter, memory)
+        # Add execution permissions to cmds_path
+        current_permissions = os.stat(cmds_path).st_mode
+        os.chmod(cmds_path, current_permissions | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+
+        submit_cmds_from_file_to_q(logger, job_name, cmds_path, logs_dir, queue_name, str(num_of_cpus), account_name, memory)
     else:
         # fetch directly on shell
-        for shell_cmd in shell_cmds_as_str.split(new_line_delimiter):
+        for shell_cmd in shell_cmds_as_str.split('\n'):
             execute(logger, shell_cmd, process_is_string=True)
 
     return example_shell_cmd
 
 
-def submit_batch(logger, script_path, batch_parameters_list, logs_dir, error_file_path, job_name_suffix='', queue_name='pupkolabr', account_name=None,
-                 num_of_cmds_per_job=1, new_line_delimiter='!@#', required_modules_as_list=None, num_of_cpus=1,
+def submit_batch(logger, script_path, batch_parameters_list, logs_dir, error_file_path, job_name_suffix,
+                 queue_name, account_name, num_of_cmds_per_job=1, num_of_cpus=1,
                  memory=None):
     """
     :param script_path:
@@ -275,16 +272,11 @@ def submit_batch(logger, script_path, batch_parameters_list, logs_dir, error_fil
     :param job_name_suffix: a string that will be concatenated after the batch number as the job name
     :param queue_name:
     :param num_of_cmds_per_job:
-    :param new_line_delimiter: leave it as is
-    :param required_modules_as_list: a list of strings containing module names that should be loaded before running
     :param num_of_cpus:
     :return: number of batches submitted (in case waiting for the results) and an example command to debug on the shell
     """
     num_of_mini_batches = 0
     example_cmd_from_last_mini_batch = 'NO COMMANDS WERE FETCHED'
-
-    if not job_name_suffix:
-        job_name_suffix = time()
 
     job_name_suffix = job_name_suffix.replace(' ', '_')  # job name cannot contain spaces!
 
@@ -293,8 +285,8 @@ def submit_batch(logger, script_path, batch_parameters_list, logs_dir, error_fil
         mini_batch_job_name = f'{num_of_mini_batches}_{job_name_suffix}'
         example_cmd_from_last_mini_batch = submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir,
                                                              error_file_path, queue_name, account_name, mini_batch_job_name,
-                                                             new_line_delimiter, verbose=False, num_of_cpus=num_of_cpus,
-                                                             required_modules_as_list=required_modules_as_list, memory=memory)
+                                                             verbose=False, num_of_cpus=num_of_cpus,
+                                                             memory=memory)
         logger.info(f'Example command from batch {mini_batch_job_name}:\n{example_cmd_from_last_mini_batch}')
         num_of_mini_batches += 1
 

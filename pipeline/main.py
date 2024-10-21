@@ -6,8 +6,6 @@ import sys
 from time import time
 import traceback
 import json
-import subprocess
-import itertools
 
 import matplotlib.pyplot as plt
 import mmap
@@ -365,8 +363,7 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
                                                        num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                        job_name_suffix='search_orfs',
                                                        queue_name=args.queue_name,
-                                                       account_name=args.account_name,
-                                                       required_modules_as_list=[consts.PRODIGAL])
+                                                       account_name=args.account_name)
 
             wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                              num_of_batches, error_file_path)
@@ -671,7 +668,7 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
         # Aggregate OG tables of all clusters
         all_og_tables = []
         for cluster_dir_name in os.listdir(pipeline_step_output_dir):
-            cluster_og_table = os.path.join(pipeline_step_output_dir, cluster_dir_name, '05l_verified_table', 'verified_orthologs_table.csv')
+            cluster_og_table = os.path.join(pipeline_step_output_dir, cluster_dir_name, '05k_verified_table', 'verified_orthologs_table.csv')
             cluster_og_df = pd.read_csv(cluster_og_table)
             all_og_tables.append(cluster_og_df)
         unified_og_table = pd.concat(all_og_tables, axis=0, ignore_index=True)
@@ -904,8 +901,7 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                    job_name_suffix='genes_alignment',
                                                    queue_name=args.queue_name,
-                                                   account_name=args.account_name,
-                                                   required_modules_as_list=[consts.MAFFT])
+                                                   account_name=args.account_name)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)
@@ -1096,7 +1092,7 @@ def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, t
 
             submit_mini_batch(logger, script_path, [params], phylogeny_tmp_dir, error_file_path,
                               args.queue_name, args.account_name, job_name='tree_reconstruction',
-                              required_modules_as_list=[consts.RAXML], num_of_cpus=consts.PHYLOGENY_NUM_OF_CORES,
+                              num_of_cpus=consts.PHYLOGENY_NUM_OF_CORES,
                               memory=consts.PHYLOGENY_REQUIRED_MEMORY_GB,
                               command_to_run_before_script='export QT_QPA_PLATFORM=offscreen')  # Needed to avoid an error in drawing the tree. Taken from: https://github.com/NVlabs/instant-ngp/discussions/300
 
@@ -1149,7 +1145,7 @@ def step_12_codon_bias(args, logger, times_logger, error_file_path, output_dir, 
     return cai_table_path
 
 
-def step_13_kegg_annotation(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
+def step_13_kegg_annotation(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                             done_files_dir, orthologs_aa_sequences_dir_path, final_orthologs_table_file_path):
     # 13.  kegg_annotation.py
     # Input: OG aa dir
@@ -1170,11 +1166,11 @@ def step_13_kegg_annotation(args, logger, times_logger, error_file_path, output_
             consts.KEGG_NUM_OF_CORES,
             '--optimize'
         ]
-        submit_mini_batch(logger, script_path, [params], tmp_dir, args.queue_name, args.account_name, job_name='kegg',
-                          num_of_cpus=consts.KEGG_NUM_OF_CORES)
+        submit_mini_batch(logger, script_path, [params], tmp_dir, error_file_path, args.queue_name, args.account_name,
+                          job_name='kegg', num_of_cpus=consts.KEGG_NUM_OF_CORES)
 
         wait_for_results(logger, times_logger, step_name, tmp_dir,
-                         num_of_expected_results=1, error_file_path=error_file_path, email=args.email)
+                         num_of_expected_results=1, error_file_path=error_file_path)
 
         write_to_file(logger, done_file_path, '.')
     else:
@@ -1349,7 +1345,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         logger.info("Step 12 completed.")
         return
 
-    kegg_table_path = step_13_kegg_annotation(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
+    kegg_table_path = step_13_kegg_annotation(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                             done_files_dir, og_aa_sequences_path, final_orthologs_table_file_path)
     update_progressbar(progressbar_file_path, 'Add KEGG annotation')
     edit_progress(output_html_path, progress=65)
@@ -1842,7 +1838,7 @@ def main(args):
         status = 'is done'
 
         # remove intermediate results
-        if run_number.lower() != 'example' and 'oren' not in args.email and not consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR:
+        if run_number.lower() != 'example' and not consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR:
             logger.info('Cleaning up intermediate results...')
             remove_path(logger, steps_results_dir)
     except Exception as e:

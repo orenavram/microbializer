@@ -112,6 +112,7 @@ if __name__ == '__main__':
     parser.add_argument('cpus', help='number of cpus to use')
     parser.add_argument('--optimize', help='whether to use only 1 gene from each og or all genes', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
+    parser.add_argument('--error_file_path', help='path to error file')
     args = parser.parse_args()
 
     logger = get_job_logger(args.logs_dir)
@@ -122,3 +123,5 @@ if __name__ == '__main__':
                         args.cpus, args.optimize)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
+        with open(args.error_file_path, 'a+') as f:
+            f.write(f'Internal Error in {__file__}: {e}\n')

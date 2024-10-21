@@ -41,7 +41,7 @@ else:
     raise ValueError(f'Unknown environment: {ENV}')
 
 USE_JOB_MANAGER = False if ENV == 'wsl' else True
-MAX_PARALLEL_JOBS = 100
+MAX_PARALLEL_JOBS = 300
 
 OWNER_EMAIL = 'yairshimony@mail.tau.ac.il'
 
