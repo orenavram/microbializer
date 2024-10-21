@@ -3,7 +3,7 @@ import subprocess
 import sys
 from sys import argv
 import argparse
-import logging
+import traceback
 import pandas as pd
 import shutil
 from Bio import SeqIO
@@ -95,4 +95,4 @@ if __name__ == '__main__':
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:
-            f.write(f'Internal Error in {__file__}: {e}\n')
+            traceback.print_exc(file=f)

@@ -4,6 +4,7 @@ import itertools
 import json
 from sys import argv
 import argparse
+import traceback
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -167,6 +168,8 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
 
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
         for blast_results_file in os.listdir(orthologs_output_dir):
+            if not blast_results_file.endswith('m8'):
+                continue
             fasta_file_prefix = os.path.splitext(blast_results_file)[0]
             output_file_name = f'{fasta_file_prefix}.{filtered_step_name}'
 
@@ -482,4 +485,4 @@ if __name__ == '__main__':
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:
-            f.write(f'Internal Error in {__file__}: {e}\n')
+            traceback.print_exc(file=f)

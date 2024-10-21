@@ -1844,7 +1844,7 @@ def main(args):
     except Exception as e:
         status = 'was failed'
         with open(error_file_path, 'a+') as f:
-            f.write(f'Internal Error in {__file__}: {e}\n')
+            traceback.print_exc(file=f)
         report_error_in_main_pipeline_to_admin(logger, e, meta_output_dir, error_file_path, run_number,
                                                output_html_path,
                                                meta_output_url)

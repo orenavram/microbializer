@@ -5,10 +5,9 @@ Created on Sun Oct 22 10:16:41 2017
 @author: Oren
 """
 
-import argparse
-import logging
 import os
-from subprocess import call
+import time
+import subprocess
 from . import consts
 
 JOB_EXTENSION = '.slurm'
@@ -48,7 +47,7 @@ def generate_job_file(logger, queue_name, tmp_dir, cmds_path, job_name, job_path
 
     with open(job_path, 'w') as job_fp:  # write the job
         job_fp.write(job_file_content)
-    call(['chmod', '+x', job_path])  # set execution permissions
+    subprocess.call(['chmod', '+x', job_path])  # set execution permissions
 
     logger.debug('First job details for debugging:')
     logger.debug('#' * 80)
@@ -76,6 +75,18 @@ def submit_cmds_from_file_to_q(logger, job_name, cmds_path, tmp_dir, queue_name,
         terminal_cmd = f'{JOB_SUBMITTER} {job_path} {additional_params}'
     logger.info(f'Submitting: {terminal_cmd}')
 
-    call(terminal_cmd, shell=True)
+    job_submitted_successfully = False
+    try_index = 1
+    while not job_submitted_successfully:
+        try:
+            subprocess.run(terminal_cmd, shell=True, capture_output=True, text=True, check=True)
+            job_submitted_successfully = True
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Job submission of {job_path} failed (try {try_index}): {e.stderr}")
+            try_index += 1
+            if try_index >= 100:
+                logger.error(f"Job submission of {job_path} failed too many times. Exiting")
+                raise e
+            time.sleep(1)
 
     logger.debug('@ -> Sending jobs is done. @')

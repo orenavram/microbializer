@@ -4,13 +4,12 @@ from sys import argv
 import argparse
 import logging
 import subprocess
-import pandas as pd
+import traceback
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from auxiliaries.pipeline_auxiliaries import fail, get_job_logger
-from auxiliaries.logic_auxiliaries import max_with_nan
 
 
 def concatenate_hits(logger, input_dir, start_index, end_index, output_dir):
@@ -18,6 +17,8 @@ def concatenate_hits(logger, input_dir, start_index, end_index, output_dir):
     # avoid cat {input_dir}/* because arguments list might be too long!
     # No need to wait...
     for file in os.listdir(input_dir)[start_index:end_index]:
+        if not file.endswith("normalize_scores"):
+            continue
         cmd = f"cat {input_dir}/{file} >> {output_file_path}"
         logger.info(f'Calling:\n{cmd}')
         subprocess.run(cmd, shell=True)
@@ -46,4 +47,4 @@ if __name__ == '__main__':
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:
-            f.write(f'Internal Error in {__file__}: {e}\n')
+            traceback.print_exc(file=f)

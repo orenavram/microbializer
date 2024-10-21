@@ -4,12 +4,12 @@ import argparse
 import os
 import sys
 import logging
+import traceback
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger
-from auxiliaries import consts
 
 
 def normalize_hits_scores(logger, filtered_blast_result, output_path, scores_normalize_coefficient):
@@ -46,4 +46,4 @@ if __name__ == '__main__':
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:
-            f.write(f'Internal Error in {__file__}: {e}\n')
+            traceback.print_exc(file=f)

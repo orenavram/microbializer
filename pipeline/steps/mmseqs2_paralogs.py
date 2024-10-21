@@ -7,8 +7,8 @@ import argparse
 import logging
 import shutil
 import pandas as pd
-import numpy as np
-import json
+import traceback
+
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -53,7 +53,12 @@ def search_paralogs(logger, protein_fasta, m8_outfile, genome_max_scores_path, e
         if i == 1000:
             too_many_trials(logger, 'mmseqs easy-search', error_file_path)
         time.sleep(1)
-        shutil.rmtree(tmp_dir)
+
+        try:
+            shutil.rmtree(tmp_dir)
+        except Exception:
+            if not os.path.exists(m8_outfile):
+                tmp_dir = f"{tmp_dir}_try_{i}"
 
     # Add 'score' column to mmseqs output
     df = pd.read_csv(m8_outfile, sep='\t', names=consts.MMSEQS_OUTPUT_HEADER)
@@ -102,4 +107,4 @@ if __name__ == '__main__':
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:
-            f.write(f'Internal Error in {__file__}: {e}\n')
+            traceback.print_exc(file=f)
