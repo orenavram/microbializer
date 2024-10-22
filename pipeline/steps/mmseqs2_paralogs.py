@@ -44,10 +44,9 @@ def search_paralogs(logger, protein_fasta, m8_outfile, genome_max_scores_path, e
     while not os.path.exists(m8_outfile):
         # when the data set is very big some files are not generated because of the heavy load
         # so we need to make sure they will be generated!
-        logger.info(f'Iteration #{i}: easy-search. Result should be at {m8_outfile}')
         # control verbosity level by -v [3] param ; verbosity levels: 0=nothing, 1: +errors, 2: +warnings, 3: +info
         cmd = f'mmseqs easy-search {protein_fasta} {protein_fasta} {m8_outfile} {tmp_dir} --format-output {consts.MMSEQS_OUTPUT_FORMAT} -v {verbosity_level} -s {mmseqs_sensitivity_threshold} --threads 1'
-        logger.info(f'Calling:\n{cmd}')
+        logger.info(f'Iteration #{i} - Calling:\n{cmd}')
         subprocess.run(cmd, shell=True)
         i += 1
         if i == 1000:
@@ -60,6 +59,7 @@ def search_paralogs(logger, protein_fasta, m8_outfile, genome_max_scores_path, e
             if not os.path.exists(m8_outfile):
                 tmp_dir = f"{tmp_dir}_try_{i}"
 
+    logger.info(f"{m8_outfile} was created successfully. Adding score column and filtering...")
     # Add 'score' column to mmseqs output
     df = pd.read_csv(m8_outfile, sep='\t', names=consts.MMSEQS_OUTPUT_HEADER)
     add_score_column_to_mmseqs_output(df)
@@ -79,6 +79,7 @@ def search_paralogs(logger, protein_fasta, m8_outfile, genome_max_scores_path, e
     # Keep only 1 record for each genes pair
     df = df.loc[df['query'] < df['target']]
     df.to_csv(f'{m8_outfile}_filtered', index=False, sep='\t')
+    logger.info(f"{m8_outfile}_filtered was created successfully.")
 
 
 if __name__ == '__main__':

@@ -83,6 +83,7 @@ def submit_cmds_from_file_to_q(logger, job_name, cmds_path, tmp_dir, queue_name,
     while not job_submitted_successfully:
         try:
             subprocess.run(terminal_cmd, shell=True, capture_output=True, text=True, check=True)
+            logger.info(f"Job {job_path} submitted successfully")
             job_submitted_successfully = True
         except subprocess.CalledProcessError as e:
             logger.error(f"Job submission of {job_path} failed (try {try_index}): {e.stderr}")

@@ -19,7 +19,7 @@ def max_rbh_score_per_gene(logger, rbh_m8_dir, strain_name, output_dir, step_nam
     output_file_path = os.path.join(output_dir, f'{strain_name}.{step_name}')
     if not os.path.exists(output_file_path):
         for rbh_hits_file in os.listdir(rbh_m8_dir):
-            if 'm8' not in rbh_hits_file:
+            if not rbh_hits_file.endswith('m8'):
                 continue
             query_vs_reference_file_name = os.path.splitext(rbh_hits_file)[0]
             query_strain, target_strain = query_vs_reference_file_name.split('_vs_')
