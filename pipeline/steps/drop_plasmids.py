@@ -22,12 +22,12 @@ def filter_out_plasmids(logger, input_genome_path, output_genome_path):
     records = list(SeqIO.parse(input_genome_path, 'fasta'))
     new_records = []
     for record in records:
-        if 'plasmid' in record.id:
+        if 'plasmid' in record.id.lower() or 'plasmid' in record.description.lower():
             logger.info(f'Dropping plasmid sequence {record.id}')
         else:
             new_records.append(record)
 
-     if not new_records:
+    if not new_records:
         logger.info(f'No records left for {input_genome_path} (probably contained only plasmids)')
         return
 
