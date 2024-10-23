@@ -14,42 +14,6 @@ from .email_sender import send_email
 from .q_submitter_power import submit_cmds_from_file_to_q
 
 
-def load_header2sequences_dict(fasta_path, get_length=False, upper_sequence=False):
-    header_to_sequence_dict = {}
-    seq_length = 0
-
-    with open(fasta_path) as f:
-        header = f.readline().lstrip('>').rstrip()
-        sequence = ''
-        for line in f:
-            line = line.rstrip()
-            if line.startswith('>'):
-                seq_length = len(sequence)
-                if upper_sequence:
-                    header_to_sequence_dict[header] = sequence.upper()
-                else:
-                    # leave untouched
-                    header_to_sequence_dict[header] = sequence
-                header = line.lstrip('>')
-                sequence = ''
-            else:
-                sequence += line
-
-        # don't forget last record!!
-        if sequence != '':
-
-            if upper_sequence:
-                header_to_sequence_dict[header] = sequence.upper()
-            else:
-                # leave untouched
-                header_to_sequence_dict[header] = sequence
-
-    if get_length:
-        return header_to_sequence_dict, seq_length
-    else:
-        return header_to_sequence_dict
-
-
 def measure_time(total):
     hours = total // 3600
     minutes = (total % 3600) // 60

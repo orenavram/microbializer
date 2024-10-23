@@ -13,7 +13,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from auxiliaries import consts
-from auxiliaries.logic_auxiliaries import convert_required_sequence_identity_to_mmseqs_threshold, add_score_column_to_mmseqs_output
+from auxiliaries.logic_auxiliaries import add_score_column_to_mmseqs_output
 
 PROTEIN_FASTA_1 = 'Ecoli_042.02d_translated_orfs'
 PROTEIN_FASTA_2 = 'Ecoli_536.02d_translated_orfs'

@@ -4,11 +4,12 @@ import argparse
 import logging
 import os
 import traceback
+from Bio import SeqIO
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-from auxiliaries.pipeline_auxiliaries import load_header2sequences_dict, get_job_logger
+from auxiliaries.pipeline_auxiliaries import get_job_logger
 
 
 def filter_out_plasmids(logger, input_genome_path, output_genome_path):
@@ -17,21 +18,20 @@ def filter_out_plasmids(logger, input_genome_path, output_genome_path):
         output_genome_path: path to a filtered genome without plasmids
     """
     logger.info(f'Removing plasmids from {input_genome_path}...')
-    header2sequences_dict = load_header2sequences_dict(input_genome_path)
-    headers_to_remove = []
-    for fasta_header in header2sequences_dict:
-        if 'plasmid' in fasta_header:
-            logger.info(f'Dropping plasmid sequence {fasta_header}')
-            headers_to_remove.append(fasta_header)
 
-    header2sequences_dict = {header: sequence for header, sequence in header2sequences_dict.items() if header not in headers_to_remove}
-    if not header2sequences_dict:
+    records = list(SeqIO.parse(input_genome_path, 'fasta'))
+    new_records = []
+    for record in records:
+        if 'plasmid' in record.id:
+            logger.info(f'Dropping plasmid sequence {record.id}')
+        else:
+            new_records.append(record)
+
+     if not new_records:
         logger.info(f'No records left for {input_genome_path} (probably contained only plasmids)')
         return
 
-    with open(output_genome_path, 'w') as f:
-        for fasta_header, sequence in header2sequences_dict.items():
-            f.write(f'>{fasta_header}\n{sequence}\n')
+    SeqIO.write(new_records, output_genome_path, 'fasta')
 
 
 if __name__ == '__main__':

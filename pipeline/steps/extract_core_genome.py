@@ -4,11 +4,12 @@ from sys import argv
 import argparse
 import logging
 import traceback
+from Bio import SeqIO
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-from auxiliaries.pipeline_auxiliaries import load_header2sequences_dict, get_job_logger
+from auxiliaries.pipeline_auxiliaries import get_job_logger
 from auxiliaries.logic_auxiliaries import get_strain_name
 
 
@@ -47,8 +48,8 @@ def extract_core_genome(logger, alignments_path, num_of_strains, core_length_pat
     strain_to_core_genome_dict = dict.fromkeys(strains_names, '')
     core_ogs = []
     for og_file in os.listdir(alignments_path):  # TODO: consider sorting by og name (currently the concatenation is arbitrary)
-        gene_name_to_sequence_dict, og_alignment_length = load_header2sequences_dict(
-            os.path.join(alignments_path, og_file), get_length=True)
+        gene_name_to_sequence_dict = {record.id: record.seq for record in SeqIO.parse(os.path.join(alignments_path, og_file), 'fasta')}
+        og_alignment_length = len(next(iter(gene_name_to_sequence_dict.values())))
         num_of_strains_in_og = get_num_of_strains_in_og(gene_name_to_sequence_dict)
         if num_of_strains_in_og / num_of_strains >= core_minimal_percentage / 100:  # meaning OG is core
             logger.info(f'Adding to core genome: {og_file} '

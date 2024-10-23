@@ -76,12 +76,12 @@ def submit_cmds_from_file_to_q(logger, job_name, cmds_path, tmp_dir, queue_name,
         terminal_cmd = f'ssh {LOGIN_NODE} "{JOB_SUBMITTER} {job_path} {additional_params}"'  # FIX by danny 5-1-2023
     else:
         terminal_cmd = f'{JOB_SUBMITTER} {job_path} {additional_params}'
-    logger.info(f'Submitting: {terminal_cmd}')
 
     job_submitted_successfully = False
     try_index = 1
     while not job_submitted_successfully:
         try:
+            logger.info(f'Submitting: {terminal_cmd}')
             subprocess.run(terminal_cmd, shell=True, capture_output=True, text=True, check=True)
             logger.info(f"Job {job_path} submitted successfully")
             job_submitted_successfully = True

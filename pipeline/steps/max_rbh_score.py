@@ -26,7 +26,7 @@ def max_rbh_score_per_gene(logger, rbh_m8_dir, strain_name, output_dir, step_nam
             if query_strain != strain_name and target_strain != strain_name:
                 continue
             try:
-                rbh_hits_df = pd.read_csv(os.path.join(rbh_m8_dir, rbh_hits_file), sep='\t')
+                rbh_hits_df = pd.read_csv(os.path.join(rbh_m8_dir, rbh_hits_file))
                 if query_strain == strain_name:
                     genes_max_scores = rbh_hits_df.groupby(['query']).max(numeric_only=True)['score']
                 else: # target_strain == strain_name

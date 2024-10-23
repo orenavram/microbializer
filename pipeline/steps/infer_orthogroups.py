@@ -34,6 +34,8 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
     step_name = f'{step_number}_all_vs_all_analysis'
     script_path = os.path.join(consts.SRC_DIR, 'steps/mmseqs2_all_vs_all.py')
     orthologs_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    orthologs_scores_statistics_dir = os.path.join(orthologs_output_dir, 'scores_statistics')
+    os.makedirs(orthologs_scores_statistics_dir, exist_ok=True)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         orfs_files = [filename for filename in os.listdir(translated_orfs_dir) if filename.endswith('02d_translated_orfs')]
@@ -50,8 +52,11 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
                 single_cmd_params = [os.path.join(translated_orfs_dir, fasta1),
                                      os.path.join(translated_orfs_dir, fasta2),
                                      output_file_path,
+                                     orthologs_scores_statistics_dir,
                                      error_file_path,
                                      f'--identity_cutoff {identity_cutoff / 100}',
+                                     f'--coverage_cutoff {coverage_cutoff / 100}',
+                                     f'--e_value_cutoff {e_value_cutoff}',
                                      ]
 
                 all_cmds_params.append(single_cmd_params)
@@ -111,6 +116,8 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
     step_name = f'{step_number}_mmseqs_paralogs'
     script_path = os.path.join(consts.SRC_DIR, 'steps/mmseqs2_paralogs.py')
     paralogs_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    paralogs_scores_statistics_dir = os.path.join(paralogs_output_dir, 'scores_statistics')
+    os.makedirs(paralogs_scores_statistics_dir, exist_ok=True)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Searching for paralogs in each genome')
@@ -126,8 +133,11 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
             single_cmd_params = [os.path.join(translated_orfs_dir, fasta_file),
                                  output_file_path,
                                  max_scores_file_path,
+                                 paralogs_scores_statistics_dir,
                                  error_file_path,
                                  f'--identity_cutoff {identity_cutoff / 100}',
+                                 f'--coverage_cutoff {coverage_cutoff / 100}',
+                                 f'--e_value_cutoff {e_value_cutoff}',
                                  ]
 
             all_cmds_params.append(single_cmd_params)
@@ -146,91 +156,33 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # d.	filter_rbh_results.py
-    # Input: (1) a path for a i_vs_j.tsv file (2) an output path (with a suffix as follows: i_vs_j_filtered.tsv.
-    #            especially relevant for the wrapper).
-    # Output: the same format of the input file containing only pairs that passed the filtration. For each row in
-    #         the input file (pair of genes), apply the following filters:
-    # 1. at least X% similarity
-    # 2. at least X% of the length
-    # 3. write each pair to the output file if it passed all the above filters.
-    # Can be parallelized on cluster
+    # d. normalize_scores
     step_number = f'{base_step_number}d'
-    logger.info(f'Step {step_number}: {"_" * 100}')
-    filtered_step_name = f'{step_number}_blast_filtered'
-    script_path = os.path.join(consts.SRC_DIR, 'steps/filter_rbh_results.py')
-    filtered_hits_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, filtered_step_name)
-    scores_statistics_file = os.path.join(filtered_hits_output_dir, 'scores_stats.json')
-    done_file_path = os.path.join(done_files_dir, f'{filtered_step_name}.txt')
-    if not os.path.exists(done_file_path):
-        logger.info('Filtering all vs all + paralogs results...\n')
-        scores_statistics_dir = os.path.join(filtered_hits_output_dir, 'scores_statistics')
-        os.makedirs(scores_statistics_dir, exist_ok=True)
-
-        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-        for blast_results_file in os.listdir(orthologs_output_dir):
-            if not blast_results_file.endswith('m8'):
-                continue
-            fasta_file_prefix = os.path.splitext(blast_results_file)[0]
-            output_file_name = f'{fasta_file_prefix}.{filtered_step_name}'
-
-            single_cmd_params = [os.path.join(orthologs_output_dir, blast_results_file),
-                                 os.path.join(filtered_hits_output_dir, output_file_name),
-                                 scores_statistics_dir,
-                                 f'--identity_cutoff {identity_cutoff / 100}',
-                                 f'--coverage_cutoff {coverage_cutoff / 100}',
-                                 # needs to be normalized between 0 and 1
-                                 f'--e_value_cutoff {e_value_cutoff}'
-                                 ]
-            all_cmds_params.append(single_cmd_params)
-
-        for blast_results_file in os.listdir(paralogs_output_dir):
-            if not blast_results_file.endswith('m8_filtered'):
-                continue
-            fasta_file_prefix = os.path.splitext(blast_results_file)[0]
-            output_file_name = f'{fasta_file_prefix}.{filtered_step_name}'
-
-            single_cmd_params = [os.path.join(paralogs_output_dir, blast_results_file),
-                                 os.path.join(filtered_hits_output_dir, output_file_name),
-                                 scores_statistics_dir,
-                                 f'--identity_cutoff {identity_cutoff / 100}',
-                                 f'--coverage_cutoff {coverage_cutoff / 100}',
-                                 # needs to be normalized between 0 and 1
-                                 f'--e_value_cutoff {e_value_cutoff}']
-            all_cmds_params.append(single_cmd_params)
-
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
-                                                   num_of_cmds_per_job=max(1, len(all_cmds_params) // n_jobs_per_step),
-                                                   job_name_suffix='hits_filtration',
-                                                   queue_name=queue_name,
-                                                   account_name=account_name)
-
-        wait_for_results(logger, times_logger, filtered_step_name, pipeline_step_tmp_dir,
-                         num_of_batches, error_file_path)
-
-        aggregate_mmseqs_scores(scores_statistics_dir, scores_statistics_file)
-
-        write_to_file(logger, done_file_path, '.')
-    else:
-        logger.info(f'done file {done_file_path} already exists. Skipping step...')
-
-    # e. normalize_scores
-    step_number = f'{base_step_number}e'
     script_path = os.path.join(consts.SRC_DIR, 'steps/normalize_hits_scores.py')
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_normalize_scores'
     normalized_hits_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
-        with open(scores_statistics_file) as fp:
-            scores_normalize_coefficients = json.load(fp)['scores_normalize_coefficients']
+        scores_statistics_file = os.path.join(normalized_hits_output_dir, 'scores_stats.json')
+        scores_normalize_coefficients = aggregate_mmseqs_scores(orthologs_scores_statistics_dir, paralogs_scores_statistics_dir, scores_statistics_file)
 
         all_cmds_params = []
-        for filtered_hits_file in os.listdir(filtered_hits_output_dir):
-            if not filtered_hits_file.endswith(filtered_step_name):
+        for hits_file in os.listdir(orthologs_output_dir):
+            if not hits_file.endswith('m8'):
                 continue
-            strains_pair = os.path.splitext(filtered_hits_file)[0]
-            single_cmd_params = [os.path.join(filtered_hits_output_dir, filtered_hits_file),
+            strains_pair = os.path.splitext(hits_file)[0]
+            single_cmd_params = [os.path.join(orthologs_output_dir, hits_file),
+                                 os.path.join(normalized_hits_output_dir, f"{strains_pair}.{step_name}"),
+                                 scores_normalize_coefficients[strains_pair]
+                                 ]
+            all_cmds_params.append(single_cmd_params)
+
+        for hits_file in os.listdir(paralogs_output_dir):
+            if not hits_file.endswith('m8_filtered'):
+                continue
+            strains_pair = os.path.splitext(hits_file)[0]
+            single_cmd_params = [os.path.join(paralogs_output_dir, hits_file),
                                  os.path.join(normalized_hits_output_dir, f"{strains_pair}.{step_name}"),
                                  scores_normalize_coefficients[strains_pair]
                                  ]
@@ -249,11 +201,11 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # f. concatenate_all_hits
+    # e. concatenate_all_hits
     # Input: path to folder with all hits files
     # Output: concatenated file of all hits files
     # CANNOT be parallelized on cluster
-    step_number = f'{base_step_number}f'
+    step_number = f'{base_step_number}e'
     script_path = os.path.join(consts.SRC_DIR, 'steps/concatenate_hits.py')
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_concatenate_hits'
@@ -287,11 +239,11 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # g.	construct_putative_orthologs_table.py
+    # f.	construct_putative_orthologs_table.py
     # Input: (1) a path for a i_vs_j_reciprocal_hits.tsv file (2) a path for a putative orthologs file (with a single line).
     # Output: updates the table with the info from the reciprocal hit file.
     # CANNOT be parallelized on cluster
-    step_number = f'{base_step_number}g'
+    step_number = f'{base_step_number}f'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_putative_table'
     script_path = os.path.join(consts.SRC_DIR, 'steps/construct_putative_orthologs_table.py')
@@ -310,11 +262,11 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # h.   prepare_files_for_mcl.py
+    # g.   prepare_files_for_mcl.py
     # Input: (1) a path for a concatenated all reciprocal hits file (2) a path for a putative orthologs file (3) a path for an output folder
     # Output: an input file for MCL for each putative orthologs group
     # CANNOT be parallelized on cluster (if running on the concatenated file)
-    step_number = f'{base_step_number}h'
+    step_number = f'{base_step_number}g'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_mcl_input_files'
     script_path = os.path.join(consts.SRC_DIR, 'steps/prepare_files_for_mcl.py')
@@ -355,11 +307,11 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # i.	run_mcl.py
+    # h.	run_mcl.py
     # Input: (1) a path to an MCL input file (2) a path to MCL's output.
     # Output: MCL analysis.
     # Can be parallelized on cluster
-    step_number = f'{base_step_number}i'
+    step_number = f'{base_step_number}h'
     logger.info(f'Step {step_number}: {"_" * 100}')
     previous_pipeline_step_output_dir = pipeline_step_output_dir
     step_name = f'{step_number}_mcl_analysis'
@@ -389,11 +341,11 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # j.	verify_cluster.py
+    # i.	verify_cluster.py
     # Input: (1) mcl analysis file (2) a path to which the file will be moved if relevant (3) optional: maximum number of clusters allowed [default=1]
     # Output: filter irrelevant clusters by moving the relevant to an output directory
     # Can be parallelized on cluster
-    step_number = f'{base_step_number}j'
+    step_number = f'{base_step_number}i'
     logger.info(f'Step {step_number}: {"_" * 100}')
     previous_pipeline_step_output_dir = pipeline_step_output_dir
     step_name = f'{step_number}_verified_clusters'
@@ -423,10 +375,10 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
     logger.info(f'A total of {len(os.listdir(previous_pipeline_step_output_dir))} clusters were analyzed. '
                 f'{len(os.listdir(pipeline_step_output_dir))} clusters were produced.')
 
-    # k.	construct_verified_orthologs_table.py
+    # j.	construct_verified_orthologs_table.py
     # Input: (1) a path for directory with all the verified OGs (2) an output path to a final OGs table.
     # Output: aggregates all the well-clustered OGs to the final table.
-    step_number = f'{base_step_number}k'
+    step_number = f'{base_step_number}j'
     logger.info(f'Step {step_number}: {"_" * 100}')
     previous_pipeline_step_output_dir = pipeline_step_output_dir
     step_name = f'{step_number}_verified_table'

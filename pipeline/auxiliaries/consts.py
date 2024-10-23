@@ -88,7 +88,7 @@ SIMILARITY_SCORE_CRITERION = SimilarityScore.BITS
 
 BLAST_OUTPUT_HEADER = ['query', 'subject', 'identity_percent', 'alignment_length', 'mismatches', 'gap_openings',
                         'query_start', 'query_end', 'subject_start', 'subject_end', 'evalue', 'bit_score']
-MMSEQS_OUTPUT_FORMAT = 'query,target,fident,alnlen,mismatch,gapopen,qstart,qend,qlen,qcov,tstart,tend,tlen,tcov,evalue,bits'
+MMSEQS_OUTPUT_FORMAT = 'query,target,fident,qcov,tcov,evalue,bits'
 MMSEQS_OUTPUT_HEADER = MMSEQS_OUTPUT_FORMAT.split(',')
 HMMSEARCH_OUTPUT_HEADER = ['target_name', 'target_accession', 'query_name', 'query_accession', 'full_e_value',
                            'full_score', 'full_bias', 'domain_e_Value', 'domain_score', 'domain_bias', 'exp', 'reg',

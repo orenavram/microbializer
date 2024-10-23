@@ -71,20 +71,27 @@ def mimic_prodigal_output(orfs_dir, output_orf_file_extension):
         os.rename(file_path, f'{os.path.splitext(file_path)[0]}.{output_orf_file_extension}')
 
 
-def aggregate_mmseqs_scores(scores_statistics_dir, output_file):
+def aggregate_mmseqs_scores(orthologs_scores_statistics_dir, paralogs_scores_statistics_dir, output_file):
     scores_means_per_strains_pair = {}
     scores_total_sum = 0
     scores_total_records = 0
-    for scores_statistics_file in os.listdir(scores_statistics_dir):
+    for scores_statistics_file in os.listdir(orthologs_scores_statistics_dir):
         strains_names = os.path.splitext(scores_statistics_file)[0]
-        with open(os.path.join(scores_statistics_dir, scores_statistics_file)) as fp:
+        with open(os.path.join(orthologs_scores_statistics_dir, scores_statistics_file)) as fp:
+            strains_statistics = json.load(fp)
+        scores_means_per_strains_pair[strains_names] = strains_statistics['mean']
+        scores_total_sum += strains_statistics['sum']
+        scores_total_records += strains_statistics['number of records']
+
+    for scores_statistics_file in os.listdir(paralogs_scores_statistics_dir):
+        strains_names = os.path.splitext(scores_statistics_file)[0]
+        with open(os.path.join(paralogs_scores_statistics_dir, scores_statistics_file)) as fp:
             strains_statistics = json.load(fp)
         scores_means_per_strains_pair[strains_names] = strains_statistics['mean']
         scores_total_sum += strains_statistics['sum']
         scores_total_records += strains_statistics['number of records']
 
     scores_total_mean = scores_total_sum / scores_total_records
-
     scores_normalize_coefficients = {strains_names: strains_scores_mean / scores_total_mean
                                      for strains_names, strains_scores_mean in scores_means_per_strains_pair.items()}
     scores_statistics = {'mean_per_strain_pair': scores_means_per_strains_pair, 'total_scores_mean': scores_total_mean,
@@ -97,19 +104,6 @@ def aggregate_mmseqs_scores(scores_statistics_dir, output_file):
 
 def get_strain_name(gene_name):
     return gene_name.split(':')[0]
-
-
-def convert_required_sequence_identity_to_mmseqs_threshold(required_sequence_identity):
-    # Formula taken from: https://github.com/soedinglab/MMseqs2/issues/777
-
-    if required_sequence_identity <= 0.3:
-        sens = 6
-    elif required_sequence_identity > 0.8:
-        sens = 1.0
-    else:
-        sens = 1.0 + (1.0 * (0.8 - required_sequence_identity) * 10)
-
-    return min(sens + 1, 6)
 
 
 def max_with_nan(x, y):

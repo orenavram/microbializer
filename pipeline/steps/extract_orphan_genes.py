@@ -48,9 +48,7 @@ def extract_orphan_proteins(logger, orfs_file_path, orthogroups_file, output_dir
 
     orphans_path = os.path.join(output_dir, f'{strain_name}_orphans.txt')
     with open(orphans_path, 'w') as orphans_path_fp:
-        orphans_path_fp.write('\n'.join(orphan_orthogroups_of_strain))
-        orphans_path_fp.write('\n')
-        orphans_path_fp.write('\n'.join(orphans))
+        orphans_path_fp.write('\n'.join(orphan_orthogroups_of_strain + orphans))
 
     orphans_count_path = os.path.join(output_dir, f'{strain_name}_orphans_stats.csv')
     orphans_stats = {

@@ -169,7 +169,7 @@ def finalize_table(logger, orthologs_table_path, finalized_table_path, orphan_ge
             strain = strain_match_object.group(1)
             with open(os.path.join(orphan_genes_dir, filename)) as orphan_genes_file:
                 # add only single orphans and not orthogroup orphans since those already are in the orthogroups table.
-                orphan_genes_to_add = [gene for gene in orphan_genes_file.read().splitlines() if ';' not in gene]
+                orphan_genes_to_add = [gene for gene in orphan_genes_file.read().splitlines() if gene and ';' not in gene]
 
             orphan_clusters.extend([pd.Series({'OG_name': '', strain: gene}) for gene in orphan_genes_to_add])
 

@@ -12,13 +12,13 @@ sys.path.append(os.path.dirname(SCRIPT_DIR))
 from auxiliaries.pipeline_auxiliaries import get_job_logger
 
 
-def normalize_hits_scores(logger, filtered_blast_result, output_path, scores_normalize_coefficient):
-    logger.info(f'Normalize scores of {filtered_blast_result}')
+def normalize_hits_scores(logger, blast_result, output_path, scores_normalize_coefficient):
+    logger.info(f'Normalize scores of {blast_result}')
 
-    query_vs_reference_file_name = os.path.splitext(os.path.basename(filtered_blast_result))[0]
+    query_vs_reference_file_name = os.path.splitext(os.path.basename(blast_result))[0]
     strain1_name, strain2_name = query_vs_reference_file_name.split('_vs_')
 
-    df = pd.read_csv(filtered_blast_result)
+    df = pd.read_csv(blast_result)
     df['score'] = df['score'] / scores_normalize_coefficient
     df.to_csv(output_path, index=False, header=[strain1_name, strain2_name, 'score'])
 
@@ -28,7 +28,7 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('filtered_blast_result', help='path to filtered mmseqs result')
+    parser.add_argument('blast_result', help='path to filtered mmseqs result')
     parser.add_argument('output_path', help='path to output file')
     parser.add_argument('scores_normalize_coefficient')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
@@ -41,7 +41,7 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        normalize_hits_scores(logger, args.filtered_blast_result, args.output_path,
+        normalize_hits_scores(logger, args.blast_result, args.output_path,
                               float(args.scores_normalize_coefficient))
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')

@@ -5,6 +5,8 @@ import subprocess
 import os
 import sys
 import traceback
+import shutil
+from Bio import SeqIO
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -23,9 +25,15 @@ def reconstruct_msa(logger, sequences_file_path, mode, output_file_path):
     # CNTDVACAAPGN
     # >seq_1112_lib_C8C_len_10_counts_126.40626975097965
     # CTTACAPVNC
-    cmd = f'mafft --auto --{mode} {sequences_file_path} > {output_file_path}'
-    logger.info(f'Starting MAFFT. Executed command is:\n{cmd}')
-    subprocess.run(cmd, shell=True)
+    records = list(SeqIO.parse(sequences_file_path, 'fasta'))
+    if len(records) == 1:
+        logger.info(f'Only one sequence in {sequences_file_path}. Copying it to {output_file_path}')
+        shutil.copy(sequences_file_path, output_file_path)
+
+    else:
+        cmd = f'mafft --auto --{mode} {sequences_file_path} > {output_file_path}'
+        logger.info(f'Starting MAFFT. Executed command is:\n{cmd}')
+        subprocess.run(cmd, shell=True)
 
 
 if __name__ == '__main__':

@@ -4,11 +4,14 @@ from sys import argv
 import argparse
 import logging
 import traceback
+from Bio import SeqIO
+from Bio.SeqRecord import SeqRecord
+from Bio.Seq import Seq
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-from auxiliaries.pipeline_auxiliaries import load_header2sequences_dict, get_job_logger
+from auxiliaries.pipeline_auxiliaries import get_job_logger
 
 
 def induce_sequence(logger, aa_seq, dna_seq):
@@ -32,19 +35,15 @@ def induce_sequence(logger, aa_seq, dna_seq):
 
 
 def induce_msa(logger, aa_msa_path, dna_ms_path, output_path):
-    gene_name_to_aligned_aa_sequence = load_header2sequences_dict(aa_msa_path)
-    gene_name_to_unaligned_dna_sequence = load_header2sequences_dict(dna_ms_path)
+    gene_name_to_aligned_aa_sequence = {record.id: record.seq for record in SeqIO.parse(aa_msa_path, 'fasta')}
+    gene_name_to_unaligned_dna_sequence = {record.id: record.seq for record in SeqIO.parse(dna_ms_path, 'fasta')}
 
-    result = ''
-    with open(dna_ms_path) as f:
-        for line in f:
-            if line.startswith('>'):
-                gene_name = line.lstrip('>').rstrip()
-                induced_dna_sequence = induce_sequence(logger, gene_name_to_aligned_aa_sequence[gene_name], gene_name_to_unaligned_dna_sequence[gene_name])
-                result += f'>{gene_name}\n{induced_dna_sequence}\n'
+    induced_dna_records = []
+    for gene_name, dna_sequence in gene_name_to_unaligned_dna_sequence.items():
+        induced_dna_sequence = induce_sequence(logger, gene_name_to_aligned_aa_sequence[gene_name], dna_sequence)
+        induced_dna_records.append(SeqRecord(id=gene_name, name=gene_name, seq=Seq(induced_dna_sequence)))
 
-    with open(output_path, 'w') as f:
-        f.write(result)
+    SeqIO.write(induced_dna_records, output_path, 'fasta')
 
 
 if __name__ == '__main__':
