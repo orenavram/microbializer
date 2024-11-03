@@ -1,11 +1,12 @@
 import os
 import pandas as pd
 from sklearn import metrics
+from collections import Counter
 
-BASE_PATH = r"C:\repos\microbializer\pipeline\tests\compare_og_tables\example_data_10_genomes"
-OG_TABLE_NO_OPTIMIZE = os.path.join(BASE_PATH, "final_orthologs_table_no_optimize.csv")
-OG_TABLE_OPTIMIZE = os.path.join(BASE_PATH, "final_orthologs_table_optimize.csv")
-OUTPUT_PATH = os.path.join(BASE_PATH, "comparison_scores.csv")
+BASE_PATH = r"C:\repos\microbializer\pipeline\tests\compare_og_tables\73_ecoli"
+OG_TABLE_NO_OPTIMIZE = os.path.join(BASE_PATH, "no_optimize", "final_orthologs_table.csv")
+OG_TABLE_OPTIMIZE_5 = os.path.join(BASE_PATH, "optimize_5_clusters", "final_orthologs_table.csv")
+OG_TABLE_OPTIMIZE_10 = os.path.join(BASE_PATH, "optimize_10_clusters", "final_orthologs_table.csv")
 
 
 def compare_clusterings(true_labels, pred_labels, output_path):
@@ -49,17 +50,33 @@ def convert_og_table_to_labels(og_table_path):
     # 4. Extract the labels list sorted by gene names
     labels_list = sorted_df['OG_name'].tolist()
 
-    return labels_list
+    genes_list = sorted_df['genes'].tolist()
+
+    return labels_list, genes_list
 
 
 def main():
-    true_labels = convert_og_table_to_labels(OG_TABLE_NO_OPTIMIZE)
-    pred_labels = convert_og_table_to_labels(OG_TABLE_OPTIMIZE)
+    true_labels, true_genes = convert_og_table_to_labels(OG_TABLE_NO_OPTIMIZE)
+    pred_labels_5, pred_genes_5 = convert_og_table_to_labels(OG_TABLE_OPTIMIZE_5)
+    pred_labels_10, pred_genes_10 = convert_og_table_to_labels(OG_TABLE_OPTIMIZE_10)
 
-    if len(true_labels) != len(pred_labels):
-        raise ValueError("The number of genes in the two ortholog tables is not equal")
+    if len(true_labels) != len(pred_labels_5):
+        genes_in_true_not_in_5 = set(true_genes).difference(set(pred_genes_5))
+        print(f"Genes in true but not in pred_5: {genes_in_true_not_in_5}")
+        genes_in_5_not_in_true = set(pred_genes_5).difference(set(true_genes))
+        print(f"Genes in pred_5 but not in true: {genes_in_5_not_in_true}")
+        true_duplicates = [item for item, count in Counter(true_genes).items() if count > 1]
+        pred_5_duplicates = [item for item, count in Counter(pred_genes_5).items() if count > 1]
+        print(f"Duplicated in true: {true_duplicates}, duplicated in pred_5: {pred_5_duplicates}")
+        raise ValueError("The number of genes in the ortholog tables true and pred_5 is not equal")
+    if len(true_labels) != len(pred_labels_10):
+        pred_10_duplicated = [item for item, count in Counter(pred_genes_10).items() if count > 1]
+        print(f"Duplicated in pred_10: {pred_10_duplicated}")
+        raise ValueError("The number of genes in the ortholog tables true and pred_10 is not equal")
 
-    compare_clusterings(true_labels, pred_labels, OUTPUT_PATH)
+    compare_clusterings(true_labels, pred_labels_5, os.path.join(BASE_PATH, "comparison_scores_true_vs_5.csv"))
+    compare_clusterings(true_labels, pred_labels_10, os.path.join(BASE_PATH, "comparison_scores_true_vs_10.csv"))
+    compare_clusterings(pred_labels_5, pred_labels_10, os.path.join(BASE_PATH, "comparison_scores_5_vs_10.csv"))
 
 
 if __name__ == '__main__':
