@@ -1,5 +1,6 @@
 
 WEBSERVER_NAME = 'M1CR0B1AL1Z3R'
+OWNER_EMAIL = 'yairshimony@mail.tau.ac.il'
 
 # Arguments keys to run the pipeline with
 ARGS_JSON_PATH_KEY = "args_json_path"

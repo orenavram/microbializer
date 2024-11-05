@@ -7,11 +7,17 @@ import logging
 from datetime import timedelta
 import pandas as pd
 import stat
+import sys
 
 from . import consts
 from . import cgi_consts
 from .email_sender import send_email
 from .q_submitter_power import submit_cmds_from_file_to_q
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
+
+from flask import flask_interface_consts
 
 
 def measure_time(total):
@@ -285,7 +291,7 @@ def notify_admin(meta_output_dir, meta_output_url, run_number):
     # Send me a notification email every time there's a failure
     send_email(smtp_server=consts.SMTP_SERVER,
                sender=consts.ADMIN_EMAIL,
-               receiver=consts.OWNER_EMAIL,
+               receiver=flask_interface_consts.OWNER_EMAIL,
                subject=f'{cgi_consts.WEBSERVER_NAME} job {run_number} by {email} has been failed: ',
                content=f"{email}\n\n{os.path.join(meta_output_url, cgi_consts.RESULT_WEBPAGE_NAME)}\n\n"
                        f"{os.path.join(meta_output_url, cgi_consts.CGI_DEBUG_FILE_NAME)}\n\n"

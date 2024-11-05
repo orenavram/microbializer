@@ -41,7 +41,7 @@ def get_arguments():
     parser.add_argument('--output_dir', help='relative path of directory where the output files will be written to',
                         default='outputs')
     parser.add_argument('--email', help='A notification will be sent once the pipeline is done',
-                        default=consts.OWNER_EMAIL)
+                        default=flask_interface_consts.OWNER_EMAIL)
     parser.add_argument('--identity_cutoff', default=40,
                         help='minimum required percent of identity level (lower values will be filtered out)')
     parser.add_argument('--coverage_cutoff', default=70,

@@ -43,8 +43,6 @@ else:
 USE_JOB_MANAGER = False if ENV == 'wsl' else True
 MAX_PARALLEL_JOBS = 300
 
-OWNER_EMAIL = 'yairshimony@mail.tau.ac.il'
-
 
 # General Job submission consts
 Q_SUBMITTER_ADD_SSH_PREFIX = False

@@ -1,6 +1,8 @@
-import os
 from pathlib import Path
 from enum import Enum
+from .flask_interface_consts import OWNER_EMAIL
+
+WEBSERVER_ADDRESS = "http://dev.microbializer.tau.ac.il"
 
 # OUTPUT consts
 K_MER_COUNTER_MATRIX_FILE_NAME = Path('CounterMatrixForUI.csv')
@@ -179,14 +181,22 @@ class EMAIL_CONSTS:
             return f'Microbializer - Job Running'
         else:
             return f'unknown state in create_title at EMAIL_CONSTS'
-    
-    
-    CONTENT_PROCESS_CRASHED =  '''Thank you, for using Microbializer.\nWe are sorry for the inconvenience, but the process crashed, pleasy verify your input and let us know if this happens again at: yairshsh@gmail.com'''
 
-    CONTENT_PROCESS_FINISHED =  '''Thank you, for using Microbializer.\nYour results are at:\nhttps://microbializer-v2.tau.ac.il/results/{process_id}\nPlease remember to cite us'''
+    CONTENT_PROCESS_CRASHED = '''
+    Thank you for using Microbializer.\n
+    We are sorry for the inconvenience, but the process crashed.\n
+    Please look at: ''' + WEBSERVER_ADDRESS + '''/process_state/{process_id} for the error details and verify your input.\n
+    For more help contact: ''' + OWNER_EMAIL
+
+    CONTENT_PROCESS_FINISHED = '''
+    Thank you for using Microbializer.\n
+    Your results visual summary is at: ''' + WEBSERVER_ADDRESS + '''/results/{process_id}\n
+    Your downloadable results are at: ''' + WEBSERVER_ADDRESS + '''/download_page/{process_id}\n
+    Please remember to cite us in your work (citation info is at: ''' + WEBSERVER_ADDRESS + '''/about).\n
+    For more help contact: ''' + OWNER_EMAIL
 
     SUBMITTED_TITLE = '''Microbializer {job_name} - Job Submitted'''
-    SUBMITTED_CONTENT = '''Thank you, for using Microbializer.\nYour job has been submitted, you can check its status at:\nhttps://microbializer-v2/process_state/{process_id}\nAn update will be sent upon completion.'''
+    SUBMITTED_CONTENT = '''Thank you, for using Microbializer.\nYour job has been submitted, you can check its status at: {WEBSERVER_ADDRESS}/process_state/{process_id}\nAn update will be sent upon completion.'''
 
 
 class UI_CONSTS:
