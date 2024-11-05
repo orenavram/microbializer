@@ -1,8 +1,9 @@
 from pathlib import Path
 from enum import Enum
-from .flask_interface_consts import OWNER_EMAIL
+import flask_interface_consts
 
-WEBSERVER_ADDRESS = "http://dev.microbializer.tau.ac.il"
+WEBSERVER_DOMAIN = 'dev.microbializer.tau.ac.il'
+WEBSERVER_ADDRESS = f'http://{WEBSERVER_DOMAIN}'
 
 # OUTPUT consts
 K_MER_COUNTER_MATRIX_FILE_NAME = Path('CounterMatrixForUI.csv')
@@ -186,14 +187,14 @@ class EMAIL_CONSTS:
     Thank you for using Microbializer.\n
     We are sorry for the inconvenience, but the process crashed.\n
     Please look at: ''' + WEBSERVER_ADDRESS + '''/process_state/{process_id} for the error details and verify your input.\n
-    For more help contact: ''' + OWNER_EMAIL
+    For more help contact: ''' + flask_interface_consts.OWNER_EMAIL
 
     CONTENT_PROCESS_FINISHED = '''
     Thank you for using Microbializer.\n
     Your results visual summary is at: ''' + WEBSERVER_ADDRESS + '''/results/{process_id}\n
     Your downloadable results are at: ''' + WEBSERVER_ADDRESS + '''/download_page/{process_id}\n
     Please remember to cite us in your work (citation info is at: ''' + WEBSERVER_ADDRESS + '''/about).\n
-    For more help contact: ''' + OWNER_EMAIL
+    For more help contact: ''' + flask_interface_consts.OWNER_EMAIL
 
     SUBMITTED_TITLE = '''Microbializer {job_name} - Job Submitted'''
     SUBMITTED_CONTENT = '''Thank you, for using Microbializer.\nYour job has been submitted, you can check its status at: {WEBSERVER_ADDRESS}/process_state/{process_id}\nAn update will be sent upon completion.'''
@@ -266,7 +267,7 @@ class UI_CONSTS:
         FILE_NOT_FOUND = 'Cannot file the required file'
 
 
-    ERROR_CONTACT_INFO = 'For more information, or any other inquiries, please contact yairshsh@gmail.com'
+    ERROR_CONTACT_INFO = f'For more information, or any other inquiries, please contact {flask_interface_consts.OWNER_EMAIL}'
 
     PROCESS_INFO_PP = "We are processing your request. This may take several minutes. This link is valid for at least 7 days, if an email address was provided, a link will be sent upon analysis completion."
     PROCESS_INFO_KR = "We are processing your request. This may take several minutes for small files and several hours for larger ones. This link is valid for at least 7 days, if an email address was provided, a link will be sent upon analysis completion."
