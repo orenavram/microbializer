@@ -294,7 +294,7 @@ def step_1_calculate_ani(args, logger, times_logger, error_file_path,  output_di
     # 1.   ani.py
     step_number = '01'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_ANI'
+    step_name = f'{step_number}_ani'
     script_path = os.path.join(consts.SRC_DIR, 'steps/ani.py')
     ani_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
@@ -740,7 +740,7 @@ def step_7_orthologs_table_variations(args, logger, times_logger, error_file_pat
     # Output: build variations of the orthologs table.
     step_number = '07a'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_final_orthologs_table'
+    step_name = f'{step_number}_orthogroups'
     script_path = os.path.join(consts.SRC_DIR, 'steps/orthologs_table_variations.py')
     final_orthologs_table_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     final_orthologs_table_file_path = os.path.join(final_orthologs_table_dir_path, 'final_orthologs_table.csv')
@@ -768,7 +768,7 @@ def step_7_orthologs_table_variations(args, logger, times_logger, error_file_pat
     # 7b.	extract_groups_sizes_frequency
     step_number = '07b'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_groups_sizes_frequency'
+    step_name = f'{step_number}_orthogroups_sizes'
     group_sizes_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
@@ -805,7 +805,7 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
     # Output: write the sequences of the orthologs group to the output file.
     step_number = '08a'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_orthologs_groups_dna'
+    step_name = f'{step_number}_orthogroups_dna'
     script_path = os.path.join(consts.SRC_DIR, 'steps/extract_orfs.py')
     orthologs_dna_sequences_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir,
                                                                                   step_name)
@@ -847,7 +847,7 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
     # Can be parallelized on cluster
     step_number = '08b'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_orthologs_groups_aa'
+    step_name = f'{step_number}_orthogroups_aa'
     script_path = os.path.join(consts.SRC_DIR, 'steps/translate_fna_to_faa.py')
     orthologs_aa_sequences_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
@@ -882,7 +882,7 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
     # Can be parallelized on cluster
     step_number = '08c'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_orthologs_groups_aa_msa'
+    step_name = f'{step_number}_orthogroups_aa_msa'
     script_path = os.path.join(consts.SRC_DIR, 'steps/align_orthologs_group.py')
     aa_alignments_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
@@ -919,7 +919,7 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
     # Can be parallelized on cluster
     step_number = '08d'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_orthologs_groups_induced_dna_msa_by_aa_msa'
+    step_name = f'{step_number}_orthogroups_induced_dna_msa_by_aa_msa'
     script_path = os.path.join(consts.SRC_DIR, 'steps/induce_dna_msa_by_aa_msa.py')
     dna_alignments_path, induced_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
@@ -1259,7 +1259,6 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
 
     clusters_output_dir = step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                              done_files_dir, translated_orfs_dir)
-    update_progressbar(progressbar_file_path, 'Initial orfs clustering')
     edit_progress(output_html_path, progress=35)
 
     if args.step_to_complete == '4':
@@ -1268,7 +1267,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
 
     orthologs_table_file_path = step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                              done_files_dir, clusters_output_dir, translated_orfs_dir, genomes_names_path)
-    update_progressbar(progressbar_file_path, 'Orthogroup inference')
+    update_progressbar(progressbar_file_path, 'Infer orthogroups')
     edit_progress(output_html_path, progress=35)
 
     if args.step_to_complete == '5':
@@ -1287,7 +1286,6 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
     final_orthologs_table_file_path = \
         step_7_orthologs_table_variations(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                                           final_output_dir, done_files_dir, orthologs_table_file_path, orphan_genes_dir)
-    update_progressbar(progressbar_file_path, 'Construct orthogroups')
     edit_progress(output_html_path, progress=55)
 
     if args.step_to_complete == '7':
@@ -1311,7 +1309,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
     aligned_core_proteome_file_path, core_proteome_length = step_9_extract_core_genome_and_core_proteome(
         args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir, done_files_dir,
         number_of_genomes, genomes_names_path, ogs_aa_alignments_path, ogs_dna_alignments_path)
-    update_progressbar(progressbar_file_path, 'Infer core genome')
+    update_progressbar(progressbar_file_path, 'Infer core genome and proteome')
     edit_progress(output_html_path, progress=75)
 
     if args.step_to_complete == '9':
@@ -1348,7 +1346,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
 
     kegg_table_path = step_13_kegg_annotation(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                             done_files_dir, og_aa_sequences_path, final_orthologs_table_file_path)
-    update_progressbar(progressbar_file_path, 'Add KEGG annotation')
+    update_progressbar(progressbar_file_path, 'Annotate orthogroups with KEGG Orthology (KO) terms')
     edit_progress(output_html_path, progress=65)
 
     if args.step_to_complete == '13':
@@ -1357,7 +1355,6 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
 
     step_14_orthogroups_annotations(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
                                     done_files_dir, final_orthologs_table_file_path, kegg_table_path, cai_table_path)
-    update_progressbar(progressbar_file_path, 'Add annotations to Orthogroups table')
     edit_progress(output_html_path, progress=65)
 
     if args.step_to_complete == '14':
@@ -1825,7 +1822,7 @@ def main(args):
                 or args.zip_results_in_partial_pipeline:
             logger.info('Zipping results folder...')
             shutil.make_archive(final_output_dir, 'zip', meta_output_dir, final_output_dir_name)
-            update_progressbar(progressbar_file_path, 'Zipping results')
+            update_progressbar(progressbar_file_path, 'Finalize results')
 
         logger.info('Editing results html...')
         edit_success_html(logger, output_html_path, meta_output_dir, final_output_dir_name, run_number)

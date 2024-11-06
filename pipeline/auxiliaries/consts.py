@@ -97,18 +97,18 @@ LOG_MESSAGE_FORMAT = '%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(messag
 
 # outputs directories map
 OUTPUTS_DIRECTORIES_MAP = {
-    '01_ANI': '01_ANI',
+    '01_ani': '01_ani',
     '02a_orfs': '02a_orfs',
     '02c_orfs_plots': '02b_orfs_plots',
     '02d_translated_orfs': '02c_translated_orfs',
     '03_genomes_completeness': '03_genomes_completeness',
     '06_orphan_genes': '04_orphan_genes',
-    '07a_final_orthologs_table': '05a_final_orthologs_table',
-    '07b_groups_sizes_frequency': '05b_groups_sizes_frequency',
-    '08a_orthologs_groups_dna': '06a_orthologs_groups_dna',
-    '08b_orthologs_groups_aa': '06b_orthologs_groups_aa',
-    '08c_orthologs_groups_aa_msa': '06c_orthologs_groups_aa_msa',
-    '08d_orthologs_groups_induced_dna_msa_by_aa_msa': '06d_orthologs_groups_induced_dna_msa_by_aa_msa',
+    '07a_orthogroups': '05a_orthogroups',
+    '07b_orthogroups_sizes': '05b_orthogroups_sizes',
+    '08a_orthogroups_dna': '06a_orthogroups_dna',
+    '08b_orthogroups_aa': '06b_orthogroups_aa',
+    '08c_orthogroups_aa_msa': '06c_orthogroups_aa_msa',
+    '08d_oorthogroups_induced_dna_msa_by_aa_msa': '06d_orthogroups_induced_dna_msa_by_aa_msa',
     '09a_aligned_core_proteome': '07a_aligned_core_proteome',
     '09b_aligned_core_genome': '07b_aligned_core_genome',
     '10_genome_numeric_representation': '08_genome_numeric_representation',
@@ -124,15 +124,14 @@ FULL_STEPS_NAMES_FOR_PROGRESS_BAR = [
     'Calculate ANI (Average Nucleotide Identity)',
     'Predict and translate ORFs',
     'Calculate genomes completeness',
-    'Calculate blast scores between all protein sequences',
-    'Cluster protein sequences',
+    'Infer orthogroups'
     'Find orphan genes',
-    'Construct orthogroups',
     'Prepare orthogroups fasta files',
-    'Infer core genome',
+    'Infer core genome and proteome',
     'Calculate genomes numeric representation',
     'Reconstruct species phylogeny',
     'Analyze codon bias',
+    'Annotate orthogroups with KEGG Orthology (KO) terms',
     'Finalize results',
 ]
 
@@ -140,10 +139,8 @@ ONLY_CALC_OGS_TABLE_STEPS_NAMES_FOR_PROGRESS_BAR = [
     'Validate input files',
     'Filter out plasmids',
     'Predict and translate ORFs',
-    'Calculate blast scores between all protein sequences',
-    'Cluster protein sequences',
+    'Infer orthogroups',
     'Find orphan genes',
-    'Construct orthogroups',
     'Finalize results',
 ]
 

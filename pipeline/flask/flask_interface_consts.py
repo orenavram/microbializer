@@ -33,8 +33,8 @@ INPUTS_GENOMES_ZIPPED = "genomes.zip"
 ALL_OUTPUTS_DIRECTORY = WEBSERVER_NAME + "_outputs"
 ALL_OUTPUTS_ZIPPED = WEBSERVER_NAME + "_outputs.zip"
 
-ANI_CSV = f"{ALL_OUTPUTS_DIRECTORY}/01_ANI/ani_pairwise_values.csv"
-ANI_MAP = f"{ALL_OUTPUTS_DIRECTORY}/01_ANI/ani_map.png"
+ANI_CSV = f"{ALL_OUTPUTS_DIRECTORY}/01_ani/ani_pairwise_values.csv"
+ANI_MAP = f"{ALL_OUTPUTS_DIRECTORY}/01_ani/ani_map.png"
 
 ORFS_COUNT_PER_GENOME = f"{ALL_OUTPUTS_DIRECTORY}/02b_orfs_plots/orfs_counts.json"
 ORFS_COUNT_HISTOGRAM = f"{ALL_OUTPUTS_DIRECTORY}/02b_orfs_plots/orfs_counts.png"
