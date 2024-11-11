@@ -14,16 +14,10 @@ sys.path.append(os.path.dirname(SCRIPT_DIR))
 from auxiliaries.pipeline_auxiliaries import get_job_logger
 
 
-def prepare_proteomes_subsets(logger, translated_orfs_dir, output_dir, clusters_file_path, min_seq_identity,
+def prepare_proteomes_subsets(logger, all_proteins_fasta_path, output_dir, clusters_file_path, min_seq_identity,
                               min_coverage, threads, do_cluster, num_of_clusters_in_orthogroup_inference):
     temp_outputs = os.path.join(output_dir, 'temp')
     os.makedirs(temp_outputs, exist_ok=True)
-
-    # create a fasta files of all proteomes
-    all_proteins_fasta_path = os.path.join(temp_outputs, 'all_proteomes.faa')
-    cmd = f"cat {os.path.join(translated_orfs_dir, '*')} > {all_proteins_fasta_path}"
-    logger.info(f'Calling:\n{cmd}')
-    subprocess.run(cmd, shell=True)
 
     if do_cluster:
         # cluster all proteins
@@ -73,7 +67,7 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('translated_orfs_dir', help='')
+    parser.add_argument('all_proteins_fasta_path', help='')
     parser.add_argument('output_dir', help='')
     parser.add_argument('clusters_file_path', help='')
     parser.add_argument('min_seq_identity', help='', type=float)
@@ -89,7 +83,7 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        prepare_proteomes_subsets(logger, args.translated_orfs_dir, args.output_dir, args.clusters_file_path,
+        prepare_proteomes_subsets(logger, args.all_proteins_fasta_path, args.output_dir, args.clusters_file_path,
                                   args.min_seq_identity, args.min_coverage, args.threads, args.do_cluster,
                                   args.num_of_clusters_in_orthogroup_inference)
     except Exception as e:

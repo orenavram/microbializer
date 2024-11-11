@@ -6,6 +6,7 @@ import sys
 from time import time
 import traceback
 import json
+import subprocess
 
 import matplotlib.pyplot as plt
 import mmap
@@ -496,7 +497,25 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    return orfs_dir, translated_orfs_dir_path
+    # 2e.  Aggregate all protein fasta files to one file
+    step_number = '02e'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_concat_translated_orfs'
+    concat_translated_orfs_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    all_proteins_fasta_path = os.path.join(concat_translated_orfs_dir_path, 'all_proteomes.faa')
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        logger.info('Concatenating translated ORFs sequences...')
+
+        cmd = f"cat {os.path.join(translated_orfs_dir_path, '*')} > {all_proteins_fasta_path}"
+        logger.info(f'Calling:\n{cmd}')
+        subprocess.run(cmd, shell=True)
+
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+    return orfs_dir, translated_orfs_dir_path, all_proteins_fasta_path
 
 
 def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
@@ -550,7 +569,7 @@ def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_pa
 
 
 def step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
-                            done_files_dir, translated_orfs_dir):
+                            done_files_dir, all_proteins_fasta_path):
     # 4.	cluster_proteomes.py
     step_number = '04'
     logger.info(f'Step {step_number}: {"_" * 100}')
@@ -560,7 +579,7 @@ def step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output
     clusters_file_path = os.path.join(pipeline_step_output_dir, 'clusters.tsv')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
-        params = [translated_orfs_dir,
+        params = [all_proteins_fasta_path,
                   pipeline_step_output_dir,
                   clusters_file_path,
                   consts.MMSEQS_CLUSTER_MIN_SEQ_ID,
@@ -1237,8 +1256,8 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         logger.info("Step 1 completed.")
         return
 
-    orfs_dir, translated_orfs_dir = step_2_search_orfs(args, logger, times_logger, error_file_path, output_dir,
-                                                            tmp_dir, final_output_dir, done_files_dir, data_path)
+    orfs_dir, translated_orfs_dir, all_proteins_fasta_path = step_2_search_orfs(
+        args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir, done_files_dir, data_path)
     update_progressbar(progressbar_file_path, 'Predict and translate ORFs')
     update_progressbar(progressbar_file_path, 'Translate ORFs')
     edit_progress(output_html_path, progress=15)
