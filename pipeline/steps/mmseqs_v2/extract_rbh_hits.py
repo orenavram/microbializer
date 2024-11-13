@@ -55,7 +55,7 @@ def extract_rbh_hits(logger, m8_path, genome1, genome2, rbh_hits_dir, scores_sta
     # Step 6: Select only relevant columns for final output
     rbh_pairs = unique_rbh[['query_x', 'target_x', 'average_score']]
     rbh_pairs.columns = ['query', 'target', 'score']
-    rbh_pairs.to_csv(output_rbh_path, sep='\t', index=False)
+    rbh_pairs.to_csv(output_rbh_path, index=False)
 
     # Step 7: Calculate statistics of scores
     scores_statistics = {'mean': statistics.mean(rbh_pairs['score']), 'sum': sum(rbh_pairs['score']),
@@ -65,9 +65,9 @@ def extract_rbh_hits(logger, m8_path, genome1, genome2, rbh_hits_dir, scores_sta
 
     # Step 8: Calculate max rbh score for each gene
     genome1_max_scores = rbh_pairs.groupby(['query']).max(numeric_only=True)['score']
-    genome1_max_scores.to_csv(output_genome1_max_scores, index_label='gene', header=['max_ortholog_score'])
+    genome1_max_scores.to_csv(output_genome1_max_scores, index_label='gene', header=['max_rbh_score'])
     genome2_max_scores = rbh_pairs.groupby(['target']).max(numeric_only=True)['score']
-    genome2_max_scores.to_csv(output_genome2_max_scores, index_label='gene', header=['max_ortholog_score'])
+    genome2_max_scores.to_csv(output_genome2_max_scores, index_label='gene', header=['max_rbh_score'])
 
 
 if __name__ == '__main__':

@@ -147,10 +147,11 @@ def build_orthoxml_and_tsv_output(logger, all_clusters_df, output_dir, qfo_bench
         logger.info(f'Created tsv orthologs pairs output at {tsv_output_file_path}')
 
 
-def create_phyletic_pattern(logger, orthologs_df, strain_names, output_dir):
+def create_phyletic_pattern(logger, orthogroups_df, output_dir):
     phyletic_patterns_str = ''
+    strain_names = list(orthogroups_df.columns[1:])
     for strain_name in strain_names:
-        phyletic_pattern = ''.join(pd.notnull(orthologs_df[strain_name]).astype(int).astype(str))
+        phyletic_pattern = ''.join(pd.notnull(orthogroups_df[strain_name]).astype(int).astype(str))
         phyletic_patterns_str += f'>{strain_name}\n{phyletic_pattern}\n'
 
     phyletic_patterns_path = os.path.join(output_dir, 'phyletic_pattern.fas')
@@ -160,6 +161,7 @@ def create_phyletic_pattern(logger, orthologs_df, strain_names, output_dir):
 
 
 def finalize_table(logger, orthologs_table_path, finalized_table_path, orphan_genes_dir, qfo_benchmark):
+    orthogroups_df = pd.read_csv(orthologs_table_path)
     if orphan_genes_dir:  # Add orphan genes as new OGs
         orphan_clusters = []
         for filename in os.listdir(orphan_genes_dir):
@@ -174,22 +176,16 @@ def finalize_table(logger, orthologs_table_path, finalized_table_path, orphan_ge
             orphan_clusters.extend([pd.Series({'OG_name': '', strain: gene}) for gene in orphan_genes_to_add])
 
         orphan_clusters_df = pd.DataFrame(orphan_clusters)
-        orthogroups_df = pd.read_csv(orthologs_table_path)
-        all_clusters_df = pd.concat([orthogroups_df, orphan_clusters_df], ignore_index=True)
-        all_clusters_df['OG_name'] = [f'OG_{i}' for i in range(len(all_clusters_df.index))]
-        logger.info(f'Finished adding orphan genes as clusters. OG table now contains {len(all_clusters_df.index)} groups.')
+        orthogroups_df = pd.concat([orthogroups_df, orphan_clusters_df], ignore_index=True)
+        orthogroups_df['OG_name'] = [f'OG_{i}' for i in range(len(orthogroups_df.index))]
+        logger.info(f'Finished adding orphan genes as clusters. OG table now contains {len(orthogroups_df.index)} groups.')
 
-        all_clusters_df.to_csv(finalized_table_path, index=False)
+    # Sort the rows by all columns except the first one (OG_name) to keep consistent output
+    orthogroups_df = orthogroups_df.sort_values(by=list(orthogroups_df.columns[1:])).reset_index(drop=True)
+    orthogroups_df.to_csv(finalized_table_path, index=False)
 
-    else:
-        logger.info(f'Copy {orthologs_table_path} to {finalized_table_path}')
-        shutil.copy(orthologs_table_path, finalized_table_path)
-
-    orthogroups_df = pd.read_csv(finalized_table_path)
-    strain_names = list(orthogroups_df.columns[1:])
     output_dir = os.path.dirname(finalized_table_path)
-
-    create_phyletic_pattern(logger, orthogroups_df, strain_names, output_dir)
+    create_phyletic_pattern(logger, orthogroups_df, output_dir)
     build_orthoxml_and_tsv_output(logger, orthogroups_df, output_dir, qfo_benchmark)
 
 

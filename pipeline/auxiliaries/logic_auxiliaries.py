@@ -76,6 +76,8 @@ def aggregate_mmseqs_scores(orthologs_scores_statistics_dir, paralogs_scores_sta
     scores_total_sum = 0
     scores_total_records = 0
     for scores_statistics_file in os.listdir(orthologs_scores_statistics_dir):
+        if not scores_statistics_file.endswith('.stats'):
+            continue
         strains_names = os.path.splitext(scores_statistics_file)[0]
         with open(os.path.join(orthologs_scores_statistics_dir, scores_statistics_file)) as fp:
             strains_statistics = json.load(fp)
@@ -84,6 +86,8 @@ def aggregate_mmseqs_scores(orthologs_scores_statistics_dir, paralogs_scores_sta
         scores_total_records += strains_statistics['number of records']
 
     for scores_statistics_file in os.listdir(paralogs_scores_statistics_dir):
+        if not scores_statistics_file.endswith('.stats'):
+            continue
         strains_names = os.path.splitext(scores_statistics_file)[0]
         with open(os.path.join(paralogs_scores_statistics_dir, scores_statistics_file)) as fp:
             strains_statistics = json.load(fp)

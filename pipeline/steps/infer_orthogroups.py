@@ -60,7 +60,7 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
         all_cmds_params = []
         if len(strains_names) >= 2:
             for genome1, genome2 in itertools.combinations(strains_names, 2):
-                params = [logger, m8_output_path, genome1, genome2, orthologs_output_dir,
+                params = [m8_output_path, genome1, genome2, orthologs_output_dir,
                           orthologs_scores_statistics_dir, max_rbh_scores_parts_output_dir]
                 all_cmds_params.append(params)
 
@@ -94,9 +94,8 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
         logger.info('Searching for paralogs in each genome')
         all_cmds_params = []
         for genome_name in strains_names:
-            single_cmd_params = [logger, genome_name, m8_output_path, max_rbh_scores_parts_output_dir,
-                                 paralogs_output_dir, max_rbh_scores_unified_dir, paralogs_scores_statistics_dir,
-                                 error_file_path]
+            single_cmd_params = [m8_output_path, genome_name, max_rbh_scores_parts_output_dir,
+                                 paralogs_output_dir, max_rbh_scores_unified_dir, paralogs_scores_statistics_dir]
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
