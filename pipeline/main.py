@@ -87,6 +87,8 @@ def get_arguments():
                                                                           'the orthogroups inference. Relevant only if '
                                                                           'optimize_orthogroups_inference is True',
                         default=5)
+    parser.add_argument('--run_optimized_mmseqs', help='Optimize the mmseqs run',
+                        action='store_true')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
 
     # parser.add_argument('--promoters_length', default=300,
@@ -604,7 +606,7 @@ def step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output
 
 
 def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
-                             done_files_dir, clusters_dir, translated_orfs_dir, genomes_names_path):
+                             done_files_dir, clusters_dir, translated_orfs_dir, all_proteins_path, genomes_names_path):
     # 50.  filter_fasta_files_by_cluster.py
     step_number = '050'
     logger.info(f'Step {step_number}: {"_" * 100}')
@@ -623,12 +625,16 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
             cluster_fasta_files = os.path.join(clusters_fasta_files, f'cluster_{cluster_id}_proteomes')
             os.makedirs(cluster_fasta_files, exist_ok=True)
 
-            for protein_fasta_file in os.listdir(translated_orfs_dir):
-                params = [
-                    cluster_genes_path,
-                    os.path.join(translated_orfs_dir, protein_fasta_file),
-                    os.path.join(cluster_fasta_files, protein_fasta_file)
-                ]
+            if not args.run_optimized_mmseqs:
+                for protein_fasta_file in os.listdir(translated_orfs_dir):
+                    params = [
+                        cluster_genes_path,
+                        os.path.join(translated_orfs_dir, protein_fasta_file),
+                        os.path.join(cluster_fasta_files, protein_fasta_file)
+                    ]
+                    all_cmds_params.append(params)
+            else:
+                params = [cluster_genes_path, all_proteins_path, os.path.join(cluster_fasta_files, 'all_proteomes.faa')]
                 all_cmds_params.append(params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
@@ -670,9 +676,13 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
             os.makedirs(cluster_done_dir, exist_ok=True)
 
             params = [step_number, cluster_output_dir, cluster_tmp_dir, cluster_done_dir, cluster_fastas_dir_path,
-                      genomes_names_path, args.queue_name, args.account_name,
-                      args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff,
+                      os.path.join(cluster_fastas_dir_path, 'all_proteomes.faa'), genomes_names_path, args.queue_name,
+                      args.account_name, args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff,
                       args.num_of_clusters_in_orthogroup_inference]
+
+            if args.run_optimized_mmseqs:
+                params.append('--run_optimized_mmseqs')
+
             all_cmds_params.append(params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
@@ -762,7 +772,7 @@ def step_7_orthologs_table_variations(args, logger, times_logger, error_file_pat
     step_name = f'{step_number}_orthogroups'
     script_path = os.path.join(consts.SRC_DIR, 'steps/orthologs_table_variations.py')
     final_orthologs_table_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    final_orthologs_table_file_path = os.path.join(final_orthologs_table_dir_path, 'final_orthologs_table.csv')
+    final_orthologs_table_file_path = os.path.join(final_orthologs_table_dir_path, 'orthogroups.csv')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Constructing final orthologs table...')
@@ -1219,7 +1229,7 @@ def step_14_orthogroups_annotations(args, logger, times_logger, error_file_path,
             cai_df = pd.read_csv(codon_bias_annotations)[['OG_name', 'CAI_mean']]
             final_orthologs_df = pd.merge(cai_df, final_orthologs_df, on='OG_name')
 
-        final_orthologs_table_annotated_path = os.path.join(output_dir_path, 'final_orthologs_table_annotated.csv')
+        final_orthologs_table_annotated_path = os.path.join(output_dir_path, 'orthogroups_annotated.csv')
         final_orthologs_df.to_csv(final_orthologs_table_annotated_path, index=False)
 
         add_results_to_final_dir(logger, final_orthologs_table_annotated_path, final_output_dir,
@@ -1277,7 +1287,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         return
 
     clusters_output_dir = step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
-                             done_files_dir, translated_orfs_dir)
+                             done_files_dir, all_proteins_fasta_path)
     edit_progress(output_html_path, progress=35)
 
     if args.step_to_complete == '4':
@@ -1285,7 +1295,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         return
 
     orthologs_table_file_path = step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
-                             done_files_dir, clusters_output_dir, translated_orfs_dir, genomes_names_path)
+                             done_files_dir, clusters_output_dir, translated_orfs_dir, all_proteins_fasta_path, genomes_names_path)
     update_progressbar(progressbar_file_path, 'Infer orthogroups')
     edit_progress(output_html_path, progress=35)
 
@@ -1858,6 +1868,7 @@ def main(args):
         if run_number.lower() != 'example' and not consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR:
             logger.info('Cleaning up intermediate results...')
             remove_path(logger, steps_results_dir)
+            remove_path(logger, tmp_dir)
     except Exception as e:
         status = 'was failed'
         with open(error_file_path, 'a+') as f:

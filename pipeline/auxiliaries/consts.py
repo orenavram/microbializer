@@ -50,6 +50,7 @@ Q_SUBMITTER_ADD_SSH_PREFIX = False
 JOB_NAME_ENVIRONMENT_VARIABLE = 'SLURM_JOB_NAME'
 JOB_ID_ENVIRONMENT_VARIABLE = 'SLURM_JOB_ID'
 JOB_FILES_DEBUG_MODE = False
+MMSEQS_NUM_OF_CORES = 80 if USE_JOB_MANAGER else 1
 PHYLOGENY_NUM_OF_CORES = 20 if USE_JOB_MANAGER else 1
 CODON_BIAS_NUM_OF_CORES = 20 if USE_JOB_MANAGER else 1
 KEGG_NUM_OF_CORES = 20 if USE_JOB_MANAGER else 1
@@ -59,9 +60,9 @@ MMSEQS_CLUSTER_MIN_COVERAGE = 10
 JOB_WALL_TIME_KEY ='RunTime='
 # mmseqs and fastANI commands work only on machines with enough memory. we solve this either by navigating to a
 # specific queue or by restrict the compute-nodes with memory threshold.
-MMSEQS_REQUIRED_MEMORY_GB = '120'
-ANI_REQUIRED_MEMORY_GB = '120'
-PHYLOGENY_REQUIRED_MEMORY_GB = '120'
+MMSEQS_REQUIRED_MEMORY_GB = '64'
+ANI_REQUIRED_MEMORY_GB = '64'
+PHYLOGENY_REQUIRED_MEMORY_GB = '64'
 
 # Slurm consts
 DEFAULT_SLURM_ACCOUNT = 'pupko-users'
@@ -108,13 +109,13 @@ OUTPUTS_DIRECTORIES_MAP = {
     '08a_orthogroups_dna': '06a_orthogroups_dna',
     '08b_orthogroups_aa': '06b_orthogroups_aa',
     '08c_orthogroups_aa_msa': '06c_orthogroups_aa_msa',
-    '08d_oorthogroups_induced_dna_msa_by_aa_msa': '06d_orthogroups_induced_dna_msa_by_aa_msa',
+    '08d_orthogroups_induced_dna_msa_by_aa_msa': '06d_orthogroups_induced_dna_msa_by_aa_msa',
     '09a_aligned_core_proteome': '07a_aligned_core_proteome',
     '09b_aligned_core_genome': '07b_aligned_core_genome',
     '10_genome_numeric_representation': '08_genome_numeric_representation',
     '11_species_phylogeny': '09_species_phylogeny',
     '12_codon_bias': '10_codon_bias',
-    'final_orthologs_table_annotated.csv': '05a_orthogroups',  # copy the annotated OG table (with KEGG+codon bias) to the same directory as the simple OG table
+    'orthogroups_annotated.csv': '05a_orthogroups',  # copy the annotated OG table (with KEGG+codon bias) to the same directory as the simple OG table
 }
 
 # steps for progress bar

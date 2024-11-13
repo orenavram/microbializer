@@ -129,7 +129,7 @@ def build_orthoxml_and_tsv_output(logger, all_clusters_df, output_dir, qfo_bench
         ortholog_groups.append(og_list)
 
     # export orthoXML document to output_file
-    orthoxml_output_file_path = os.path.join(output_dir, 'orthologs.orthoxml')
+    orthoxml_output_file_path = os.path.join(output_dir, 'orthogroups.orthoxml')
     with open(orthoxml_output_file_path, "w") as oxml_file:
         oxml.export(oxml_file, level=0)
 

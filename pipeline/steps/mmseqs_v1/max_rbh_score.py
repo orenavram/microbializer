@@ -7,7 +7,7 @@ import pandas as pd
 import traceback
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(SCRIPT_DIR))
+sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
 
 from auxiliaries.pipeline_auxiliaries import fail, get_job_logger
 from auxiliaries.logic_auxiliaries import max_with_nan

@@ -1,6 +1,6 @@
 from pathlib import Path
 from enum import Enum
-import flask_interface_consts
+from . import flask_interface_consts
 
 WEBSERVER_DOMAIN = 'dev.microbializer.tau.ac.il'
 WEBSERVER_ADDRESS = f'http://{WEBSERVER_DOMAIN}'

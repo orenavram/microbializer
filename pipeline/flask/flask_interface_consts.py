@@ -45,9 +45,9 @@ GENOME_COMPLETENESS_HISTOGRAM = f"{ALL_OUTPUTS_DIRECTORY}/03_genomes_completenes
 ORPHAN_GENES_PER_GENOME = f"{ALL_OUTPUTS_DIRECTORY}/04_orphan_genes/orphan_genes_count.json"
 ORPHAN_GENES_HISTOGRAM = f"{ALL_OUTPUTS_DIRECTORY}/04_orphan_genes/orphan_genes_count.png"
 
-OG_TABLE = f"{ALL_OUTPUTS_DIRECTORY}/05a_orthogroups/final_orthologs_table.csv"
-OG_TABLE_ANNOTATED = f"{ALL_OUTPUTS_DIRECTORY}/05a_orthogroups/final_orthologs_table_annotated.csv"
-OG_TABLE_ORTHOXML = f"{ALL_OUTPUTS_DIRECTORY}/05a_orthogroups/orthologs.orthoxml"
+OG_TABLE = f"{ALL_OUTPUTS_DIRECTORY}/05a_orthogroups/orthogroups.csv"
+OG_TABLE_ANNOTATED = f"{ALL_OUTPUTS_DIRECTORY}/05a_orthogroups/orthogroups_annotated.csv"
+OG_TABLE_ORTHOXML = f"{ALL_OUTPUTS_DIRECTORY}/05a_orthogroups/orthogroups.orthoxml"
 PHYLETIC_PATTERN = f"{ALL_OUTPUTS_DIRECTORY}/05a_orthogroups/phyletic_pattern.fas"
 OG_SIZE_HISTOGRAM = f"{ALL_OUTPUTS_DIRECTORY}/05b_orthogroups_sizes/groups_sizes.png"
 
@@ -58,8 +58,8 @@ GENOME_NUMERIC_REPRESENTATION = f"{ALL_OUTPUTS_DIRECTORY}/08_genome_numeric_repr
 SPECIES_TREE_NEWICK = f"{ALL_OUTPUTS_DIRECTORY}/09_species_phylogeny/final_species_tree.newick"
 SPECIES_TREE_PNG = f"{ALL_OUTPUTS_DIRECTORY}/09_species_phylogeny/final_species_tree.png"
 
-OG_TABLE_WITH_CODON_BIAS = f"{ALL_OUTPUTS_DIRECTORY}/10_codon_bias/final_orthologs_table.csv"
 CAI_HISTOGRAM = f"{ALL_OUTPUTS_DIRECTORY}/10_codon_bias/CAI_histogram.png"
+W_VECTORS = f"{ALL_OUTPUTS_DIRECTORY}/10_codon_bias/W_vectors.csv"
 GENOMES_CLUSTERS_BY_W_VECTORS = f"{ALL_OUTPUTS_DIRECTORY}/10_codon_bias/Relative_Adaptiveness_scatter_plot.png"
 GENOMES_CLUSTERS_BY_W_VECTORS_CSV = f"{ALL_OUTPUTS_DIRECTORY}/10_codon_bias/Relative_Adaptiveness_scatter_plot_clusters.csv"
 
@@ -98,12 +98,12 @@ PATHS_TO_DOWNLOAD = {
         "Orphan_genes_per_genome": (ORPHAN_GENES_PER_GENOME, "Can also be found in 04_orphan_genes directory in the 'All outputs (zip)' file"),
         "Orphan_genes_histogram": (ORPHAN_GENES_HISTOGRAM, "Can also be found in 04_orphan_genes directory in the 'All outputs (zip)' file"),
     },
-    "Orthologs groups": {
-        "Orthologs_groups_(csv)": (OG_TABLE, "Can also be found in 05a_orthogroups directory in the 'All outputs (zip)' file"),
-        "Orthologs_groups_annotated_(csv)": (OG_TABLE_ANNOTATED, "Can also be found in 05a_orthogroups directory in the 'All outputs (zip)' file"),
-        "Orthologs_groups_(OrthoXML)": (OG_TABLE_ORTHOXML, "Can also be found in 05a_orthogroups directory in the 'All outputs (zip)' file"),
+    "Orthogroups": {
+        "Orthogroups_(csv)": (OG_TABLE, "Can also be found in 05a_orthogroups directory in the 'All outputs (zip)' file"),
+        "Orthogroups_annotated_(csv)": (OG_TABLE_ANNOTATED, "Can also be found in 05a_orthogroups directory in the 'All outputs (zip)' file"),
+        "Orthogroups_(OrthoXML)": (OG_TABLE_ORTHOXML, "Can also be found in 05a_orthogroups directory in the 'All outputs (zip)' file"),
         "Phyletic_pattern": (PHYLETIC_PATTERN, "Can also be found in 05a_orthogroups directory in the 'All outputs (zip)' file"),
-        "Orthologs_groups_sizes_histogram": (OG_SIZE_HISTOGRAM, "Can also be found in 05b_orthogroups_sizes directory in the 'All outputs (zip)' file"),
+        "Orthogroups_sizes_histogram": (OG_SIZE_HISTOGRAM, "Can also be found in 05b_orthogroups_sizes directory in the 'All outputs (zip)' file"),
     },
     "Core genome": {
         "Core_proteome_alignment": (CORE_GENOME, "Can also be found in 07a_aligned_core_proteome directory in the 'All outputs (zip)' file"),
@@ -115,10 +115,10 @@ PATHS_TO_DOWNLOAD = {
         "Species_tree_(png)": (SPECIES_TREE_PNG, "Can also be found in 09_species_phylogeny directory in the 'All outputs (zip)' file"),
     },
     "Codon bias analysis": {
-        "Orthologs_groups_(csv)_sorted_by_codon_adaptation_index": (OG_TABLE_WITH_CODON_BIAS, "Can also be found in 10_codon_bias directory in the 'All outputs (zip)' file"),
         "Codon_adaptation_index_histogram": (CAI_HISTOGRAM, "Can also be found in 10_codon_bias directory in the 'All outputs (zip)' file"),
-        "Genome_clusters_by_codon_usage_(png)": (GENOMES_CLUSTERS_BY_W_VECTORS, "Can also be found in 10_codon_bias directory in the 'All outputs (zip)' file"),
-        "Genome_clusters_by_codon_usage_(csv)": (GENOMES_CLUSTERS_BY_W_VECTORS_CSV, "Can also be found in 10_codon_bias directory in the 'All outputs (zip)' file"),
+        "W_vectors_(relative_adaptiveness)": (W_VECTORS, "Can also be found in 10_codon_bias directory in the 'All outputs (zip)' file"),
+        "Genome_clusters_by_relative_adaptiveness_(png)": (GENOMES_CLUSTERS_BY_W_VECTORS, "Can also be found in 10_codon_bias directory in the 'All outputs (zip)' file"),
+        "Genome_clusters_by_relative_adaptiveness_(csv)": (GENOMES_CLUSTERS_BY_W_VECTORS_CSV, "Can also be found in 10_codon_bias directory in the 'All outputs (zip)' file"),
     }
 }
 
