@@ -50,7 +50,7 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
         m8_df['query_genome'] = m8_df['query'].str.split(':').str[0]
         m8_df['target_genome'] = m8_df['target'].str.split(':').str[0]
 
-        m8_parsed_output_path = os.path.join(all_vs_all_output_dir, 'all_vs_all.m8')
+        m8_parsed_output_path = os.path.join(all_vs_all_output_dir, 'all_vs_all_full.m8')
         m8_df.to_csv(m8_parsed_output_path, index=False)
         logger.info(f"{m8_parsed_output_path} was created successfully.")
 
