@@ -14,21 +14,21 @@ sys.path.append(os.path.dirname(SCRIPT_DIR))
 from auxiliaries.pipeline_auxiliaries import get_job_logger
 
 
-def induce_sequence(logger, aa_seq, dna_seq):
+def induce_sequence(logger, aligned_aa_seq, dna_seq):
     result = ''
     dna_i = 0
-    for aa_i in range(len(aa_seq)):
-        if aa_seq[aa_i] == '-':
+    for aa_i in range(len(aligned_aa_seq)):
+        if aligned_aa_seq[aa_i] == '-':
             result += '-' * 3
         else:
             result += dna_seq[dna_i:dna_i + 3]
             dna_i += 3
 
     # TODO: remove this checkup
-    if len(aa_seq) * 3 != len(result):
+    if len(aligned_aa_seq) * 3 != len(result):
         logger.error('$' * 80)
         logger.error('len(aa_seq)*3 != len(result)')
-        logger.error(f'{len(aa_seq) * 3} != {len(result)}')
+        logger.error(f'{len(aligned_aa_seq) * 3} != {len(result)}')
     # # fill with trailing gaps so each induced dna sequence is of the same length
     # result += (len(aa_seq)*3-len(result))*'-'
     return result

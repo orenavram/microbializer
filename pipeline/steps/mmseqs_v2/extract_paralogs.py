@@ -14,8 +14,8 @@ sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
 from auxiliaries.pipeline_auxiliaries import fail, get_job_logger
 
 
-def extract_paralogs(logger, m8_path, genome_name, max_scores_parts_dir, paralogs_dir,
-                     max_rbh_scores_unified_dir, scores_statistics_dir):
+def extract_paralogs_of_genome(logger, m8_df, genome_name, max_scores_parts_dir, paralogs_dir,
+                               max_rbh_scores_unified_dir, scores_statistics_dir):
     genome_max_rbh_scores_path = os.path.join(max_rbh_scores_unified_dir, f'{genome_name}.csv')
     output_paralogs_raw_path = os.path.join(paralogs_dir, f'{genome_name}_vs_{genome_name}.m8')
     output_paralogs_filtered_path = os.path.join(paralogs_dir, f'{genome_name}_vs_{genome_name}_filtered.m8')
@@ -24,8 +24,6 @@ def extract_paralogs(logger, m8_path, genome_name, max_scores_parts_dir, paralog
     if os.path.exists(genome_max_rbh_scores_path) and os.path.exists(output_paralogs_raw_path) \
             and os.path.exists(output_paralogs_filtered_path) and os.path.exists(score_stats_file):
         return
-
-    m8_df = pd.read_csv(m8_path)
 
     # Unify all max_rbh_scores files of the genome to one file
     max_scores_files = [f for f in os.listdir(max_scores_parts_dir) if f.startswith(genome_name)]
@@ -67,13 +65,25 @@ def extract_paralogs(logger, m8_path, genome_name, max_scores_parts_dir, paralog
         logger.info(f"No paralogs were found for {genome_name} after filtration.")
 
 
+def extract_paralogs(logger, m8_path, genomes_input_path, max_scores_parts_dir, paralogs_dir,
+                     max_rbh_scores_unified_dir, scores_statistics_dir):
+    with open(genomes_input_path, 'r') as f:
+        genomes = f.readlines()
+        genomes = [genome.strip() for genome in genomes]
+
+    m8_df = pd.read_csv(m8_path)
+    for genome in genomes:
+        extract_paralogs_of_genome(logger, m8_df, genome, max_scores_parts_dir, paralogs_dir,
+                                   max_rbh_scores_unified_dir, scores_statistics_dir)
+
+
 if __name__ == '__main__':
     script_run_message = f'Starting command is: {" ".join(argv)}'
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
     parser.add_argument('m8_path', help='')
-    parser.add_argument('genome_name', help='path to protein fasta')
+    parser.add_argument('genomes_input_path', help='')
     parser.add_argument('max_scores_parts_dir', help='')
     parser.add_argument('paralogs_dir', help='')
     parser.add_argument('max_rbh_scores_unified_dir', help='')
@@ -88,7 +98,7 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        extract_paralogs(logger, args.m8_path, args.genome_name, args.max_scores_parts_dir, args.paralogs_dir,
+        extract_paralogs(logger, args.m8_path, args.genomes_input_path, args.max_scores_parts_dir, args.paralogs_dir,
                          args.max_rbh_scores_unified_dir, args.scores_statistics_dir)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')

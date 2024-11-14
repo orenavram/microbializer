@@ -6,14 +6,12 @@ from sys import argv
 import argparse
 import logging
 import shutil
-import pandas as pd
 import traceback
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
 
 from auxiliaries.pipeline_auxiliaries import fail, get_job_logger
-from auxiliaries.logic_auxiliaries import add_score_column_to_mmseqs_output
 from auxiliaries import consts
 
 
@@ -27,15 +25,14 @@ def too_many_trials(logger, cmd, error_file_path):
 
 def run_mmseqs(logger, all_proteins_fasta, output_dir, output_path, identity_cutoff, coverage_cutoff,
                e_value_cutoff, cpus, error_file_path):
-    tmp_dir = os.path.join(os.path.dirname(output_dir), f'tmp')
-    m8_outfile_raw = os.path.join(output_dir, 'all_vs_all_raw.m8')
+    tmp_dir = os.path.join(output_dir, f'tmp')
 
     i = 1
-    while not os.path.exists(m8_outfile_raw):
+    while not os.path.exists(output_path):
         # when the data set is very big some files are not generated because of the heavy load
         # so we need to make sure they will be generated!
         # control verbosity level by -v [3] param ; verbosity levels: 0=nothing, 1: +errors, 2: +warnings, 3: +info
-        cmd = f'mmseqs easy-search {all_proteins_fasta} {all_proteins_fasta} {m8_outfile_raw} {tmp_dir} ' \
+        cmd = f'mmseqs easy-search {all_proteins_fasta} {all_proteins_fasta} {output_path} {tmp_dir} ' \
               f'--format-output {consts.MMSEQS_OUTPUT_FORMAT} --min-seq-id {identity_cutoff} -c {coverage_cutoff} ' \
               f'--cov-mode 0 -e {e_value_cutoff} --threads {cpus} -v 1'
         logger.info(f'Iteration #{i} - Calling:\n{cmd}')
@@ -48,22 +45,9 @@ def run_mmseqs(logger, all_proteins_fasta, output_dir, output_path, identity_cut
         try:
             shutil.rmtree(tmp_dir)
         except Exception:
-            if not os.path.exists(m8_outfile_raw):
+            if not os.path.exists(output_path):
                 tmp_dir = f"{tmp_dir}_try_{i}"
 
-    logger.info(f"{m8_outfile_raw} was created successfully. Adding 'score' column to it...")
-
-    m8_df = pd.read_csv(m8_outfile_raw, sep='\t', names=consts.MMSEQS_OUTPUT_HEADER)
-    add_score_column_to_mmseqs_output(m8_df)
-    m8_df['query_genome'] = m8_df['query'].str.split(':').str[0]
-    m8_df['target_genome'] = m8_df['target'].str.split(':').str[0]
-
-    m8_outfile = os.path.join(output_dir, 'all_vs_all.m8')
-    m8_df.to_csv(m8_outfile, index=False)
-    logger.info(f"{m8_outfile} was created successfully.")
-
-    m8_df = m8_df[['query', 'query_genome', 'target', 'target_genome', 'score']]
-    m8_df.to_csv(output_path, index=False)
     logger.info(f"{output_path} was created successfully.")
 
 

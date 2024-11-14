@@ -14,7 +14,7 @@ sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
 from auxiliaries.pipeline_auxiliaries import fail, get_job_logger
 
 
-def extract_rbh_hits(logger, m8_path, genome1, genome2, rbh_hits_dir, scores_statistics_dir, max_rbh_score_per_gene_dir):
+def extract_rbh_hits_of_pair(logger, m8_df, genome1, genome2, rbh_hits_dir, scores_statistics_dir, max_rbh_score_per_gene_dir):
     output_rbh_path = os.path.join(rbh_hits_dir, f'{genome1}_vs_{genome2}.m8')
     output_statistics_path = os.path.join(scores_statistics_dir, f'{genome1}_vs_{genome2}.stats')
     output_genome1_max_scores = os.path.join(max_rbh_score_per_gene_dir, f'{genome1}_max_scores_with_{genome2}.csv')
@@ -23,8 +23,6 @@ def extract_rbh_hits(logger, m8_path, genome1, genome2, rbh_hits_dir, scores_sta
     if os.path.exists(output_rbh_path) and os.path.exists(output_statistics_path) \
             and os.path.exists(output_genome1_max_scores) and os.path.exists(output_genome2_max_scores):
         return
-
-    m8_df = pd.read_csv(m8_path)
 
     genome1_to_2_df = m8_df[(m8_df['query_genome'] == genome1) & (m8_df['target_genome'] == genome2)]
     genome2_to_1_df = m8_df[(m8_df['query_genome'] == genome2) & (m8_df['target_genome'] == genome1)]
@@ -70,14 +68,23 @@ def extract_rbh_hits(logger, m8_path, genome1, genome2, rbh_hits_dir, scores_sta
     genome2_max_scores.to_csv(output_genome2_max_scores, index_label='gene', header=['max_rbh_score'])
 
 
+def extract_rbh_hits(logger, m8_path, rbh_input_path, rbh_hits_dir, scores_statistics_dir, max_rbh_score_per_gene_dir):
+    with open(rbh_input_path, 'r') as f:
+        genome_pairs = f.readlines()
+        genome_pairs = [pair.strip().split() for pair in genome_pairs]
+
+    m8_df = pd.read_csv(m8_path)
+    for genome1, genome2 in genome_pairs:
+        extract_rbh_hits_of_pair(logger, m8_df, genome1, genome2, rbh_hits_dir, scores_statistics_dir, max_rbh_score_per_gene_dir)
+
+
 if __name__ == '__main__':
     script_run_message = f'Starting command is: {" ".join(argv)}'
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
     parser.add_argument('m8_path', help='a')
-    parser.add_argument('genome1', help='path to protein fasta')
-    parser.add_argument('genome2', help='path to protein fasta')
+    parser.add_argument('rbh_input_path', help='')
     parser.add_argument('rbh_hits_dir', help='')
     parser.add_argument('scores_statistics_dir', help='')
     parser.add_argument('max_rbh_score_per_gene_dir', help='')
@@ -91,7 +98,7 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        extract_rbh_hits(logger, args.m8_path, args.genome1, args.genome2, args.rbh_hits_dir,
+        extract_rbh_hits(logger, args.m8_path, args.rbh_input_path, args.rbh_hits_dir,
                          args.scores_statistics_dir, args.max_rbh_score_per_gene_dir)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')

@@ -1,5 +1,6 @@
 import argparse
 import logging
+import math
 import os
 import shutil
 import sys
@@ -845,7 +846,7 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
         with open(final_orthologs_table_file_path, 'r') as fp:
             number_of_ogs = sum(1 for _ in fp) - 1
 
-        ogs_to_process_per_job = 250
+        ogs_to_process_per_job = math.ceil(number_of_ogs / consts.MAX_PARALLEL_JOBS)
         lines_intervals = define_intervals(0, number_of_ogs, ogs_to_process_per_job)
         for (start_index, end_index_exclusive) in lines_intervals:
             single_cmd_params = [orfs_dir,
@@ -1415,7 +1416,7 @@ def report_error_in_main_pipeline_to_admin(logger, e, meta_output_dir, error_fil
 def report_main_pipeline_result_to_user(args, logger, status, total_time, output_url, run_number):
     msg = f'M1CR0B1AL1Z3R pipeline {status}'
     if status == 'is done':
-        msg += f' (Took {measure_time(total_time)}).\nResults can be found at {output_url}.\nPlease note that the ' \
+        msg += f' (Took {total_time}).\nResults can be found at {output_url}.\nPlease note that the ' \
                f'results will be kept in the server for three months.'
     else:
         msg += f'. For further information please visit: {output_url}'
@@ -1877,7 +1878,8 @@ def main(args):
                                                output_html_path,
                                                meta_output_url)
 
-    total_time = int(time() - start_time)
+    total_time = measure_time(int(time() - start_time))
+    times_logger.info(f'Total pipeline time: {total_time}')
     report_main_pipeline_result_to_user(args, logger, status, total_time, output_url, run_number)
 
     logger.info('Done.')

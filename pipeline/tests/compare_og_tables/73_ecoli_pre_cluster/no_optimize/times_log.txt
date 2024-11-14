@@ -1,0 +1,30 @@
+2024-10-22 13:05:20,813 INFO pipeline_auxiliaries.py:111 Step 01_ANI took 2:50 minutes. There were 73 jobs and cumulatively they took 1:37:22 wallclock time. 
+2024-10-22 13:06:25,026 INFO pipeline_auxiliaries.py:111 Step 02a_orfs took 30 seconds. There were 73 jobs and cumulatively they took 0:11:38 wallclock time. 
+2024-10-22 13:07:19,729 INFO pipeline_auxiliaries.py:111 Step 02b_orfs_statistics took 20 seconds. There were 73 jobs and cumulatively they took 0:03:15 wallclock time. 
+2024-10-22 13:08:10,510 INFO pipeline_auxiliaries.py:111 Step 02d_translated_orfs took 20 seconds. There were 73 jobs and cumulatively they took 0:03:32 wallclock time. 
+2024-10-22 13:09:03,253 INFO pipeline_auxiliaries.py:111 Step 03_genomes_completeness took 20 seconds. There were 73 jobs and cumulatively they took 0:10:28 wallclock time. 
+2024-10-22 13:09:28,102 INFO pipeline_auxiliaries.py:111 Step 04_cluster_proteomes took 20 seconds. There were 1 jobs and cumulatively they took 0:00:07 wallclock time. 
+2024-10-22 13:10:18,000 INFO pipeline_auxiliaries.py:111 Step 050_filter_fastas_by_cluster took 20 seconds. There were 73 jobs and cumulatively they took 0 days 00:00:00 wallclock time.
+2024-10-23 05:44:02,998 INFO pipeline_auxiliaries.py:73 Sub-step 05a_all_vs_all_analysis took cumulatively 1 days 15:38:04 wallclock time
+2024-10-23 05:44:02,999 INFO pipeline_auxiliaries.py:73 Sub-step 05b_max_rbh_scores took cumulatively 0 days 00:23:04 wallclock time
+2024-10-23 05:44:02,999 INFO pipeline_auxiliaries.py:73 Sub-step 05c_mmseqs_paralogs took cumulatively 0 days 00:58:30 wallclock time
+2024-10-23 05:44:02,999 INFO pipeline_auxiliaries.py:73 Sub-step 05d_normalize_scores took cumulatively 0 days 01:05:35 wallclock time
+2024-10-23 05:44:02,999 INFO pipeline_auxiliaries.py:73 Sub-step 05e_concatenate_hits took cumulatively 0 days 00:28:40 wallclock time
+2024-10-23 05:44:02,999 INFO pipeline_auxiliaries.py:73 Sub-step 05f_putative_table took cumulatively 0 days 00:00:13 wallclock time
+2024-10-23 05:44:02,999 INFO pipeline_auxiliaries.py:73 Sub-step 05g_mcl_input_files took cumulatively 0 days 00:50:31 wallclock time
+2024-10-23 05:44:02,999 INFO pipeline_auxiliaries.py:73 Sub-step 05h_mcl_analysis took cumulatively 0 days 02:40:38 wallclock time
+2024-10-23 05:44:02,999 INFO pipeline_auxiliaries.py:73 Sub-step 05i_verified_clusters took cumulatively 0 days 02:36:25 wallclock time
+2024-10-23 05:44:02,999 INFO pipeline_auxiliaries.py:73 Sub-step 05j_verified_table took cumulatively 0 days 00:00:09 wallclock time
+2024-10-23 05:44:02,999 INFO pipeline_auxiliaries.py:75 Step 05_infer_orthogroups took 40:42 minutes. There were 1 jobs and cumulatively they took 2 days 00:41:49 wallclock time. 
+2024-10-23 08:01:58,648 INFO pipeline_auxiliaries.py:75 Step 06_orphan_genes took 20 seconds. There were 73 jobs and cumulatively they took 0:06:36 wallclock time. 
+2024-10-23 08:02:39,832 INFO pipeline_auxiliaries.py:75 Step 07a_final_orthologs_table took 40 seconds. There were 1 jobs and cumulatively they took 0:00:12 wallclock time. 
+2024-10-23 08:04:58,531 INFO pipeline_auxiliaries.py:75 Step 08a_orthologs_groups_dna took 40 seconds. There were 250 jobs and cumulatively they took 0:33:21 wallclock time. 
+2024-10-23 08:08:11,068 INFO pipeline_auxiliaries.py:75 Step 08b_orthologs_groups_aa took 1:10 minutes. There were 302 jobs and cumulatively they took 3:31:18 wallclock time. 
+2024-10-23 08:12:44,357 INFO pipeline_auxiliaries.py:75 Step 08c_orthologs_groups_aa_msa took 2:30 minutes. There were 302 jobs and cumulatively they took 8:17:30 wallclock time. 
+2024-10-23 08:15:44,904 INFO pipeline_auxiliaries.py:75 Step 08d_orthologs_groups_induced_dna_msa_by_aa_msa took 1:00 minutes. There were 302 jobs and cumulatively they took 4:04:37 wallclock time. 
+2024-10-23 08:16:55,573 INFO pipeline_auxiliaries.py:75 Step 09a_aligned_core_proteome took 1:10 minutes. There were 1 jobs and cumulatively they took 0:00:32 wallclock time. 
+2024-10-23 08:18:26,240 INFO pipeline_auxiliaries.py:75 Step 09b_aligned_core_genome took 1:30 minutes. There were 1 jobs and cumulatively they took 0:00:57 wallclock time. 
+2024-10-23 08:19:06,591 INFO pipeline_auxiliaries.py:75 Step 10_genome_numeric_representation took 40 seconds. There were 1 jobs and cumulatively they took 0:00:06 wallclock time. 
+2024-10-23 08:36:57,991 INFO pipeline_auxiliaries.py:75 Step 11_species_phylogeny took 17:51 minutes. There were 1 jobs and cumulatively they took 0:17:29 wallclock time. 
+2024-10-23 08:39:58,665 INFO pipeline_auxiliaries.py:75 Step 12_codon_bias took 3:00 minutes. There were 1 jobs and cumulatively they took 0:00:00 wallclock time. Times are not complete since files ['/groups/pupko/yairshimony/microbializer_runs/73Escherichia/outputs_no_optimize/tmp/12_codon_bias/codon_bias_1280507_log.txt'] do not have times records
+2024-10-23 08:50:09,714 INFO pipeline_auxiliaries.py:75 Step 13_kegg took 10:10 minutes. There were 1 jobs and cumulatively they took 0:09:40 wallclock time. 

@@ -1,17 +1,19 @@
+import math
 import os
 import sys
 import itertools
-import json
 from sys import argv
 import argparse
 import traceback
+import pandas as pd
+from collections import defaultdict
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from auxiliaries.pipeline_auxiliaries import fail, get_job_logger, prepare_directories, submit_batch, \
     wait_for_results, submit_mini_batch, execute, get_job_times_logger
-from auxiliaries.logic_auxiliaries import aggregate_mmseqs_scores, define_intervals
+from auxiliaries.logic_auxiliaries import aggregate_mmseqs_scores, define_intervals, add_score_column_to_mmseqs_output
 from auxiliaries import consts
 from auxiliaries.file_writer import write_to_file
 
@@ -28,9 +30,10 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
     m8_output_path = os.path.join(all_vs_all_output_dir, 'all_vs_all_reduced_columns.csv')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
+        m8_raw_output_path = os.path.join(all_vs_all_output_dir, 'all_vs_all_raw.m8')
         params = [all_proteins_path,
                   all_vs_all_output_dir,
-                  m8_output_path,
+                  m8_raw_output_path,
                   f'--identity_cutoff {identity_cutoff / 100}',
                   f'--coverage_cutoff {coverage_cutoff / 100}',
                   f'--e_value_cutoff {e_value_cutoff}',
@@ -41,6 +44,20 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
                           memory=consts.MMSEQS_REQUIRED_MEMORY_GB, time_in_hours=72)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, 1, error_file_path)
+
+        m8_df = pd.read_csv(m8_raw_output_path, sep='\t', names=consts.MMSEQS_OUTPUT_HEADER)
+        add_score_column_to_mmseqs_output(m8_df)
+        m8_df['query_genome'] = m8_df['query'].str.split(':').str[0]
+        m8_df['target_genome'] = m8_df['target'].str.split(':').str[0]
+
+        m8_parsed_output_path = os.path.join(all_vs_all_output_dir, 'all_vs_all.m8')
+        m8_df.to_csv(m8_parsed_output_path, index=False)
+        logger.info(f"{m8_parsed_output_path} was created successfully.")
+
+        m8_df = m8_df[['query', 'query_genome', 'target', 'target_genome', 'score']]
+        m8_df.to_csv(m8_output_path, index=False)
+        logger.info(f"{m8_output_path} was created successfully.")
+
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -57,10 +74,24 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
     os.makedirs(max_rbh_scores_parts_output_dir, exist_ok=True)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
-        all_cmds_params = []
         if len(strains_names) >= 2:
-            for genome1, genome2 in itertools.combinations(strains_names, 2):
-                params = [m8_output_path, genome1, genome2, orthologs_output_dir,
+            rbh_inputs_dir = os.path.join(pipeline_step_tmp_dir, 'rbh_inputs_dir')
+            os.makedirs(rbh_inputs_dir, exist_ok=True)
+            job_index_to_pairs = defaultdict(list)
+            for i, (genome1, genome2) in enumerate(itertools.combinations(strains_names, 2)):
+                job_index = i % n_jobs_per_step
+                job_index_to_pairs[job_index].append((genome1, genome2))
+
+            for job_index, pairs in job_index_to_pairs.items():
+                job_input_path = os.path.join(rbh_inputs_dir, f'job_{job_index}_pairs.txt')
+                pairs_text = '\n'.join([f'{genome1}\t{genome2}' for genome1, genome2 in pairs])
+                with open(job_input_path, 'w') as f:
+                    f.write(pairs_text)
+
+            all_cmds_params = []
+            for rbh_input_file in os.listdir(rbh_inputs_dir):
+                rbh_input_path = os.path.join(rbh_inputs_dir, rbh_input_file)
+                params = [m8_output_path, rbh_input_path, orthologs_output_dir,
                           orthologs_scores_statistics_dir, max_rbh_scores_parts_output_dir]
                 all_cmds_params.append(params)
 
@@ -92,9 +123,24 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Searching for paralogs in each genome')
+
+        paralogs_inputs_dir = os.path.join(pipeline_step_tmp_dir, 'paralogs_inputs_dir')
+        os.makedirs(paralogs_inputs_dir, exist_ok=True)
+        job_index_to_genome = defaultdict(list)
+        for i, genome in enumerate(strains_names):
+            job_index = i % n_jobs_per_step
+            job_index_to_genome[job_index].append(genome)
+
+        for job_index, genomes in job_index_to_genome.items():
+            job_input_path = os.path.join(paralogs_inputs_dir, f'job_{job_index}_genomes.txt')
+            genomes_text = '\n'.join(genomes)
+            with open(job_input_path, 'w') as f:
+                f.write(genomes_text)
+
         all_cmds_params = []
-        for genome_name in strains_names:
-            single_cmd_params = [m8_output_path, genome_name, max_rbh_scores_parts_output_dir,
+        for paralogs_input_file in os.listdir(paralogs_inputs_dir):
+            paralogs_input_path = os.path.join(paralogs_inputs_dir, paralogs_input_file)
+            single_cmd_params = [m8_output_path, paralogs_input_path, max_rbh_scores_parts_output_dir,
                                  paralogs_output_dir, max_rbh_scores_unified_dir, paralogs_scores_statistics_dir]
             all_cmds_params.append(single_cmd_params)
 
@@ -350,7 +396,7 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // n_jobs_per_step),
                                                    job_name_suffix='concatenate_hits',
-                                                   queue_name=queue_name,
+                                                    queue_name=queue_name,
                                                    account_name=account_name)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
@@ -399,13 +445,14 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
     if not os.path.exists(done_file_path):
         logger.info('Preparing files for MCL...')
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-        clusters_to_prepare_per_job = 100
+
         with open(os.path.join(os.path.split(putative_orthologs_table_path)[0], 'num_of_putative_sets.txt')) as f:
             num_of_putative_sets = int(f.read())
         if num_of_putative_sets == 0:
             error_msg = f'No putative ortholog groups were detected in your dataset. Please try to lower the ' \
                         f'similarity parameters (see Advanced Options in the submission page) and re-submit your job.'
             fail(logger, error_msg, error_file_path)
+        clusters_to_prepare_per_job = math.ceil(num_of_putative_sets / n_jobs_per_step)
         for i in range(1, num_of_putative_sets + 1, clusters_to_prepare_per_job):
             first_mcl = str(i)
             last_mcl = str(min(i + clusters_to_prepare_per_job - 1,
