@@ -20,7 +20,7 @@ from auxiliaries.file_writer import write_to_file
 
 def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,
                        all_proteins_path, strains_names, queue_name, account_name, identity_cutoff, coverage_cutoff,
-                       e_value_cutoff, n_jobs_per_step):
+                       e_value_cutoff, n_jobs_per_step, mmseqs_cpus):
     # a.	mmseqs2_all_vs_all.py
     step_number = f'{base_step_number}a'
     logger.info(f'Step {step_number}: {"_" * 100}')
@@ -37,10 +37,10 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
                   f'--identity_cutoff {identity_cutoff / 100}',
                   f'--coverage_cutoff {coverage_cutoff / 100}',
                   f'--e_value_cutoff {e_value_cutoff}',
-                  f'--cpus {consts.MMSEQS_NUM_OF_CORES}']
+                  f'--cpus {mmseqs_cpus}']
 
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path, queue_name,
-                          account_name, job_name='mmseqs', num_of_cpus=consts.MMSEQS_NUM_OF_CORES,
+                          account_name, job_name='mmseqs', num_of_cpus=mmseqs_cpus,
                           memory=consts.MMSEQS_REQUIRED_MEMORY_GB, time_in_hours=72)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, 1, error_file_path)
@@ -316,10 +316,11 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
     n_jobs_per_step = consts.MAX_PARALLEL_JOBS // num_of_times_script_called
 
     if run_optimized_mmseqs:
+        mmseqs_cpus = consts.MMSEQS_NUM_OF_CORES // num_of_times_script_called
         orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir = \
             run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
                                done_files_dir, all_proteins_path, strains_names, queue_name, account_name,
-                               identity_cutoff, coverage_cutoff,  e_value_cutoff, n_jobs_per_step)
+                               identity_cutoff, coverage_cutoff,  e_value_cutoff, n_jobs_per_step, mmseqs_cpus)
     else:
         orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir = \
             run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,

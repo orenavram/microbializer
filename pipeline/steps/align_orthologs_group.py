@@ -7,6 +7,7 @@ import sys
 import traceback
 import shutil
 from Bio import SeqIO
+import time
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -25,15 +26,20 @@ def reconstruct_msa(logger, sequences_file_path, mode, output_file_path):
     # CNTDVACAAPGN
     # >seq_1112_lib_C8C_len_10_counts_126.40626975097965
     # CTTACAPVNC
+    start_time = time.time()
     records = list(SeqIO.parse(sequences_file_path, 'fasta'))
+    parse_time = time.time() - start_time
+    logger.info(f'Biopython parse time is {parse_time}')
     if len(records) == 1:
         logger.info(f'Only one sequence in {sequences_file_path}. Copying it to {output_file_path}')
         shutil.copy(sequences_file_path, output_file_path)
-
     else:
+        start_time = time.time()
         cmd = f'mafft --auto --{mode} {sequences_file_path} > {output_file_path}'
         logger.info(f'Starting MAFFT. Executed command is:\n{cmd}')
         subprocess.run(cmd, shell=True)
+        mafft_time = time.time() - start_time
+        logger.info(f'mafft time is {mafft_time}')
 
 
 if __name__ == '__main__':
