@@ -203,7 +203,7 @@ class EMAIL_CONSTS:
     For more help contact: ''' + flask_interface_consts.OWNER_EMAIL
 
     SUBMITTED_TITLE = '''Microbializer {job_name} - Job Submitted'''
-    SUBMITTED_CONTENT = '''Thank you, for using Microbializer.\nYour job has been submitted, you can check its status at: {WEBSERVER_ADDRESS}/process_state/{process_id}\nAn update will be sent upon completion.'''
+    SUBMITTED_CONTENT = '''Thank you, for using Microbializer.\nYour job has been submitted, you can check its status at: {webserver_address}/process_state/{process_id}\nAn update will be sent upon completion.'''
 
 
 class UI_CONSTS:
@@ -237,7 +237,7 @@ class UI_CONSTS:
     }
 
     states_text_dict = {
-        State.Running: "Your process is running.",
+        State.Running: "Your process is running...",
         State.Finished: "Your process finished... Redirecting to results page.", #TODO is needed??
         State.Crashed: "Your process failed.\nWe suggest you rerun the process.", #TODO finish
         State.Waiting: "We are currently running other processes.\nYour process will start soon.",

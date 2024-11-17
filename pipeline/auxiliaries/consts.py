@@ -125,7 +125,7 @@ FULL_STEPS_NAMES_FOR_PROGRESS_BAR = [
     'Calculate ANI (Average Nucleotide Identity)',
     'Predict and translate ORFs',
     'Calculate genomes completeness',
-    'Infer orthogroups'
+    'Infer orthogroups',
     'Find orphan genes',
     'Prepare orthogroups fasta files',
     'Infer core genome and proteome',
