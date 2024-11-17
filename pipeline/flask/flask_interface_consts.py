@@ -81,8 +81,8 @@ DATA_2_VIEW_IN_HISTOGRAM = {
 
 PATHS_TO_DOWNLOAD = {
     "General": {
-        "Inputs_(zip)": INPUTS_GENOMES_ZIPPED,
-        "All_outputs_(zip)": ALL_OUTPUTS_ZIPPED
+        "Inputs_(zip)": (INPUTS_GENOMES_ZIPPED, "The input genomes in a zip file"),
+        "All_outputs_(zip)": (ALL_OUTPUTS_ZIPPED, "All the outputs in a zip file"),
     },
     "ANI (Average Nucleotide Identity)": {
         "ANI_table": (ANI_CSV, "Can also be found in 01_ani directory in the 'All outputs (zip)' file"),

@@ -1,6 +1,12 @@
 from pathlib import Path
 from enum import Enum
-from . import flask_interface_consts
+import os
+import sys
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(SCRIPT_DIR)
+
+import flask_interface_consts
 
 WEBSERVER_DOMAIN = 'dev.microbializer.tau.ac.il'
 WEBSERVER_ADDRESS = f'http://{WEBSERVER_DOMAIN}'
@@ -264,7 +270,7 @@ class UI_CONSTS:
         UNKNOWN_ACTION = 'Please use send a valid action'
         NO_ACTION = 'No action was added, please choose'
         ALL_FILES_NOT_CREATE = 'Cannot find the required zip files for all results'
-        FILE_NOT_FOUND = 'Cannot file the required file'
+        FILE_NOT_FOUND = 'Cannot find the required file'
 
 
     ERROR_CONTACT_INFO = f'For more information, or any other inquiries, please contact {flask_interface_consts.OWNER_EMAIL}'
