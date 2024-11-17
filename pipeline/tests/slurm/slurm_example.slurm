@@ -1,14 +1,14 @@
 #!/bin/bash
 
-#SBATCH --job-name=10_genomes
+#SBATCH --job-name={job_name}
 #SBATCH --account=pupko-users
 #SBATCH --partition=pupko
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=4G
 #SBATCH --time=120:00:00
-#SBATCH --output=/groups/pupko/yairshimony/microbializer_runs/example_data/outputs/4genomes_%j.out
-#SBATCH --error=/groups/pupko/yairshimony/microbializer_runs/example_data/outputs/4genomes_%j.err
+#SBATCH --output={path_to_output_dir}/%j.out
+#SBATCH --error={path_to_output_dir}/%j.err
 
 echo "Job ID: $SLURM_JOB_ID"
 echo "Running on nodes: $SLURM_JOB_NODELIST"
@@ -19,4 +19,4 @@ source ~/miniconda3/etc/profile.d/conda.sh
 conda activate microbializer
 export PATH=$CONDA_PREFIX/bin:$PATH
 
-python ~/microbializer_prod/pipeline/main.py --contigs_dir ~/microbializer_runs/example_data/inputs
+python ~/microbializer_prod/pipeline/main.py --contigs_dir {inputs_dir/inputs_zip} --account_name pupko-users --queue_name pupko --inputs_fasta_type {genomes/orfs}
