@@ -125,6 +125,7 @@ PATHS_TO_DOWNLOAD = {
 # Microbializer processor Job variables
 MICROBIALIZER_PROCESSOR_JOB_QUEUE_NAME = 'pupkoweb'
 NUBMER_OF_CPUS_MICROBIALIZER_PROCESSOR_JOB = '1'
+MICROBIALIZER_MAIN_JOB_MEMORY = '4G'
 MICROBIALIZER_PROCESSOR_JOB_PREFIX = 'MC'
 MICROBIALIZER_PROCESSOR_RESULTS_FILE_NAME = ALL_OUTPUTS_ZIPPED
 
@@ -152,7 +153,7 @@ MICROBIALIZER_JOB_HEADER_TEMPLATE = '''
 #SBATCH --partition=pupkoweb
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task={num_cpus}
-#SBATCH --mem=4G
+#SBATCH --mem={memory}
 #SBATCH --output={output_file}
 #SBATCH --error={error_file}
 '''

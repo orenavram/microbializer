@@ -60,7 +60,7 @@ def submit_job(script_commands, job_name, logs_path, num_cpus, queue, memory, lo
     slurm_script_path = os.path.join(logs_path, 'job.slurm')
     with open(slurm_script_path, 'w') as f:
         slurm_header = flask_interface_consts.MICROBIALIZER_JOB_HEADER_TEMPLATE.format(
-            output_file=slurm_output_file, error_file=slurm_error_file, num_cpus=num_cpus)
+            output_file=slurm_output_file, error_file=slurm_error_file, num_cpus=num_cpus, memory=memory)
         shebang, commands = script_commands.split('\n', 1)
         full_slurm_script = f"{shebang}\n{slurm_header}\n{commands}"
         f.write(full_slurm_script)
