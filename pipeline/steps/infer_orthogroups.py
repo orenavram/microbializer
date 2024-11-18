@@ -441,7 +441,7 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_mcl_input_files'
     script_path = os.path.join(consts.SRC_DIR, 'steps/prepare_files_for_mcl.py')
-    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    mcl_inputs_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Preparing files for MCL...')
@@ -463,7 +463,7 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
                                  putative_orthologs_table_path,
                                  first_mcl,
                                  last_mcl,
-                                 pipeline_step_output_dir]
+                                 mcl_inputs_dir]
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
@@ -485,20 +485,19 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
     # Can be parallelized on cluster
     step_number = f'{base_step_number}h'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    previous_pipeline_step_output_dir = pipeline_step_output_dir
     step_name = f'{step_number}_mcl_analysis'
     script_path = os.path.join(consts.SRC_DIR, 'steps/run_mcl.py')
-    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    mcl_outputs_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Executing MCL...')
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-        for putative_orthologs_group in os.listdir(previous_pipeline_step_output_dir):
+        for putative_orthologs_group in os.listdir(mcl_inputs_dir):
             putative_orthologs_group_prefix = os.path.splitext(putative_orthologs_group)[0]
             output_file_name = f'{putative_orthologs_group_prefix}.{step_name}'
 
-            single_cmd_params = [f'"{os.path.join(previous_pipeline_step_output_dir, putative_orthologs_group)}"',
-                                 f'"{os.path.join(pipeline_step_output_dir, output_file_name)}"']
+            single_cmd_params = [f'"{os.path.join(mcl_inputs_dir, putative_orthologs_group)}"',
+                                 f'"{os.path.join(mcl_outputs_dir, output_file_name)}"']
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
@@ -519,17 +518,16 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
     # Can be parallelized on cluster
     step_number = f'{base_step_number}i'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    previous_pipeline_step_output_dir = pipeline_step_output_dir
     step_name = f'{step_number}_verified_clusters'
     script_path = os.path.join(consts.SRC_DIR, 'steps/verify_cluster.py')
-    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    verified_clusters_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Verifying clusters...')
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-        for putative_orthologs_group in os.listdir(previous_pipeline_step_output_dir):
-            single_cmd_params = [os.path.join(previous_pipeline_step_output_dir, putative_orthologs_group),
-                                 pipeline_step_output_dir]
+        for putative_orthologs_group in os.listdir(mcl_outputs_dir):
+            single_cmd_params = [os.path.join(mcl_outputs_dir, putative_orthologs_group),
+                                 verified_clusters_output_dir]
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
@@ -540,19 +538,19 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)
+
+        logger.info(f'A total of {mcl_inputs_dir} clusters were analyzed. '
+                    f'{len(os.listdir(verified_clusters_output_dir))} clusters were produced.')
+
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
-
-    logger.info(f'A total of {len(os.listdir(previous_pipeline_step_output_dir))} clusters were analyzed. '
-                f'{len(os.listdir(pipeline_step_output_dir))} clusters were produced.')
 
     # j.	construct_verified_orthologs_table.py
     # Input: (1) a path for directory with all the verified OGs (2) an output path to a final OGs table.
     # Output: aggregates all the well-clustered OGs to the final table.
     step_number = f'{base_step_number}j'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    previous_pipeline_step_output_dir = pipeline_step_output_dir
     step_name = f'{step_number}_verified_table'
     script_path = os.path.join(consts.SRC_DIR, 'steps/construct_verified_orthologs_table.py')
     verified_orthologs_table_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
@@ -561,7 +559,7 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
     if not os.path.exists(done_file_path):
         logger.info('Constructing verified orthologs table...')
         params = [putative_orthologs_table_path,
-                  previous_pipeline_step_output_dir,
+                  verified_clusters_output_dir,
                   verified_orthologs_table_file_path]
 
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path, queue_name, account_name,

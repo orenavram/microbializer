@@ -50,8 +50,11 @@ def extract_paralogs_of_genome(logger, m8_df, genome_name, max_scores_parts_dir,
     m8_df = m8_df.loc[((m8_df['score'] >= m8_df['query_max_score']) | (m8_df['query_max_score'].isna())) &
                       ((m8_df['score'] >= m8_df['target_max_score']) | (m8_df['target_max_score'].isna()))]
 
-    # Keep only 1 record for each genes pair
-    m8_df = m8_df.loc[m8_df['query'] < m8_df['target']]
+    # Remove duplicates by sorting query and subject IDs in each pair and taking only unique pairs
+    m8_df['pair'] = m8_df.apply(
+        lambda x: tuple(sorted((x['query'], x['target']))), axis=1
+    )
+    m8_df = m8_df.drop_duplicates(subset='pair')
 
     if not m8_df.empty:
         m8_df[['query', 'target', 'score']].to_csv(output_paralogs_filtered_path, index=False)

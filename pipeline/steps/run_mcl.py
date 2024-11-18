@@ -14,7 +14,7 @@ from auxiliaries.pipeline_auxiliaries import get_job_logger
 
 def mcl(logger, input_file, output_file):
     # --abc for a columns format, i.e., item1\item2\tscore
-    cmd = f'mcl "{input_file}" --abc -o "{output_file}"'
+    cmd = f'mcl "{input_file}" -I 1.5 --abc -o "{output_file}"'
     logger.info(f'Starting MCL. Calling:\n{cmd}')
     subprocess.run(cmd, shell=True)
 

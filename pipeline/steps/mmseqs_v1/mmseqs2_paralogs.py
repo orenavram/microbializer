@@ -76,8 +76,11 @@ def search_paralogs(logger, protein_fasta, m8_outfile, genome_max_scores_path, s
     df = df.loc[((df['score'] >= df['query_max_score']) | (df['query_max_score'].isna())) &
                 ((df['score'] >= df['target_max_score']) | (df['target_max_score'].isna()))]
 
-    # Keep only 1 record for each genes pair
-    df = df.loc[df['query'] < df['target']]
+    # Remove duplicates by sorting query and subject IDs in each pair and taking only unique pairs
+    df['pair'] = df.apply(
+        lambda x: tuple(sorted((x['query'], x['target']))), axis=1
+    )
+    df = df.drop_duplicates(subset='pair')
 
     if not df.empty:
         df[['query', 'target', 'score']].to_csv(f'{m8_outfile}_filtered', index=False)
