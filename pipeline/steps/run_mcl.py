@@ -13,6 +13,9 @@ from auxiliaries.pipeline_auxiliaries import get_job_logger
 
 
 def mcl(logger, input_file, output_file):
+    if os.path.exists(output_file):
+        return
+
     # --abc for a columns format, i.e., item1\item2\tscore
     cmd = f'mcl "{input_file}" -I 1.5 --abc -o "{output_file}"'
     logger.info(f'Starting MCL. Calling:\n{cmd}')

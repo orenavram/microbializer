@@ -112,10 +112,13 @@ def prepare_files_for_mcl(logger, all_reciprocal_hits_path, putative_orthologs_p
         f'All relevant reciprocal hits were loaded successfully. Number of relevant gene pairs is {len(gene_pair_to_score_dict)}.')
 
     for group_name in group_name_to_combinations:
+        mcl_file_path = os.path.join(output_path, group_name + '.mcl_input')
+        if os.path.exists(mcl_file_path):
+            continue
+
         # create input file for mcl
         text_to_mcl_file = generate_text_to_mcl_input_file(logger, gene_pair_to_score_dict,
                                                            group_name_to_combinations[group_name])
-        mcl_file_path = os.path.join(output_path, group_name + '.mcl_input')
 
         with open(mcl_file_path, 'w') as mcl_f:
             mcl_f.write(text_to_mcl_file)

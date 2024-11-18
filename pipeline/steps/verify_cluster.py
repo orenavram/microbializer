@@ -3,7 +3,7 @@ import argparse
 import logging
 import os
 import sys
-import math
+import shutil
 import traceback
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -15,20 +15,24 @@ from auxiliaries.pipeline_auxiliaries import get_job_logger
 def verify(logger, input_file, output_dir):
     input_og_name = os.path.splitext(os.path.basename(input_file))[0]
     with open(input_file, 'r') as f:
-        lines = [line.rstrip() for line in f]
+        lines = [line.rstrip() for line in f if line]
 
     if len(lines) == 0:
         raise ValueError(f'{input_file} is empty! There\'s a bug in the previous step!')
     elif len(lines) == 1:
-        os.rename(input_file, os.path.join(output_dir, input_og_name + ".verified_cluster"))
+        output_file_path = os.path.join(output_dir, input_og_name + ".verified_cluster")
+        if os.path.exists(output_file_path):
+            return
+        shutil.copyfile(input_file, output_file_path)
     else:  # 1 < len(lines)
         og_subset_id = 0
         for line in lines:
             if len(line.split('\t')) == 1:
                 continue  # Skip lines with 1 protein (orphan genes)
             verified_cluster_path = os.path.join(output_dir, f"{input_og_name}_{og_subset_id}.split_cluster")
-            with open(verified_cluster_path, 'w') as verified_cluster_file:
-                verified_cluster_file.write(line)
+            if not os.path.exists(verified_cluster_path):
+                with open(verified_cluster_path, 'w') as verified_cluster_file:
+                    verified_cluster_file.write(line)
             og_subset_id += 1
 
 

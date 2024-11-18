@@ -62,6 +62,7 @@ def search_paralogs(logger, protein_fasta, m8_outfile, genome_max_scores_path, s
     logger.info(f"{m8_outfile} was created successfully. Adding score column and filtering to include only recent paralogs...")
     # Add 'score' column to mmseqs output
     df = pd.read_csv(m8_outfile, sep='\t', names=consts.MMSEQS_OUTPUT_HEADER)
+    df = df[df['query'] != df['target']]
     add_score_column_to_mmseqs_output(df)
 
     # Keep only hits that have score higher than the max score of both query and target.
