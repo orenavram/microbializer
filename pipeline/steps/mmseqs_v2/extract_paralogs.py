@@ -18,7 +18,7 @@ def extract_paralogs_of_genome(logger, m8_df, genome_name, max_scores_parts_dir,
                                max_rbh_scores_unified_dir, scores_statistics_dir):
     genome_max_rbh_scores_path = os.path.join(max_rbh_scores_unified_dir, f'{genome_name}.csv')
     output_paralogs_raw_path = os.path.join(paralogs_dir, f'{genome_name}_vs_{genome_name}.m8')
-    output_paralogs_filtered_path = os.path.join(paralogs_dir, f'{genome_name}_vs_{genome_name}_filtered.m8')
+    output_paralogs_filtered_path = os.path.join(paralogs_dir, f'{genome_name}_vs_{genome_name}.m8_filtered')
     score_stats_file = os.path.join(scores_statistics_dir, f'{genome_name}_vs_{genome_name}.stats')
 
     if os.path.exists(genome_max_rbh_scores_path) and os.path.exists(output_paralogs_raw_path) \

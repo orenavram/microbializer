@@ -587,7 +587,7 @@ def step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output
                   clusters_file_path,
                   consts.MMSEQS_CLUSTER_MIN_SEQ_ID,
                   consts.MMSEQS_CLUSTER_MIN_COVERAGE,
-                  consts.CLUSTER_PROTEOMES_NUM_OF_CORES,
+                  consts.MMSEQS_CLUSTER_NUM_OF_CORES,
                   f'--num_of_clusters_in_orthogroup_inference {args.num_of_clusters_in_orthogroup_inference}'
                   ]
 
@@ -595,7 +595,7 @@ def step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output
             params.append('--do_cluster')
 
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path, args.queue_name, args.account_name,
-                          job_name='cluster_proteomes', num_of_cpus=consts.CLUSTER_PROTEOMES_NUM_OF_CORES, memory=consts.MMSEQS_REQUIRED_MEMORY_GB)
+                          job_name='cluster_proteomes', num_of_cpus=consts.MMSEQS_CLUSTER_NUM_OF_CORES, memory=consts.MMSEQS_REQUIRED_MEMORY_GB)
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path)
 
@@ -1198,7 +1198,7 @@ def step_13_kegg_annotation(args, logger, times_logger, error_file_path, output_
             '--optimize'
         ]
         submit_mini_batch(logger, script_path, [params], tmp_dir, error_file_path, args.queue_name, args.account_name,
-                          job_name='kegg', num_of_cpus=consts.KEGG_NUM_OF_CORES)
+                          job_name='kegg', num_of_cpus=consts.KEGG_NUM_OF_CORES, memory=consts.KEGG_REQUIRED_MEMORY_GB)
 
         wait_for_results(logger, times_logger, step_name, tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path)
