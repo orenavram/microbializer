@@ -14,6 +14,10 @@ from auxiliaries.pipeline_auxiliaries import get_job_logger
 
 def reconstruct_msa(logger, query_genome_path, all_genomes_reference_path, output_dir):
     output_path = f'{os.path.join(output_dir, os.path.splitext(os.path.basename(query_genome_path))[0])}_to_all.tsv'
+
+    if os.path.exists(output_path):
+        return
+
     # No ANI output is reported for a genome pair if ANI value is much below 80% (https://github.com/ParBLiSS/FastANI)
     cmd = f'fastANI -q {query_genome_path} --rl {all_genomes_reference_path} -o {output_path}'
     logger.info(f'Starting fastANI. Executed command is:\n{cmd}')

@@ -188,9 +188,10 @@ def plot_ani_clustermap(
     )
     mycmap.set_under("lightgrey")
 
+    figure_size = min(max(len(ani_df) / 5, 10), 60)
     if ani_df.isnull().values.any():
         # Plot heatmap, since clustermap isn't possible with NaN values
-        fig, ax = plt.subplots(figsize=(max(len(ani_df) / 5, 10), max(len(ani_df) / 5, 10)))
+        fig, ax = plt.subplots(figsize=(figure_size, figure_size))
         sns.heatmap(
             data=np.floor(ani_df * 10) / 10,
             annot=len(ani_df) <= 10,
@@ -217,7 +218,7 @@ def plot_ani_clustermap(
             # method="average",
             col_linkage=linkage,
             row_linkage=linkage,
-            figsize=(max(len(ani_df) / 5, 10), max(len(ani_df) / 5, 10)),
+            figsize=(figure_size, figure_size),
             annot=len(ani_df) <= 10,
             fmt=".3g",
             cmap=mycmap,

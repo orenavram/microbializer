@@ -34,7 +34,7 @@ def run_mmseqs(logger, all_proteins_fasta, output_dir, output_path, identity_cut
         # control verbosity level by -v [3] param ; verbosity levels: 0=nothing, 1: +errors, 2: +warnings, 3: +info
         cmd = f'mmseqs easy-search {all_proteins_fasta} {all_proteins_fasta} {output_path} {tmp_dir} ' \
               f'--format-output {consts.MMSEQS_OUTPUT_FORMAT} --min-seq-id {identity_cutoff} -c {coverage_cutoff} ' \
-              f'--cov-mode 0 -e {e_value_cutoff} --threads {cpus} -v 1'
+              f'--cov-mode 0 -e {e_value_cutoff} --threads {cpus} -v 1 --comp-bias-corr 0'
         logger.info(f'Iteration #{i} - Calling:\n{cmd}')
         subprocess.run(cmd, shell=True)
         i += 1

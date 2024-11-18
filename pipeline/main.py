@@ -1257,7 +1257,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         logger.info("Step 0 completed.")
         return
 
-    if not args.only_calc_ogs and number_of_genomes <= 100:
+    if not args.only_calc_ogs:
         step_1_calculate_ani(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
                              done_files_dir, data_path)
         update_progressbar(progressbar_file_path, 'Calculate ANI (Average Nucleotide Identity)')
