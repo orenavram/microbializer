@@ -2,7 +2,7 @@ import os
 import pandas as pd
 from sklearn import metrics
 
-BASE_PATH = r"C:\repos\microbializer\pipeline\tests\compare_og_tables\4_genomes"
+BASE_PATH = r"C:\repos\microbializer\pipeline\tests\compare_og_tables\73_ecoli_compare_mmseqs_optimized"
 OG_TABLE_NO_OPTIMIZE = os.path.join(BASE_PATH, "no_optimize", "orthogroups.csv")
 OG_TABLE_OPTIMIZE_1_MMSEQS_COMMAND = os.path.join(BASE_PATH, "optimize_1_mmseqs_command", "orthogroups.csv")
 

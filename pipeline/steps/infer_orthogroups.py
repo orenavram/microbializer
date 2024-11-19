@@ -97,8 +97,7 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
 
             num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                        error_file_path,
-                                                       num_of_cmds_per_job=max(1,
-                                                                               len(all_cmds_params) // n_jobs_per_step),
+                                                       num_of_cmds_per_job=1, # = max(1, len(all_cmds_params) // n_jobs_per_step),
                                                        job_name_suffix='rbh_analysis',
                                                        queue_name=queue_name,
                                                        account_name=account_name)
@@ -146,8 +145,7 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                    error_file_path,
-                                                   num_of_cmds_per_job=max(1,
-                                                                           len(all_cmds_params) // n_jobs_per_step),
+                                                   num_of_cmds_per_job=1, # = max(1, len(all_cmds_params) // n_jobs_per_step),
                                                    job_name_suffix='paralogs_analysis',
                                                    queue_name=queue_name,
                                                    account_name=account_name)
