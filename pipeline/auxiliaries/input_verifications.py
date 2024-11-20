@@ -108,16 +108,12 @@ def unpack_data(logger, data_path, meta_output_dir, error_file_path):
         except Exception as e:
             logger.info(e)
             remove_path(logger, data_path)
-            fail(logger, f'{consts.WEBSERVER_NAME} failed to decompress your data. Please make sure all your FASTA files names '
+            fail(logger, f'{flask_interface_consts.WEBSERVER_NAME} failed to decompress your data. Please make sure all your FASTA files names '
                  f'do contain only dashes, dots, and alphanumeric characters (a-z, A-Z, 0-9). Other characters such as '
                  f'parenthesis, pipes, slashes, are not allowed. Please also make sure your archived file format is legal (either a '
-                 f'<a href="https://support.microsoft.com/en-us/help/14200/windows-compress-uncompress-zip-files" target="_blank">.zip</a> file or a '
-                 f'<a href="https://linhost.info/2012/08/gzip-files-in-windows/" target="_blank">.tar.gz</a> file in which each file is a '
-                 f'<a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a> containing genomic sequence of a different species).',
+                 f'.zip file or a .tar.gz file in which each file is in FASTA format containing genomic sequence of a different species).',
                  error_file_path)
         logger.info('Succeeded!')
-        # data_path = os.path.join(meta_output_dir, 'data') # e.g., /groups/pupko/orenavr2/microbializer/example_data.tar.gz
-        # logger.info(f'Updated data_path is:\n{data_path}')
 
         if not os.path.exists(unzipped_data_path):
             fail(logger, f'Failed to unzip {os.path.split(data_path)[-1]} (maybe it is empty?)', error_file_path)
