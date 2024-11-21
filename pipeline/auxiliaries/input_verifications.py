@@ -177,7 +177,7 @@ def move_file(logger, folder, file_name, new_file_name, error_file_path):
         os.rename(os.path.join(folder, file_name), os.path.join(folder, new_file_name))
         file_name = new_file_name
     except:
-        error_msg = f'One (or more) file name(s) contain illegal character such as parenthesis, pipes, or slashes.<br>\nIn order to avoid downstream parsing errors, {consts.WEBSERVER_NAME} automatically replaces these spaces with dashes. For some reason, the replacement for {file_name} failed. Please make sure all your input files names contain only dashes, dots, and alphanumeric characters (a-z, A-Z, 0-9) and re-submit your job.'
+        error_msg = f'One (or more) file name(s) contain illegal character such as parenthesis, pipes, or slashes.<br>\nIn order to avoid downstream parsing errors, {flask_interface_consts.WEBSERVER_NAME} automatically replaces these spaces with dashes. For some reason, the replacement for {file_name} failed. Please make sure all your input files names contain only dashes, dots, and alphanumeric characters (a-z, A-Z, 0-9) and re-submit your job.'
         fail(logger, error_msg, error_file_path)
 
 
@@ -197,9 +197,9 @@ def verify_fasta_format(logger, data_path):
                 line = f.readline()  # TODO .replace(",", "_")
                 line_number += 1
                 if not line:
-                    return f'Illegal <a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a>. First line in "{file_name}" is empty.'
+                    return f'Illegal FASTA format. First line in "{file_name}" is empty.'
                 if not line.startswith('>'):
-                    return f'Illegal <a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a>. First line in "{file_name}" starts with "{line[0]}" instead of ">".'
+                    return f'Illegal FASTA format. First line in "{file_name}" starts with "{line[0]}" instead of ">".'
                 if has_illegal_chars(line):
                     return f'Illegal format. First line in "{file_name}" contains an illegal character in its first word (one of: {ILLEGAL_CHARS}).'
                 previous_line_was_header = True
@@ -234,10 +234,10 @@ def verify_fasta_format(logger, data_path):
             except UnicodeDecodeError as e:
                 logger.info(e.args)
                 line_number += 1  # the line that was failed to be read
-                return f'Illegal <a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a>. Line {line_number} in "{file_name}" contains one (or more) non <a href="https://en.wikipedia.org/wiki/ASCII" target="_blank">ascii</a> character(s).'
+                return f'Illegal FASTA format. Line {line_number} in "{file_name}" contains one (or more) non ascii character(s).'
         duplicate_ids = [item for item, count in collections.Counter(record_ids).items() if count > 1]
         if duplicate_ids:
-            return f'Illegal <a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a>. "{file_name}" contains duplicated record ids: {",".join(duplicate_ids)}.'
+            return f'Illegal FASTA format. "{file_name}" contains duplicated record ids: {",".join(duplicate_ids)}.'
         # override the old file with the curated content
         with open(file_path, 'w') as f:
             f.write(curated_content)

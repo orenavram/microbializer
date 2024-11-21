@@ -261,13 +261,13 @@ def initialize_progressbar(args, progressbar_file_path):
     df.to_csv(progressbar_file_path, index=False)
 
 
-def step_0_filter_out_plasmids(args, logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
-                               data_path):
+def step_0_fix_input_files(args, logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
+                           data_path):
     # 0.	drop_plasmids.py
     step_number = '00'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_drop_plasmids'
-    script_path = os.path.join(consts.SRC_DIR, 'steps/drop_plasmids.py')
+    step_name = f'{step_number}_fix_input_files'
+    script_path = os.path.join(consts.SRC_DIR, 'steps/drop_plasmids_and_fix_frames.py')
     filtered_inputs_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
@@ -276,6 +276,12 @@ def step_0_filter_out_plasmids(args, logger, times_logger, error_file_path, outp
         for fasta_file in os.listdir(data_path):
             single_cmd_params = [os.path.join(data_path, fasta_file),
                                  os.path.join(filtered_inputs_dir, fasta_file)]
+
+            if args.filter_out_plasmids:
+                single_cmd_params.append('--drop_plasmids')
+            if args.inputs_fasta_type == 'orfs':
+                single_cmd_params.append('--fix_frames')
+
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
@@ -645,7 +651,7 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
                                                    account_name=args.account_name)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
-                         num_of_batches, error_file_path, recursive_step=True)
+                         num_of_batches, error_file_path)
 
         write_to_file(logger, done_file_path, '.')
     else:
@@ -1246,11 +1252,12 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         genomes_names = genomes_names_fp.read().split('\n')
     number_of_genomes = len(genomes_names)
 
-    if args.filter_out_plasmids:
-        filtered_inputs_dir = step_0_filter_out_plasmids(args, logger, times_logger, error_file_path, output_dir,
-                                                         tmp_dir, done_files_dir, data_path)
+    if args.filter_out_plasmids or args.inputs_fasta_type == 'orfs':
+        filtered_inputs_dir = step_0_fix_input_files(args, logger, times_logger, error_file_path, output_dir,
+                                                     tmp_dir, done_files_dir, data_path)
         data_path = filtered_inputs_dir
-        update_progressbar(progressbar_file_path, 'Filter out plasmids')
+        if args.filter_out_plasmids:
+            update_progressbar(progressbar_file_path, 'Filter out plasmids')
         edit_progress(output_html_path, progress=5)
 
     if args.step_to_complete == '0':
