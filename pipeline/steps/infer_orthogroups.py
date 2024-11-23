@@ -46,6 +46,7 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, 1, error_file_path)
 
         m8_df = pd.read_csv(m8_raw_output_path, sep='\t', names=consts.MMSEQS_OUTPUT_HEADER)
+        m8_df = m8_df[m8_df['query'] != m8_df['target']]
         add_score_column_to_mmseqs_output(m8_df)
         m8_df['query_genome'] = m8_df['query'].str.split(':').str[0]
         m8_df['target_genome'] = m8_df['target'].str.split(':').str[0]

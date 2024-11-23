@@ -37,8 +37,7 @@ def extract_paralogs_of_genome(logger, m8_df, genome_name, max_scores_parts_dir,
     max_score_per_gene.to_csv(genome_max_rbh_scores_path)
 
     # Filter m8_df to include only potential paralogs
-    m8_df = m8_df[(m8_df['query_genome'] == genome_name) & (m8_df['target_genome'] == genome_name) &
-                  (m8_df['query'] != m8_df['target'])]
+    m8_df = m8_df[(m8_df['query_genome'] == genome_name) & (m8_df['target_genome'] == genome_name)]
     m8_df.to_csv(output_paralogs_raw_path, index=False)
 
     # Keep only hits that have score higher than the max score of both query and target.
