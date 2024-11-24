@@ -192,7 +192,7 @@ class EMAIL_CONSTS:
     CONTENT_PROCESS_CRASHED = '''
     Thank you for using Microbializer.\n
     We are sorry for the inconvenience, but the process crashed.\n
-    Please look at: ''' + WEBSERVER_ADDRESS + '''/process_state/{process_id} for the error details and verify your input.\n
+    Please look at: ''' + WEBSERVER_ADDRESS + '''/error_from_job/{process_id} for the error details and verify your input.\n
     For more help contact: ''' + flask_interface_consts.OWNER_EMAIL
 
     CONTENT_PROCESS_FINISHED = '''

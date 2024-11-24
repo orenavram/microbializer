@@ -177,7 +177,7 @@ def move_file(logger, folder, file_name, new_file_name, error_file_path):
         os.rename(os.path.join(folder, file_name), os.path.join(folder, new_file_name))
         file_name = new_file_name
     except:
-        error_msg = f'One (or more) file name(s) contain illegal character such as parenthesis, pipes, or slashes.<br>\nIn order to avoid downstream parsing errors, {flask_interface_consts.WEBSERVER_NAME} automatically replaces these spaces with dashes. For some reason, the replacement for {file_name} failed. Please make sure all your input files names contain only dashes, dots, and alphanumeric characters (a-z, A-Z, 0-9) and re-submit your job.'
+        error_msg = f'One (or more) file name(s) contain illegal character such as parenthesis, pipes, or slashes.\nIn order to avoid downstream parsing errors, {flask_interface_consts.WEBSERVER_NAME} automatically replaces these spaces with dashes. For some reason, the replacement for {file_name} failed. Please make sure all your input files names contain only dashes, dots, and alphanumeric characters (a-z, A-Z, 0-9) and re-submit your job.'
         fail(logger, error_msg, error_file_path)
 
 
@@ -214,10 +214,10 @@ def verify_fasta_format(logger, data_path):
                         #     putative_end_of_file = line_number
                         continue
                     if putative_end_of_file:  # non empty line after empty line
-                        return f'Illegal <a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a>. Line {putative_end_of_file} in "{file_name}" is empty.'
+                        return f'Illegal FASTA format. Line {putative_end_of_file} in "{file_name}" is empty.'
                     if line.startswith('>'):
                         if previous_line_was_header:
-                            return f'Illegal <a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a>. "{file_name}" contains an empty record. Both lines {line_number - 1} and {line_number} start with ">".'
+                            return f'Illegal FASTA format. "{file_name}" contains an empty record. Both lines {line_number - 1} and {line_number} start with ">".'
                         elif has_illegal_chars(line):
                             return f'Illegal format. Line {line_number} in "{file_name}" contains an illegal character in its first word (one of: {ILLEGAL_CHARS}).'
                         else:
@@ -229,7 +229,7 @@ def verify_fasta_format(logger, data_path):
                         previous_line_was_header = False
                         for c in line:
                             if c not in legal_chars:
-                                return f'Illegal <a href="https://www.ncbi.nlm.nih.gov/blast/fasta.shtml" target="_blank">FASTA format</a>. Line {line_number} in "{file_name}" contains illegal DNA character "{c}".'
+                                return f'Illegal FASTA format. Line {line_number} in "{file_name}" contains illegal DNA character "{c}".'
                         curated_content += f'{line}\n'
             except UnicodeDecodeError as e:
                 logger.info(e.args)
