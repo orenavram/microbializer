@@ -171,7 +171,7 @@ def fail(logger, error_msg, error_file_path):
 
 
 def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir, error_file_path, queue_name,
-                      account_name, job_name='', verbose=False, num_of_cpus=1, memory=None, time_in_hours=None,
+                      account_name, job_name='', verbose=False, num_of_cpus=1, memory=4, time_in_hours=None,
                       done_file_is_needed=True, command_to_run_before_script=None):
     """
     :param script_path:
@@ -234,7 +234,7 @@ def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir,
 
 
 def submit_batch(logger, script_path, batch_parameters_list, logs_dir, error_file_path, job_name_suffix,
-                 queue_name, account_name, num_of_cmds_per_job=1, num_of_cpus=1, memory=None, time_in_hours=None):
+                 queue_name, account_name, num_of_cmds_per_job=1, num_of_cpus=1, memory=4, time_in_hours=None):
     """
     :param script_path:
     :param batch_parameters_list: a list of lists. each sublist corresponds to a single command and contain its parameters

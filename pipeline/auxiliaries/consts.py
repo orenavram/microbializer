@@ -4,6 +4,7 @@
 
 import os.path
 from enum import Enum
+import numpy as np
 
 KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR = True
 IGNORE_HTML = True
@@ -55,7 +56,7 @@ MMSEQS_CLUSTER_MIN_SEQ_ID = 5
 MMSEQS_CLUSTER_MIN_COVERAGE = 10
 JOB_WALL_TIME_KEY ='RunTime='
 
-MMSEQS_NUM_OF_CORES = 80 if USE_JOB_MANAGER else 1
+MMSEQS_NUM_OF_CORES = 20 if USE_JOB_MANAGER else 1
 MMSEQS_CLUSTER_NUM_OF_CORES = 20 if USE_JOB_MANAGER else 1
 MMSEQS_REQUIRED_MEMORY_GB = '64'
 PHYLOGENY_NUM_OF_CORES = 20 if USE_JOB_MANAGER else 1
@@ -64,7 +65,6 @@ KEGG_NUM_OF_CORES = 20 if USE_JOB_MANAGER else 1
 KEGG_REQUIRED_MEMORY_GB = '64'
 CODON_BIAS_NUM_OF_CORES = 20 if USE_JOB_MANAGER else 1
 ANI_REQUIRED_MEMORY_GB = '64'
-INFER_ORTHOGROUPS_MEMORY_GB = '8'
 
 
 # Slurm consts
@@ -92,6 +92,7 @@ BLAST_OUTPUT_HEADER = ['query', 'subject', 'identity_percent', 'alignment_length
                         'query_start', 'query_end', 'subject_start', 'subject_end', 'evalue', 'bit_score']
 MMSEQS_OUTPUT_FORMAT = 'query,target,fident,qcov,tcov,evalue,bits'
 MMSEQS_OUTPUT_HEADER = MMSEQS_OUTPUT_FORMAT.split(',')
+MMSEQS_OUTPUT_COLUMNS_TYPES = {'query': str, 'target': str, 'fident': np.float16, 'qcov': np.float16, 'tcov': np.float16, 'evalue': np.float16, 'bits': np.float16}
 HMMSEARCH_OUTPUT_HEADER = ['target_name', 'target_accession', 'query_name', 'query_accession', 'full_e_value',
                            'full_score', 'full_bias', 'domain_e_Value', 'domain_score', 'domain_bias', 'exp', 'reg',
                            'clu', 'ov', 'env', 'dom', 'rep', 'inc', 'description_of_target']

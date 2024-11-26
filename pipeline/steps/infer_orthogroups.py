@@ -7,6 +7,7 @@ import argparse
 import traceback
 import pandas as pd
 from collections import defaultdict
+import dask.dataframe as dd
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -45,18 +46,14 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, 1, error_file_path)
 
-        m8_df = pd.read_csv(m8_raw_output_path, sep='\t', names=consts.MMSEQS_OUTPUT_HEADER)
+        logger.info(f"Starting to read {m8_raw_output_path} and create a reduced version of it...")
+        m8_df = dd.read_csv(m8_raw_output_path, sep='\t', names=consts.MMSEQS_OUTPUT_HEADER, dtype=consts.MMSEQS_OUTPUT_COLUMNS_TYPES)
         m8_df = m8_df[m8_df['query'] != m8_df['target']]
         add_score_column_to_mmseqs_output(m8_df)
         m8_df['query_genome'] = m8_df['query'].str.split(':').str[0]
         m8_df['target_genome'] = m8_df['target'].str.split(':').str[0]
-
-        m8_parsed_output_path = os.path.join(all_vs_all_output_dir, 'all_vs_all_full.m8')
-        m8_df.to_csv(m8_parsed_output_path, index=False)
-        logger.info(f"{m8_parsed_output_path} was created successfully.")
-
         m8_df = m8_df[['query', 'query_genome', 'target', 'target_genome', 'score']]
-        m8_df.to_csv(m8_output_path, index=False)
+        m8_df.to_parquet(m8_output_path)
         logger.info(f"{m8_output_path} was created successfully.")
 
         write_to_file(logger, done_file_path, '.')

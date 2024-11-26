@@ -7,6 +7,7 @@ import pandas as pd
 import traceback
 import json
 import statistics
+import dask.dataframe as dd
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
@@ -37,7 +38,7 @@ def extract_paralogs_of_genome(logger, m8_df, genome_name, max_scores_parts_dir,
     max_score_per_gene.to_csv(genome_max_rbh_scores_path)
 
     # Filter m8_df to include only potential paralogs
-    m8_df = m8_df[(m8_df['query_genome'] == genome_name) & (m8_df['target_genome'] == genome_name)]
+    m8_df = m8_df[(m8_df['query_genome'] == genome_name) & (m8_df['target_genome'] == genome_name)].compute()
     m8_df.to_csv(output_paralogs_raw_path, index=False)
 
     # Keep only hits that have score higher than the max score of both query and target.
@@ -74,7 +75,7 @@ def extract_paralogs(logger, m8_path, genomes_input_path, max_scores_parts_dir, 
         genomes = f.readlines()
         genomes = [genome.strip() for genome in genomes]
 
-    m8_df = pd.read_csv(m8_path)
+    m8_df = dd.read_parquet(m8_path)
     for genome in genomes:
         extract_paralogs_of_genome(logger, m8_df, genome, max_scores_parts_dir, paralogs_dir,
                                    max_rbh_scores_unified_dir, scores_statistics_dir)

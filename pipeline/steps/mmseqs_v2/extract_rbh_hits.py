@@ -7,6 +7,8 @@ import pandas as pd
 import traceback
 import json
 import statistics
+import dask.dataframe as dd
+import numpy as np
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
@@ -15,6 +17,8 @@ from auxiliaries.pipeline_auxiliaries import fail, get_job_logger
 
 
 def extract_rbh_hits_of_pair(logger, m8_df, genome1, genome2, rbh_hits_dir, scores_statistics_dir, max_rbh_score_per_gene_dir):
+    temp_dir = os.path.join(rbh_hits_dir, 'tmp')
+    os.makedirs(temp_dir, exist_ok=True)
     output_rbh_path = os.path.join(rbh_hits_dir, f'{genome1}_vs_{genome2}.m8')
     output_statistics_path = os.path.join(scores_statistics_dir, f'{genome1}_vs_{genome2}.stats')
     output_genome1_max_scores = os.path.join(max_rbh_score_per_gene_dir, f'{genome1}_max_scores_with_{genome2}.csv')
@@ -24,8 +28,10 @@ def extract_rbh_hits_of_pair(logger, m8_df, genome1, genome2, rbh_hits_dir, scor
             and os.path.exists(output_genome1_max_scores) and os.path.exists(output_genome2_max_scores):
         return
 
-    genome1_to_2_df = m8_df[(m8_df['query_genome'] == genome1) & (m8_df['target_genome'] == genome2)]
-    genome2_to_1_df = m8_df[(m8_df['query_genome'] == genome2) & (m8_df['target_genome'] == genome1)]
+    genome1_to_2_df = m8_df[(m8_df['query_genome'] == genome1) & (m8_df['target_genome'] == genome2)].compute()
+    genome2_to_1_df = m8_df[(m8_df['query_genome'] == genome2) & (m8_df['target_genome'] == genome1)].compute()
+    genome1_to_2_df.to_csv(os.path.join(temp_dir, f'{genome1}_to_{genome2}.m8'), index=False)
+    genome2_to_1_df.to_csv(os.path.join(temp_dir, f'{genome2}_to_{genome1}.m8'), index=False)
 
     # Step 1: Identify the best hits from genome1 to genome2
     genome1_to_2_best_hits_df = genome1_to_2_df[genome1_to_2_df['score'] == genome1_to_2_df.groupby('query')['score'].transform('max')]
@@ -73,7 +79,7 @@ def extract_rbh_hits(logger, m8_path, rbh_input_path, rbh_hits_dir, scores_stati
         genome_pairs = f.readlines()
         genome_pairs = [pair.strip().split() for pair in genome_pairs]
 
-    m8_df = pd.read_csv(m8_path)
+    m8_df = dd.read_parquet(m8_path)
     for genome1, genome2 in genome_pairs:
         extract_rbh_hits_of_pair(logger, m8_df, genome1, genome2, rbh_hits_dir, scores_statistics_dir, max_rbh_score_per_gene_dir)
 
