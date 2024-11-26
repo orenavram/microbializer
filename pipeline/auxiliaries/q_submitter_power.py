@@ -33,6 +33,8 @@ def add_slurm_header(sbatch_file_content, queue_name, tmp_dir, job_name, CPUs, a
     sbatch_file_content += f'echo Job ID: ${consts.JOB_ID_ENVIRONMENT_VARIABLE}\n'
     sbatch_file_content += f'echo Running on nodes: $SLURM_JOB_NODELIST\n'
     sbatch_file_content += f'echo Allocated CPUs: $SLURM_JOB_CPUS_PER_NODE\n'
+    sbatch_file_content += f'echo Memory per node: $SLURM_MEM_PER_NODE MB\n'
+    sbatch_file_content += f'echo Job name: $SLURM_JOB_NAME\n'
 
     return sbatch_file_content
 
