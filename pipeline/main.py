@@ -588,12 +588,14 @@ def step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output
     clusters_file_path = os.path.join(pipeline_step_output_dir, 'clusters.tsv')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
+        cpus = consts.MMSEQS_CLUSTER_NUM_OF_CORES if args.optimize_orthogroups_inference else 1
+        memory = consts.MMSEQS_REQUIRED_MEMORY_GB if args.optimize_orthogroups_inference else consts.DEFAULT_MEMORY_PER_JOB_GB
         params = [all_proteins_fasta_path,
                   pipeline_step_output_dir,
                   clusters_file_path,
                   consts.MMSEQS_CLUSTER_MIN_SEQ_ID,
                   consts.MMSEQS_CLUSTER_MIN_COVERAGE,
-                  consts.MMSEQS_CLUSTER_NUM_OF_CORES,
+                  cpus,
                   f'--num_of_clusters_in_orthogroup_inference {args.num_of_clusters_in_orthogroup_inference}'
                   ]
 
@@ -601,7 +603,7 @@ def step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output
             params.append('--do_cluster')
 
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path, args.queue_name, args.account_name,
-                          job_name='cluster_proteomes', num_of_cpus=consts.MMSEQS_CLUSTER_NUM_OF_CORES, memory=consts.MMSEQS_REQUIRED_MEMORY_GB)
+                          job_name='cluster_proteomes', num_of_cpus=cpus, memory=memory)
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path)
 

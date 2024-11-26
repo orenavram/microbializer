@@ -16,11 +16,10 @@ def filter_fasta_file(logger, genes_to_keep_path, input_fasta_path, output_fasta
         genes_to_keep = {line.strip() for line in fp}
 
     with open(input_fasta_path, "r") as infile:
-        records = list(record for record in SeqIO.parse(infile, "fasta") if record.id in genes_to_keep)
-
-    if records:
         with open(output_fasta_path, "w") as outfile:
-            SeqIO.write(records, outfile, "fasta")
+            for record in SeqIO.parse(infile, "fasta"):
+                if record.id in genes_to_keep:
+                    SeqIO.write(record, outfile, "fasta")
 
 
 if __name__ == '__main__':

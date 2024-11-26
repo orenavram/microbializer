@@ -19,9 +19,8 @@ def filter_out_plasmids(logger, input_genome_path, output_genome_path, drop_plas
     """
     logger.info(f'Removing plasmids from {input_genome_path}...')
 
-    records = list(SeqIO.parse(input_genome_path, 'fasta'))
     new_records = []
-    for record in records:
+    for record in SeqIO.parse(input_genome_path, 'fasta'):
         if drop_plasmids and ('plasmid' in record.id.lower() or 'plasmid' in record.description.lower()):
             logger.info(f'Dropping plasmid sequence {record.id}')
         else:
