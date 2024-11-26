@@ -16,14 +16,12 @@ from auxiliaries.pipeline_auxiliaries import fail, get_job_logger
 
 
 def extract_paralogs_of_genome(logger, m8_df, genome_name, max_scores_parts_dir, paralogs_dir,
-                               max_rbh_scores_unified_dir, scores_statistics_dir):
+                               max_rbh_scores_unified_dir, scores_statistics_dir, temp_dir):
     genome_max_rbh_scores_path = os.path.join(max_rbh_scores_unified_dir, f'{genome_name}.csv')
-    output_paralogs_raw_path = os.path.join(paralogs_dir, f'{genome_name}_vs_{genome_name}.m8')
     output_paralogs_filtered_path = os.path.join(paralogs_dir, f'{genome_name}_vs_{genome_name}.m8_filtered')
     score_stats_file = os.path.join(scores_statistics_dir, f'{genome_name}_vs_{genome_name}.stats')
 
-    if os.path.exists(genome_max_rbh_scores_path) and os.path.exists(output_paralogs_raw_path) \
-            and os.path.exists(output_paralogs_filtered_path) and os.path.exists(score_stats_file):
+    if os.path.exists(genome_max_rbh_scores_path) and os.path.exists(output_paralogs_filtered_path) and os.path.exists(score_stats_file):
         return
 
     # Unify all max_rbh_scores files of the genome to one file
@@ -39,7 +37,9 @@ def extract_paralogs_of_genome(logger, m8_df, genome_name, max_scores_parts_dir,
 
     # Filter m8_df to include only potential paralogs
     m8_df = m8_df[(m8_df['query_genome'] == genome_name) & (m8_df['target_genome'] == genome_name)].compute()
+    output_paralogs_raw_path = os.path.join(temp_dir, f'{genome_name}_vs_{genome_name}.m8')
     m8_df.to_csv(output_paralogs_raw_path, index=False)
+    logger.info(f"{output_paralogs_raw_path} was created successfully.")
 
     # Keep only hits that have score higher than the max score of both query and target.
     # If only one of the genes was identified as rbh to a gene in another genome (and thus the other one doesn't
@@ -51,22 +51,22 @@ def extract_paralogs_of_genome(logger, m8_df, genome_name, max_scores_parts_dir,
     m8_df = m8_df.loc[((m8_df['score'] >= m8_df['query_max_score']) | (m8_df['query_max_score'].isna())) &
                       ((m8_df['score'] >= m8_df['target_max_score']) | (m8_df['target_max_score'].isna()))]
 
+    if m8_df.empty:
+        logger.info(f"No paralogs were found for {genome_name} after filtration.")
+        return
+
     # Remove duplicates by sorting query and subject IDs in each pair and taking only unique pairs
     m8_df['pair'] = m8_df.apply(
         lambda x: tuple(sorted((x['query'], x['target']))), axis=1
     )
     m8_df = m8_df.drop_duplicates(subset='pair')
+    m8_df[['query', 'target', 'score']].to_csv(output_paralogs_filtered_path, index=False)
+    logger.info(f"{output_paralogs_filtered_path} was created successfully.")
 
-    if not m8_df.empty:
-        m8_df[['query', 'target', 'score']].to_csv(output_paralogs_filtered_path, index=False)
-        logger.info(f"{output_paralogs_filtered_path} was created successfully.")
-
-        scores_statistics = {'mean': statistics.mean(m8_df['score']), 'sum': sum(m8_df['score']),
-                             'number of records': len(m8_df['score'])}
-        with open(score_stats_file, 'w') as fp:
-            json.dump(scores_statistics, fp)
-    else:
-        logger.info(f"No paralogs were found for {genome_name} after filtration.")
+    scores_statistics = {'mean': statistics.mean(m8_df['score']), 'sum': sum(m8_df['score']),
+                         'number of records': len(m8_df['score'])}
+    with open(score_stats_file, 'w') as fp:
+        json.dump(scores_statistics, fp)
 
 
 def extract_paralogs(logger, m8_path, genomes_input_path, max_scores_parts_dir, paralogs_dir,
@@ -75,10 +75,13 @@ def extract_paralogs(logger, m8_path, genomes_input_path, max_scores_parts_dir, 
         genomes = f.readlines()
         genomes = [genome.strip() for genome in genomes]
 
+    temp_dir = os.path.join(paralogs_dir, 'tmp')
+    os.makedirs(temp_dir, exist_ok=True)
+
     m8_df = dd.read_parquet(m8_path)
     for genome in genomes:
         extract_paralogs_of_genome(logger, m8_df, genome, max_scores_parts_dir, paralogs_dir,
-                                   max_rbh_scores_unified_dir, scores_statistics_dir)
+                                   max_rbh_scores_unified_dir, scores_statistics_dir, temp_dir)
 
 
 if __name__ == '__main__':
