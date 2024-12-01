@@ -27,8 +27,8 @@ def extract_rbh_hits_of_pair(logger, m8_df, genome1, genome2, rbh_hits_dir, scor
             and os.path.exists(output_genome1_max_scores) and os.path.exists(output_genome2_max_scores):
         return
 
-    genome1_to_2_df = m8_df[(m8_df['query_genome'] == genome1) & (m8_df['target_genome'] == genome2)].compute()
-    genome2_to_1_df = m8_df[(m8_df['query_genome'] == genome2) & (m8_df['target_genome'] == genome1)].compute()
+    genome1_to_2_df = m8_df[(m8_df['query_genome'] == genome1) & (m8_df['target_genome'] == genome2)]
+    genome2_to_1_df = m8_df[(m8_df['query_genome'] == genome2) & (m8_df['target_genome'] == genome1)]
     genome1_to_2_df.to_csv(os.path.join(temp_dir, f'{genome1}_to_{genome2}.m8'), index=False)
     genome2_to_1_df.to_csv(os.path.join(temp_dir, f'{genome2}_to_{genome1}.m8'), index=False)
 
@@ -86,7 +86,7 @@ def extract_rbh_hits(logger, m8_path, rbh_input_path, rbh_hits_dir, scores_stati
     temp_dir = os.path.join(rbh_hits_dir, 'tmp')
     os.makedirs(temp_dir, exist_ok=True)
 
-    m8_df = dd.read_parquet(m8_path)
+    m8_df = dd.read_parquet(m8_path).compute()
     for genome1, genome2 in genome_pairs:
         extract_rbh_hits_of_pair(logger, m8_df, genome1, genome2, rbh_hits_dir, scores_statistics_dir, max_rbh_score_per_gene_dir, temp_dir)
 

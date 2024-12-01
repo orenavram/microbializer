@@ -49,6 +49,7 @@ def generate_job_file(logger, queue_name, tmp_dir, cmds_path, job_name, job_path
     # log the runtime of the job
     job_log_file_path = f'{tmp_dir}/$(echo ${consts.JOB_NAME_ENVIRONMENT_VARIABLE})_$(echo ${consts.JOB_ID_ENVIRONMENT_VARIABLE})_log.txt'
     job_file_content += f'{CHECK_JOB_DETAILS_COMMAND} ${consts.JOB_ID_ENVIRONMENT_VARIABLE} | grep -m 1 "{consts.JOB_WALL_TIME_KEY}" >> {job_log_file_path}\n'
+    job_file_content += f'{CHECK_JOB_DETAILS_COMMAND} ${consts.JOB_ID_ENVIRONMENT_VARIABLE} | grep -m 1 "{consts.JOB_CPUS_KEY}" >> {job_log_file_path}\n'
 
     with open(job_path, 'w') as job_fp:  # write the job
         job_fp.write(job_file_content)

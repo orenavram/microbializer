@@ -36,7 +36,7 @@ def extract_paralogs_of_genome(logger, m8_df, genome_name, max_scores_parts_dir,
     max_score_per_gene.to_csv(genome_max_rbh_scores_path)
 
     # Filter m8_df to include only potential paralogs
-    m8_df = m8_df[(m8_df['query_genome'] == genome_name) & (m8_df['target_genome'] == genome_name)].compute()
+    m8_df = m8_df[(m8_df['query_genome'] == genome_name) & (m8_df['target_genome'] == genome_name)]
     output_paralogs_raw_path = os.path.join(temp_dir, f'{genome_name}_vs_{genome_name}.m8')
     m8_df.to_csv(output_paralogs_raw_path, index=False)
     logger.info(f"{output_paralogs_raw_path} was created successfully.")
@@ -78,7 +78,7 @@ def extract_paralogs(logger, m8_path, genomes_input_path, max_scores_parts_dir, 
     temp_dir = os.path.join(paralogs_dir, 'tmp')
     os.makedirs(temp_dir, exist_ok=True)
 
-    m8_df = dd.read_parquet(m8_path)
+    m8_df = dd.read_parquet(m8_path).compute()
     for genome in genomes:
         extract_paralogs_of_genome(logger, m8_df, genome, max_scores_parts_dir, paralogs_dir,
                                    max_rbh_scores_unified_dir, scores_statistics_dir, temp_dir)

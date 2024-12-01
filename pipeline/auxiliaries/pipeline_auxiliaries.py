@@ -72,22 +72,31 @@ def wait_for_results(logger, times_logger, script_name, path, num_of_expected_re
     logger.info(f'Done waiting for: {script_name} (took {total_time_waited}).')
 
     if not recursive_step:
-        walltime_sum, log_files_without_times = get_jobs_cummulative_time(path)
+        walltime_sum, cpus_used_per_job, log_files_without_times, log_files_without_cpus = get_jobs_cummulative_time(path)
+        times_logger.info(f'Step {script_name} took {total_time_waited}. '
+                          f'There were {num_of_expected_results} jobs and '
+                          f'cumulatively they took {walltime_sum} wallclock time (times {cpus_used_per_job} cpus used '
+                          f'per job = {walltime_sum * cpus_used_per_job} wallclock time). ' +
+                          (f'Times are not complete since files {log_files_without_times} do not have times records. '
+                           if log_files_without_times else '') +
+                          (f'Cpus are not complete since files {log_files_without_cpus} do not have cpus records. '
+                           if log_files_without_cpus else ''))
     else:
-        walltime_sum, log_files_without_times, sub_steps_cummulative_times = get_recursive_step_cummulative_times(path)
+        sub_steps_total_running_time, sub_steps_total_cummulative_time, log_files_without_times, \
+            sub_steps_cummulative_times = get_recursive_step_cummulative_times(path)
         for step_name, step_time in sub_steps_cummulative_times.items():
             times_logger.info(f'Sub-step {step_name} took cumulatively {step_time} wallclock time')
 
-    times_logger.info(f'Step {script_name} took {total_time_waited}. '
-                      f'There were {num_of_expected_results} jobs and '
-                      f'cumulatively they took {walltime_sum} wallclock time. ' +
-                      (f'Times are not complete since files {log_files_without_times} do not have times records'
-                       if log_files_without_times else ''))
+        times_logger.info(f'Step {script_name} took {total_time_waited} (of which all sub-steps together took '
+                          f'{sub_steps_total_running_time}). There were {num_of_expected_results} jobs and '
+                          f'cumulatively they took {sub_steps_total_cummulative_time} wallclock time.' +
+                          (f'Times are not complete since files {log_files_without_times} do not have times records'
+                           if log_files_without_times else ''))
 
     assert not os.path.exists(error_file_path)
 
 
-def get_job_time_from_log_file(log_file_content, pattern_for_runtime):
+def get_job_time_from_log_file(log_file_content, pattern_for_runtime, pattern_for_cpus):
     runtime_string_match = pattern_for_runtime.search(log_file_content)
     if not runtime_string_match:
         return None
@@ -102,35 +111,53 @@ def get_job_time_from_log_file(log_file_content, pattern_for_runtime):
     hours, minutes, seconds = map(float, time.split(':'))
     runtime = timedelta(days=int(days), hours=hours, minutes=minutes, seconds=seconds)
 
-    return runtime
+    cpus_string_match = pattern_for_cpus.search(log_file_content)
+    if cpus_string_match:
+        cpus_string = cpus_string_match.group(1)
+        cpus = int(cpus_string)
+    else:
+        cpus = None
+
+    return runtime, cpus
 
 
 def get_jobs_cummulative_time(path):
     log_files = [file_path for file_path in os.listdir(path) if file_path.endswith('log.txt')]
     pattern_for_walltime = re.compile(f'{consts.JOB_WALL_TIME_KEY}(.+) TimeLimit')
+    pattern_for_cpus = re.compile(f'{consts.JOB_CPUS_KEY}(.+) NumTasks')
 
     walltime_sum = timedelta()
+    cpus_used_per_jobs = []
     log_files_without_times = []
+    log_files_without_cpus = []
     for log_file_name in log_files:
         log_file_full_path = os.path.join(path, log_file_name)
         with open(log_file_full_path, 'r') as log_file:
             content = log_file.read()
 
-            walltime = get_job_time_from_log_file(content, pattern_for_walltime)
+            walltime, cpus_used_per_job = get_job_time_from_log_file(content, pattern_for_walltime, pattern_for_cpus)
             if walltime is None:
                 log_files_without_times.append(log_file_full_path)
                 continue
             walltime_sum += walltime
+            if cpus_used_per_job is None:
+                log_files_without_cpus.append(log_file_full_path)
+                continue
+            cpus_used_per_jobs.append(cpus_used_per_job)
 
-    return walltime_sum, log_files_without_times
+    if len(set(cpus_used_per_jobs)) != 1:  # The way that jobs are submitted ensures that each job in a step uses the same number of cpus
+        raise ValueError(f'Not all jobs used the same number of cpus in path {path}')
+
+    return walltime_sum, cpus_used_per_jobs[0], log_files_without_times, log_files_without_cpus
 
 
 def get_recursive_step_cummulative_times(path):
     times_log_files = [file_path for file_path in os.listdir(path) if file_path.endswith('times_log.txt')]
-    pattern = re.compile(f'Step (.+) took (.+) cumulatively they took (.+) wallclock time')
+    pattern = re.compile(f'Step (.+) took (.+). .* per job = (.+) wallclock time')
 
     log_files_without_times = []
     sub_steps_cummulative_times = {}
+    sub_steps_total_running_time = pd.Timedelta(0)
     for log_file_name in times_log_files:
         log_file_full_path = os.path.join(path, log_file_name)
         with open(log_file_full_path, 'r') as log_file:
@@ -141,14 +168,15 @@ def get_recursive_step_cummulative_times(path):
                 continue
 
             for match in regex_search_result:
-                step_name, step_cummulative_time = match.group(1), match.group(3)
+                step_name, step_running_time, step_cummulative_time = match.group(1), match.group(2), match.group(3)
                 if step_name in sub_steps_cummulative_times:
                     sub_steps_cummulative_times[step_name] += pd.Timedelta(step_cummulative_time)
                 else:
                     sub_steps_cummulative_times[step_name] = pd.Timedelta(step_cummulative_time)
+                sub_steps_total_running_time += pd.Timedelta(step_running_time)
 
-    total_duration = sum(sub_steps_cummulative_times.values(), pd.Timedelta(0))
-    return total_duration, log_files_without_times, sub_steps_cummulative_times
+    sub_steps_total_cummulative_time = sum(sub_steps_cummulative_times.values(), pd.Timedelta(0))
+    return sub_steps_total_running_time, sub_steps_total_cummulative_time, log_files_without_times, sub_steps_cummulative_times
 
 
 def prepare_directories(logger, outputs_dir_prefix, tmp_dir_prefix, dir_name):
