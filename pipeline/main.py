@@ -8,6 +8,7 @@ from time import time
 import traceback
 import json
 import subprocess
+from datetime import timedelta
 
 import matplotlib.pyplot as plt
 import mmap
@@ -18,7 +19,7 @@ import seaborn as sns
 from auxiliaries.email_sender import send_email
 from auxiliaries.file_writer import write_to_file
 from auxiliaries.input_verifications import prepare_and_verify_input_data
-from auxiliaries.pipeline_auxiliaries import measure_time, execute, wait_for_results, \
+from auxiliaries.pipeline_auxiliaries import wait_for_results, \
     prepare_directories, fail, submit_mini_batch, submit_batch, notify_admin, add_results_to_final_dir, remove_path,\
     str_to_bool
 from auxiliaries.html_editor import edit_success_html, edit_failure_html, edit_progress
@@ -1840,7 +1841,7 @@ def main(args):
         validate_arguments(args)
         initialize_progressbar(args, progressbar_file_path)
 
-        done_file_path = os.path.join(done_files_dir, f'prepare_and_verify_inputs.txt')
+        done_file_path = os.path.join(done_files_dir, 'prepare_and_verify_inputs.txt')
         genomes_names_path = os.path.join(output_dir, 'genomes_names.txt')
         if not os.path.exists(done_file_path):
             prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path, data_path, genomes_names_path)
@@ -1887,7 +1888,7 @@ def main(args):
                                                output_html_path,
                                                meta_output_url)
 
-    total_time = measure_time(int(time() - start_time))
+    total_time = timedelta(seconds=int(time() - start_time))
     times_logger.info(f'Total pipeline time: {total_time}')
     report_main_pipeline_result_to_user(args, logger, status, total_time, output_url, run_number)
 

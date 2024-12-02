@@ -20,18 +20,6 @@ sys.path.append(os.path.dirname(SCRIPT_DIR))
 from flask import flask_interface_consts
 
 
-def measure_time(total):
-    hours = total // 3600
-    minutes = (total % 3600) // 60
-    seconds = total % 60
-    if hours != 0:
-        return f'{hours}:{minutes:02}:{seconds:02} hours'
-    elif minutes != 0:
-        return f'{minutes}:{seconds:02} minutes'
-    else:
-        return f'{seconds} seconds'
-
-
 def execute(logger, process, process_is_string=False):
     process_str = process if process_is_string else ' '.join(str(token) for token in process)
     logger.info(f'Calling (process_is_string == {process_is_string}):\n{process_str}')
@@ -65,10 +53,10 @@ def wait_for_results(logger, times_logger, script_name, path, num_of_expected_re
         i += 1
         if i % 5 == 0:  # print status every 5 cycles of $time_to_wait
             logger.info(
-                f'\t{measure_time(total_time)} have passed since started waiting ({num_of_expected_results} - {current_num_of_results} = {jobs_left} more files are still missing)')
+                f'\t{timedelta(seconds=total_time)} have passed since started waiting ({num_of_expected_results} - {current_num_of_results} = {jobs_left} more files are still missing)')
 
     end = time()
-    total_time_waited = measure_time(int(end - start))
+    total_time_waited = timedelta(seconds=int(end - start))
     logger.info(f'Done waiting for: {script_name} (took {total_time_waited}).')
 
     if not recursive_step:
@@ -104,12 +92,12 @@ def get_job_time_from_log_file(log_file_content, pattern_for_runtime, pattern_fo
     runtime_string = runtime_string_match.group(1)
 
     if '-' in runtime_string:
-        days, time = runtime_string.split('-')
+        days_string, time_string = runtime_string.split('-')
     else:
-        days = 0
-        time = runtime_string
-    hours, minutes, seconds = map(float, time.split(':'))
-    runtime = timedelta(days=int(days), hours=hours, minutes=minutes, seconds=seconds)
+        days_string = 0
+        time_string = runtime_string
+    hours, minutes, seconds = map(float, time_string.split(':'))
+    runtime = timedelta(days=int(days_string), hours=hours, minutes=minutes, seconds=seconds)
 
     cpus_string_match = pattern_for_cpus.search(log_file_content)
     if cpus_string_match:
@@ -127,7 +115,7 @@ def get_jobs_cummulative_time(path):
     pattern_for_cpus = re.compile(f'{consts.JOB_CPUS_KEY}(.+) NumTasks')
 
     walltime_sum = timedelta()
-    cpus_used_per_jobs = []
+    cpus_used_in_jobs = []
     log_files_without_times = []
     log_files_without_cpus = []
     for log_file_name in log_files:
@@ -143,17 +131,20 @@ def get_jobs_cummulative_time(path):
             if cpus_used_per_job is None:
                 log_files_without_cpus.append(log_file_full_path)
                 continue
-            cpus_used_per_jobs.append(cpus_used_per_job)
+            cpus_used_in_jobs.append(cpus_used_per_job)
 
-    if len(set(cpus_used_per_jobs)) != 1:  # The way that jobs are submitted ensures that each job in a step uses the same number of cpus
+    cpus_used_in_jobs = set(cpus_used_in_jobs)
+    if cpus_used_in_jobs == {1, 2}:  # Sometimes when we submit jobs with 1 cpu, 2 are allocated and it's not an error
+        cpus_used_in_jobs = {1}
+    if len(cpus_used_in_jobs) != 1:  # The way that jobs are submitted ensures that each job in a step uses the same number of cpus
         raise ValueError(f'Not all jobs used the same number of cpus in path {path}')
 
-    return walltime_sum, cpus_used_per_jobs[0], log_files_without_times, log_files_without_cpus
+    return walltime_sum, next(iter(cpus_used_in_jobs)), log_files_without_times, log_files_without_cpus
 
 
 def get_recursive_step_cummulative_times(path):
     times_log_files = [file_path for file_path in os.listdir(path) if file_path.endswith('times_log.txt')]
-    pattern = re.compile(f'Step (.+) took (.+). .* per job = (.+) wallclock time')
+    pattern = re.compile(f'Step (.+) took (.+)\. .* per job = (.+) wallclock time')
 
     log_files_without_times = []
     sub_steps_cummulative_times = {}
@@ -162,18 +153,19 @@ def get_recursive_step_cummulative_times(path):
         log_file_full_path = os.path.join(path, log_file_name)
         with open(log_file_full_path, 'r') as log_file:
             content = log_file.read()
-            regex_search_result = pattern.finditer(content)
-            if regex_search_result is None:
-                log_files_without_times.append(log_file_full_path)
-                continue
+        
+        regex_search_result = pattern.finditer(content)
+        if regex_search_result is None:
+            log_files_without_times.append(log_file_full_path)
+            continue
 
-            for match in regex_search_result:
-                step_name, step_running_time, step_cummulative_time = match.group(1), match.group(2), match.group(3)
-                if step_name in sub_steps_cummulative_times:
-                    sub_steps_cummulative_times[step_name] += pd.Timedelta(step_cummulative_time)
-                else:
-                    sub_steps_cummulative_times[step_name] = pd.Timedelta(step_cummulative_time)
-                sub_steps_total_running_time += pd.Timedelta(step_running_time)
+        for match in regex_search_result:
+            step_name, step_running_time, step_cummulative_time = match.group(1), match.group(2), match.group(3)
+            if step_name in sub_steps_cummulative_times:
+                sub_steps_cummulative_times[step_name] += pd.Timedelta(step_cummulative_time)
+            else:
+                sub_steps_cummulative_times[step_name] = pd.Timedelta(step_cummulative_time)
+            sub_steps_total_running_time += pd.Timedelta(step_running_time)
 
     sub_steps_total_cummulative_time = sum(sub_steps_cummulative_times.values(), pd.Timedelta(0))
     return sub_steps_total_running_time, sub_steps_total_cummulative_time, log_files_without_times, sub_steps_cummulative_times
