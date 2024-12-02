@@ -622,7 +622,7 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_filter_fastas_by_cluster'
     script_path = os.path.join(consts.SRC_DIR, 'steps/filter_fasta_file.py')
-    clusters_fasta_files, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    clusters_fasta_files, clusters_fasta_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
@@ -647,13 +647,13 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
                 params = [cluster_genes_path, all_proteins_path, os.path.join(cluster_fasta_files, 'all_proteomes.faa')]
                 all_cmds_params.append(params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, clusters_fasta_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                    job_name_suffix='filter_fastas_by_clusters',
                                                    queue_name=args.queue_name,
                                                    account_name=args.account_name)
 
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, step_name, clusters_fasta_tmp_dir,
                          num_of_batches, error_file_path)
 
         write_to_file(logger, done_file_path, '.')
@@ -678,7 +678,7 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
 
             cluster_output_dir = os.path.join(mmseqs_output_dir, str(cluster_id))
             os.makedirs(cluster_output_dir, exist_ok=True)
-            cluster_tmp_dir = os.path.join(pipeline_step_tmp_dir, str(cluster_id))
+            cluster_tmp_dir = os.path.join(mmseqs_tmp_dir, str(cluster_id))
             os.makedirs(cluster_tmp_dir, exist_ok=True)
             cluster_done_dir = os.path.join(pipeline_step_done_dir, str(cluster_id))
             os.makedirs(cluster_done_dir, exist_ok=True)
@@ -693,14 +693,14 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
 
             all_cmds_params.append(params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, mmseqs_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                    job_name_suffix='infer_orthogroups',
                                                    queue_name=args.queue_name,
                                                    account_name=args.account_name,
                                                    time_in_hours=96)
 
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, step_name, mmseqs_tmp_dir,
                          num_of_batches, error_file_path, recursive_step=True)
 
         write_to_file(logger, done_file_path, '.')
@@ -711,18 +711,21 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
     step_number = f'05c'
     script_path = os.path.join(consts.SRC_DIR, 'steps/concat_clusters_info.py')
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}concat_clusters_rbhs'
+    step_name = f'{step_number}_concat_clusters_rbhs'
     orthologs_output_dir, orthologs_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     orthologs_scores_statistics_dir = os.path.join(orthologs_output_dir, 'scores_statistics')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         os.makedirs(orthologs_scores_statistics_dir, exist_ok=True)
         all_cmds_params = []
-        for hits_file in os.listdir(os.path.join(mmseqs_output_dir, '0', '05bb_extract_rbh_hits')):
-            if not hits_file.endswith('m8'):
-                continue
-            single_cmd_params = [mmseqs_output_dir, '05bb_extract_rbh_hits', hits_file, orthologs_output_dir]
-            all_cmds_params.append(single_cmd_params)
+        hits_files_processed = set()
+        for cluster_dir in os.listdir(mmseqs_output_dir):
+            for hits_file in os.listdir(os.path.join(mmseqs_output_dir, cluster_dir, '05bb_extract_rbh_hits')):
+                if not hits_file.endswith('m8') or hits_file in hits_files_processed:
+                    continue
+                single_cmd_params = [mmseqs_output_dir, '05bb_extract_rbh_hits', hits_file, orthologs_output_dir]
+                all_cmds_params.append(single_cmd_params)
+                hits_files_processed.add(hits_file)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, orthologs_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
@@ -730,8 +733,7 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
                                                    queue_name=args.queue_name,
                                                    account_name=args.account_name)
 
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
-                         num_of_batches, error_file_path)
+        wait_for_results(logger, times_logger, step_name, orthologs_tmp_dir, num_of_batches, error_file_path)
 
         write_to_file(logger, done_file_path, '.')
     else:
@@ -741,18 +743,21 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
     step_number = f'05d'
     script_path = os.path.join(consts.SRC_DIR, 'steps/concat_clusters_info.py')
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}concat_clusters_paralogs'
+    step_name = f'{step_number}_concat_clusters_paralogs'
     paralogs_output_dir, paralogs_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     paralogs_scores_statistics_dir = os.path.join(paralogs_output_dir, 'scores_statistics')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         os.makedirs(paralogs_scores_statistics_dir, exist_ok=True)
         all_cmds_params = []
-        for hits_file in os.listdir(os.path.join(mmseqs_output_dir, '0', '05bc_paralogs')):
-            if not hits_file.endswith('m8_filtered'):
-                continue
-            single_cmd_params = [mmseqs_output_dir, '05bc_paralogs', hits_file, paralogs_output_dir]
-            all_cmds_params.append(single_cmd_params)
+        hits_files_processed = set()
+        for cluster_dir in os.listdir(mmseqs_output_dir):
+            for hits_file in os.listdir(os.path.join(mmseqs_output_dir, cluster_dir, '05bc_paralogs')):
+                if not hits_file.endswith('m8_filtered') or hits_file in hits_files_processed:
+                    continue
+                single_cmd_params = [mmseqs_output_dir, '05bc_paralogs', hits_file, paralogs_output_dir]
+                all_cmds_params.append(single_cmd_params)
+                hits_files_processed.add(hits_file)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, paralogs_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
@@ -760,8 +765,7 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
                                                    queue_name=args.queue_name,
                                                    account_name=args.account_name)
 
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
-                         num_of_batches, error_file_path)
+        wait_for_results(logger, times_logger, step_name, paralogs_tmp_dir, num_of_batches, error_file_path)
 
         write_to_file(logger, done_file_path, '.')
     else:
@@ -772,7 +776,7 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
     script_path = os.path.join(consts.SRC_DIR, 'steps/normalize_hits_scores.py')
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_normalize_scores'
-    normalized_hits_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    normalized_hits_output_dir, normalized_hits_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         scores_statistics_file = os.path.join(normalized_hits_output_dir, 'scores_stats.json')
@@ -799,14 +803,13 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
                                  ]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, normalized_hits_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                    job_name_suffix='hits_normalize',
                                                    queue_name=args.queue_name,
                                                    account_name=args.account_name)
 
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
-                         num_of_batches, error_file_path)
+        wait_for_results(logger, times_logger, step_name, normalized_hits_tmp_dir, num_of_batches, error_file_path)
 
         write_to_file(logger, done_file_path, '.')
     else:
@@ -820,27 +823,27 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
     script_path = os.path.join(consts.SRC_DIR, 'steps/concatenate_hits.py')
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_concatenate_hits'
-    concatenate_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    concatenate_output_dir, concatenate_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     all_hits_file = os.path.join(concatenate_output_dir, 'concatenated_all_hits.txt')
     if not os.path.exists(done_file_path):
         logger.info('Concatenating hits...')
 
         number_of_hits_files = len(os.listdir(normalized_hits_output_dir))
-        intervals = define_intervals(0, number_of_hits_files, n_jobs_per_step)
+        intervals = define_intervals(0, number_of_hits_files, consts.MAX_PARALLEL_JOBS)
 
         concatenated_chunks_dir = os.path.join(concatenate_output_dir, 'temp_chunks')
         os.makedirs(concatenated_chunks_dir, exist_ok=True)
         all_cmds_params = [[normalized_hits_output_dir, start, end, concatenated_chunks_dir]
                            for (start, end) in intervals]
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, concatenate_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                    job_name_suffix='concatenate_hits',
                                                     queue_name=args.queue_name,
                                                    account_name=args.account_name)
 
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, step_name, concatenate_tmp_dir,
                          num_of_batches, error_file_path)
 
         execute(logger, f'cat {concatenated_chunks_dir}/* >> {all_hits_file}', process_is_string=True)
@@ -858,17 +861,17 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_putative_table'
     script_path = os.path.join(consts.SRC_DIR, 'steps/construct_putative_orthologs_table.py')
-    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    putative_orthologs_table_path = os.path.join(pipeline_step_output_dir, 'putative_orthologs_table.txt')
+    putative_orthologs_table_output_dir, putative_orthologs_table_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    putative_orthologs_table_path = os.path.join(putative_orthologs_table_output_dir, 'putative_orthologs_table.txt')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Constructing putative orthologs table...')
         job_name = os.path.split(script_path)[-1]
         params = [all_hits_file,
                   putative_orthologs_table_path]
-        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path,
+        submit_mini_batch(logger, script_path, [params], putative_orthologs_table_tmp_dir, error_file_path,
                           args.queue_name, args.account_name, job_name=job_name)
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, step_name, putative_orthologs_table_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path)
         write_to_file(logger, done_file_path, '.')
     else:
@@ -882,7 +885,7 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_mcl_input_files'
     script_path = os.path.join(consts.SRC_DIR, 'steps/prepare_files_for_mcl.py')
-    mcl_inputs_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    mcl_inputs_dir, mcl_inputs_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Preparing files for MCL...')
@@ -907,15 +910,14 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
                                  mcl_inputs_dir]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, mcl_inputs_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                    # *times* the number of clusters_to_prepare_per_job above. 50 in total per batch!
                                                    job_name_suffix='mcl_preparation',
                                                    queue_name=args.queue_name,
                                                    account_name=args.account_name)
 
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
-                         num_of_batches, error_file_path)
+        wait_for_results(logger, times_logger, step_name, mcl_inputs_tmp_dir, num_of_batches, error_file_path)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -928,7 +930,7 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_mcl_analysis'
     script_path = os.path.join(consts.SRC_DIR, 'steps/run_mcl.py')
-    mcl_outputs_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    mcl_outputs_dir, mcl_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Executing MCL...')
@@ -941,13 +943,13 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
                                  f'"{os.path.join(mcl_outputs_dir, output_file_name)}"']
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, mcl_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                    job_name_suffix='mcl_execution',
                                                    queue_name=args.queue_name,
                                                    account_name=args.account_name)
 
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, step_name, mcl_tmp_dir,
                          num_of_batches, error_file_path)
         write_to_file(logger, done_file_path, '.')
     else:
@@ -961,7 +963,7 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_verified_clusters'
     script_path = os.path.join(consts.SRC_DIR, 'steps/verify_cluster.py')
-    verified_clusters_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    verified_clusters_output_dir, verified_clusters_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Verifying clusters...')
@@ -971,14 +973,13 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
                                  verified_clusters_output_dir]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, verified_clusters_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                    job_name_suffix='clusters_verification',
                                                    queue_name=args.queue_name,
                                                    account_name=args.account_name)
 
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
-                         num_of_batches, error_file_path)
+        wait_for_results(logger, times_logger, step_name, verified_clusters_tmp_dir, num_of_batches, error_file_path)
 
         logger.info(f'A total of {mcl_inputs_dir} clusters were analyzed. '
                     f'{len(os.listdir(verified_clusters_output_dir))} clusters were produced.')
@@ -994,8 +995,8 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_verified_table'
     script_path = os.path.join(consts.SRC_DIR, 'steps/construct_verified_orthologs_table.py')
-    verified_orthologs_table_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    orthogroups_file_path = os.path.join(pipeline_step_output_dir, 'orthogroups.csv')
+    verified_orthologs_table_dir_path, verified_orthologs_table_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    orthogroups_file_path = os.path.join(verified_orthologs_table_dir_path, 'orthogroups.csv')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Constructing verified orthologs table...')
@@ -1003,9 +1004,9 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
                   verified_clusters_output_dir,
                   orthogroups_file_path]
 
-        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path,
+        submit_mini_batch(logger, script_path, [params], verified_orthologs_table_tmp_dir, error_file_path,
                           args.queue_name, args.account_name, job_name='verified_ortholog_groups')
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, step_name, verified_orthologs_table_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path,
                          error_message='No ortholog groups were detected in your dataset. Please try to lower '
                                        'the similarity parameters (see Advanced Options in the submission page) '

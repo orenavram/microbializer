@@ -18,20 +18,23 @@ def concatenate_hits(logger, clusters_dir, sub_dir_name, hits_filename, output_d
     output_hits_file = os.path.join(output_dir, hits_filename)
     output_statistics_file = os.path.join(output_dir, 'scores_statistics', f'{hits_file_prefix}.stats')
     all_statistics = []
-    for i, cluster_dir in enumerate(os.listdir(clusters_dir)):
+    first_hits_file = True
+    for cluster_dir in os.listdir(clusters_dir):
         hits_file_path = os.path.join(clusters_dir, cluster_dir, sub_dir_name, hits_filename)
+        if os.path.exists(hits_file_path):
+            if first_hits_file:
+                cmd = f"cat {hits_file_path} >> {output_hits_file}"
+                first_hits_file = False
+            else:
+                cmd = f"tail -n +2 {hits_file_path} >> {output_hits_file}"
+            logger.info(f'Calling:\n{cmd}')
+            subprocess.run(cmd, shell=True)
+
         statistics_file_path = os.path.join(clusters_dir, cluster_dir, sub_dir_name, 'scores_statistics', f'{hits_file_prefix}.stats')
-
-        if i == 0:
-            cmd = f"cat {hits_file_path} >> {output_hits_file}"
-        else:
-            cmd = f"tail -n +2 {hits_file_path} >> {output_hits_file}"
-        logger.info(f'Calling:\n{cmd}')
-        subprocess.run(cmd, shell=True)
-
-        with open(statistics_file_path, 'r') as statistics_file:
-            statistics = json.load(statistics_file)
-        all_statistics.append(statistics)
+        if os.path.exists(statistics_file_path):
+            with open(statistics_file_path, 'r') as statistics_file:
+                statistics = json.load(statistics_file)
+            all_statistics.append(statistics)
 
     total_sum = 0
     total_records = 0
