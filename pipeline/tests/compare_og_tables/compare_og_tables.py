@@ -3,8 +3,8 @@ import pandas as pd
 from sklearn import metrics
 
 BASE_PATH = r"C:\repos\microbializer\pipeline\tests\compare_og_tables\73_ecoli_compare_mmseqs_optimized"
-OG_TABLE_NO_OPTIMIZE = os.path.join(BASE_PATH, "no_optimize", "orthogroups.csv")
-OG_TABLE_OPTIMIZE_1_MMSEQS_COMMAND = os.path.join(BASE_PATH, "optimize_1_mmseqs_command", "orthogroups.csv")
+OG_TABLE_NO_OPTIMIZE = os.path.join(BASE_PATH, "no_optimize_2", "orthogroups.csv")
+OG_TABLE_OPTIMIZE_1_MMSEQS_COMMAND = os.path.join(BASE_PATH, "optimize_3", "orthogroups.csv")
 
 
 def compare_clusterings(true_labels, pred_labels, output_path):
