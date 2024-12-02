@@ -21,7 +21,7 @@ from auxiliaries.file_writer import write_to_file
 
 def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,
                        all_proteins_path, strains_names, queue_name, account_name, identity_cutoff, coverage_cutoff,
-                       e_value_cutoff, n_jobs_per_step, debug):
+                       e_value_cutoff, n_jobs_per_step, use_only_csv):
     # a.	mmseqs2_all_vs_all.py
     step_number = f'{base_step_number}a'
     logger.info(f'Step {step_number}: {"_" * 100}')
@@ -54,7 +54,7 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
         m8_df['target_genome'] = m8_df['target'].str.split(':').str[0]
         m8_df = m8_df[['query', 'query_genome', 'target', 'target_genome', 'score']]
 
-        if debug:
+        if use_only_csv:
             m8_df.to_csv(m8_output_path, single_file=True)
         else:
             m8_df.to_parquet(m8_output_path)
@@ -95,8 +95,8 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
                 rbh_input_path = os.path.join(rbh_inputs_dir, rbh_input_file)
                 params = [m8_output_path, rbh_input_path, orthologs_output_dir,
                           orthologs_scores_statistics_dir, max_rbh_scores_parts_output_dir]
-                if debug:
-                    params.append('--debug')
+                if use_only_csv:
+                    params.append('--use_only_csv')
                 all_cmds_params.append(params)
 
             num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
@@ -146,8 +146,8 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
             paralogs_input_path = os.path.join(paralogs_inputs_dir, paralogs_input_file)
             single_cmd_params = [m8_output_path, paralogs_input_path, max_rbh_scores_parts_output_dir,
                                  paralogs_output_dir, max_rbh_scores_unified_dir, paralogs_scores_statistics_dir]
-            if debug:
-                single_cmd_params.append('--debug')
+            if use_only_csv:
+                single_cmd_params.append('--use_only_csv')
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
@@ -170,7 +170,7 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
 
 def run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,
                            translated_orfs_dir, strains_names, queue_name, account_name, identity_cutoff,
-                           coverage_cutoff, e_value_cutoff, n_jobs_per_step):
+                           coverage_cutoff, e_value_cutoff, n_jobs_per_step, use_only_csv):
     # a.	mmseqs2_all_vs_all.py
     # Input: (1) 2 input paths for 2 (different) genome files (query and target), g1 and g2
     #        (2) an output file path (with a suffix as follows: i_vs_j.tsv. especially relevant for the wrapper).
@@ -202,12 +202,13 @@ def run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_pa
                                      os.path.join(translated_orfs_dir, fasta2),
                                      output_file_path,
                                      orthologs_scores_statistics_dir,
-                                     error_file_path,
                                      f'--identity_cutoff {identity_cutoff / 100}',
                                      f'--coverage_cutoff {coverage_cutoff / 100}',
                                      f'--e_value_cutoff {e_value_cutoff}',
                                      ]
 
+                if use_only_csv:
+                    single_cmd_params.append('--use_only_csv')
                 all_cmds_params.append(single_cmd_params)
 
             num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
@@ -243,8 +244,9 @@ def run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_pa
 
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
         for strain_name in strains_names:
-            single_cmd_params = [orthologs_output_dir, strain_name, max_rbh_scores_output_dir, max_rbh_scores_step_name,
-                                 error_file_path]
+            single_cmd_params = [orthologs_output_dir, strain_name, max_rbh_scores_output_dir, max_rbh_scores_step_name]
+            if use_only_csv:
+                single_cmd_params.append('--use_only_csv')
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
@@ -287,12 +289,12 @@ def run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_pa
                                  output_file_path,
                                  max_scores_file_path,
                                  paralogs_scores_statistics_dir,
-                                 error_file_path,
                                  f'--identity_cutoff {identity_cutoff / 100}',
                                  f'--coverage_cutoff {coverage_cutoff / 100}',
                                  f'--e_value_cutoff {e_value_cutoff}',
                                  ]
-
+            if use_only_csv:
+                single_cmd_params.append('--use_only_csv')
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
@@ -316,7 +318,7 @@ def run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_pa
 def full_orthogroups_infernece(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,
                                translated_orfs_dir, all_proteins_path, strains_names_path, queue_name,
                                account_name, identity_cutoff, coverage_cutoff, e_value_cutoff, num_of_times_script_called,
-                               debug, run_optimized_mmseqs):
+                               use_only_csv, run_optimized_mmseqs):
     with open(strains_names_path) as f:
         strains_names = f.read().rstrip().split('\n')
     n_jobs_per_step = consts.MAX_PARALLEL_JOBS // num_of_times_script_called
@@ -325,12 +327,12 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
         orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir = \
             run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
                                done_files_dir, all_proteins_path, strains_names, queue_name, account_name,
-                               identity_cutoff, coverage_cutoff,  e_value_cutoff, n_jobs_per_step, debug)
+                               identity_cutoff, coverage_cutoff,  e_value_cutoff, n_jobs_per_step, use_only_csv)
     else:
         orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir = \
             run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
                                    done_files_dir, translated_orfs_dir, strains_names, queue_name, account_name,
-                                   identity_cutoff, coverage_cutoff, e_value_cutoff, n_jobs_per_step)
+                                   identity_cutoff, coverage_cutoff, e_value_cutoff, n_jobs_per_step, use_only_csv)
 
     # d. normalize_scores
     step_number = f'{base_step_number}d'
@@ -352,8 +354,8 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
                                  os.path.join(normalized_hits_output_dir, f"{strains_pair}.{step_name}"),
                                  scores_normalize_coefficients[strains_pair]
                                  ]
-            if debug:
-                single_cmd_params.append('--debug')
+            if use_only_csv:
+                single_cmd_params.append('--use_only_csv')
             all_cmds_params.append(single_cmd_params)
 
         for hits_file in os.listdir(paralogs_output_dir):
@@ -364,8 +366,8 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
                                  os.path.join(normalized_hits_output_dir, f"{strains_pair}.{step_name}"),
                                  scores_normalize_coefficients[strains_pair]
                                  ]
-            if debug:
-                single_cmd_params.append('--debug')
+            if use_only_csv:
+                single_cmd_params.append('--use_only_csv')
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
@@ -602,7 +604,7 @@ if __name__ == '__main__':
     parser.add_argument('coverage_cutoff', help='', type=float)
     parser.add_argument('e_value_cutoff', help='', type=float)
     parser.add_argument('num_of_times_script_called', help='', type=int)
-    parser.add_argument('--debug', action='store_true')
+    parser.add_argument('--use_only_csv', action='store_true')
     parser.add_argument('--run_optimized_mmseqs', help='', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('--error_file_path', help='path to error file')
@@ -617,7 +619,7 @@ if __name__ == '__main__':
                                    args.tmp_dir, args.done_files_dir, args.translated_orfs_dir, args.all_proteins_path,
                                    args.strains_names_path, args.queue_name, args.account_name,
                                    args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff,
-                                   args.num_of_times_script_called, args.debug, args.run_optimized_mmseqs)
+                                   args.num_of_times_script_called, args.use_only_csv, args.run_optimized_mmseqs)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:

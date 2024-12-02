@@ -32,7 +32,7 @@ def too_many_trials(logger, cmd, error_file_path):
 
 
 def search_all_vs_all(logger, protein_fasta_1, protein_fasta_2, m8_outfile, scores_statistics_dir, error_file_path,
-                      identity_cutoff, coverage_cutoff, e_value_cutoff):
+                      identity_cutoff, coverage_cutoff, e_value_cutoff, use_only_csv):
     """
     input:  2 protein fastas
     output: query_vs_reference "mmseqs2 easy-rbh" results file
@@ -70,7 +70,10 @@ def search_all_vs_all(logger, protein_fasta_1, protein_fasta_2, m8_outfile, scor
     df = pd.read_csv(m8_outfile_raw, sep='\t', names=consts.MMSEQS_OUTPUT_HEADER)
     add_score_column_to_mmseqs_output(df)
 
-    df[['query', 'target', 'score']].to_csv(m8_outfile, index=False)
+    if use_only_csv:
+        df[['query', 'target', 'score']].to_csv(m8_outfile, index=False)
+    else:
+        df[['query', 'target', 'score']].to_parquet(m8_outfile, index=False)
     logger.info(f"{m8_outfile} was created successfully.")
 
     score_stats_file = os.path.join(scores_statistics_dir, f'{strain_1}_vs_{strain_2}.stats')
@@ -90,10 +93,10 @@ if __name__ == '__main__':
     parser.add_argument('protein_fasta_2', help='path to another protein fasta')
     parser.add_argument('output_path', help='path to which the results will be written (blast m8 format)')
     parser.add_argument('scores_statistics_dir', help='path to output dir of score statistics')
-    parser.add_argument('error_file_path', help='path to which errors are written')
     parser.add_argument('--identity_cutoff', type=float)
     parser.add_argument('--coverage_cutoff', type=float)
     parser.add_argument('--e_value_cutoff', type=float)
+    parser.add_argument('--use_only_csv', action='store_true')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('--error_file_path', help='path to error file')
@@ -105,7 +108,7 @@ if __name__ == '__main__':
     logger.info(script_run_message)
     try:
         search_all_vs_all(logger, args.protein_fasta_1, args.protein_fasta_2, args.output_path, args.scores_statistics_dir,
-                          args.error_file_path, args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff)
+                          args.error_file_path, args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff, args.use_only_csv)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:

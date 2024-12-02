@@ -91,7 +91,7 @@ def get_arguments():
                         default=5)
     parser.add_argument('--run_optimized_mmseqs', help='Optimize the mmseqs run',
                         action='store_true')
-    parser.add_argument('--debug', help='When True, use csv files instead of parquet',
+    parser.add_argument('--use_only_csv', help='When True, use csv files instead of parquet',
                         action='store_true')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
 
@@ -692,8 +692,8 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
                       args.account_name, args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff,
                       args.num_of_clusters_in_orthogroup_inference]
 
-            if args.debug:
-                params.append('--debug')
+            if args.use_only_csv:
+                params.append('--use_only_csv')
 
             if args.run_optimized_mmseqs:
                 params.append('--run_optimized_mmseqs')

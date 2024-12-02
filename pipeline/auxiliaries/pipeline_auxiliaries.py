@@ -86,7 +86,7 @@ def wait_for_results(logger, times_logger, script_name, path, num_of_expected_re
 def get_job_time_from_log_file(log_file_content, pattern_for_runtime, pattern_for_cpus):
     runtime_string_match = pattern_for_runtime.search(log_file_content)
     if not runtime_string_match:
-        return None
+        return None, None
 
     runtime_string = runtime_string_match.group(1)
 
