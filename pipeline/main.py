@@ -21,12 +21,12 @@ from auxiliaries.file_writer import write_to_file
 from auxiliaries.input_verifications import prepare_and_verify_input_data
 from auxiliaries.pipeline_auxiliaries import wait_for_results, \
     prepare_directories, fail, submit_mini_batch, submit_batch, notify_admin, add_results_to_final_dir, remove_path,\
-    str_to_bool
+    str_to_bool, execute
 from auxiliaries.html_editor import edit_success_html, edit_failure_html, edit_progress
 from auxiliaries import consts, cgi_consts
 from flask import flask_interface_consts
 from auxiliaries.logic_auxiliaries import mimic_prodigal_output, aggregate_ani_results, remove_bootstrap_values, \
-    plot_genomes_histogram, update_progressbar, define_intervals
+    plot_genomes_histogram, update_progressbar, define_intervals, aggregate_mmseqs_scores
 from flask.SharedConsts import USER_FILE_NAME_ZIP, USER_FILE_NAME_TAR
 
 PIPELINE_STEPS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
@@ -90,8 +90,6 @@ def get_arguments():
                                                                           'optimize_orthogroups_inference is True',
                         default=5)
     parser.add_argument('--run_optimized_mmseqs', help='Optimize the mmseqs run',
-                        action='store_true')
-    parser.add_argument('--use_only_csv', help='When True, use csv files instead of parquet',
                         action='store_true')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
 
@@ -619,8 +617,8 @@ def step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output
 
 def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                              done_files_dir, clusters_dir, translated_orfs_dir, all_proteins_path, genomes_names_path):
-    # 50.  filter_fasta_files_by_cluster.py
-    step_number = '050'
+    # a.  filter_fasta_files_by_cluster.py
+    step_number = '05a'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_filter_fastas_by_cluster'
     script_path = os.path.join(consts.SRC_DIR, 'steps/filter_fasta_file.py')
@@ -662,16 +660,14 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-
-    # 5.  infer_orthogroups.py
-    step_number = '05'
+    # b.  infer_orthogroups.py
+    step_number = '05b'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_infer_orthogroups'
     script_path = os.path.join(consts.SRC_DIR, 'steps/infer_orthogroups.py')
-    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    mmseqs_output_dir, mmseqs_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     pipeline_step_done_dir = os.path.join(done_files_dir, step_name)
     os.makedirs(pipeline_step_done_dir, exist_ok=True)
-    orthogroups_file_path = os.path.join(pipeline_step_output_dir, 'orthogroups.csv')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
@@ -680,7 +676,7 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
             cluster_fastas_dir_path = os.path.join(clusters_fasta_files, cluster_fastas_dir_name)
             cluster_id = cluster_fastas_dir_name.split('_')[1]
 
-            cluster_output_dir = os.path.join(pipeline_step_output_dir, str(cluster_id))
+            cluster_output_dir = os.path.join(mmseqs_output_dir, str(cluster_id))
             os.makedirs(cluster_output_dir, exist_ok=True)
             cluster_tmp_dir = os.path.join(pipeline_step_tmp_dir, str(cluster_id))
             os.makedirs(cluster_tmp_dir, exist_ok=True)
@@ -691,9 +687,6 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
                       os.path.join(cluster_fastas_dir_path, 'all_proteomes.faa'), genomes_names_path, args.queue_name,
                       args.account_name, args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff,
                       args.num_of_clusters_in_orthogroup_inference]
-
-            if args.use_only_csv:
-                params.append('--use_only_csv')
 
             if args.run_optimized_mmseqs:
                 params.append('--run_optimized_mmseqs')
@@ -710,15 +703,313 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path, recursive_step=True)
 
-        # Aggregate OG tables of all clusters
-        all_og_tables = []
-        for cluster_dir_name in os.listdir(pipeline_step_output_dir):
-            cluster_og_table = os.path.join(pipeline_step_output_dir, cluster_dir_name, '05j_verified_table', 'verified_orthologs_table.csv')
-            cluster_og_df = pd.read_csv(cluster_og_table)
-            all_og_tables.append(cluster_og_df)
-        unified_og_table = pd.concat(all_og_tables, axis=0, ignore_index=True)
-        unified_og_table['OG_name'] = [f'OG_{i}' for i in range(len(unified_og_table.index))]
-        unified_og_table.to_csv(orthogroups_file_path, index=False)
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+    # c. concat_clusters_info.py
+    step_number = f'05c'
+    script_path = os.path.join(consts.SRC_DIR, 'steps/concat_clusters_info.py')
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}concat_clusters_rbhs'
+    orthologs_output_dir, orthologs_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    orthologs_scores_statistics_dir = os.path.join(orthologs_output_dir, 'scores_statistics')
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        os.makedirs(orthologs_scores_statistics_dir, exist_ok=True)
+        all_cmds_params = []
+        for hits_file in os.listdir(os.path.join(mmseqs_output_dir, '0', '05bb_extract_rbh_hits')):
+            if not hits_file.endswith('m8'):
+                continue
+            single_cmd_params = [mmseqs_output_dir, '05bb_extract_rbh_hits', hits_file, orthologs_output_dir]
+            all_cmds_params.append(single_cmd_params)
+
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, orthologs_tmp_dir, error_file_path,
+                                                   num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
+                                                   job_name_suffix='concat_clusters_rbhs',
+                                                   queue_name=args.queue_name,
+                                                   account_name=args.account_name)
+
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+                         num_of_batches, error_file_path)
+
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+    # d. concat_clusters_info.py
+    step_number = f'05d'
+    script_path = os.path.join(consts.SRC_DIR, 'steps/concat_clusters_info.py')
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}concat_clusters_paralogs'
+    paralogs_output_dir, paralogs_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    paralogs_scores_statistics_dir = os.path.join(paralogs_output_dir, 'scores_statistics')
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        os.makedirs(paralogs_scores_statistics_dir, exist_ok=True)
+        all_cmds_params = []
+        for hits_file in os.listdir(os.path.join(mmseqs_output_dir, '0', '05bc_paralogs')):
+            if not hits_file.endswith('m8_filtered'):
+                continue
+            single_cmd_params = [mmseqs_output_dir, '05bc_paralogs', hits_file, paralogs_output_dir]
+            all_cmds_params.append(single_cmd_params)
+
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, paralogs_tmp_dir, error_file_path,
+                                                   num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
+                                                   job_name_suffix='concat_clusters_rbhs',
+                                                   queue_name=args.queue_name,
+                                                   account_name=args.account_name)
+
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+                         num_of_batches, error_file_path)
+
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+    # e. normalize_scores
+    step_number = f'05e'
+    script_path = os.path.join(consts.SRC_DIR, 'steps/normalize_hits_scores.py')
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_normalize_scores'
+    normalized_hits_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        scores_statistics_file = os.path.join(normalized_hits_output_dir, 'scores_stats.json')
+        scores_normalize_coefficients = aggregate_mmseqs_scores(orthologs_scores_statistics_dir, paralogs_scores_statistics_dir, scores_statistics_file)
+
+        all_cmds_params = []
+        for hits_file in os.listdir(orthologs_output_dir):
+            if not hits_file.endswith('m8'):
+                continue
+            strains_pair = os.path.splitext(hits_file)[0]
+            single_cmd_params = [os.path.join(orthologs_output_dir, hits_file),
+                                 os.path.join(normalized_hits_output_dir, f"{strains_pair}.{step_name}"),
+                                 scores_normalize_coefficients[strains_pair]
+                                 ]
+            all_cmds_params.append(single_cmd_params)
+
+        for hits_file in os.listdir(paralogs_output_dir):
+            if not hits_file.endswith('m8_filtered'):
+                continue
+            strains_pair = os.path.splitext(hits_file)[0]
+            single_cmd_params = [os.path.join(paralogs_output_dir, hits_file),
+                                 os.path.join(normalized_hits_output_dir, f"{strains_pair}.{step_name}"),
+                                 scores_normalize_coefficients[strains_pair]
+                                 ]
+            all_cmds_params.append(single_cmd_params)
+
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
+                                                   num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
+                                                   job_name_suffix='hits_normalize',
+                                                   queue_name=args.queue_name,
+                                                   account_name=args.account_name)
+
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+                         num_of_batches, error_file_path)
+
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+    # f. concatenate_all_hits
+    # Input: path to folder with all hits files
+    # Output: concatenated file of all hits files
+    # CANNOT be parallelized on cluster
+    step_number = f'05f'
+    script_path = os.path.join(consts.SRC_DIR, 'steps/concatenate_hits.py')
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_concatenate_hits'
+    concatenate_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    all_hits_file = os.path.join(concatenate_output_dir, 'concatenated_all_hits.txt')
+    if not os.path.exists(done_file_path):
+        logger.info('Concatenating hits...')
+
+        number_of_hits_files = len(os.listdir(normalized_hits_output_dir))
+        intervals = define_intervals(0, number_of_hits_files, n_jobs_per_step)
+
+        concatenated_chunks_dir = os.path.join(concatenate_output_dir, 'temp_chunks')
+        os.makedirs(concatenated_chunks_dir, exist_ok=True)
+        all_cmds_params = [[normalized_hits_output_dir, start, end, concatenated_chunks_dir]
+                           for (start, end) in intervals]
+
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
+                                                   num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
+                                                   job_name_suffix='concatenate_hits',
+                                                    queue_name=args.queue_name,
+                                                   account_name=args.account_name)
+
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+                         num_of_batches, error_file_path)
+
+        execute(logger, f'cat {concatenated_chunks_dir}/* >> {all_hits_file}', process_is_string=True)
+        execute(logger, f'rm -rf {concatenated_chunks_dir}', process_is_string=True)
+
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+    # g.	construct_putative_orthologs_table.py
+    # Input: (1) a path for a i_vs_j_reciprocal_hits.tsv file (2) a path for a putative orthologs file (with a single line).
+    # Output: updates the table with the info from the reciprocal hit file.
+    # CANNOT be parallelized on cluster
+    step_number = f'05g'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_putative_table'
+    script_path = os.path.join(consts.SRC_DIR, 'steps/construct_putative_orthologs_table.py')
+    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    putative_orthologs_table_path = os.path.join(pipeline_step_output_dir, 'putative_orthologs_table.txt')
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        logger.info('Constructing putative orthologs table...')
+        job_name = os.path.split(script_path)[-1]
+        params = [all_hits_file,
+                  putative_orthologs_table_path]
+        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path,
+                          args.queue_name, args.account_name, job_name=job_name)
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+                         num_of_expected_results=1, error_file_path=error_file_path)
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+    # h.   prepare_files_for_mcl.py
+    # Input: (1) a path for a concatenated all reciprocal hits file (2) a path for a putative orthologs file (3) a path for an output folder
+    # Output: an input file for MCL for each putative orthologs group
+    # CANNOT be parallelized on cluster (if running on the concatenated file)
+    step_number = f'05h'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_mcl_input_files'
+    script_path = os.path.join(consts.SRC_DIR, 'steps/prepare_files_for_mcl.py')
+    mcl_inputs_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        logger.info('Preparing files for MCL...')
+        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
+
+        with open(os.path.join(os.path.split(putative_orthologs_table_path)[0], 'num_of_putative_sets.txt')) as f:
+            num_of_putative_sets = int(f.read())
+        if num_of_putative_sets == 0:
+            error_msg = f'No putative ortholog groups were detected in your dataset. Please try to lower the ' \
+                        f'similarity parameters (see Advanced Options in the submission page) and re-submit your job.'
+            fail(logger, error_msg, error_file_path)
+        clusters_to_prepare_per_job = math.ceil(num_of_putative_sets / consts.MAX_PARALLEL_JOBS)
+        for i in range(1, num_of_putative_sets + 1, clusters_to_prepare_per_job):
+            first_mcl = str(i)
+            last_mcl = str(min(i + clusters_to_prepare_per_job - 1,
+                               num_of_putative_sets))  # 1-10, 11-20, etc... for clusters_to_prepare_per_job=10
+
+            single_cmd_params = [all_hits_file,
+                                 putative_orthologs_table_path,
+                                 first_mcl,
+                                 last_mcl,
+                                 mcl_inputs_dir]
+            all_cmds_params.append(single_cmd_params)
+
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
+                                                   num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
+                                                   # *times* the number of clusters_to_prepare_per_job above. 50 in total per batch!
+                                                   job_name_suffix='mcl_preparation',
+                                                   queue_name=args.queue_name,
+                                                   account_name=args.account_name)
+
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+                         num_of_batches, error_file_path)
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+    # i.	run_mcl.py
+    # Input: (1) a path to an MCL input file (2) a path to MCL's output.
+    # Output: MCL analysis.
+    # Can be parallelized on cluster
+    step_number = f'05i'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_mcl_analysis'
+    script_path = os.path.join(consts.SRC_DIR, 'steps/run_mcl.py')
+    mcl_outputs_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        logger.info('Executing MCL...')
+        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
+        for putative_orthologs_group in os.listdir(mcl_inputs_dir):
+            putative_orthologs_group_prefix = os.path.splitext(putative_orthologs_group)[0]
+            output_file_name = f'{putative_orthologs_group_prefix}.{step_name}'
+
+            single_cmd_params = [f'"{os.path.join(mcl_inputs_dir, putative_orthologs_group)}"',
+                                 f'"{os.path.join(mcl_outputs_dir, output_file_name)}"']
+            all_cmds_params.append(single_cmd_params)
+
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
+                                                   num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
+                                                   job_name_suffix='mcl_execution',
+                                                   queue_name=args.queue_name,
+                                                   account_name=args.account_name)
+
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+                         num_of_batches, error_file_path)
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+    # j.	verify_cluster.py
+    # Input: (1) mcl analysis file (2) a path to which the file will be moved if relevant (3) optional: maximum number of clusters allowed [default=1]
+    # Output: filter irrelevant clusters by moving the relevant to an output directory
+    # Can be parallelized on cluster
+    step_number = f'05j'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_verified_clusters'
+    script_path = os.path.join(consts.SRC_DIR, 'steps/verify_cluster.py')
+    verified_clusters_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        logger.info('Verifying clusters...')
+        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
+        for putative_orthologs_group in os.listdir(mcl_outputs_dir):
+            single_cmd_params = [os.path.join(mcl_outputs_dir, putative_orthologs_group),
+                                 verified_clusters_output_dir]
+            all_cmds_params.append(single_cmd_params)
+
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
+                                                   num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
+                                                   job_name_suffix='clusters_verification',
+                                                   queue_name=args.queue_name,
+                                                   account_name=args.account_name)
+
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+                         num_of_batches, error_file_path)
+
+        logger.info(f'A total of {mcl_inputs_dir} clusters were analyzed. '
+                    f'{len(os.listdir(verified_clusters_output_dir))} clusters were produced.')
+
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+    # k.	construct_verified_orthologs_table.py
+    # Input: (1) a path for directory with all the verified OGs (2) an output path to a final OGs table.
+    # Output: aggregates all the well-clustered OGs to the final table.
+    step_number = f'05k'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_verified_table'
+    script_path = os.path.join(consts.SRC_DIR, 'steps/construct_verified_orthologs_table.py')
+    verified_orthologs_table_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    orthogroups_file_path = os.path.join(pipeline_step_output_dir, 'orthogroups.csv')
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        logger.info('Constructing verified orthologs table...')
+        params = [putative_orthologs_table_path,
+                  verified_clusters_output_dir,
+                  orthogroups_file_path]
+
+        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path,
+                          args.queue_name, args.account_name, job_name='verified_ortholog_groups')
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+                         num_of_expected_results=1, error_file_path=error_file_path,
+                         error_message='No ortholog groups were detected in your dataset. Please try to lower '
+                                       'the similarity parameters (see Advanced Options in the submission page) '
+                                       'and re-submit your job.')
 
         write_to_file(logger, done_file_path, '.')
     else:
