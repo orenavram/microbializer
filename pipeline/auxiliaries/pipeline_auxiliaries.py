@@ -70,13 +70,12 @@ def wait_for_results(logger, times_logger, script_name, path, num_of_expected_re
                           (f'Cpus are not complete since files {log_files_without_cpus} do not have cpus records. '
                            if log_files_without_cpus else ''))
     else:
-        sub_steps_total_running_time, sub_steps_total_cummulative_time, log_files_without_times, \
-            sub_steps_cummulative_times = get_recursive_step_cummulative_times(path)
+        sub_steps_total_cummulative_time, log_files_without_times, sub_steps_cummulative_times \
+            = get_recursive_step_cummulative_times(path)
         for step_name, step_time in sub_steps_cummulative_times.items():
             times_logger.info(f'Sub-step {step_name} took cumulatively {step_time} wallclock time')
 
-        times_logger.info(f'Step {script_name} took {total_time_waited} (of which all sub-steps together took '
-                          f'{sub_steps_total_running_time}). There were {num_of_expected_results} jobs and '
+        times_logger.info(f'Step {script_name} took {total_time_waited}. There were {num_of_expected_results} jobs and '
                           f'cumulatively they took {sub_steps_total_cummulative_time} wallclock time.' +
                           (f'Times are not complete since files {log_files_without_times} do not have times records'
                            if log_files_without_times else ''))
@@ -148,7 +147,6 @@ def get_recursive_step_cummulative_times(path):
 
     log_files_without_times = []
     sub_steps_cummulative_times = {}
-    sub_steps_total_running_time = pd.Timedelta(0)
     for log_file_name in times_log_files:
         log_file_full_path = os.path.join(path, log_file_name)
         with open(log_file_full_path, 'r') as log_file:
@@ -165,10 +163,9 @@ def get_recursive_step_cummulative_times(path):
                 sub_steps_cummulative_times[step_name] += pd.Timedelta(step_cummulative_time)
             else:
                 sub_steps_cummulative_times[step_name] = pd.Timedelta(step_cummulative_time)
-            sub_steps_total_running_time += pd.Timedelta(step_running_time)
 
     sub_steps_total_cummulative_time = sum(sub_steps_cummulative_times.values(), pd.Timedelta(0))
-    return sub_steps_total_running_time, sub_steps_total_cummulative_time, log_files_without_times, sub_steps_cummulative_times
+    return sub_steps_total_cummulative_time, log_files_without_times, sub_steps_cummulative_times
 
 
 def prepare_directories(logger, outputs_dir_prefix, tmp_dir_prefix, dir_name):

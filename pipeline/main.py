@@ -91,6 +91,8 @@ def get_arguments():
                         default=5)
     parser.add_argument('--run_optimized_mmseqs', help='Optimize the mmseqs run',
                         action='store_true')
+    parser.add_argument('--debug', help='When True, use csv files instead of parquet',
+                        action='store_true')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
 
     # parser.add_argument('--promoters_length', default=300,
@@ -689,6 +691,9 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
                       os.path.join(cluster_fastas_dir_path, 'all_proteomes.faa'), genomes_names_path, args.queue_name,
                       args.account_name, args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff,
                       args.num_of_clusters_in_orthogroup_inference]
+
+            if args.debug:
+                params.append('--debug')
 
             if args.run_optimized_mmseqs:
                 params.append('--run_optimized_mmseqs')
