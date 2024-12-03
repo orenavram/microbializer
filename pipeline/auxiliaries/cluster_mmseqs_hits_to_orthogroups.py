@@ -137,7 +137,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
                 continue
             strains_pair = os.path.splitext(hits_file)[0]
             single_cmd_params = [os.path.join(orthologs_output_dir, hits_file),
-                                 os.path.join(normalized_hits_output_dir, f"{strains_pair}.{step_name}"),
+                                 os.path.join(normalized_hits_output_dir, f"{strains_pair}.m8"),
                                  scores_normalize_coefficients[strains_pair]
                                  ]
             if use_parquet:
@@ -149,7 +149,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
                 continue
             strains_pair = os.path.splitext(hits_file)[0]
             single_cmd_params = [os.path.join(paralogs_output_dir, hits_file),
-                                 os.path.join(normalized_hits_output_dir, f"{strains_pair}.{step_name}"),
+                                 os.path.join(normalized_hits_output_dir, f"{strains_pair}.m8"),
                                  scores_normalize_coefficients[strains_pair]
                                  ]
             all_cmds_params.append(single_cmd_params)
@@ -180,7 +180,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
     if not os.path.exists(done_file_path):
         logger.info('Concatenating hits...')
 
-        number_of_hits_files = len(os.listdir(normalized_hits_output_dir))
+        number_of_hits_files = sum(1 for file in os.listdir(normalized_hits_output_dir) if file.endswith('.m8'))
         intervals = define_intervals(0, number_of_hits_files, max_parallel_jobs)
 
         concatenated_chunks_dir = os.path.join(concatenate_output_dir, 'temp_chunks')
@@ -533,8 +533,7 @@ def run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_pa
     os.makedirs(orthologs_scores_statistics_dir, exist_ok=True)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
-        orfs_files = [filename for filename in os.listdir(translated_orfs_dir) if
-                      filename.endswith('02d_translated_orfs')]
+        orfs_files = [filename for filename in os.listdir(translated_orfs_dir) if filename.endswith('.faa')]
         if len(orfs_files) >= 2:
             logger.info(f'Querying all VS all (using mmseqs2)...')
             all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs

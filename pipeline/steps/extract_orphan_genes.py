@@ -24,8 +24,7 @@ from auxiliaries.logic_auxiliaries import plot_genomes_histogram, flatten
 
 def extract_gene_names_from_fasta(orfs_file):
     with open(orfs_file) as ORFS:
-        records = list(SeqIO.parse(ORFS, 'fasta'))
-    gene_names = [record.name.strip() for record in records]
+        gene_names = [record.name.strip() for record in SeqIO.parse(ORFS, 'fasta')]
     return gene_names
 
 

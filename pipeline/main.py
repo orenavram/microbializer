@@ -379,8 +379,7 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
             all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
             for fasta_file in os.listdir(data_path):
                 single_cmd_params = [f'"{os.path.join(data_path, fasta_file)}"',
-                                     orfs_dir,
-                                     step_name]
+                                     orfs_dir]
                 all_cmds_params.append(single_cmd_params)
 
             num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
@@ -499,7 +498,7 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
         for fasta_file in os.listdir(orfs_dir):
             file_path = os.path.join(orfs_dir, fasta_file)
-            translated_file_name = f'{os.path.splitext(fasta_file)[0]}.{step_name}'
+            translated_file_name = f'{os.path.splitext(fasta_file)[0]}.faa'
             output_path = os.path.join(translated_orfs_dir_path, translated_file_name)
 
             single_cmd_params = [file_path, output_path]
@@ -910,7 +909,7 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
-                                                   num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
+                                                   num_of_cmds_per_job=1,  # =max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS)
                                                    job_name_suffix='orfs_extraction',
                                                    queue_name=args.queue_name,
                                                    account_name=args.account_name)

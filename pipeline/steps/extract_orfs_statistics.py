@@ -27,8 +27,7 @@ def extract_orfs_statistics(logger, orf_path, orfs_statistics_dir):
     orfs_statistics['gc_content'] = total_num_of_GC / total_num_of_nucleotides
 
     genome_name = os.path.splitext(os.path.basename(orf_path))[0]
-    orfs_statistics_step_name = os.path.basename(orfs_statistics_dir)
-    orfs_statistics_file_name = f'{genome_name}.{orfs_statistics_step_name}'
+    orfs_statistics_file_name = f'{genome_name}.json'
     orfs_statistics_file_path = os.path.join(orfs_statistics_dir, orfs_statistics_file_name)
     with open(orfs_statistics_file_path, 'w') as fp:
         json.dump(orfs_statistics, fp)

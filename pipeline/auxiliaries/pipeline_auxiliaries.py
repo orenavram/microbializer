@@ -133,7 +133,7 @@ def get_jobs_cummulative_time(path):
             cpus_used_in_jobs.append(cpus_used_per_job)
 
     cpus_used_in_jobs = set(cpus_used_in_jobs)
-    if cpus_used_in_jobs == {1, 2}:  # Sometimes when we submit jobs with 1 cpu, 2 are allocated and it's not an error
+    if cpus_used_in_jobs == {1, 2} or cpus_used_in_jobs == {2}:  # Sometimes when we submit jobs with 1 cpu, 2 are allocated and it's not an error
         cpus_used_in_jobs = {1}
     if len(cpus_used_in_jobs) != 1:  # The way that jobs are submitted ensures that each job in a step uses the same number of cpus
         raise ValueError(f'Not all jobs used the same number of cpus in path {path}')

@@ -17,7 +17,7 @@ def concatenate_hits(logger, input_dir, start_index, end_index, output_dir):
     # avoid cat {input_dir}/* because arguments list might be too long!
     # No need to wait...
     for file in os.listdir(input_dir)[start_index:end_index]:
-        if not file.endswith("normalize_scores"):
+        if not file.endswith(".m8"):
             continue
         cmd = f"cat {input_dir}/{file} >> {output_file_path}"
         logger.info(f'Calling:\n{cmd}')
@@ -31,7 +31,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('input_dir', help='dir of hits to concatenate')
     parser.add_argument('start_index', help='start index of files list', type=int)
-    parser.add_argument('end_index', help='end index of files list', type=int)
+    parser.add_argument('end_index', help='end index of files list, exclusive', type=int)
     parser.add_argument('output_dir', help='output dir of concatenated files')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
