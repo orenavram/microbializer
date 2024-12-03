@@ -80,7 +80,6 @@ def search_all_vs_all(logger, protein_fasta_1, protein_fasta_2, m8_outfile, scor
         json.dump(scores_statistics, fp)
 
 
-
 if __name__ == '__main__':
     script_run_message = f'Starting command is: {" ".join(argv)}'
     print(script_run_message)
