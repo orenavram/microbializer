@@ -35,11 +35,11 @@ def unify_clusters_mmseqs_hits(logger, times_logger, output_dir, tmp_dir, done_f
                                mmseqs_output_dir, run_optimized_mmseqs, queue_name, account_name, base_step_number,
                                start_substep_number):
     if run_optimized_mmseqs:
-        rbhs_dir_name = '05bb_extract_rbh_hits'
-        paraloogs_dir_name = '05bc_paralogs'
+        rbhs_dir_name = '05_1_2_extract_rbh_hits'
+        paraloogs_dir_name = '05_1_3_paralogs'
     else:
-        rbhs_dir_name = '05ba_all_vs_all_analysis'
-        paraloogs_dir_name = '05bc_mmseqs_paralogs'
+        rbhs_dir_name = '05_1_1_all_vs_all_analysis'
+        paraloogs_dir_name = '05_1_2_mmseqs_paralogs'
 
     #  concat_clusters_info.py
     step_number = f'{base_step_number}_{start_substep_number}'
