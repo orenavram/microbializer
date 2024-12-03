@@ -89,7 +89,7 @@ def get_arguments():
     parser.add_argument('--num_of_clusters_in_orthogroup_inference', help='Number of clusters in the optimization of '
                                                                           'the orthogroups inference. Relevant only if '
                                                                           'pre_cluster_orthogroups_inference is True',
-                        default=5)
+                        default=10)
     parser.add_argument('--unify_clusters_after_mmseqs', help='If True, unify the clusters after the extraction of hits.'
                                                               'Otherwise, unify the orthogroups at the end of inference.',
                         action='store_true')
@@ -242,7 +242,7 @@ def validate_arguments(args):
         args.num_of_clusters_in_orthogroup_inference = 1
 
     args.num_of_clusters_in_orthogroup_inference = int(args.num_of_clusters_in_orthogroup_inference)
-    if args.num_of_clusters_in_orthogroup_inference <= 1:
+    if args.num_of_clusters_in_orthogroup_inference < 1:
         raise ValueError(f'num_of_clusters_in_orthogroup_inference argument {args.num_of_clusters_in_orthogroup_inference} has invalid value')
 
 
@@ -809,10 +809,10 @@ def step_6_extract_orphan_genes(args, logger, times_logger, error_file_path, out
 
 def step_7_orthologs_table_variations(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                                       final_output_dir, done_files_dir, orthologs_table_file_path, orphan_genes_dir):
-    # 7a.	orthologs_table_variations.py
+    # 07_1.	orthologs_table_variations.py
     # Input: (1) path to the orthologs table (2) path to the orphan genes directory.
     # Output: build variations of the orthologs table.
-    step_number = '07a'
+    step_number = '07_1'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orthogroups'
     script_path = os.path.join(consts.SRC_DIR, 'steps/orthologs_table_variations.py')
@@ -839,8 +839,8 @@ def step_7_orthologs_table_variations(args, logger, times_logger, error_file_pat
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # 7b.	extract_groups_sizes_frequency
-    step_number = '07b'
+    # 07_2.	extract_groups_sizes_frequency
+    step_number = '07_2'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orthogroups_sizes'
     group_sizes_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
@@ -874,10 +874,10 @@ def step_7_orthologs_table_variations(args, logger, times_logger, error_file_pat
 
 def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                                            final_output_dir, done_files_dir, orfs_dir, final_orthologs_table_file_path):
-    # 8a.	extract_orfs.py
+    # 08_1.	extract_orfs.py
     # Input: (1) a row from the final orthologs table (2) a path for a directory where the genes files are at (3) a path for an output file.
     # Output: write the sequences of the orthologs group to the output file.
-    step_number = '08a'
+    step_number = '08_1'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orthogroups_dna'
     script_path = os.path.join(consts.SRC_DIR, 'steps/extract_orfs.py')
@@ -915,11 +915,11 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # 8b.  translate_fna_to_faa.py
+    # 08_2.  translate_fna_to_faa.py
     # Input: path to fna file and an faa file
     # Output: translate the fna to protein and write to the faa file
     # Can be parallelized on cluster
-    step_number = '08b'
+    step_number = '08_2'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orthogroups_aa'
     script_path = os.path.join(consts.SRC_DIR, 'steps/translate_fna_to_faa.py')
@@ -950,11 +950,11 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # 8c.	align_orthologs_group.py
+    # 08_3.	align_orthologs_group.py
     # Input: (1) A path to an unaligned amino acid sequences file (2) An output file path
     # Output: aligned sequences
     # Can be parallelized on cluster
-    step_number = '08c'
+    step_number = '08_3'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orthogroups_aa_msa'
     script_path = os.path.join(consts.SRC_DIR, 'steps/align_orthologs_group.py')
@@ -987,11 +987,11 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # 8d.	induce_dna_msa_by_aa_msa.py
+    # 08_4.	induce_dna_msa_by_aa_msa.py
     # Input: (1) An aa alignment (2) An unaligned dna file (3) An output file path
     # Output: write the codon alignment induced by the aa alignment to the output file
     # Can be parallelized on cluster
-    step_number = '08d'
+    step_number = '08_4'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orthogroups_induced_dna_msa_by_aa_msa'
     script_path = os.path.join(consts.SRC_DIR, 'steps/induce_dna_msa_by_aa_msa.py')
@@ -1029,8 +1029,8 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
 def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, error_file_path,
                                                   output_dir, tmp_dir, final_output_dir, done_files_dir, num_of_strains,
                                                   strains_names_path, aa_alignments_path, dna_alignments_path):
-    # 9a.	extract aligned_core_proteome.py
-    step_number = '09a'
+    # 09_1.	extract aligned_core_proteome.py
+    step_number = '09_1'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_aligned_core_proteome'
     script_path = os.path.join(consts.SRC_DIR, 'steps/extract_core_genome.py')
@@ -1066,8 +1066,8 @@ def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, err
         core_proteome_length = int(fp.read().strip())
 
 
-    # 9b.      extract_aligned_core_genome
-    step_number = '09b'
+    # 09_2.      extract_aligned_core_genome
+    step_number = '09_2'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_aligned_core_genome'
     script_path = os.path.join(consts.SRC_DIR, 'steps/extract_core_genome.py')
