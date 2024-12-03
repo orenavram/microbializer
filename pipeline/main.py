@@ -707,6 +707,13 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
+    if args.run_optimized_mmseqs:
+        rbhs_dir_name = '05bb_extract_rbh_hits'
+        paraloogs_dir_name = '05bc_paralogs'
+    else:
+        rbhs_dir_name = '05ba_all_vs_all_analysis'
+        paraloogs_dir_name = '05bc_mmseqs_paralogs'
+
     # c. concat_clusters_info.py
     step_number = f'05c'
     script_path = os.path.join(consts.SRC_DIR, 'steps/concat_clusters_info.py')
@@ -720,10 +727,10 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
         all_cmds_params = []
         hits_files_processed = set()
         for cluster_dir in os.listdir(mmseqs_output_dir):
-            for hits_file in os.listdir(os.path.join(mmseqs_output_dir, cluster_dir, '05bb_extract_rbh_hits')):
+            for hits_file in os.listdir(os.path.join(mmseqs_output_dir, cluster_dir, rbhs_dir_name)):
                 if not hits_file.endswith('m8') or hits_file in hits_files_processed:
                     continue
-                single_cmd_params = [mmseqs_output_dir, '05bb_extract_rbh_hits', hits_file, orthologs_output_dir]
+                single_cmd_params = [mmseqs_output_dir, rbhs_dir_name, hits_file, orthologs_output_dir]
                 all_cmds_params.append(single_cmd_params)
                 hits_files_processed.add(hits_file)
 
@@ -752,10 +759,10 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
         all_cmds_params = []
         hits_files_processed = set()
         for cluster_dir in os.listdir(mmseqs_output_dir):
-            for hits_file in os.listdir(os.path.join(mmseqs_output_dir, cluster_dir, '05bc_paralogs')):
+            for hits_file in os.listdir(os.path.join(mmseqs_output_dir, cluster_dir, paraloogs_dir_name)):
                 if not hits_file.endswith('m8_filtered') or hits_file in hits_files_processed:
                     continue
-                single_cmd_params = [mmseqs_output_dir, '05bc_paralogs', hits_file, paralogs_output_dir]
+                single_cmd_params = [mmseqs_output_dir, paraloogs_dir_name, hits_file, paralogs_output_dir]
                 all_cmds_params.append(single_cmd_params)
                 hits_files_processed.add(hits_file)
 
