@@ -666,8 +666,8 @@ def step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output
 
 def step_5_infer_orthogroups_clustered(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                                        done_files_dir, clusters_fasta_files, genomes_names_path):
-    # 05_1.  infer_orthogroups.py
-    step_number = '05_1'
+    # infer_orthogroups.py
+    step_number = '05_1' if args.unify_clusters_after_mmseqs else '05'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_infer_orthogroups'
     script_path = os.path.join(consts.SRC_DIR, 'steps/infer_orthogroups.py')
@@ -716,17 +716,16 @@ def step_5_infer_orthogroups_clustered(args, logger, times_logger, error_file_pa
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-
     if args.unify_clusters_after_mmseqs:
         orthologs_output_dir, orthologs_scores_statistics_dir, paralogs_output_dir, paralogs_scores_statistics_dir = \
             unify_clusters_mmseqs_hits(logger, times_logger, output_dir, tmp_dir, done_files_dir, error_file_path,
                                        infer_orthogroups_output_dir, args.run_optimized_mmseqs, args.queue_name,
-                                       args.account_name, '05', '3')
+                                       args.account_name, '05', '2')
         orthogroups_file_path = \
             cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, output_dir, tmp_dir,
                                                done_files_dir, orthologs_output_dir, orthologs_scores_statistics_dir,
                                                paralogs_output_dir, paralogs_scores_statistics_dir,
-                                               consts.MAX_PARALLEL_JOBS, '05', '5', args.account_name, args.queue_name)
+                                               consts.MAX_PARALLEL_JOBS, '05', '4', args.account_name, args.queue_name)
     else:  # Aggregate OG tables of all clusters
         all_og_tables = []
         for cluster_dir_name in os.listdir(infer_orthogroups_output_dir):
@@ -753,7 +752,7 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
         cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, output_dir, tmp_dir,
                                            done_files_dir, orthologs_output_dir, orthologs_scores_statistics_dir,
                                            paralogs_output_dir, paralogs_scores_statistics_dir,
-                                           consts.MAX_PARALLEL_JOBS, '05', '5', args.account_name, args.queue_name)
+                                           consts.MAX_PARALLEL_JOBS, '05', '4', args.account_name, args.queue_name)
 
     return orthogroups_file_path
 
