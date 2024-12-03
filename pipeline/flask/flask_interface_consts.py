@@ -1,6 +1,8 @@
+import os
 
 WEBSERVER_NAME = 'M1CR0B1AL1Z3R'
 OWNER_EMAIL = 'yairshimony@mail.tau.ac.il'
+ADDITIONAL_OWNER_EMAILS = ['edodotan@mail.tau.ac.il']
 
 # Arguments keys to run the pipeline with
 ARGS_JSON_PATH_KEY = "args_json_path"
@@ -20,18 +22,20 @@ FILTER_OUT_PLASMIDS = "filter_out_plasmids"
 ADD_ORPHAN_GENES_TO_OGS = "add_orphan_genes_to_ogs"
 INPUT_FASTA_TYPE = "inputs_fasta_type"
 
-# Error description file (the path is relative to the unique folder of the job)
-ERROR_FILE_PATH = "error.txt"
-
-# Progress bar file (the path is relative to the unique folder of the job)
-PROGRESSBAR_FILE_PATH = "progressbar.csv"
-
 # Input file
 INPUTS_GENOMES_ZIPPED = "genomes.zip"
 
 # Output files (the paths are relative to the unique folder of the job)
 ALL_OUTPUTS_DIRECTORY = WEBSERVER_NAME + "_outputs"
 ALL_OUTPUTS_ZIPPED = WEBSERVER_NAME + "_outputs.zip"
+
+# Error description file (the path is relative to the unique folder of the job)
+ERROR_FILE_NAME = "error.txt"
+ERROR_FILE_PATH = os.path.join(ALL_OUTPUTS_DIRECTORY, ERROR_FILE_NAME)
+
+# Progress bar file (the path is relative to the unique folder of the job)
+PROGRESSBAR_FILE_NAME = "progressbar.csv"
+PROGRESSBAR_FILE_PATH = os.path.join(ALL_OUTPUTS_DIRECTORY, PROGRESSBAR_FILE_NAME)
 
 ANI_CSV = f"{ALL_OUTPUTS_DIRECTORY}/01_ani/ani_pairwise_values.csv"
 ANI_MAP = f"{ALL_OUTPUTS_DIRECTORY}/01_ani/ani_map.png"
@@ -62,8 +66,6 @@ CAI_HISTOGRAM = f"{ALL_OUTPUTS_DIRECTORY}/10_codon_bias/CAI_histogram.png"
 W_VECTORS = f"{ALL_OUTPUTS_DIRECTORY}/10_codon_bias/W_vectors.csv"
 GENOMES_CLUSTERS_BY_W_VECTORS = f"{ALL_OUTPUTS_DIRECTORY}/10_codon_bias/Relative_Adaptiveness_scatter_plot.png"
 GENOMES_CLUSTERS_BY_W_VECTORS_CSV = f"{ALL_OUTPUTS_DIRECTORY}/10_codon_bias/Relative_Adaptiveness_scatter_plot_clusters.csv"
-
-PROGRESS_BAR = "progressbar.csv"
 
 TITLE_HISTOGRAM_FOR_ORFS = "Open Reading Frames (ORFs)"
 TITLE_HISTOGRAM_FOR_GC_CONTENT = "GC Content %"

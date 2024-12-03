@@ -162,8 +162,13 @@ def prepare_pipeline_framework(args):
     logger.info(f'meta_output_dir is: {meta_output_dir}')
     logger.info(f'Created output_dir in: {output_dir}')
 
-    error_file_path = os.path.join(meta_output_dir, flask_interface_consts.ERROR_FILE_PATH)
-    progressbar_file_path = os.path.join(meta_output_dir, flask_interface_consts.PROGRESSBAR_FILE_PATH)
+    final_output_dir_name = f'{flask_interface_consts.WEBSERVER_NAME}_{args.output_dir}'
+    final_output_dir = os.path.join(meta_output_dir, final_output_dir_name)
+    logger.info(f'Creating final_output_dir is: {final_output_dir}')
+    os.makedirs(final_output_dir, exist_ok=True)
+
+    error_file_path = os.path.join(final_output_dir, flask_interface_consts.ERROR_FILE_NAME)
+    progressbar_file_path = os.path.join(final_output_dir, flask_interface_consts.PROGRESSBAR_FILE_NAME)
 
     run_number = os.path.join(os.path.split(meta_output_dir)[1])
     logger.info(f'run_number is {run_number}')
@@ -206,7 +211,7 @@ def prepare_pipeline_framework(args):
     os.makedirs(data_path, exist_ok=True)
 
     return logger, times_logger, meta_output_dir, error_file_path, progressbar_file_path, run_number, output_html_path, \
-        output_url, meta_output_url, output_dir, tmp_dir, done_files_dir, steps_results_dir, data_path
+        output_url, meta_output_url, output_dir, tmp_dir, done_files_dir, steps_results_dir, data_path, final_output_dir_name, final_output_dir
 
 
 def validate_arguments(args):
@@ -1884,7 +1889,7 @@ def main(args):
     start_time = time()
 
     logger, times_logger, meta_output_dir, error_file_path, progressbar_file_path, run_number, output_html_path, \
-        output_url, meta_output_url, output_dir, tmp_dir, done_files_dir, steps_results_dir, data_path = \
+        output_url, meta_output_url, output_dir, tmp_dir, done_files_dir, steps_results_dir, data_path, final_output_dir_name, final_output_dir = \
         prepare_pipeline_framework(args)
 
     try:
@@ -1900,9 +1905,6 @@ def main(args):
             logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
         update_progressbar(progressbar_file_path, 'Validate input files')
-
-        final_output_dir_name = f'{flask_interface_consts.WEBSERVER_NAME}_{args.output_dir}'
-        final_output_dir = os.path.join(meta_output_dir, final_output_dir_name)
 
         run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_file_path,
                           output_html_path, steps_results_dir, tmp_dir, done_files_dir,
