@@ -17,6 +17,7 @@ def concatenate_hits(logger, clusters_dir, sub_dir_name, hits_filename, output_d
     hits_file_prefix, _ = os.path.splitext(hits_filename)
     output_hits_file = os.path.join(output_dir, hits_filename)
     output_statistics_file = os.path.join(output_dir, 'scores_statistics', f'{hits_file_prefix}.stats')
+
     all_statistics = []
     first_hits_file = True
     for cluster_dir in os.listdir(clusters_dir):

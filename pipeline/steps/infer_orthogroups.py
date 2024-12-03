@@ -15,13 +15,14 @@ from auxiliaries.pipeline_auxiliaries import fail, get_job_logger, prepare_direc
 from auxiliaries.logic_auxiliaries import define_intervals, add_score_column_to_mmseqs_output
 from auxiliaries import consts
 from auxiliaries.file_writer import write_to_file
+from auxiliaries.cluster_mmseqs_hits_to_orthogroups import cluster_mmseqs_hits_to_orthogroups
 
 
 def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,
                        all_proteins_path, strains_names, queue_name, account_name, identity_cutoff, coverage_cutoff,
                        e_value_cutoff, n_jobs_per_step):
-    # a.	mmseqs2_all_vs_all.py
-    step_number = f'{base_step_number}a'
+    # 1.	mmseqs2_all_vs_all.py
+    step_number = f'{base_step_number}_1'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_all_vs_all_analysis'
     script_path = os.path.join(consts.SRC_DIR, 'steps/mmseqs_v2/mmseqs2_all_vs_all.py')
@@ -58,8 +59,8 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # b.	extract_rbh_hits.py
-    step_number = f'{base_step_number}b'
+    # 2.	extract_rbh_hits.py
+    step_number = f'{base_step_number}_2'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_extract_rbh_hits'
     script_path = os.path.join(consts.SRC_DIR, 'steps/mmseqs_v2/extract_rbh_hits.py')
@@ -106,8 +107,8 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # c. extract_paralogs.py
-    step_number = f'{base_step_number}c'
+    # 3. extract_paralogs.py
+    step_number = f'{base_step_number}_3'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_paralogs'
     script_path = os.path.join(consts.SRC_DIR, 'steps/mmseqs_v2/extract_paralogs.py')
@@ -161,13 +162,13 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
 def run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,
                            translated_orfs_dir, strains_names, queue_name, account_name, identity_cutoff,
                            coverage_cutoff, e_value_cutoff, n_jobs_per_step):
-    # a.	mmseqs2_all_vs_all.py
+    # 1.	mmseqs2_all_vs_all.py
     # Input: (1) 2 input paths for 2 (different) genome files (query and target), g1 and g2
     #        (2) an output file path (with a suffix as follows: i_vs_j.tsv. especially relevant for the wrapper).
     # Output: a tsv file where the first column contains g1 genes and the second column includes the corresponding best match.
     # Precisely, for each gene x in g1, query x among all the genes of g2. Let y be the gene in g2 that is the most similar to x among all g2 genes. Append a row to the output file with: ‘{x}\t{y}’.
     # Can be parallelized on cluster
-    step_number = f'{base_step_number}a'
+    step_number = f'{base_step_number}_1'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_all_vs_all_analysis'
     script_path = os.path.join(consts.SRC_DIR, 'steps/mmseqs_v1/mmseqs2_all_vs_all.py')
@@ -215,11 +216,11 @@ def run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_pa
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # b. get_max_score_per_gene
+    # 2. get_max_score_per_gene
     # Input: path to folder with all reciprocal hits files
     # Output: Dictionary with max score per gene
     # CANNOT be parallelized on cluster
-    step_number = f'{base_step_number}b'
+    step_number = f'{base_step_number}_2'
     logger.info(f'Step {step_number}: {"_" * 100}')
     script_path = os.path.join(consts.SRC_DIR, 'steps/mmseqs_v1/max_rbh_score.py')
     max_rbh_scores_step_name = f'{step_number}_max_rbh_scores'
@@ -248,10 +249,10 @@ def run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_pa
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # c. mmseqs2_paralogs.py
+    # 3. mmseqs2_paralogs.py
     # Input: max orthologs score for each gene
     # Output: paralogs in each genome
-    step_number = f'{base_step_number}c'
+    step_number = f'{base_step_number}_3'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_mmseqs_paralogs'
     script_path = os.path.join(consts.SRC_DIR, 'steps/mmseqs_v1/mmseqs2_paralogs.py')
@@ -300,20 +301,29 @@ def run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_pa
 
 def full_orthogroups_infernece(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,
                                translated_orfs_dir, all_proteins_path, strains_names_path, queue_name,
-                               account_name, identity_cutoff, coverage_cutoff, e_value_cutoff, num_of_times_script_called,
-                               run_optimized_mmseqs):
+                               account_name, identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs,
+                               run_optimized_mmseqs, unify_clusters_after_mmseqs):
     with open(strains_names_path) as f:
         strains_names = f.read().rstrip().split('\n')
-    n_jobs_per_step = consts.MAX_PARALLEL_JOBS // num_of_times_script_called
 
     if run_optimized_mmseqs:
-        run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
+        orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir =\
+            run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
                            done_files_dir, all_proteins_path, strains_names, queue_name, account_name,
-                           identity_cutoff, coverage_cutoff,  e_value_cutoff, n_jobs_per_step)
+                           identity_cutoff, coverage_cutoff,  e_value_cutoff, max_parallel_jobs)
     else:
-        run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
+        orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir =\
+            run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
                                done_files_dir, translated_orfs_dir, strains_names, queue_name, account_name,
-                               identity_cutoff, coverage_cutoff, e_value_cutoff, n_jobs_per_step)
+                               identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs)
+
+    if unify_clusters_after_mmseqs:
+        return
+
+    cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
+                                       orthologs_output_dir, orthologs_scores_statistics_dir, paralogs_output_dir,
+                                       paralogs_scores_statistics_dir, max_parallel_jobs, base_step_number,
+                                       '4', account_name, queue_name)
 
 
 if __name__ == '__main__':
@@ -333,8 +343,9 @@ if __name__ == '__main__':
     parser.add_argument('identity_cutoff', help='', type=float)
     parser.add_argument('coverage_cutoff', help='', type=float)
     parser.add_argument('e_value_cutoff', help='', type=float)
-    parser.add_argument('num_of_times_script_called', help='', type=int)
+    parser.add_argument('max_parallel_jobs', help='', type=int)
     parser.add_argument('--run_optimized_mmseqs', help='', action='store_true')
+    parser.add_argument('--unify_clusters_after_mmseqs', help='', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('--error_file_path', help='path to error file')
     args = parser.parse_args()
@@ -348,7 +359,7 @@ if __name__ == '__main__':
                                    args.tmp_dir, args.done_files_dir, args.translated_orfs_dir, args.all_proteins_path,
                                    args.strains_names_path, args.queue_name, args.account_name,
                                    args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff,
-                                   args.num_of_times_script_called, args.run_optimized_mmseqs)
+                                   args.max_parallel_jobs, args.run_optimized_mmseqs, args.unify_clusters_after_mmseqs)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:

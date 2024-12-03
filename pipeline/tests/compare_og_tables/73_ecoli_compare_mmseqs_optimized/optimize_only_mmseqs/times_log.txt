@@ -1,0 +1,21 @@
+2024-12-03 08:33:39,579 INFO pipeline_auxiliaries.py:64 Step 02a_orfs took 0:00:30. There were 73 jobs and cumulatively they took 0:11:09 wallclock time (times 1 cpus used per job = 0:11:09 wallclock time). 
+2024-12-03 08:34:42,997 INFO pipeline_auxiliaries.py:64 Step 02b_orfs_statistics took 0:00:20. There were 73 jobs and cumulatively they took 0:02:33 wallclock time (times 1 cpus used per job = 0:02:33 wallclock time). 
+2024-12-03 08:35:52,471 INFO pipeline_auxiliaries.py:64 Step 02d_translated_orfs took 0:00:30. There were 73 jobs and cumulatively they took 0:06:42 wallclock time (times 1 cpus used per job = 0:06:42 wallclock time). 
+2024-12-03 08:36:25,756 INFO pipeline_auxiliaries.py:64 Step 04_cluster_proteomes took 0:00:20. There were 1 jobs and cumulatively they took 0:00:07 wallclock time (times 2 cpus used per job = 0:00:14 wallclock time). 
+2024-12-03 08:36:46,281 INFO pipeline_auxiliaries.py:64 Step 05a_filter_fastas_by_cluster took 0:00:20. There were 1 jobs and cumulatively they took 0:00:09 wallclock time (times 1 cpus used per job = 0:00:09 wallclock time). 
+2024-12-03 09:21:09,458 INFO pipeline_auxiliaries.py:76 Sub-step 05ba_all_vs_all_analysis took cumulatively 0 days 09:32:00 wallclock time
+2024-12-03 09:21:09,459 INFO pipeline_auxiliaries.py:76 Sub-step 05bb_extract_rbh_hits took cumulatively 0 days 08:54:23 wallclock time
+2024-12-03 09:21:09,459 INFO pipeline_auxiliaries.py:76 Sub-step 05bc_paralogs took cumulatively 0 days 00:48:03 wallclock time
+2024-12-03 09:21:09,459 INFO pipeline_auxiliaries.py:78 Step 05b_infer_orthogroups took 0:44:22. There were 1 jobs and cumulatively they took 0 days 19:14:26 wallclock time.
+2024-12-03 09:22:50,519 INFO pipeline_auxiliaries.py:64 Step 05c_concat_clusters_rbhs took 0:00:50. There were 102 jobs and cumulatively they took 0:56:36 wallclock time (times 1 cpus used per job = 0:56:36 wallclock time). 
+2024-12-03 09:23:43,025 INFO pipeline_auxiliaries.py:64 Step 05d_concat_clusters_paralogs took 0:00:20. There were 73 jobs and cumulatively they took 0:02:43 wallclock time (times 1 cpus used per job = 0:02:43 wallclock time). 
+2024-12-03 09:26:06,443 INFO pipeline_auxiliaries.py:64 Step 05e_normalize_scores took 0:01:00. There were 101 jobs and cumulatively they took 1:10:16 wallclock time (times 1 cpus used per job = 1:10:16 wallclock time). 
+2024-12-03 09:27:11,539 INFO pipeline_auxiliaries.py:64 Step 05f_concatenate_hits took 0:00:20. There were 100 jobs and cumulatively they took 0:06:02 wallclock time (times 1 cpus used per job = 0:06:02 wallclock time). 
+2024-12-03 09:28:24,348 INFO pipeline_auxiliaries.py:64 Step 05g_putative_table took 0:00:40. There were 1 jobs and cumulatively they took 0:00:23 wallclock time (times 1 cpus used per job = 0:00:23 wallclock time). 
+2024-12-03 09:29:43,902 INFO pipeline_auxiliaries.py:64 Step 05h_mcl_input_files took 0:00:30. There were 100 jobs and cumulatively they took 0:46:43 wallclock time (times 1 cpus used per job = 0:46:43 wallclock time). 
+2024-12-03 09:32:42,773 INFO pipeline_auxiliaries.py:64 Step 05i_mcl_analysis took 0:02:10. There were 101 jobs and cumulatively they took 2:47:14 wallclock time (times 1 cpus used per job = 2:47:14 wallclock time). 
+2024-12-03 09:35:51,411 INFO pipeline_auxiliaries.py:64 Step 05j_verified_clusters took 0:02:20. There were 101 jobs and cumulatively they took 3:07:32 wallclock time (times 1 cpus used per job = 3:07:32 wallclock time). 
+2024-12-03 09:36:21,843 INFO pipeline_auxiliaries.py:64 Step 05k_verified_table took 0:00:30. There were 1 jobs and cumulatively they took 0:00:17 wallclock time (times 1 cpus used per job = 0:00:17 wallclock time). 
+2024-12-03 09:37:15,490 INFO pipeline_auxiliaries.py:64 Step 06_orphan_genes took 0:00:20. There were 73 jobs and cumulatively they took 0:04:43 wallclock time (times 1 cpus used per job = 0:04:43 wallclock time). 
+2024-12-03 09:37:48,594 INFO pipeline_auxiliaries.py:64 Step 07a_orthogroups took 0:00:30. There were 1 jobs and cumulatively they took 0:00:19 wallclock time (times 1 cpus used per job = 0:00:19 wallclock time). 
+2024-12-03 09:39:22,544 INFO main.py:2196 Total pipeline time: 1:07:07
