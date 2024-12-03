@@ -95,6 +95,8 @@ def get_arguments():
                         action='store_true')
     parser.add_argument('--run_optimized_mmseqs', help='Optimize the mmseqs run',
                         action='store_true')
+    parser.add_argument('--use_parquet', help='When True, use parquet files when possible instead of csv',
+                        action='store_true')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
 
     # parser.add_argument('--promoters_length', default=300,
@@ -218,6 +220,11 @@ def validate_arguments(args):
         args.pre_cluster_orthogroups_inference = str_to_bool(args.pre_cluster_orthogroups_inference)
     if type(args.unify_clusters_after_mmseqs) == str:
         args.unify_clusters_after_mmseqs = str_to_bool(args.unify_clusters_after_mmseqs)
+    if type(args.use_parquet) == str:
+        args.use_parquet = str_to_bool(args.use_parquet)
+
+    if args.pre_cluster_orthogroups_inference and args.unify_clusters_after_mmseqs and args.use_parquet:
+        raise ValueError('If unify_clusters_after_mmseqs is True, we can not use parquet since we concat the csv hit files')
 
     if args.outgroup == "No outgroup":
         args.outgroup = None
@@ -696,10 +703,10 @@ def step_5_infer_orthogroups_clustered(args, logger, times_logger, error_file_pa
 
             if args.run_optimized_mmseqs:
                 params.append('--run_optimized_mmseqs')
-
             if args.unify_clusters_after_mmseqs:
                 params.append('--unify_clusters_after_mmseqs')
-
+            if args.use_parquet:
+                params.append('--use_parquet')
             all_cmds_params.append(params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, infer_orthogroups_tmp_dir, error_file_path,
@@ -720,12 +727,13 @@ def step_5_infer_orthogroups_clustered(args, logger, times_logger, error_file_pa
         orthologs_output_dir, orthologs_scores_statistics_dir, paralogs_output_dir, paralogs_scores_statistics_dir = \
             unify_clusters_mmseqs_hits(logger, times_logger, output_dir, tmp_dir, done_files_dir, error_file_path,
                                        infer_orthogroups_output_dir, args.run_optimized_mmseqs, args.queue_name,
-                                       args.account_name, '05', '2')
+                                       args.account_name, '05', 2)
         orthogroups_file_path = \
             cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, output_dir, tmp_dir,
                                                done_files_dir, orthologs_output_dir, orthologs_scores_statistics_dir,
                                                paralogs_output_dir, paralogs_scores_statistics_dir,
-                                               consts.MAX_PARALLEL_JOBS, '05', '4', args.account_name, args.queue_name)
+                                               consts.MAX_PARALLEL_JOBS, '05', 4, args.account_name, args.queue_name,
+                                               args.use_parquet)
     else:  # Aggregate OG tables of all clusters
         all_og_tables = []
         for cluster_dir_name in os.listdir(infer_orthogroups_output_dir):
@@ -746,13 +754,14 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
         run_mmseqs_and_extract_hits(logger, times_logger, '05', error_file_path, output_dir, tmp_dir,
                                     done_files_dir, translated_orfs_dir, all_proteins_path, strains_names_path,
                                     args.queue_name, args.account_name, args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff,
-                                    consts.MAX_PARALLEL_JOBS, args.run_optimized_mmseqs)
+                                    consts.MAX_PARALLEL_JOBS, args.run_optimized_mmseqs, args.use_parquet)
 
     orthogroups_file_path = \
         cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, output_dir, tmp_dir,
                                            done_files_dir, orthologs_output_dir, orthologs_scores_statistics_dir,
                                            paralogs_output_dir, paralogs_scores_statistics_dir,
-                                           consts.MAX_PARALLEL_JOBS, '05', '4', args.account_name, args.queue_name)
+                                           consts.MAX_PARALLEL_JOBS, '05', 4, args.account_name, args.queue_name,
+                                           args.use_parquet)
 
     return orthogroups_file_path
 

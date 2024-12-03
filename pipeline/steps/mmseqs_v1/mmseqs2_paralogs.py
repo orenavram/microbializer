@@ -32,7 +32,7 @@ def too_many_trials(logger, cmd, error_file_path):
 
 
 def search_paralogs(logger, protein_fasta, m8_outfile, genome_max_scores_path, scores_statistics_dir, error_file_path,
-                    identity_cutoff, coverage_cutoff, e_value_cutoff):
+                    identity_cutoff, coverage_cutoff, e_value_cutoff, use_parquet):
     """
     input:  protein fasta and a file that contains the max scores of all its genes
     output: mmseqs2 paralogs results file
@@ -87,7 +87,10 @@ def search_paralogs(logger, protein_fasta, m8_outfile, genome_max_scores_path, s
         logger.info(f"No paralogs were found for {strain_name} after filtration.")
         return
 
-    df[['query', 'target', 'score']].to_csv(f'{m8_outfile}_filtered', index=False)
+    if use_parquet:
+        df[['query', 'target', 'score']].to_parquet(f'{m8_outfile}_filtered', index=False)
+    else:
+        df[['query', 'target', 'score']].to_csv(f'{m8_outfile}_filtered', index=False)
     logger.info(f"{m8_outfile}_filtered was created successfully.")
 
     score_stats_file = os.path.join(scores_statistics_dir, f'{strain_name}_vs_{strain_name}.stats')
@@ -111,6 +114,7 @@ if __name__ == '__main__':
     parser.add_argument('--coverage_cutoff', type=float)
     parser.add_argument('--e_value_cutoff', type=float)
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
+    parser.add_argument('--use_parquet', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('--error_file_path', help='path to error file')
     args = parser.parse_args()
@@ -121,7 +125,7 @@ if __name__ == '__main__':
     logger.info(script_run_message)
     try:
         search_paralogs(logger, args.protein_fasta, args.output_path, args.genome_max_scores_path, args.scores_statistics_dir,
-                        args.error_file_path, args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff)
+                        args.error_file_path, args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff, args.use_parquet)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:

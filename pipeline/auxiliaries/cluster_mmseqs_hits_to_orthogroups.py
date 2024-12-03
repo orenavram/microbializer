@@ -13,7 +13,7 @@ from .file_writer import write_to_file
 def run_mmseqs_and_extract_hits(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,
                                translated_orfs_dir, all_proteins_path, strains_names_path, queue_name,
                                account_name, identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs,
-                               run_optimized_mmseqs):
+                               run_optimized_mmseqs, use_parquet):
     with open(strains_names_path) as f:
         strains_names = f.read().rstrip().split('\n')
 
@@ -21,12 +21,12 @@ def run_mmseqs_and_extract_hits(logger, times_logger, base_step_number, error_fi
         orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir =\
             run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
                            done_files_dir, all_proteins_path, strains_names, queue_name, account_name,
-                           identity_cutoff, coverage_cutoff,  e_value_cutoff, max_parallel_jobs)
+                           identity_cutoff, coverage_cutoff,  e_value_cutoff, max_parallel_jobs, use_parquet)
     else:
         orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir =\
             run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
                                done_files_dir, translated_orfs_dir, strains_names, queue_name, account_name,
-                               identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs)
+                               identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs, use_parquet)
 
     return orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir
 
@@ -119,7 +119,7 @@ def unify_clusters_mmseqs_hits(logger, times_logger, output_dir, tmp_dir, done_f
 def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
                                        orthologs_output_dir, orthologs_scores_statistics_dir, paralogs_output_dir,
                                        paralogs_scores_statistics_dir, max_parallel_jobs, base_step_number,
-                                       start_substep_number, account_name, queue_name):
+                                       start_substep_number, account_name, queue_name, use_parquet):
     # normalize_scores
     step_number = f'{base_step_number}_{start_substep_number}'
     script_path = os.path.join(consts.SRC_DIR, 'steps/normalize_hits_scores.py')
@@ -140,6 +140,8 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
                                  os.path.join(normalized_hits_output_dir, f"{strains_pair}.{step_name}"),
                                  scores_normalize_coefficients[strains_pair]
                                  ]
+            if use_parquet:
+                single_cmd_params.append('--use_parquet')
             all_cmds_params.append(single_cmd_params)
 
         for hits_file in os.listdir(paralogs_output_dir):
@@ -370,7 +372,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
 
 def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,
                        all_proteins_path, strains_names, queue_name, account_name, identity_cutoff, coverage_cutoff,
-                       e_value_cutoff, n_jobs_per_step):
+                       e_value_cutoff, n_jobs_per_step, use_parquet):
     # 1.	mmseqs2_all_vs_all.py
     step_number = f'{base_step_number}_1'
     logger.info(f'Step {step_number}: {"_" * 100}')
@@ -402,7 +404,7 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
         m8_df['query_genome'] = m8_df['query'].str.split(':').str[0]
         m8_df['target_genome'] = m8_df['target'].str.split(':').str[0]
         m8_df = m8_df[['query', 'query_genome', 'target', 'target_genome', 'score']]
-        m8_df.to_parquet(m8_output_path)
+        m8_df.to_parquet(m8_output_path)  # Here I always use parquet since it's a huge file
         logger.info(f"{m8_output_path} was created successfully.")
 
         write_to_file(logger, done_file_path, '.')
@@ -440,6 +442,8 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
                 rbh_input_path = os.path.join(rbh_inputs_dir, rbh_input_file)
                 params = [m8_output_path, rbh_input_path, orthologs_output_dir,
                           orthologs_scores_statistics_dir, max_rbh_scores_parts_output_dir]
+                if use_parquet:
+                    params.append('--use_parquet')
                 all_cmds_params.append(params)
 
             num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
@@ -489,6 +493,8 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
             paralogs_input_path = os.path.join(paralogs_inputs_dir, paralogs_input_file)
             single_cmd_params = [m8_output_path, paralogs_input_path, max_rbh_scores_parts_output_dir,
                                  paralogs_output_dir, max_rbh_scores_unified_dir, paralogs_scores_statistics_dir]
+            if use_parquet:
+                single_cmd_params.append('--use_parquet')
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
@@ -511,7 +517,7 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
 
 def run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,
                            translated_orfs_dir, strains_names, queue_name, account_name, identity_cutoff,
-                           coverage_cutoff, e_value_cutoff, n_jobs_per_step):
+                           coverage_cutoff, e_value_cutoff, n_jobs_per_step, use_parquet):
     # 1.	mmseqs2_all_vs_all.py
     # Input: (1) 2 input paths for 2 (different) genome files (query and target), g1 and g2
     #        (2) an output file path (with a suffix as follows: i_vs_j.tsv. especially relevant for the wrapper).
@@ -547,6 +553,8 @@ def run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_pa
                                      f'--coverage_cutoff {coverage_cutoff / 100}',
                                      f'--e_value_cutoff {e_value_cutoff}',
                                      ]
+                if use_parquet:
+                    single_cmd_params.append('--use_parquet')
                 all_cmds_params.append(single_cmd_params)
 
             num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
@@ -583,6 +591,8 @@ def run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_pa
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
         for strain_name in strains_names:
             single_cmd_params = [orthologs_output_dir, strain_name, max_rbh_scores_output_dir, max_rbh_scores_step_name]
+            if use_parquet:
+                single_cmd_params.append('--use_parquet')
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
@@ -629,6 +639,8 @@ def run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_pa
                                  f'--coverage_cutoff {coverage_cutoff / 100}',
                                  f'--e_value_cutoff {e_value_cutoff}',
                                  ]
+            if use_parquet:
+                single_cmd_params.append('--use_parquet')
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,

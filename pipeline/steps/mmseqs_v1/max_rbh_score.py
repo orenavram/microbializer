@@ -13,7 +13,7 @@ from auxiliaries.pipeline_auxiliaries import fail, get_job_logger
 from auxiliaries.logic_auxiliaries import max_with_nan
 
 
-def max_rbh_score_per_gene(logger, rbh_m8_dir, strain_name, output_dir, step_name, error_file_path):
+def max_rbh_score_per_gene(logger, rbh_m8_dir, strain_name, output_dir, step_name, error_file_path, use_parquet):
     max_score_per_gene = pd.Series(dtype=float)
 
     output_file_path = os.path.join(output_dir, f'{strain_name}.{step_name}')
@@ -25,11 +25,16 @@ def max_rbh_score_per_gene(logger, rbh_m8_dir, strain_name, output_dir, step_nam
             query_strain, target_strain = query_vs_reference_file_name.split('_vs_')
             if query_strain != strain_name and target_strain != strain_name:
                 continue
+
             try:
-                rbh_hits_df = pd.read_csv(os.path.join(rbh_m8_dir, rbh_hits_file))
+                if use_parquet:
+                    rbh_hits_df = pd.read_parquet(os.path.join(rbh_m8_dir, rbh_hits_file))
+                else:
+                    rbh_hits_df = pd.read_csv(os.path.join(rbh_m8_dir, rbh_hits_file))
+
                 if query_strain == strain_name:
                     genes_max_scores = rbh_hits_df.groupby(['query']).max(numeric_only=True)['score']
-                else: # target_strain == strain_name
+                else:  # target_strain == strain_name
                     genes_max_scores = rbh_hits_df.groupby(['target']).max(numeric_only=True)['score']
 
                 max_score_per_gene = max_score_per_gene.combine(genes_max_scores, max_with_nan)
@@ -50,6 +55,7 @@ if __name__ == '__main__':
     parser.add_argument('output_dir', help='path to which the results will be written')
     parser.add_argument('step_name', help='step name')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
+    parser.add_argument('--use_parquet', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('--error_file_path', help='path to error file')
     args = parser.parse_args()
@@ -60,7 +66,7 @@ if __name__ == '__main__':
     logger.info(script_run_message)
     try:
         max_rbh_score_per_gene(logger, args.rbh_m8_dir, args.strain_name, args.output_dir, args.step_name,
-                               args.error_file_path)
+                               args.error_file_path, args.use_parquet)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:

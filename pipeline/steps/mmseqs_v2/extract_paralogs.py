@@ -16,7 +16,7 @@ from auxiliaries.pipeline_auxiliaries import fail, get_job_logger
 
 
 def extract_paralogs_of_genome(logger, m8_df, genome_name, max_scores_parts_dir, paralogs_dir,
-                               max_rbh_scores_unified_dir, scores_statistics_dir, temp_dir):
+                               max_rbh_scores_unified_dir, scores_statistics_dir, temp_dir, use_parquet, verbose):
     genome_max_rbh_scores_path = os.path.join(max_rbh_scores_unified_dir, f'{genome_name}.csv')
     output_paralogs_filtered_path = os.path.join(paralogs_dir, f'{genome_name}_vs_{genome_name}.m8_filtered')
     score_stats_file = os.path.join(scores_statistics_dir, f'{genome_name}_vs_{genome_name}.stats')
@@ -25,7 +25,7 @@ def extract_paralogs_of_genome(logger, m8_df, genome_name, max_scores_parts_dir,
         return
 
     # Unify all max_rbh_scores files of the genome to one file
-    max_scores_files = [f for f in os.listdir(max_scores_parts_dir) if f.startswith(genome_name)]
+    max_scores_files = [f for f in os.listdir(max_scores_parts_dir) if f.split('_max_scores_with_')[0] == genome_name]
     max_scores_dfs = []
     for max_scores_file in max_scores_files:
         max_scores_path = os.path.join(max_scores_parts_dir, max_scores_file)
@@ -34,13 +34,17 @@ def extract_paralogs_of_genome(logger, m8_df, genome_name, max_scores_parts_dir,
 
     max_scores_combined_df = pd.concat(max_scores_dfs)
     max_score_per_gene = max_scores_combined_df.groupby('gene')['max_rbh_score'].max()
-    max_score_per_gene.to_csv(genome_max_rbh_scores_path)
+
+    if verbose:
+        max_score_per_gene.to_csv(genome_max_rbh_scores_path)
 
     # Filter m8_df to include only potential paralogs
     m8_df = m8_df[(m8_df['query_genome'] == genome_name) & (m8_df['target_genome'] == genome_name)]
     output_paralogs_raw_path = os.path.join(temp_dir, f'{genome_name}_vs_{genome_name}.m8')
-    m8_df.to_csv(output_paralogs_raw_path, index=False)
-    logger.info(f"{output_paralogs_raw_path} was created successfully.")
+
+    if verbose:
+        m8_df.to_csv(output_paralogs_raw_path, index=False)
+        logger.info(f"{output_paralogs_raw_path} was created successfully.")
 
     # Keep only hits that have score higher than the max score of both query and target.
     # If only one of the genes was identified as rbh to a gene in another genome (and thus the other one doesn't
@@ -62,7 +66,10 @@ def extract_paralogs_of_genome(logger, m8_df, genome_name, max_scores_parts_dir,
     )
     m8_df = m8_df.drop_duplicates(subset='pair')
 
-    m8_df[['query', 'target', 'score']].to_csv(output_paralogs_filtered_path, index=False)
+    if use_parquet:
+        m8_df[['query', 'target', 'score']].to_parquet(output_paralogs_filtered_path, index=False)
+    else:
+        m8_df[['query', 'target', 'score']].to_csv(output_paralogs_filtered_path, index=False)
     logger.info(f"{output_paralogs_filtered_path} was created successfully.")
 
     scores_statistics = {'mean': statistics.mean(m8_df['score']), 'sum': sum(m8_df['score']),
@@ -72,7 +79,7 @@ def extract_paralogs_of_genome(logger, m8_df, genome_name, max_scores_parts_dir,
 
 
 def extract_paralogs(logger, m8_path, genomes_input_path, max_scores_parts_dir, paralogs_dir,
-                     max_rbh_scores_unified_dir, scores_statistics_dir):
+                     max_rbh_scores_unified_dir, scores_statistics_dir, use_parquet, verbose):
     with open(genomes_input_path, 'r') as f:
         genomes = f.readlines()
         genomes = [genome.strip() for genome in genomes]
@@ -83,7 +90,7 @@ def extract_paralogs(logger, m8_path, genomes_input_path, max_scores_parts_dir, 
     m8_df = dd.read_parquet(m8_path).compute()
     for genome in genomes:
         extract_paralogs_of_genome(logger, m8_df, genome, max_scores_parts_dir, paralogs_dir,
-                                   max_rbh_scores_unified_dir, scores_statistics_dir, temp_dir)
+                                   max_rbh_scores_unified_dir, scores_statistics_dir, temp_dir, use_parquet, verbose)
 
 
 if __name__ == '__main__':
@@ -98,6 +105,7 @@ if __name__ == '__main__':
     parser.add_argument('max_rbh_scores_unified_dir', help='')
     parser.add_argument('scores_statistics_dir', help='')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
+    parser.add_argument('--use_parquet', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('--error_file_path', help='path to error file')
     args = parser.parse_args()
@@ -108,7 +116,7 @@ if __name__ == '__main__':
     logger.info(script_run_message)
     try:
         extract_paralogs(logger, args.m8_path, args.genomes_input_path, args.max_scores_parts_dir, args.paralogs_dir,
-                         args.max_rbh_scores_unified_dir, args.scores_statistics_dir)
+                         args.max_rbh_scores_unified_dir, args.scores_statistics_dir, args.use_parquet, args.verbose)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:
