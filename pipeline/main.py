@@ -27,7 +27,7 @@ from auxiliaries import consts, cgi_consts
 from flask import flask_interface_consts
 from auxiliaries.logic_auxiliaries import mimic_prodigal_output, aggregate_ani_results, remove_bootstrap_values, \
     plot_genomes_histogram, update_progressbar, define_intervals, aggregate_mmseqs_scores
-from auxiliaries.cluster_mmseqs_hits_to_orthogroups import cluster_mmseqs_hits_to_orthogroups, unify_clusters_mmseqs_hits
+from auxiliaries.cluster_mmseqs_hits_to_orthogroups import cluster_mmseqs_hits_to_orthogroups, unify_clusters_mmseqs_hits, run_mmseqs_and_extract_hits
 from flask.SharedConsts import USER_FILE_NAME_ZIP, USER_FILE_NAME_TAR
 
 PIPELINE_STEPS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
@@ -585,20 +585,20 @@ def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_pa
 
 
 def step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
-                            done_files_dir, all_proteins_fasta_path):
-    # 04.	cluster_proteomes.py
-    step_number = '04'
+                             done_files_dir, all_proteins_fasta_path, translated_orfs_dir):
+    # 04_1.	cluster_proteomes.py
+    step_number = '04_1'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_cluster_proteomes'
     script_path = os.path.join(consts.SRC_DIR, 'steps/cluster_proteomes.py')
-    pipeline_step_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    clusters_file_path = os.path.join(pipeline_step_output_dir, 'clusters.tsv')
+    clusters_dir, clusters_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    clusters_file_path = os.path.join(clusters_dir, 'clusters.tsv')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         cpus = consts.MMSEQS_CLUSTER_NUM_OF_CORES if args.pre_cluster_orthogroups_inference else 1
         memory = consts.MMSEQS_REQUIRED_MEMORY_GB if args.pre_cluster_orthogroups_inference else consts.DEFAULT_MEMORY_PER_JOB_GB
         params = [all_proteins_fasta_path,
-                  pipeline_step_output_dir,
+                  clusters_dir,
                   clusters_file_path,
                   consts.MMSEQS_CLUSTER_MIN_SEQ_ID,
                   consts.MMSEQS_CLUSTER_MIN_COVERAGE,
@@ -609,22 +609,17 @@ def step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output
         if args.pre_cluster_orthogroups_inference:
             params.append('--do_cluster')
 
-        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path, args.queue_name, args.account_name,
+        submit_mini_batch(logger, script_path, [params], clusters_tmp_dir, error_file_path, args.queue_name, args.account_name,
                           job_name='cluster_proteomes', num_of_cpus=cpus, memory=memory)
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, step_name, clusters_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path)
 
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    return pipeline_step_output_dir
-
-
-def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
-                             done_files_dir, clusters_dir, translated_orfs_dir, all_proteins_path, genomes_names_path):
-    # 05_1.  filter_fasta_files_by_cluster.py
-    step_number = '05_1'
+    # 04_2.  filter_fasta_files_by_cluster.py
+    step_number = '04_2'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_filter_fastas_by_cluster'
     script_path = os.path.join(consts.SRC_DIR, 'steps/filter_fasta_file.py')
@@ -650,7 +645,7 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
                     ]
                     all_cmds_params.append(params)
             else:
-                params = [cluster_genes_path, all_proteins_path, os.path.join(cluster_fasta_files, 'all_proteomes.faa')]
+                params = [cluster_genes_path, all_proteins_fasta_path, os.path.join(cluster_fasta_files, 'all_proteomes.faa')]
                 all_cmds_params.append(params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, clusters_fasta_tmp_dir, error_file_path,
@@ -666,8 +661,13 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # 05_2.  infer_orthogroups.py
-    step_number = '05_2'
+    return clusters_fasta_files
+
+
+def step_5_infer_orthogroups_clustered(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
+                                       done_files_dir, clusters_fasta_files, genomes_names_path):
+    # 05_1.  infer_orthogroups.py
+    step_number = '05_1'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_infer_orthogroups'
     script_path = os.path.join(consts.SRC_DIR, 'steps/infer_orthogroups.py')
@@ -697,6 +697,9 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
             if args.run_optimized_mmseqs:
                 params.append('--run_optimized_mmseqs')
 
+            if args.unify_clusters_after_mmseqs:
+                params.append('--unify_clusters_after_mmseqs')
+
             all_cmds_params.append(params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, infer_orthogroups_tmp_dir, error_file_path,
@@ -713,11 +716,12 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
+
     if args.unify_clusters_after_mmseqs:
         orthologs_output_dir, orthologs_scores_statistics_dir, paralogs_output_dir, paralogs_scores_statistics_dir = \
             unify_clusters_mmseqs_hits(logger, times_logger, output_dir, tmp_dir, done_files_dir, error_file_path,
                                        infer_orthogroups_output_dir, args.run_optimized_mmseqs, args.queue_name,
-                                       args.account_name)
+                                       args.account_name, '05', '3')
         orthogroups_file_path = \
             cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, output_dir, tmp_dir,
                                                done_files_dir, orthologs_output_dir, orthologs_scores_statistics_dir,
@@ -733,6 +737,23 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
         unified_og_table['OG_name'] = [f'OG_{i}' for i in range(len(unified_og_table.index))]
         orthogroups_file_path = os.path.join(infer_orthogroups_output_dir, 'orthogroups.csv')
         unified_og_table.to_csv(orthogroups_file_path, index=False)
+
+    return orthogroups_file_path
+
+
+def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
+                             translated_orfs_dir, all_proteins_path, strains_names_path):
+    orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir = \
+        run_mmseqs_and_extract_hits(logger, times_logger, '05', error_file_path, output_dir, tmp_dir,
+                                    done_files_dir, translated_orfs_dir, all_proteins_path, strains_names_path,
+                                    args.queue_name, args.account_name, args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff,
+                                    consts.MAX_PARALLEL_JOBS, args.run_optimized_mmseqs)
+
+    orthogroups_file_path = \
+        cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, output_dir, tmp_dir,
+                                           done_files_dir, orthologs_output_dir, orthologs_scores_statistics_dir,
+                                           paralogs_output_dir, paralogs_scores_statistics_dir,
+                                           consts.MAX_PARALLEL_JOBS, '05', '5', args.account_name, args.queue_name)
 
     return orthogroups_file_path
 
@@ -1312,25 +1333,30 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         logger.info("Step 3 completed.")
         return
 
-    clusters_output_dir = step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
-                             done_files_dir, all_proteins_fasta_path)
-    edit_progress(output_html_path, progress=35)
+    if args.pre_cluster_orthogroups_inference:
+        clusters_output_dir = step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
+                                 done_files_dir, all_proteins_fasta_path, translated_orfs_dir)
+        edit_progress(output_html_path, progress=35)
 
-    if args.step_to_complete == '4':
-        logger.info("Step 4 completed.")
-        return
+        if args.step_to_complete == '4':
+            logger.info("Step 4 completed.")
+            return
 
-    orthologs_table_file_path = step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
-                             done_files_dir, clusters_output_dir, translated_orfs_dir, all_proteins_fasta_path, genomes_names_path)
-    update_progressbar(progressbar_file_path, 'Infer orthogroups')
-    edit_progress(output_html_path, progress=35)
+        orthogroups_file_path = step_5_infer_orthogroups_clustered(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
+                                 done_files_dir, clusters_output_dir, genomes_names_path)
+        update_progressbar(progressbar_file_path, 'Infer orthogroups')
+        edit_progress(output_html_path, progress=35)
+    else:
+        orthogroups_file_path = step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
+                             translated_orfs_dir, all_proteins_fasta_path, genomes_names_path)
+        update_progressbar(progressbar_file_path, 'Infer orthogroups')
 
     if args.step_to_complete == '5':
         logger.info("Step 5 completed.")
         return
 
     orphan_genes_dir = step_6_extract_orphan_genes(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
-                                                   final_output_dir, done_files_dir, orfs_dir, orthologs_table_file_path)
+                                                   final_output_dir, done_files_dir, orfs_dir, orthogroups_file_path)
     update_progressbar(progressbar_file_path, 'Find orphan genes')
     edit_progress(output_html_path, progress=35)
 
@@ -1340,7 +1366,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
 
     final_orthologs_table_file_path = \
         step_7_orthologs_table_variations(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
-                                          final_output_dir, done_files_dir, orthologs_table_file_path, orphan_genes_dir)
+                                          final_output_dir, done_files_dir, orthogroups_file_path, orphan_genes_dir)
     edit_progress(output_html_path, progress=55)
 
     if args.step_to_complete == '7':
