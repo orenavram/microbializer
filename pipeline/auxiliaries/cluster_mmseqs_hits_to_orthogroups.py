@@ -13,7 +13,7 @@ from .file_writer import write_to_file
 def run_mmseqs_and_extract_hits(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,
                                translated_orfs_dir, all_proteins_path, strains_names_path, queue_name,
                                account_name, identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs,
-                               run_optimized_mmseqs, use_parquet):
+                               run_optimized_mmseqs, use_parquet, verbose):
     with open(strains_names_path) as f:
         strains_names = f.read().rstrip().split('\n')
 
@@ -21,7 +21,7 @@ def run_mmseqs_and_extract_hits(logger, times_logger, base_step_number, error_fi
         orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir =\
             run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
                            done_files_dir, all_proteins_path, strains_names, queue_name, account_name,
-                           identity_cutoff, coverage_cutoff,  e_value_cutoff, max_parallel_jobs, use_parquet)
+                           identity_cutoff, coverage_cutoff,  e_value_cutoff, max_parallel_jobs, use_parquet, verbose)
     else:
         orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir =\
             run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
@@ -152,6 +152,8 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
                                  os.path.join(normalized_hits_output_dir, f"{strains_pair}.m8"),
                                  scores_normalize_coefficients[strains_pair]
                                  ]
+            if use_parquet:
+                single_cmd_params.append('--use_parquet')
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, normalized_hits_tmp_dir, error_file_path,
@@ -372,7 +374,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
 
 def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,
                        all_proteins_path, strains_names, queue_name, account_name, identity_cutoff, coverage_cutoff,
-                       e_value_cutoff, n_jobs_per_step, use_parquet):
+                       e_value_cutoff, n_jobs_per_step, use_parquet, verbose):
     # 1.	mmseqs2_all_vs_all.py
     step_number = f'{base_step_number}_1'
     logger.info(f'Step {step_number}: {"_" * 100}')
@@ -444,6 +446,8 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
                           orthologs_scores_statistics_dir, max_rbh_scores_parts_output_dir]
                 if use_parquet:
                     params.append('--use_parquet')
+                if verbose:
+                    params.append('--verbose')
                 all_cmds_params.append(params)
 
             num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
@@ -495,6 +499,8 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
                                  paralogs_output_dir, max_rbh_scores_unified_dir, paralogs_scores_statistics_dir]
             if use_parquet:
                 single_cmd_params.append('--use_parquet')
+            if verbose:
+                single_cmd_params.append('--verbose')
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,

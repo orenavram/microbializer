@@ -3,6 +3,7 @@ import sys
 from sys import argv
 import argparse
 import traceback
+import logging
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -15,13 +16,13 @@ from auxiliaries.cluster_mmseqs_hits_to_orthogroups import cluster_mmseqs_hits_t
 def full_orthogroups_infernece(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,
                                translated_orfs_dir, all_proteins_path, strains_names_path, queue_name,
                                account_name, identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs,
-                               run_optimized_mmseqs, unify_clusters_after_mmseqs, use_parquet):
+                               run_optimized_mmseqs, unify_clusters_after_mmseqs, use_parquet, verbose):
 
     orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir = \
         run_mmseqs_and_extract_hits(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
                                     done_files_dir, translated_orfs_dir, all_proteins_path, strains_names_path, queue_name,
                                     account_name, identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs,
-                                    run_optimized_mmseqs, use_parquet)
+                                    run_optimized_mmseqs, use_parquet, verbose)
 
     if unify_clusters_after_mmseqs:
         return
@@ -55,9 +56,11 @@ if __name__ == '__main__':
     parser.add_argument('--use_parquet', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('--error_file_path', help='path to error file')
+    parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     args = parser.parse_args()
 
-    logger = get_job_logger(args.logs_dir)
+    level = logging.DEBUG if args.verbose else logging.INFO
+    logger = get_job_logger(args.logs_dir, level)
     times_logger = get_job_times_logger(args.logs_dir)
 
     logger.info(script_run_message)
@@ -67,7 +70,7 @@ if __name__ == '__main__':
                                    args.strains_names_path, args.queue_name, args.account_name,
                                    args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff,
                                    args.max_parallel_jobs, args.run_optimized_mmseqs, args.unify_clusters_after_mmseqs,
-                                   args.use_parquet)
+                                   args.use_parquet, args.verbose)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:

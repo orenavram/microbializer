@@ -706,6 +706,8 @@ def step_5_infer_orthogroups_clustered(args, logger, times_logger, error_file_pa
                 params.append('--unify_clusters_after_mmseqs')
             if args.use_parquet:
                 params.append('--use_parquet')
+            if args.verbose:
+                params.append('--verbose')
             all_cmds_params.append(params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, infer_orthogroups_tmp_dir, error_file_path,
@@ -753,7 +755,7 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
         run_mmseqs_and_extract_hits(logger, times_logger, '05', error_file_path, output_dir, tmp_dir,
                                     done_files_dir, translated_orfs_dir, all_proteins_path, strains_names_path,
                                     args.queue_name, args.account_name, args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff,
-                                    consts.MAX_PARALLEL_JOBS, args.run_optimized_mmseqs, args.use_parquet)
+                                    consts.MAX_PARALLEL_JOBS, args.run_optimized_mmseqs, args.use_parquet, args.verbose)
 
     orthogroups_file_path = \
         cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, output_dir, tmp_dir,
