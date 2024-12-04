@@ -103,13 +103,11 @@ def draw_tree(logger, phylogenetic_tree_path, bootstrap):
 
     tree_image_png_path = phylogenetic_tree_path.replace('.newick', '.png')
     tree_image_svg_path = phylogenetic_tree_path.replace('.newick', '.svg')
-    tree_image_pdf_path = phylogenetic_tree_path.replace('.newick', '.pdf')
 
     logger.info('Drawing the phylogenetic tree. The tree will be saved as PNG, SVG and PDF files in the same folder as the tree file.')
 
     tree.render(tree_image_png_path, tree_style=ts)
     tree.render(tree_image_svg_path, tree_style=ts)
-    tree.render(tree_image_pdf_path, tree_style=ts)
 
 
 def generate_phylogenetic_tree(logger, msa_path, phylogenetic_tree_path, tmp_folder, seed, tree_search_software, outgroup,

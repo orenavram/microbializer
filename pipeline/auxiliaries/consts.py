@@ -106,23 +106,23 @@ LOG_MESSAGE_FORMAT = '%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(messag
 # outputs directories map
 OUTPUTS_DIRECTORIES_MAP = {
     '01_ani': '01_ani',
-    '02_1_orfs': '02_1_orfs',
-    '02_3_orfs_plots': '02_2_orfs_plots',
-    '02_4_translated_orfs': '02_3_translated_orfs',
+    '02_1_orfs': '02a_orfs',
+    '02_3_orfs_plots': '02b_orfs_plots',
+    '02_4_translated_orfs': '02c_translated_orfs',
     '03_genomes_completeness': '03_genomes_completeness',
     '06_orphan_genes': '04_orphan_genes',
-    '07_1_orthogroups': '05_1_orthogroups',
-    '07_2_orthogroups_sizes': '05_2_orthogroups_sizes',
-    '08_1_orthogroups_dna': '06_1_orthogroups_dna',
-    '08_2_orthogroups_aa': '06_2_orthogroups_aa',
-    '08_3_orthogroups_aa_msa': '06_3_orthogroups_aa_msa',
-    '08_4_orthogroups_induced_dna_msa_by_aa_msa': '06_4_orthogroups_induced_dna_msa_by_aa_msa',
-    '09_1_aligned_core_proteome': '07_1_aligned_core_proteome',
-    '09_2_aligned_core_genome': '07_2_aligned_core_genome',
+    '07_1_orthogroups': '05a_orthogroups',
+    '07_2_orthogroups_sizes': '05b_orthogroups_sizes',
+    '08_1_orthogroups_dna': '06a_orthogroups_dna',
+    '08_2_orthogroups_aa': '06b_orthogroups_aa',
+    '08_3_orthogroups_aa_msa': '06c_orthogroups_aa_msa',
+    '08_4_orthogroups_induced_dna_msa_by_aa_msa': '06d_orthogroups_induced_dna_msa_by_aa_msa',
+    '09_1_aligned_core_proteome': '07a_aligned_core_proteome',
+    '09_2_aligned_core_genome': '07b_aligned_core_genome',
     '10_genome_numeric_representation': '08_genome_numeric_representation',
     '11_species_phylogeny': '09_species_phylogeny',
     '12_codon_bias': '10_codon_bias',
-    'orthogroups_annotated.csv': '05_1_orthogroups',  # copy the annotated OG table (with KEGG+codon bias) to the same directory as the simple OG table
+    'orthogroups_annotated.csv': '05a_orthogroups',  # copy the annotated OG table (with KEGG+codon bias) to the same directory as the simple OG table
 }
 
 # steps for progress bar
