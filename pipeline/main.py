@@ -1356,13 +1356,15 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
             logger.info("Step 4 completed.")
             return
 
-        orthogroups_file_path = step_5_infer_orthogroups_clustered(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
-                                 done_files_dir, clusters_output_dir, genomes_names_path)
+        orthogroups_file_path = step_5_infer_orthogroups_clustered(args, logger, times_logger, error_file_path,
+                                                                   output_dir, tmp_dir, done_files_dir,
+                                                                   clusters_output_dir, genomes_names_path)
         update_progressbar(progressbar_file_path, 'Infer orthogroups')
         edit_progress(output_html_path, progress=35)
     else:
-        orthogroups_file_path = step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
-                             translated_orfs_dir, all_proteins_fasta_path, genomes_names_path)
+        orthogroups_file_path = step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output_dir,
+                                                         tmp_dir, done_files_dir, translated_orfs_dir,
+                                                         all_proteins_fasta_path, genomes_names_path)
         update_progressbar(progressbar_file_path, 'Infer orthogroups')
 
     if args.step_to_complete == '5':
