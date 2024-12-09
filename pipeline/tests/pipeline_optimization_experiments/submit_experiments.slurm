@@ -18,4 +18,4 @@ echo "Job name: $SLURM_JOB_NAME"
 
 export HOME=/groups/pupko/yairshimony
 
-python ~/microbializer/pipeline/tests/pipeline_optimization_experiments/submit_experiments.py --contigs_dir /groups/pupko/yairshimony/microbializer_runs/73_ecoli/inputs --partition_name power-general
+python ~/microbializer/pipeline/tests/pipeline_optimization_experiments/submit_experiments.py --inputs_dir_path /groups/pupko/yairshimony/microbializer_runs/73_ecoli/inputs --partition_name pupko

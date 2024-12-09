@@ -3,8 +3,7 @@ import os
 from pathlib import Path
 import subprocess
 
-JOB_TEMPLATE = """
-#!/bin/bash
+JOB_TEMPLATE = """#!/bin/bash
 
 #SBATCH --job-name=microbializer
 #SBATCH --account={partition_name}-users
