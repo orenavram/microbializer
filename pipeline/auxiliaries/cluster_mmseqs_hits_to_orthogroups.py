@@ -391,6 +391,7 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
                   f'--identity_cutoff {identity_cutoff / 100}',
                   f'--coverage_cutoff {coverage_cutoff / 100}',
                   f'--e_value_cutoff {e_value_cutoff}',
+                  f'--number_of_genomes {len(strains_names)}',
                   f'--cpus {consts.MMSEQS_NUM_OF_CORES}']
 
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path, queue_name,

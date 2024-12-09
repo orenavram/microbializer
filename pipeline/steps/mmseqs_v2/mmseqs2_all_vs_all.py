@@ -24,7 +24,7 @@ def too_many_trials(logger, cmd, error_file_path):
 
 
 def run_mmseqs(logger, all_proteins_fasta, output_dir, output_path, identity_cutoff, coverage_cutoff,
-               e_value_cutoff, cpus, error_file_path):
+               e_value_cutoff, number_of_genomes, cpus, error_file_path):
     tmp_dir = os.path.join(output_dir, f'tmp')
 
     i = 1
@@ -34,7 +34,7 @@ def run_mmseqs(logger, all_proteins_fasta, output_dir, output_path, identity_cut
         # control verbosity level by -v [3] param ; verbosity levels: 0=nothing, 1: +errors, 2: +warnings, 3: +info
         cmd = f'mmseqs easy-search {all_proteins_fasta} {all_proteins_fasta} {output_path} {tmp_dir} ' \
               f'--format-output {consts.MMSEQS_OUTPUT_FORMAT} --min-seq-id {identity_cutoff} -c {coverage_cutoff} ' \
-              f'--cov-mode 0 -e {e_value_cutoff} --threads {cpus} -v 1 --comp-bias-corr 0 --max-seqs 10000'
+              f'--cov-mode 0 -e {e_value_cutoff} --threads {cpus} -v 1 --comp-bias-corr 0 --max-seqs {number_of_genomes * 100}'
         logger.info(f'Iteration #{i} - Calling:\n{cmd}')
         subprocess.run(cmd, shell=True)
         i += 1
@@ -62,6 +62,7 @@ if __name__ == '__main__':
     parser.add_argument('--identity_cutoff', type=float)
     parser.add_argument('--coverage_cutoff', type=float)
     parser.add_argument('--e_value_cutoff', type=float)
+    parser.add_argument('--number_of_genomes', type=int, help='Number of genomes in analysis')
     parser.add_argument('--cpus', type=int, default=1, help='Number of CPUs to use')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
@@ -74,7 +75,7 @@ if __name__ == '__main__':
     logger.info(script_run_message)
     try:
         run_mmseqs(logger, args.all_proteins_fasta, args.output_dir, args.output_path, args.identity_cutoff,
-                   args.coverage_cutoff, args.e_value_cutoff, args.cpus, args.error_file_path)
+                   args.coverage_cutoff, args.e_value_cutoff, args.number_of_genomes, args.cpus, args.error_file_path)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:
