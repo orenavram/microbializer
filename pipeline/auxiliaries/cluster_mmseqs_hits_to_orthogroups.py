@@ -39,7 +39,7 @@ def unify_clusters_mmseqs_hits(logger, times_logger, output_dir, tmp_dir, done_f
         paraloogs_dir_name = '05_1_3_paralogs'
     else:
         rbhs_dir_name = '05_1_1_all_vs_all_analysis'
-        paraloogs_dir_name = '05_1_2_mmseqs_paralogs'
+        paraloogs_dir_name = '05_1_3_mmseqs_paralogs'
 
     #  concat_clusters_info.py
     step_number = f'{base_step_number}_{start_substep_number}'

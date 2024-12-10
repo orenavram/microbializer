@@ -25,7 +25,7 @@ from auxiliaries.pipeline_auxiliaries import wait_for_results, \
 from auxiliaries.html_editor import edit_success_html, edit_failure_html, edit_progress
 from auxiliaries import consts, cgi_consts
 from flask import flask_interface_consts
-from auxiliaries.logic_auxiliaries import mimic_prodigal_output, aggregate_ani_results, remove_bootstrap_values, \
+from auxiliaries.logic_auxiliaries import mimic_prodigal_output, parse_ani_results, remove_bootstrap_values, \
     plot_genomes_histogram, update_progressbar, define_intervals, aggregate_mmseqs_scores
 from auxiliaries.cluster_mmseqs_hits_to_orthogroups import cluster_mmseqs_hits_to_orthogroups, unify_clusters_mmseqs_hits, run_mmseqs_and_extract_hits
 from flask.SharedConsts import USER_FILE_NAME_ZIP, USER_FILE_NAME_TAR
@@ -325,11 +325,11 @@ def step_1_calculate_ani(args, logger, times_logger, error_file_path,  output_di
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_ani'
     script_path = os.path.join(consts.SRC_DIR, 'steps/ani.py')
-    ani_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    ani_output_dir, ani_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Calculating ANI values...')
-        ani_tmp_files = os.path.join(pipeline_step_tmp_dir, 'temp_results')
+        ani_tmp_files = os.path.join(ani_tmp_dir, 'temp_results')
         os.makedirs(ani_tmp_files, exist_ok=True)
 
         genomes_paths = [os.path.join(data_path, genome_file_name) for genome_file_name in os.listdir(data_path)]
@@ -337,23 +337,16 @@ def step_1_calculate_ani(args, logger, times_logger, error_file_path,  output_di
         with open(genomes_list_path, 'w') as genomes_list_file:
             genomes_list_file.write('\n'.join(genomes_paths))
 
-        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-        for fasta_file in os.listdir(data_path):
-            single_cmd_params = [os.path.join(data_path, fasta_file), genomes_list_path, ani_tmp_files]
-            all_cmds_params.append(single_cmd_params)
+        ani_raw_output = os.path.join(ani_tmp_files, 'all_to_all_raw.tsv')
+        single_cmd_params = [genomes_list_path, ani_raw_output, consts.ANI_NUM_OF_CORES]
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
-                                                   num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
-                                                   job_name_suffix='calculate_ani',
-                                                   queue_name=args.queue_name,
-                                                   account_name=args.account_name,
-                                                   memory=consts.ANI_REQUIRED_MEMORY_GB)
-
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
-                         num_of_batches, error_file_path)
+        submit_mini_batch(logger, script_path, [single_cmd_params], ani_tmp_dir, error_file_path, args.queue_name, args.account_name,
+                          job_name='ANI', num_of_cpus=consts.ANI_NUM_OF_CORES, memory=consts.ANI_REQUIRED_MEMORY_GB)
+        wait_for_results(logger, times_logger, step_name, ani_tmp_dir,
+                         num_of_expected_results=1, error_file_path=error_file_path)
 
         # Aggregate ANI results
-        aggregate_ani_results(ani_tmp_files, ani_output_dir)
+        parse_ani_results(ani_raw_output, ani_tmp_files, ani_output_dir)
 
         add_results_to_final_dir(logger, ani_output_dir, final_output_dir,
                                  keep_in_source_dir=consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR)

@@ -19,20 +19,13 @@ from seaborn.matrix import ClusterGrid
 from . import consts
 
 
-def aggregate_ani_results(ani_tmp_files, ani_output_dir):
-    all_dfs = []
-    for file_name in os.listdir(ani_tmp_files):
-        if not file_name.endswith('.tsv'):
-            continue
-        file_path = os.path.join(ani_tmp_files, file_name)
-        df = pd.read_csv(file_path, delimiter='\t',
-                         names=['query', 'subject', 'ani_value', 'orthologous_segments', 'total_segments'])
-        df['query'] = df['query'].apply(lambda path: os.path.splitext(os.path.basename(path))[0])
-        df['subject'] = df['subject'].apply(lambda path: os.path.splitext(os.path.basename(path))[0])
-        all_dfs.append(df)
+def parse_ani_results(ani_raw_output, ani_tmp_files, ani_output_dir):
+    df = pd.read_csv(ani_raw_output, delimiter='\t',
+                     names=['query', 'subject', 'ani_value', 'orthologous_segments', 'total_segments'])
+    df['query'] = df['query'].apply(lambda path: os.path.splitext(os.path.basename(path))[0])
+    df['subject'] = df['subject'].apply(lambda path: os.path.splitext(os.path.basename(path))[0])
 
-    combined_df = pd.concat(all_dfs, ignore_index=True)
-    ani_values_df = combined_df.pivot_table(index='query', columns='subject', values='ani_value')
+    ani_values_df = df.pivot_table(index='query', columns='subject', values='ani_value')
     ani_values_df.to_csv(os.path.join(ani_tmp_files, 'ani_pairwise_values.csv'))
 
     plot_ani_clustermap(ani_values_df, Path(ani_output_dir))
