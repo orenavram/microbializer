@@ -2,9 +2,9 @@ import os
 import pandas as pd
 from sklearn import metrics
 
-BASE_PATH = r"C:\repos\microbializer\pipeline\tests\compare_og_tables\73_ecoli_compare_mmseqs_optimized"
-OG_TABLE_NO_OPTIMIZE = os.path.join(BASE_PATH, "no_optimize_2", "orthogroups.csv")
-OG_TABLE_OPTIMIZE_1_MMSEQS_COMMAND = os.path.join(BASE_PATH, "optimize_3", "orthogroups.csv")
+BASE_PATH = r"C:\repos\microbializer\pipeline\tests\pipeline_optimization_experiments\73_ecoli_optimizations_summary"
+OG_TABLE_NO_CLUSTER = os.path.join(BASE_PATH, "outputs_preCluster_no_optimizedMmseqs_yes_useParquet_no", "orthogroups.csv")
+OG_TABLE_CLUSTER = os.path.join(BASE_PATH, "outputs_preCluster_mergeAfterMmseqs_optimizedMmseqs_yes_useParquet_no", "orthogroups.csv")
 
 
 def compare_clusterings(true_labels, pred_labels, output_path):
@@ -54,16 +54,16 @@ def convert_og_table_to_labels(og_table_path):
 
 
 def main():
-    no_optimize_labels, no_optimize_genes = convert_og_table_to_labels(OG_TABLE_NO_OPTIMIZE)
-    optimize_labels, optimize_genes = convert_og_table_to_labels(OG_TABLE_OPTIMIZE_1_MMSEQS_COMMAND)
+    no_cluster_labels, no_cluster_genes = convert_og_table_to_labels(OG_TABLE_NO_CLUSTER)
+    cluster_labels, cluster_genes = convert_og_table_to_labels(OG_TABLE_CLUSTER)
 
-    if len(no_optimize_labels) != len(optimize_labels):
-        genes_difference = set(no_optimize_genes).difference(set(optimize_genes))
-        genes_difference.add(set(optimize_genes).difference(set(no_optimize_genes)))
+    if len(no_cluster_labels) != len(cluster_labels):
+        genes_difference = set(no_cluster_genes).difference(set(cluster_genes))
+        genes_difference.add(set(cluster_genes).difference(set(no_cluster_genes)))
         print(f"Genes in no_optimize but not in optimize or vice versa: {genes_difference}")
         return
 
-    compare_clusterings(no_optimize_labels, optimize_labels, os.path.join(BASE_PATH, "comparison_scores.csv"))
+    compare_clusterings(no_cluster_labels, cluster_labels, os.path.join(BASE_PATH, "comparison_scores.csv"))
 
 
 if __name__ == '__main__':
