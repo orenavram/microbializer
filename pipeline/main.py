@@ -90,6 +90,7 @@ def get_arguments():
                                                                           'the orthogroups inference. Relevant only if '
                                                                           'pre_cluster_orthogroups_inference is True',
                         default=10)
+    parser.add_argument('--auto_pre_cluster', help='Decide number of clusters based on number of strains. When True, ignores pre_cluster_orthogroups_inference and num_of_clusters_in_orthogroup_inference', action='store_true')
     parser.add_argument('--unify_clusters_after_mmseqs', help='If True, unify the clusters after the extraction of hits.'
                                                               'Otherwise, unify the orthogroups at the end of inference.',
                         action='store_true')
@@ -227,9 +228,14 @@ def validate_arguments(args):
         args.unify_clusters_after_mmseqs = str_to_bool(args.unify_clusters_after_mmseqs)
     if type(args.use_parquet) == str:
         args.use_parquet = str_to_bool(args.use_parquet)
+    if type(args.auto_pre_cluster) == str:
+        args.use_parquet = str_to_bool(args.auto_pre_cluster)
 
     if args.pre_cluster_orthogroups_inference and args.unify_clusters_after_mmseqs and args.use_parquet:
         raise ValueError('If unify_clusters_after_mmseqs is True, we can not use parquet since we concat the csv hit files')
+
+    if args.auto_pre_cluster and args.pre_cluster_orthogroups_inference:
+        raise ValueError('auto_pre_cluster and pre_cluster_orthogroups_inference can not be both True')
 
     if args.outgroup == "No outgroup":
         args.outgroup = None
@@ -1297,6 +1303,10 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
     with open(genomes_names_path, 'r') as genomes_names_fp:
         genomes_names = genomes_names_fp.read().split('\n')
     number_of_genomes = len(genomes_names)
+
+    if args.auto_pre_cluster and number_of_genomes > 50:
+        args.pre_cluster_orthogroups_inference = True
+        args.num_of_clusters_in_orthogroup_inference = number_of_genomes // 50
 
     if args.filter_out_plasmids or args.inputs_fasta_type == 'orfs':
         filtered_inputs_dir = step_0_fix_input_files(args, logger, times_logger, error_file_path, output_dir,
