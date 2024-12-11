@@ -396,7 +396,7 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
 
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path, queue_name,
                           account_name, job_name='mmseqs', num_of_cpus=consts.MMSEQS_NUM_OF_CORES,
-                          memory=consts.MMSEQS_REQUIRED_MEMORY_GB, time_in_hours=72)
+                          memory=consts.MMSEQS_BIG_DATASET_REQUIRED_MEMORY_GB, time_in_hours=72)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, 1, error_file_path)
 
@@ -415,7 +415,7 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
     m8_output_size_in_gb = get_directory_size_in_gb(m8_output_path)
-    m8_output_parsing_memory = max(consts.DEFAULT_MEMORY_PER_JOB_GB, math.ceil(m8_output_size_in_gb * 10))
+    m8_output_parsing_memory = str(max(int(consts.DEFAULT_MEMORY_PER_JOB_GB), math.ceil(m8_output_size_in_gb * 10)))
 
     # 2.	extract_rbh_hits.py
     step_number = f'{base_step_number}_2'
@@ -573,7 +573,6 @@ def run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_pa
                                                        job_name_suffix='rbh_analysis',
                                                        queue_name=queue_name,
                                                        account_name=account_name,
-                                                       memory=consts.MMSEQS_REQUIRED_MEMORY_GB,
                                                        time_in_hours=72)
 
             wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
