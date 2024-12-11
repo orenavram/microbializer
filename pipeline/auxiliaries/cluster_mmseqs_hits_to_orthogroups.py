@@ -6,7 +6,7 @@ import itertools
 
 from . import consts
 from .pipeline_auxiliaries import wait_for_results, prepare_directories, fail, submit_mini_batch, submit_batch, execute
-from .logic_auxiliaries import aggregate_mmseqs_scores, define_intervals, add_score_column_to_mmseqs_output
+from .logic_auxiliaries import aggregate_mmseqs_scores, define_intervals, add_score_column_to_mmseqs_output, get_directory_size_in_gb
 from .file_writer import write_to_file
 
 
@@ -414,6 +414,9 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
+    m8_output_size_in_gb = get_directory_size_in_gb(m8_output_path)
+    m8_output_parsing_memory = max(consts.DEFAULT_MEMORY_PER_JOB_GB, math.ceil(m8_output_size_in_gb * 10))
+
     # 2.	extract_rbh_hits.py
     step_number = f'{base_step_number}_2'
     logger.info(f'Step {step_number}: {"_" * 100}')
@@ -457,7 +460,7 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
                                                        job_name_suffix='rbh_analysis',
                                                        queue_name=queue_name,
                                                        account_name=account_name,
-                                                       memory=consts.MMSEQS_PARSING_REQUIRED_MEMORY_GB)
+                                                       memory=m8_output_parsing_memory)
 
             wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                              num_of_batches, error_file_path)
@@ -510,7 +513,7 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
                                                    job_name_suffix='paralogs_analysis',
                                                    queue_name=queue_name,
                                                    account_name=account_name,
-                                                   memory=consts.MMSEQS_PARSING_REQUIRED_MEMORY_GB)
+                                                   memory=m8_output_parsing_memory)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)

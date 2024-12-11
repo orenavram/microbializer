@@ -259,3 +259,15 @@ def define_intervals(start, end, number_of_intervals):
     intervals[-1] = (intervals[-1][0], end)
 
     return intervals
+
+
+def get_directory_size_in_gb(directory):
+    total_size = 0
+    for file in os.listdir(directory):
+        file_path = os.path.join(directory, file)
+        # Skip broken symlinks and non-files
+        if os.path.isfile(file_path):
+            total_size += os.path.getsize(file_path)
+    # Convert bytes to gigabytes and round up
+    size_in_gb = total_size / (1024 ** 3)
+    return size_in_gb
