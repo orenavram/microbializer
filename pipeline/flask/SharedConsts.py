@@ -77,7 +77,7 @@ PATH2SAVE_MONITOR_DATA = r'SavedObjects/monitored_data'
 INTERVAL_BETWEEN_LISTENER_SAMPLES = 10  # in seconds
 INTERVAL_BETWEEN_CLEANING_THE_PROCESSES_DICT = 24  # in hours
 TIME_TO_SAVE_PROCESSES_IN_THE_PROCESSES_DICT = 30  # in days
-TIME_TO_KEEP_PROCSES_IDS_FOLDERS = 30  # in days the entire folder of the process
+TIME_TO_KEEP_PROCSES_IDS_FOLDERS = 14  # in days the entire folder of the process
 
 
 # post processing
@@ -199,6 +199,8 @@ class EMAIL_CONSTS:
     Thank you for using Microbializer.\n
     Your results visual summary is at: ''' + WEBSERVER_ADDRESS + '''/results/{process_id}\n
     Your downloadable results are at: ''' + WEBSERVER_ADDRESS + '''/download_page/{process_id}\n
+    Please note that the results are available for''' + str(TIME_TO_KEEP_PROCSES_IDS_FOLDERS) + ''' days, and will be deleted after,\n
+    so remember to download them (we cannot keep them for a longer time due to storage limitations).\n\n
     Please remember to cite us in your work (citation info is at: ''' + WEBSERVER_ADDRESS + '''/about).\n
     For more help contact: ''' + flask_interface_consts.OWNER_EMAIL
 

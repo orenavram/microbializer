@@ -68,8 +68,7 @@ def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path
         fail(logger, error_msg, error_file_path)
 
     # check MAXimal number of genomes
-    if number_of_genomes > consts.MAX_NUMBER_OF_GENOMES_TO_ANALYZE and 'oren' not in args.email.lower() \
-            and not args.bypass_number_of_genomes_limit:
+    if number_of_genomes > consts.MAX_NUMBER_OF_GENOMES_TO_ANALYZE and not args.bypass_number_of_genomes_limit:
         error_msg = f'The dataset contains too many genomes. {flask_interface_consts.WEBSERVER_NAME} allows analyzing up to ' \
                     f'{consts.MAX_NUMBER_OF_GENOMES_TO_ANALYZE} genomes due to the high resource consumption. However, ' \
                     f'upon request (and supervision), we do allow analyzing large datasets. Please contact us ' \
