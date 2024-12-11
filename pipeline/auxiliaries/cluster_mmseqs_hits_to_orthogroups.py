@@ -656,8 +656,7 @@ def run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_pa
                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // n_jobs_per_step),
                                                    job_name_suffix='paralogs_analysis',
                                                    queue_name=queue_name,
-                                                   account_name=account_name,
-                                                   memory=consts.MMSEQS_REQUIRED_MEMORY_GB)
+                                                   account_name=account_name)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)

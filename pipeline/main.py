@@ -344,7 +344,7 @@ def step_1_calculate_ani(args, logger, times_logger, error_file_path,  output_di
             genomes_list_file.write('\n'.join(genomes_paths))
 
         ani_raw_output = os.path.join(ani_tmp_files, 'all_to_all_raw.tsv')
-        single_cmd_params = [genomes_list_path, ani_raw_output, consts.ANI_NUM_OF_CORES]
+        single_cmd_params = [genomes_list_path, ani_raw_output, f'--cpus {consts.ANI_NUM_OF_CORES}']
 
         submit_mini_batch(logger, script_path, [single_cmd_params], ani_tmp_dir, error_file_path, args.queue_name, args.account_name,
                           job_name='ANI', num_of_cpus=consts.ANI_NUM_OF_CORES, memory=consts.ANI_REQUIRED_MEMORY_GB)

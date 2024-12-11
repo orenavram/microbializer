@@ -138,7 +138,7 @@ def get_genome_numeric_representation(logger, orthologs_table_path, ORFs_dir_pat
     reference_genome_name = genome_names[0]  # the numbers will be set with respect to this (arbitrary) genome
     for genome_name in genome_names:
         gene_name_to_location, gene_to_orientation = get_genes_info_dicts(
-            os.path.join(ORFs_dir_path, f'{genome_name}.02a_orfs'))
+            os.path.join(ORFs_dir_path, f'{genome_name}.fna'))
         genome_name_to_gene_name_to_location[genome_name] = gene_name_to_location
         genome_name_to_gene_name_to_orientation[genome_name] = gene_to_orientation
 
@@ -176,8 +176,8 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('orthologs_table_path', help='A path to an ortholog table (step 11 of microbializer)')
-    parser.add_argument('ORFs_dir_path', help='A path to a ORF directory (step 01 of microbializer)')
+    parser.add_argument('orthologs_table_path', help='A path to an ortholog table')
+    parser.add_argument('ORFs_dir_path', help='A path to a ORF directory')
     parser.add_argument('output_path', help='A path to which the numeric core genomes will be written')
     parser.add_argument('tmp_dir', help='A path to tmp dir')
     parser.add_argument('-v', '--verbose', action='store_true', help='Increase output verbosity')
