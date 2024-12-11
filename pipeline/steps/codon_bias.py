@@ -182,7 +182,7 @@ def plot_CAI_histogram(ogs_cai_info_df, output_dir):
     plt.axis('auto')
     plt.hist(ogs_cai_info_df["CAI_mean"], bins=30)
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, 'CAI_Histogram.png'), dpi=600)
+    plt.savefig(os.path.join(output_dir, 'CAI_histogram.png'), dpi=600)
     plt.close()
 
 
