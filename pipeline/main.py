@@ -719,7 +719,7 @@ def step_5_infer_orthogroups_clustered(args, logger, times_logger, error_file_pa
                                                    job_name_suffix='infer_orthogroups',
                                                    queue_name=args.queue_name,
                                                    account_name=args.account_name,
-                                                   time_in_hours=96)
+                                                   time_in_hours=consts.INFER_ORTHOGROUPS_JOB_TIME_LIMIT_HOURS)
 
         wait_for_results(logger, times_logger, step_name, infer_orthogroups_tmp_dir,
                          num_of_batches, error_file_path, recursive_step=True)

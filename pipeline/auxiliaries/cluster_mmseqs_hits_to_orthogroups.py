@@ -396,7 +396,7 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
 
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path, queue_name,
                           account_name, job_name='mmseqs', num_of_cpus=consts.MMSEQS_NUM_OF_CORES,
-                          memory=consts.MMSEQS_BIG_DATASET_REQUIRED_MEMORY_GB, time_in_hours=72)
+                          memory=consts.MMSEQS_BIG_DATASET_REQUIRED_MEMORY_GB, time_in_hours=consts.MMSEQS_JOB_TIME_LIMIT_HOURS)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, 1, error_file_path)
 
@@ -573,7 +573,7 @@ def run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_pa
                                                        job_name_suffix='rbh_analysis',
                                                        queue_name=queue_name,
                                                        account_name=account_name,
-                                                       time_in_hours=72)
+                                                       time_in_hours=consts.MMSEQS_JOB_TIME_LIMIT_HOURS)
 
             wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                              num_of_batches, error_file_path)
