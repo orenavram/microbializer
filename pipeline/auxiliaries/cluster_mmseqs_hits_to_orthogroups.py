@@ -193,13 +193,15 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, concatenate_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // max_parallel_jobs),
                                                    job_name_suffix='concatenate_hits',
-                                                    queue_name=queue_name,
+                                                   queue_name=queue_name,
                                                    account_name=account_name)
 
         wait_for_results(logger, times_logger, step_name, concatenate_tmp_dir,
                          num_of_batches, error_file_path)
 
-        execute(logger, f'cat {concatenated_chunks_dir}/* >> {all_hits_file}', process_is_string=True)
+        for chunk_file in os.listdir(concatenated_chunks_dir):
+            execute(logger, f'cat {os.path.join(concatenated_chunks_dir, chunk_file)} >> {all_hits_file}', process_is_string=True)
+
         execute(logger, f'rm -rf {concatenated_chunks_dir}', process_is_string=True)
 
         write_to_file(logger, done_file_path, '.')

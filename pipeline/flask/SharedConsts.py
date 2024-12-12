@@ -189,22 +189,23 @@ class EMAIL_CONSTS:
         else:
             return f'unknown state in create_title at EMAIL_CONSTS'
 
-    CONTENT_PROCESS_CRASHED = '''
-    Thank you for using Microbializer.\n
-    We are sorry for the inconvenience, but the process crashed.\n
-    Please look at: ''' + WEBSERVER_ADDRESS + '''/error_from_job/{process_id} for the error details and verify your input.\n
-    For more help contact: ''' + flask_interface_consts.OWNER_EMAIL
+    CONTENT_PROCESS_CRASHED = f"Thank you for using Microbializer.\n" \
+                              f"We are sorry for the inconvenience, but the process crashed.\n" \
+                              f"Please look at: {WEBSERVER_ADDRESS}/error_from_job/{{process_id}} for the error details and verify your input.\n" \
+                              f"For more help contact: {flask_interface_consts.OWNER_EMAIL}"
 
-    CONTENT_PROCESS_FINISHED = '''
-    Thank you for using Microbializer.\n
-    Your results visual summary is at: ''' + WEBSERVER_ADDRESS + '''/results/{process_id}\n
-    Your downloadable results are at: ''' + WEBSERVER_ADDRESS + '''/download_page/{process_id}\n
-    Please note that the results are available for ''' + str(TIME_TO_KEEP_PROCSES_IDS_FOLDERS) + ''' days, and will be deleted after, so remember to download them (we cannot keep them for a longer time due to storage limitations).\n\n
-    Please remember to cite us in your work (citation info is at: ''' + WEBSERVER_ADDRESS + '''/about).\n
-    For more help contact: ''' + flask_interface_consts.OWNER_EMAIL
+    CONTENT_PROCESS_FINISHED = f"Thank you for using Microbializer.\n" \
+                               f"Your results visual summary is at: {WEBSERVER_ADDRESS}/results/{{process_id}}\n" \
+                               f"Your downloadable results are at: {WEBSERVER_ADDRESS}/download_page/{{process_id}}\n" \
+                               f"Please note that the results are available for {str(TIME_TO_KEEP_PROCSES_IDS_FOLDERS)} days, " \
+                               f"and will be deleted after, so remember to download them (we cannot keep them for a longer time due to storage limitations).\n\n" \
+                               f"Please remember to cite us in your work (citation info is at: {WEBSERVER_ADDRESS}/about).\n" \
+                               f"For more help contact: {flask_interface_consts.OWNER_EMAIL}"
 
     SUBMITTED_TITLE = '''Microbializer {job_name} - Job Submitted'''
-    SUBMITTED_CONTENT = '''Thank you, for using Microbializer.\nYour job has been submitted, you can check its status at: {webserver_address}/process_state/{process_id}\nAn update will be sent upon completion.'''
+    SUBMITTED_CONTENT = f"Thank you for using Microbializer.\n" \
+                        f"Your job has been submitted, you can check its status at: {WEBSERVER_ADDRESS}/process_state/{{process_id}}\n" \
+                        f"An update will be sent upon completion."
 
 
 class UI_CONSTS:
