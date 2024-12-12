@@ -328,6 +328,8 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
         logger.info('Executing MCL...')
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
         for putative_orthologs_group in os.listdir(mcl_inputs_dir):
+            if not putative_orthologs_group.endswith('mcl_input'):
+                continue
             putative_orthologs_group_prefix = os.path.splitext(putative_orthologs_group)[0]
             output_file_name = f'{putative_orthologs_group_prefix}.{step_name}'
 
@@ -361,6 +363,8 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
         logger.info('Verifying clusters...')
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
         for putative_orthologs_group in os.listdir(mcl_outputs_dir):
+            if not putative_orthologs_group.endswith('mcl_analysis'):
+                continue
             single_cmd_params = [os.path.join(mcl_outputs_dir, putative_orthologs_group),
                                  verified_clusters_output_dir]
             all_cmds_params.append(single_cmd_params)

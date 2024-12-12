@@ -12,7 +12,18 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger
-from auxiliaries import consts
+
+
+def find_pair_score_in_file(hits_path, gene_1, gene_2):
+    with open(hits_path, 'r') as fp:
+        fp.readline()  # skip the header
+        for line in fp:
+            tokens = line.strip().split(',')
+            if (tokens[0] == gene_1 and tokens[1] == gene_2) or (tokens[0] == gene_2 and tokens[1] == gene_1):
+                score = tokens[2]
+                return score
+
+    return None
 
 
 def prepare_og_for_mcl(logger, hits_dir, putative_og_path, output_path):
@@ -44,13 +55,10 @@ def prepare_og_for_mcl(logger, hits_dir, putative_og_path, output_path):
                 logger.warning(f'No hits file for {strain_1} vs {strain_2}')
                 continue
 
-        hits_df = pd.read_csv(hits_path)
-        relevant_hit = hits_df[(hits_df[strain_1] == gene_1) & (hits_df[strain_2] == gene_2)]
-        if relevant_hit.empty:
-            # genes pair wasn't a hit
+        score = find_pair_score_in_file(hits_path, gene_1, gene_2)
+        if not score:
             continue
 
-        score = relevant_hit['score'].values[0]
         text_to_mcl_file += f'{gene_1}\t{gene_2}\t{score}\n'
 
     with open(mcl_file_path, 'w') as mcl_f:

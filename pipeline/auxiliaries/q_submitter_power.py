@@ -11,7 +11,6 @@ import subprocess
 from . import consts
 
 JOB_EXTENSION = '.slurm'
-LOGIN_NODE = 'powerslurm-login'
 JOB_SUBMITTER = 'sbatch'
 MEMORY_SUFFIX = 'G'
 CHECK_JOB_DETAILS_COMMAND = 'scontrol show job'
@@ -76,7 +75,7 @@ def submit_cmds_from_file_to_q(logger, job_name, cmds_path, tmp_dir, queue_name,
     # queue_name may contain more arguments, thus the string of the cmd is generated and raw cmd is called
 
     if consts.Q_SUBMITTER_ADD_SSH_PREFIX:
-        terminal_cmd = f'ssh {LOGIN_NODE} "{JOB_SUBMITTER} {job_path} {additional_params}"'  # FIX by danny 5-1-2023
+        terminal_cmd = f'ssh {consts.LOGIN_NODE} "{JOB_SUBMITTER} {job_path} {additional_params}"'  # FIX by danny 5-1-2023
     else:
         terminal_cmd = f'{JOB_SUBMITTER} {job_path} {additional_params}'
 
