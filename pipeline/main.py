@@ -98,6 +98,8 @@ def get_arguments():
                         action='store_true')
     parser.add_argument('--use_parquet', help='When True, use parquet files when possible instead of csv',
                         action='store_true')
+    parser.add_argument('--prepare_mcl_v2', help='When True, use prepare_mcl_v2',
+                        action='store_true')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
 
     # parser.add_argument('--promoters_length', default=300,
@@ -712,6 +714,8 @@ def step_5_infer_orthogroups_clustered(args, logger, times_logger, error_file_pa
                 params.append('--use_parquet')
             if args.verbose:
                 params.append('--verbose')
+            if args.prepare_mcl_v2:
+                params.append('--prepare_mcl_v2')
             all_cmds_params.append(params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, infer_orthogroups_tmp_dir, error_file_path,
@@ -738,7 +742,7 @@ def step_5_infer_orthogroups_clustered(args, logger, times_logger, error_file_pa
                                                done_files_dir, orthologs_output_dir, orthologs_scores_statistics_dir,
                                                paralogs_output_dir, paralogs_scores_statistics_dir,
                                                consts.MAX_PARALLEL_JOBS, '05', 4, args.account_name, args.queue_name,
-                                               args.use_parquet)
+                                               args.use_parquet, args.prepare_mcl_v2)
     else:  # Aggregate OG tables of all clusters
         all_og_tables = []
         for cluster_dir_name in os.listdir(infer_orthogroups_output_dir):
@@ -766,7 +770,7 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
                                            done_files_dir, orthologs_output_dir, orthologs_scores_statistics_dir,
                                            paralogs_output_dir, paralogs_scores_statistics_dir,
                                            consts.MAX_PARALLEL_JOBS, '05', 4, args.account_name, args.queue_name,
-                                           args.use_parquet)
+                                           args.use_parquet, args.prepare_mcl_v2)
 
     return orthogroups_file_path
 

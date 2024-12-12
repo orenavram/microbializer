@@ -119,7 +119,7 @@ def unify_clusters_mmseqs_hits(logger, times_logger, output_dir, tmp_dir, done_f
 def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
                                        orthologs_output_dir, orthologs_scores_statistics_dir, paralogs_output_dir,
                                        paralogs_scores_statistics_dir, max_parallel_jobs, base_step_number,
-                                       start_substep_number, account_name, queue_name, use_parquet):
+                                       start_substep_number, account_name, queue_name, use_parquet, prepare_mcl_v2):
     # normalize_scores
     step_number = f'{base_step_number}_{start_substep_number}'
     script_path = os.path.join(consts.SRC_DIR, 'steps/normalize_hits_scores.py')
@@ -218,64 +218,101 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
     script_path = os.path.join(consts.SRC_DIR, 'steps/construct_putative_orthologs_table.py')
     putative_orthologs_table_output_dir, putative_orthologs_table_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     putative_orthologs_table_path = os.path.join(putative_orthologs_table_output_dir, 'putative_orthologs_table.txt')
+    single_putative_ogs_dir = os.path.join(putative_orthologs_table_output_dir, 'single_ogs')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Constructing putative orthologs table...')
-        job_name = os.path.split(script_path)[-1]
+        os.makedirs(single_putative_ogs_dir, exist_ok=True)
         params = [all_hits_file,
-                  putative_orthologs_table_path]
+                  putative_orthologs_table_path,
+                  single_putative_ogs_dir]
         submit_mini_batch(logger, script_path, [params], putative_orthologs_table_tmp_dir, error_file_path,
-                          queue_name, account_name, job_name=job_name)
+                          queue_name, account_name, job_name=os.path.split(script_path)[-1])
         wait_for_results(logger, times_logger, step_name, putative_orthologs_table_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path)
+
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # prepare_files_for_mcl.py
-    # Input: (1) a path for a concatenated all reciprocal hits file (2) a path for a putative orthologs file (3) a path for an output folder
-    # Output: an input file for MCL for each putative orthologs group
-    # CANNOT be parallelized on cluster (if running on the concatenated file)
-    step_number = f'{base_step_number}_{start_substep_number + 3}'
-    logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_mcl_input_files'
-    script_path = os.path.join(consts.SRC_DIR, 'steps/prepare_files_for_mcl.py')
-    mcl_inputs_dir, mcl_inputs_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-    if not os.path.exists(done_file_path):
-        logger.info('Preparing files for MCL...')
-        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
+    if not prepare_mcl_v2:
+        # prepare_files_for_mcl.py
+        # Input: (1) a path for a concatenated all reciprocal hits file (2) a path for a putative orthologs file (3) a path for an output folder
+        # Output: an input file for MCL for each putative orthologs group
+        # CANNOT be parallelized on cluster (if running on the concatenated file)
+        step_number = f'{base_step_number}_{start_substep_number + 3}'
+        logger.info(f'Step {step_number}: {"_" * 100}')
+        step_name = f'{step_number}_mcl_input_files'
+        script_path = os.path.join(consts.SRC_DIR, 'steps/prepare_files_for_mcl.py')
+        mcl_inputs_dir, mcl_inputs_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+        done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+        if not os.path.exists(done_file_path):
+            logger.info('Preparing files for MCL...')
+            all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
 
-        with open(os.path.join(os.path.split(putative_orthologs_table_path)[0], 'num_of_putative_sets.txt')) as f:
-            num_of_putative_sets = int(f.read())
-        if num_of_putative_sets == 0:
-            error_msg = f'No putative ortholog groups were detected in your dataset. Please try to lower the ' \
-                        f'similarity parameters (see Advanced Options in the submission page) and re-submit your job.'
-            fail(logger, error_msg, error_file_path)
-        clusters_to_prepare_per_job = math.ceil(num_of_putative_sets / max_parallel_jobs)
-        for i in range(1, num_of_putative_sets + 1, clusters_to_prepare_per_job):
-            first_mcl = str(i)
-            last_mcl = str(min(i + clusters_to_prepare_per_job - 1,
-                               num_of_putative_sets))  # 1-10, 11-20, etc... for clusters_to_prepare_per_job=10
+            with open(os.path.join(os.path.split(putative_orthologs_table_path)[0], 'num_of_putative_sets.txt')) as f:
+                num_of_putative_sets = int(f.read())
+            if num_of_putative_sets == 0:
+                error_msg = f'No putative ortholog groups were detected in your dataset. Please try to lower the ' \
+                            f'similarity parameters (see Advanced Options in the submission page) and re-submit your job.'
+                fail(logger, error_msg, error_file_path)
+            clusters_to_prepare_per_job = math.ceil(num_of_putative_sets / max_parallel_jobs)
+            for i in range(1, num_of_putative_sets + 1, clusters_to_prepare_per_job):
+                first_mcl = str(i)
+                last_mcl = str(min(i + clusters_to_prepare_per_job - 1,
+                                   num_of_putative_sets))  # 1-10, 11-20, etc... for clusters_to_prepare_per_job=10
 
-            single_cmd_params = [all_hits_file,
-                                 putative_orthologs_table_path,
-                                 first_mcl,
-                                 last_mcl,
-                                 mcl_inputs_dir]
-            all_cmds_params.append(single_cmd_params)
+                single_cmd_params = [all_hits_file,
+                                     putative_orthologs_table_path,
+                                     first_mcl,
+                                     last_mcl,
+                                     mcl_inputs_dir]
+                all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, mcl_inputs_tmp_dir, error_file_path,
-                                                   num_of_cmds_per_job=max(1, len(all_cmds_params) // max_parallel_jobs),
-                                                   # *times* the number of clusters_to_prepare_per_job above. 50 in total per batch!
-                                                   job_name_suffix='mcl_preparation',
-                                                   queue_name=queue_name,
-                                                   account_name=account_name)
+            num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, mcl_inputs_tmp_dir, error_file_path,
+                                                       num_of_cmds_per_job=max(1, len(all_cmds_params) // max_parallel_jobs),
+                                                       # *times* the number of clusters_to_prepare_per_job above. 50 in total per batch!
+                                                       job_name_suffix='mcl_preparation',
+                                                       queue_name=queue_name,
+                                                       account_name=account_name)
 
-        wait_for_results(logger, times_logger, step_name, mcl_inputs_tmp_dir, num_of_batches, error_file_path)
-        write_to_file(logger, done_file_path, '.')
+            wait_for_results(logger, times_logger, step_name, mcl_inputs_tmp_dir, num_of_batches, error_file_path)
+            write_to_file(logger, done_file_path, '.')
+        else:
+            logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
     else:
-        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+        # prepare_og_for_mcl.py
+        step_number = f'{base_step_number}_{start_substep_number + 3}'
+        logger.info(f'Step {step_number}: {"_" * 100}')
+        step_name = f'{step_number}_mcl_input_files'
+        script_path = os.path.join(consts.SRC_DIR, 'steps/prepare_og_for_mcl.py')
+        mcl_inputs_dir, mcl_inputs_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+        done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+        if not os.path.exists(done_file_path):
+            logger.info('Preparing files for MCL...')
+            all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
+
+            for single_putative_og_file_name in os.listdir(single_putative_ogs_dir):
+                single_putative_og_path = os.path.join(single_putative_ogs_dir, single_putative_og_file_name)
+
+                single_cmd_params = [normalized_hits_output_dir,
+                                     single_putative_og_path,
+                                     mcl_inputs_dir]
+                all_cmds_params.append(single_cmd_params)
+
+            num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, mcl_inputs_tmp_dir, error_file_path,
+                                                       num_of_cmds_per_job=max(1, len(all_cmds_params) // max_parallel_jobs),
+                                                       # *times* the number of clusters_to_prepare_per_job above. 50 in total per batch!
+                                                       job_name_suffix='mcl_preparation',
+                                                       queue_name=queue_name,
+                                                       account_name=account_name)
+
+            wait_for_results(logger, times_logger, step_name, mcl_inputs_tmp_dir, num_of_batches, error_file_path)
+            write_to_file(logger, done_file_path, '.')
+        else:
+            logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
 
     # run_mcl.py
     # Input: (1) a path to an MCL input file (2) a path to MCL's output.

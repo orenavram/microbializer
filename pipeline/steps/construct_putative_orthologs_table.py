@@ -18,7 +18,7 @@ from auxiliaries.pipeline_auxiliaries import get_job_logger
 from auxiliaries import consts
 
 
-def construct_table(logger, all_reciprocal_hits_path, putative_orthologs_path, delimiter):
+def construct_table(logger, all_reciprocal_hits_path, putative_orthologs_path, single_ogs_dir, delimiter):
     member_gene_to_group_name = {}
     member_gene_to_strain_name_dict = {}
     group_name_to_member_genes = {}
@@ -103,12 +103,19 @@ def construct_table(logger, all_reciprocal_hits_path, putative_orthologs_path, d
         strain_to_members = {strain: ';'.join(members) for strain, members in strain_to_members.items()}
         group_row_str = delimiter.join([f'OG_{group_index}'] + [strain_to_members.get(strain, '') for strain in sorted_strains])
         result += group_row_str + '\n'
+        with open(os.path.join(single_ogs_dir, f'OG_{group_index}.txt'), 'w') as f:
+            f.write(header)
+            f.write(group_row_str)
 
     with open(putative_orthologs_path, 'w') as f:
         f.write(result)
 
-    with open(os.path.join(os.path.split(putative_orthologs_path)[0], 'num_of_putative_sets.txt'), 'w') as f:
+    output_dir = os.path.dirname(putative_orthologs_path)
+    with open(os.path.join(output_dir, 'num_of_putative_sets.txt'), 'w') as f:
         f.write(f'{len(group_name_to_member_genes)}\n')
+
+    if len(group_name_to_member_genes) == 0:
+        raise ValueError('No putative orthogroups were found')
 
 
 if __name__ == '__main__':
@@ -120,6 +127,7 @@ if __name__ == '__main__':
                         help='path to a file with all the reciprocal hits files concatenated')
     parser.add_argument('putative_orthologs_path',
                         help='path to an output file in which the putative orthologs table will be written')
+    parser.add_argument('single_ogs_dir', help='')
     parser.add_argument('--delimiter', help='delimiter for the input and output files', default=consts.CSV_DELIMITER)
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
@@ -131,7 +139,7 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        construct_table(logger, args.all_reciprocal_hits_path, args.putative_orthologs_path, args.delimiter)
+        construct_table(logger, args.all_reciprocal_hits_path, args.putative_orthologs_path, args.single_ogs_dir, args.delimiter)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:
