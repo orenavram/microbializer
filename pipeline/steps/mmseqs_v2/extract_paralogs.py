@@ -34,9 +34,7 @@ def extract_paralogs_of_genome(logger, m8_df, genome_name, max_scores_parts_dir,
 
     max_scores_combined_df = pd.concat(max_scores_dfs)
     max_score_per_gene = max_scores_combined_df.groupby('gene')['max_rbh_score'].max()
-
-    if verbose:
-        max_score_per_gene.to_csv(genome_max_rbh_scores_path)
+    max_score_per_gene.to_csv(genome_max_rbh_scores_path)
 
     # Filter m8_df to include only potential paralogs
     m8_df = m8_df[(m8_df['query_genome'] == genome_name) & (m8_df['target_genome'] == genome_name)]

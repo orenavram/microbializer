@@ -46,7 +46,7 @@ def get_api_token(username, api_key):
         raise Exception(f"Error: {response.status_code}, {response.text}")
 
 
-def submit_job(script_commands, job_name, logs_path, num_cpus, queue, memory, logger, current_working_directory="/tmp/"):
+def submit_job(script_commands, job_name, logs_path, num_cpus, queue, memory, time_limit_in_hours, logger, current_working_directory="/tmp/"):
     logger.info(f'in submit_job, for {job_name}')
     # Authorization headers with the obtained token
     headers = {
@@ -60,7 +60,8 @@ def submit_job(script_commands, job_name, logs_path, num_cpus, queue, memory, lo
     slurm_script_path = os.path.join(logs_path, 'job.slurm')
     with open(slurm_script_path, 'w') as f:
         slurm_header = flask_interface_consts.MICROBIALIZER_JOB_HEADER_TEMPLATE.format(
-            output_file=slurm_output_file, error_file=slurm_error_file, num_cpus=num_cpus, memory=memory)
+            output_file=slurm_output_file, error_file=slurm_error_file, num_cpus=num_cpus, memory=memory,
+            time_limit_in_hours=time_limit_in_hours)
         shebang, commands = script_commands.split('\n', 1)
         full_slurm_script = f"{shebang}\n{slurm_header}\n{commands}"
         f.write(full_slurm_script)
@@ -86,6 +87,7 @@ def submit_job(script_commands, job_name, logs_path, num_cpus, queue, memory, lo
                     "set": True,
                     "infinite": False
                 },
+                "time_limit": time_limit_in_hours * 60,  # we should pass the time_limit in minutes
                 # Full path to your error/output file.
                 "standard_output": slurm_output_file,
                 "standard_error": slurm_error_file,

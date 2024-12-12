@@ -199,8 +199,7 @@ class EMAIL_CONSTS:
     Thank you for using Microbializer.\n
     Your results visual summary is at: ''' + WEBSERVER_ADDRESS + '''/results/{process_id}\n
     Your downloadable results are at: ''' + WEBSERVER_ADDRESS + '''/download_page/{process_id}\n
-    Please note that the results are available for''' + str(TIME_TO_KEEP_PROCSES_IDS_FOLDERS) + ''' days, and will be deleted after,\n
-    so remember to download them (we cannot keep them for a longer time due to storage limitations).\n\n
+    Please note that the results are available for ''' + str(TIME_TO_KEEP_PROCSES_IDS_FOLDERS) + ''' days, and will be deleted after, so remember to download them (we cannot keep them for a longer time due to storage limitations).\n\n
     Please remember to cite us in your work (citation info is at: ''' + WEBSERVER_ADDRESS + '''/about).\n
     For more help contact: ''' + flask_interface_consts.OWNER_EMAIL
 
