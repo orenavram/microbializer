@@ -870,9 +870,9 @@ def step_7_orthologs_table_variations(args, logger, times_logger, error_file_pat
         sns.histplot(x=group_sizes, discrete=True)
         if len(np.unique(group_sizes)) < 10:
             plt.xticks(np.unique(group_sizes))
-        plt.title('Orthologous groups sizes distribution', fontsize=20, loc='center', wrap=True)
+        plt.title('Orthogroups sizes distribution', fontsize=20, loc='center', wrap=True)
         plt.xlabel('OG size (number of genomes)', fontsize=15)
-        plt.ylabel('Count', fontsize=15)
+        plt.ylabel('Count of OGs of each OG size', fontsize=15)
         plt.tight_layout()
         plt.savefig(os.path.join(group_sizes_path, 'groups_sizes.png'), dpi=600)
         plt.clf()

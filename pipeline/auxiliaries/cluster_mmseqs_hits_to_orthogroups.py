@@ -462,7 +462,8 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
                                                        job_name_suffix='rbh_analysis',
                                                        queue_name=queue_name,
                                                        account_name=account_name,
-                                                       memory=m8_output_parsing_memory)
+                                                       memory=m8_output_parsing_memory,
+                                                       time_in_hours=consts.MMSEQS_JOB_TIME_LIMIT_HOURS)
 
             wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                              num_of_batches, error_file_path)

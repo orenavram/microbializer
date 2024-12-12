@@ -26,6 +26,21 @@ def execute(logger, process, process_is_string=False):
     subprocess.run(process, shell=process_is_string)
 
 
+def validate_slurm_error_logs(logger, slurm_logs_dir, error_file_path):
+    for file_name in os.listdir(slurm_logs_dir):
+        if not file_name.endswith('.err'):
+            continue
+
+        file_path = os.path.join(slurm_logs_dir, file_name)
+        with open(file_path) as f:
+            for line in f:
+                pass
+            last_line = line
+
+        if last_line.startswith('slurmstepd: error'):
+            fail(logger, f'file {file_path} shows a slurm error: {last_line}', error_file_path)
+
+
 def wait_for_results(logger, times_logger, script_name, path, num_of_expected_results, error_file_path, suffix='done',
                      time_to_wait=10, start=0, error_message=None, recursive_step=False):
     """waits until path contains num_of_expected_results $suffix files"""
@@ -58,6 +73,8 @@ def wait_for_results(logger, times_logger, script_name, path, num_of_expected_re
     end = time()
     total_time_waited = timedelta(seconds=int(end - start))
     logger.info(f'Done waiting for: {script_name} (took {total_time_waited}).')
+
+    validate_slurm_error_logs(logger, path, error_file_path)
 
     if not recursive_step:
         walltime_sum, cpus_used_per_job, log_files_without_times, log_files_without_cpus = get_jobs_cummulative_time(path)
