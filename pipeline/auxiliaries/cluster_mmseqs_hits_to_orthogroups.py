@@ -442,10 +442,10 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
                   f'--coverage_cutoff {coverage_cutoff / 100}',
                   f'--e_value_cutoff {e_value_cutoff}',
                   f'--number_of_genomes {len(strains_names)}',
-                  f'--cpus {consts.MMSEQS_NUM_OF_CORES}']
+                  f'--cpus {consts.MMSEQS_BIG_DATASET_NUM_OF_CORES}']
 
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path, queue_name,
-                          account_name, job_name='mmseqs', num_of_cpus=consts.MMSEQS_NUM_OF_CORES,
+                          account_name, job_name='mmseqs', num_of_cpus=consts.MMSEQS_BIG_DATASET_NUM_OF_CORES,
                           memory=consts.MMSEQS_BIG_DATASET_REQUIRED_MEMORY_GB, time_in_hours=consts.MMSEQS_JOB_TIME_LIMIT_HOURS)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, 1, error_file_path)

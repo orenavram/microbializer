@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import itertools
-from pathlib import Path
 import os
 import re
 import json
@@ -12,36 +10,9 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 import seaborn as sns
 import numpy as np
-import scipy.cluster.hierarchy as hc
-from matplotlib.colors import LinearSegmentedColormap
-from seaborn.matrix import ClusterGrid
+
 
 from . import consts
-
-
-def parse_ani_results(ani_raw_output, ani_tmp_files, ani_output_dir):
-    df = pd.read_csv(ani_raw_output, delimiter='\t',
-                     names=['query', 'subject', 'ani_value', 'orthologous_segments', 'total_segments'])
-    df['query'] = df['query'].apply(lambda path: os.path.splitext(os.path.basename(path))[0])
-    df['subject'] = df['subject'].apply(lambda path: os.path.splitext(os.path.basename(path))[0])
-
-    ani_values_df = df.pivot_table(index='query', columns='subject', values='ani_value')
-    ani_values_df.to_csv(os.path.join(ani_tmp_files, 'ani_pairwise_values.csv'))
-
-    plot_ani_clustermap(ani_values_df, Path(ani_output_dir))
-
-    # Iterate over rows and find max value ignoring diagonal
-    max_values = []
-    max_values_columns = []
-    for i, row in ani_values_df.iterrows():
-        row_values = row.drop(i)  # Drop diagonal element
-        max_values.append(row_values.max())
-        max_values_columns.append(row_values.idxmax())
-
-    ani_values_df['max_value'] = max_values
-    ani_values_df['max_column'] = max_values_columns
-
-    ani_values_df.to_csv(os.path.join(ani_output_dir, 'ani_pairwise_values.csv'))
 
 
 def mimic_prodigal_output(orfs_dir, output_orf_file_extension):
@@ -163,78 +134,6 @@ def plot_genomes_histogram(data, output_dir, output_file_name, title, xlabel):
     plt.savefig(os.path.join(output_dir, f'{output_file_name}.png'), dpi=600)
 
     plt.clf()
-
-
-def plot_ani_clustermap(
-    ani_df: pd.DataFrame,
-    outdir: Path,
-    dendrogram_ratio: float = 0.15,
-    cmap_colors: list[str] | None = None,
-    cmap_gamma: float = 1.0,
-    cbar_pos: tuple[float, float, float, float] = (0.02, 0.8, 0.05, 0.18),
-) -> None:
-    all_values = itertools.chain.from_iterable(ani_df.values)
-    min_ani = min(filter(lambda v: v != 0, all_values))
-
-    cmap_colors = ["lime", "yellow", "red"] if cmap_colors is None else cmap_colors
-    mycmap = LinearSegmentedColormap.from_list(
-        "mycmap", colors=cmap_colors, gamma=cmap_gamma
-    )
-    mycmap.set_under("lightgrey")
-
-    figure_size = min(max(len(ani_df) / 5, 10), 60)
-    if ani_df.isnull().values.any():
-        # Plot heatmap, since clustermap isn't possible with NaN values
-        fig, ax = plt.subplots(figsize=(figure_size, figure_size))
-        sns.heatmap(
-            data=np.floor(ani_df * 10) / 10,
-            annot=len(ani_df) <= 10,
-            fmt=".3g",
-            cmap=mycmap,
-            xticklabels=False,
-            yticklabels=True,
-            vmin=np.floor(min_ani * 10) / 10,
-            vmax=100,
-            cbar=True,
-            cbar_kws={
-                "label": "ANI (%)",
-                "orientation": "vertical",
-                "spacing": "proportional"
-            },
-            ax=ax
-        )
-    else:
-        # Hierarchical clustering ANI matrix
-        linkage = hc.linkage(ani_df.values, method="average")
-
-        g: ClusterGrid = sns.clustermap(
-            data=np.floor(ani_df * 10) / 10,
-            # method="average",
-            col_linkage=linkage,
-            row_linkage=linkage,
-            figsize=(figure_size, figure_size),
-            annot=len(ani_df) <= 10,
-            fmt=".3g",
-            cmap=mycmap,
-            dendrogram_ratio=dendrogram_ratio,
-            xticklabels=False,
-            yticklabels=True,
-            vmin=np.floor(min_ani * 10) / 10,
-            vmax=100,
-            cbar=True,
-            cbar_pos=cbar_pos,
-            cbar_kws={
-                "label": "ANI (%)",
-                "orientation": "vertical",
-                "spacing": "proportional"
-            },
-            tree_kws={"linewidths": 1.5},
-        )
-
-    # Output ANI clustermap figure
-    plt.tight_layout()
-    plt.savefig(outdir / "ani_map.png", dpi=600)
-    plt.close()
 
 
 def update_progressbar(progressbar_file_path, step_name_finished):

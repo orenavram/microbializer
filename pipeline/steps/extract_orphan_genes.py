@@ -80,7 +80,7 @@ def main():
         if not os.path.exists(args.orfs_file_name):
             logger.exception(f'ORFs file name does not exist in {args.orfs_dir}')
         if not os.path.exists(args.orthogroups_file):
-            logger.exception(f'Orthogroups file does not exist in {args.orthologs_file}')
+            logger.exception(f'Orthogroups file does not exist in {args.orthogroups_file}')
         if not os.path.exists(args.output_dir):
             logger.exception(f'Output path does not exist in {args.output_dir}')
 

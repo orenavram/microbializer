@@ -180,12 +180,6 @@ def finalize_table(logger, orthologs_table_path, finalized_table_path, orphan_ge
             logger.info(f'Finished aggregating orphan genes from {strain}')
 
         logger.info(f"Found {len(orphan_genes)} orphan genes to add as new OGs")
-        # orphan_genes_df = pd.DataFrame(orphan_genes, columns=['strain', 'gene'])
-        # Reformat orphan_genes_df so each gene occupies its own row
-        # orphan_clusters_df = pd.DataFrame(
-        #     {strain: [gene if s == strain else None for s, gene in zip(orphan_genes_df['strain'], orphan_genes_df['gene'])]
-        #      for strain in orphan_genes_df['strain'].unique()}
-        # )
         orphan_clusters_df = pd.DataFrame([pd.Series({'OG_name': '', strain: gene}) for strain, gene in orphan_genes])
         orthogroups_df = pd.concat([orthogroups_df, orphan_clusters_df], ignore_index=True)
         logger.info(f'Finished adding orphan genes as OGs. OG table now contains {len(orthogroups_df.index)} groups.')

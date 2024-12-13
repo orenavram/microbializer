@@ -25,8 +25,8 @@ from auxiliaries.pipeline_auxiliaries import wait_for_results, \
 from auxiliaries.html_editor import edit_success_html, edit_failure_html, edit_progress
 from auxiliaries import consts, cgi_consts
 from flask import flask_interface_consts
-from auxiliaries.logic_auxiliaries import mimic_prodigal_output, parse_ani_results, remove_bootstrap_values, \
-    plot_genomes_histogram, update_progressbar, define_intervals, aggregate_mmseqs_scores
+from auxiliaries.logic_auxiliaries import mimic_prodigal_output, remove_bootstrap_values, \
+    plot_genomes_histogram, update_progressbar, define_intervals
 from auxiliaries.cluster_mmseqs_hits_to_orthogroups import cluster_mmseqs_hits_to_orthogroups, unify_clusters_mmseqs_hits, run_mmseqs_and_extract_hits
 from flask.SharedConsts import USER_FILE_NAME_ZIP, USER_FILE_NAME_TAR
 
@@ -345,16 +345,12 @@ def step_1_calculate_ani(args, logger, times_logger, error_file_path,  output_di
         with open(genomes_list_path, 'w') as genomes_list_file:
             genomes_list_file.write('\n'.join(genomes_paths))
 
-        ani_raw_output = os.path.join(ani_tmp_files, 'all_to_all_raw.tsv')
-        single_cmd_params = [genomes_list_path, ani_raw_output, f'--cpus {consts.ANI_NUM_OF_CORES}']
+        single_cmd_params = [genomes_list_path, ani_output_dir, f'--cpus {consts.ANI_NUM_OF_CORES}']
 
         submit_mini_batch(logger, script_path, [single_cmd_params], ani_tmp_dir, error_file_path, args.queue_name, args.account_name,
                           job_name='ANI', num_of_cpus=consts.ANI_NUM_OF_CORES, memory=consts.ANI_REQUIRED_MEMORY_GB)
         wait_for_results(logger, times_logger, step_name, ani_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path)
-
-        # Aggregate ANI results
-        parse_ani_results(ani_raw_output, ani_tmp_files, ani_output_dir)
 
         add_results_to_final_dir(logger, ani_output_dir, final_output_dir,
                                  keep_in_source_dir=consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR)
@@ -607,8 +603,7 @@ def step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output
     clusters_file_path = os.path.join(clusters_dir, 'clusters.tsv')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
-        cpus = consts.MMSEQS_CLUSTER_NUM_OF_CORES if args.pre_cluster_orthogroups_inference else 1
-        memory = consts.MMSEQS_REQUIRED_MEMORY_GB if args.pre_cluster_orthogroups_inference else consts.DEFAULT_MEMORY_PER_JOB_GB
+        cpus = consts.MMSEQS_CLUSTER_NUM_OF_CORES
         params = [all_proteins_fasta_path,
                   clusters_dir,
                   clusters_file_path,
@@ -618,11 +613,8 @@ def step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output
                   f'--num_of_clusters_in_orthogroup_inference {args.num_of_clusters_in_orthogroup_inference}'
                   ]
 
-        if args.pre_cluster_orthogroups_inference:
-            params.append('--do_cluster')
-
         submit_mini_batch(logger, script_path, [params], clusters_tmp_dir, error_file_path, args.queue_name, args.account_name,
-                          job_name='cluster_proteomes', num_of_cpus=cpus, memory=memory)
+                          job_name='cluster_proteomes', num_of_cpus=cpus, memory=consts.MMSEQS_CLUSTER_REQUIRED_MEMORY_GB)
         wait_for_results(logger, times_logger, step_name, clusters_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path)
 
@@ -704,7 +696,7 @@ def step_5_infer_orthogroups_clustered(args, logger, times_logger, error_file_pa
             params = [step_number, cluster_output_dir, cluster_tmp_dir, cluster_done_dir, cluster_fastas_dir_path,
                       os.path.join(cluster_fastas_dir_path, 'all_proteomes.faa'), genomes_names_path, args.queue_name,
                       args.account_name, args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff,
-                      consts.MAX_PARALLEL_JOBS // args.num_of_clusters_in_orthogroup_inference]
+                      max(1, consts.MAX_PARALLEL_JOBS // args.num_of_clusters_in_orthogroup_inference)]
 
             if args.run_optimized_mmseqs:
                 params.append('--run_optimized_mmseqs')
@@ -1310,7 +1302,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
 
     if args.auto_pre_cluster and number_of_genomes > 50:
         args.pre_cluster_orthogroups_inference = True
-        args.num_of_clusters_in_orthogroup_inference = number_of_genomes // 50
+        args.num_of_clusters_in_orthogroup_inference = int(math.sqrt(number_of_genomes))
 
     if args.filter_out_plasmids or args.inputs_fasta_type == 'orfs':
         filtered_inputs_dir = step_0_fix_input_files(args, logger, times_logger, error_file_path, output_dir,
