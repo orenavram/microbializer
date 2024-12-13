@@ -218,14 +218,11 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
     script_path = os.path.join(consts.SRC_DIR, 'steps/construct_putative_orthologs_table.py')
     putative_orthologs_table_output_dir, putative_orthologs_table_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     putative_orthologs_table_path = os.path.join(putative_orthologs_table_output_dir, 'putative_orthologs_table.txt')
-    single_putative_ogs_dir = os.path.join(putative_orthologs_table_output_dir, 'single_ogs')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Constructing putative orthologs table...')
-        os.makedirs(single_putative_ogs_dir, exist_ok=True)
         params = [all_hits_file,
-                  putative_orthologs_table_path,
-                  single_putative_ogs_dir]
+                  putative_orthologs_table_path]
         submit_mini_batch(logger, script_path, [params], putative_orthologs_table_tmp_dir, error_file_path,
                           queue_name, account_name, job_name=os.path.split(script_path)[-1])
         wait_for_results(logger, times_logger, step_name, putative_orthologs_table_tmp_dir,
@@ -252,10 +249,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
 
             with open(os.path.join(os.path.split(putative_orthologs_table_path)[0], 'num_of_putative_sets.txt')) as f:
                 num_of_putative_sets = int(f.read())
-            if num_of_putative_sets == 0:
-                error_msg = f'No putative ortholog groups were detected in your dataset. Please try to lower the ' \
-                            f'similarity parameters (see Advanced Options in the submission page) and re-submit your job.'
-                fail(logger, error_msg, error_file_path)
+
             clusters_to_prepare_per_job = math.ceil(num_of_putative_sets / max_parallel_jobs)
             for i in range(1, num_of_putative_sets + 1, clusters_to_prepare_per_job):
                 first_mcl = str(i)
@@ -293,11 +287,19 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
             logger.info('Preparing files for MCL...')
             all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
 
-            for single_putative_og_file_name in os.listdir(single_putative_ogs_dir):
-                single_putative_og_path = os.path.join(single_putative_ogs_dir, single_putative_og_file_name)
+            with open(os.path.join(os.path.split(putative_orthologs_table_path)[0], 'num_of_putative_sets.txt')) as f:
+                num_of_putative_sets = int(f.read())
+
+            clusters_to_prepare_per_job = math.ceil(num_of_putative_sets / max_parallel_jobs)
+            for i in range(0, num_of_putative_sets, clusters_to_prepare_per_job):
+                first_mcl = str(i)
+                last_mcl = str(min(i + clusters_to_prepare_per_job,
+                                   num_of_putative_sets))  # 1-10, 11-20, etc... for clusters_to_prepare_per_job=10
 
                 single_cmd_params = [normalized_hits_output_dir,
-                                     single_putative_og_path,
+                                     putative_orthologs_table_path,
+                                     first_mcl,
+                                     last_mcl,
                                      mcl_inputs_dir]
                 all_cmds_params.append(single_cmd_params)
 
