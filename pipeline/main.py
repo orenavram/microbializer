@@ -900,8 +900,7 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
         with open(final_orthologs_table_file_path, 'r') as fp:
             number_of_ogs = sum(1 for _ in fp) - 1
 
-        ogs_to_process_per_job = math.ceil(number_of_ogs / consts.MAX_PARALLEL_JOBS)
-        lines_intervals = define_intervals(0, number_of_ogs, ogs_to_process_per_job)
+        lines_intervals = define_intervals(0, number_of_ogs, consts.MAX_PARALLEL_JOBS)
         for (start_index, end_index_exclusive) in lines_intervals:
             single_cmd_params = [orfs_dir,
                                  final_orthologs_table_file_path,
