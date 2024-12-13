@@ -742,7 +742,7 @@ def step_5_infer_orthogroups_clustered(args, logger, times_logger, error_file_pa
                                                done_files_dir, orthologs_output_dir, orthologs_scores_statistics_dir,
                                                paralogs_output_dir, paralogs_scores_statistics_dir,
                                                consts.MAX_PARALLEL_JOBS, '05', 4, args.account_name, args.queue_name,
-                                               args.use_parquet, args.prepare_mcl_v2)
+                                               args.use_parquet, args.prepare_mcl_v2, genomes_names_path)
     else:  # Aggregate OG tables of all clusters
         all_og_tables = []
         for cluster_dir_name in os.listdir(infer_orthogroups_output_dir):
@@ -770,7 +770,7 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
                                            done_files_dir, orthologs_output_dir, orthologs_scores_statistics_dir,
                                            paralogs_output_dir, paralogs_scores_statistics_dir,
                                            consts.MAX_PARALLEL_JOBS, '05', 4, args.account_name, args.queue_name,
-                                           args.use_parquet, args.prepare_mcl_v2)
+                                           args.use_parquet, args.prepare_mcl_v2, strains_names_path)
 
     return orthogroups_file_path
 

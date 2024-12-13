@@ -119,7 +119,11 @@ def unify_clusters_mmseqs_hits(logger, times_logger, output_dir, tmp_dir, done_f
 def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
                                        orthologs_output_dir, orthologs_scores_statistics_dir, paralogs_output_dir,
                                        paralogs_scores_statistics_dir, max_parallel_jobs, base_step_number,
-                                       start_substep_number, account_name, queue_name, use_parquet, prepare_mcl_v2):
+                                       start_substep_number, account_name, queue_name, use_parquet, prepare_mcl_v2,
+                                       strains_names_path):
+    with open(strains_names_path) as f:
+        strains_names = f.read().rstrip().split('\n')
+
     # normalize_scores
     step_number = f'{base_step_number}_{start_substep_number}'
     script_path = os.path.join(consts.SRC_DIR, 'steps/normalize_hits_scores.py')
@@ -250,10 +254,11 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
             with open(os.path.join(os.path.split(putative_orthologs_table_path)[0], 'num_of_putative_sets.txt')) as f:
                 num_of_putative_sets = int(f.read())
 
-            clusters_to_prepare_per_job = math.ceil(num_of_putative_sets / max_parallel_jobs)
-            for i in range(1, num_of_putative_sets + 1, clusters_to_prepare_per_job):
+            # The more genomes there are, the more memory this step requires. Therefore, we split by the number of genomes.
+            clusters_to_prepare_per_script = math.ceil(num_of_putative_sets / len(strains_names))
+            for i in range(1, num_of_putative_sets + 1, clusters_to_prepare_per_script):
                 first_mcl = str(i)
-                last_mcl = str(min(i + clusters_to_prepare_per_job - 1,
+                last_mcl = str(min(i + clusters_to_prepare_per_script - 1,
                                    num_of_putative_sets))  # 1-10, 11-20, etc... for clusters_to_prepare_per_job=10
 
                 single_cmd_params = [all_hits_file,

@@ -30,7 +30,7 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
     cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
                                        orthologs_output_dir, orthologs_scores_statistics_dir, paralogs_output_dir,
                                        paralogs_scores_statistics_dir, max_parallel_jobs, base_step_number,
-                                       4, account_name, queue_name, use_parquet, prepare_mcl_v2)
+                                       4, account_name, queue_name, use_parquet, prepare_mcl_v2, strains_names_path)
 
 
 if __name__ == '__main__':
