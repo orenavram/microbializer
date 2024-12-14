@@ -16,7 +16,7 @@ def concatenate_hits(logger, input_dir, start_index, end_index, output_dir):
     output_file_path = os.path.join(output_dir, f"temp_{start_index}_{end_index}.txt")
     # avoid cat {input_dir}/* because arguments list might be too long!
     # No need to wait...
-    for file in os.listdir(input_dir)[start_index:end_index]:
+    for file in [file for file in os.listdir(input_dir) if file.endswith(".m8")][start_index:end_index]:
         if not file.endswith(".m8"):
             continue
         cmd = f"cat {input_dir}/{file} >> {output_file_path}"
