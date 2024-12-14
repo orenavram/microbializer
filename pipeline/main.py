@@ -1040,7 +1040,7 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
 
 
 def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, error_file_path,
-                                                  output_dir, tmp_dir, final_output_dir, done_files_dir, num_of_strains,
+                                                  output_dir, tmp_dir, final_output_dir, done_files_dir,
                                                   strains_names_path, aa_alignments_path, dna_alignments_path):
     # 09_1.	extract aligned_core_proteome.py
     step_number = '09_1'
@@ -1049,19 +1049,16 @@ def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, err
     script_path = os.path.join(consts.SRC_DIR, 'steps/extract_core_genome.py')
     aligned_core_proteome_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-    aligned_core_proteome_file_path = os.path.join(aligned_core_proteome_path, 'aligned_core_proteome.fas')
-    core_proteome_ogs_names_file_path = os.path.join(aligned_core_proteome_path, 'core_ortholog_groups_names.txt')
-    core_proteome_length_file_path = os.path.join(aligned_core_proteome_path, 'core_length.txt')
-    number_of_core_proteome_members_file_path = os.path.join(aligned_core_proteome_path, 'number_of_core_genes.txt')
 
     if not os.path.exists(done_file_path):
         logger.info('Extracting aligned core proteome...')
 
-        params = [aa_alignments_path, num_of_strains, strains_names_path,
+        aligned_core_proteome_file_path = os.path.join(aligned_core_proteome_path, 'aligned_core_proteome.fas')
+        core_proteome_length_file_path = os.path.join(aligned_core_proteome_path, 'core_length.txt')
+
+        params = [aa_alignments_path, strains_names_path,
                   aligned_core_proteome_file_path,
-                  core_proteome_ogs_names_file_path,
                   core_proteome_length_file_path,
-                  number_of_core_proteome_members_file_path,
                   f'--core_minimal_percentage {args.core_minimal_percentage}']  # how many members induce a core group?
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path,
                           args.queue_name, args.account_name, job_name='core_proteome')
@@ -1075,9 +1072,6 @@ def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, err
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    with open(core_proteome_length_file_path, 'r') as fp:
-        core_proteome_length = int(fp.read().strip())
-
 
     # 09_2.      extract_aligned_core_genome
     step_number = '09_2'
@@ -1086,18 +1080,15 @@ def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, err
     script_path = os.path.join(consts.SRC_DIR, 'steps/extract_core_genome.py')
     aligned_core_genome_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-    aligned_core_genome_file_path = os.path.join(aligned_core_genome_path, 'aligned_core_genome.fas')
-    core_genome_ogs_names_file_path = os.path.join(aligned_core_genome_path, 'core_ortholog_groups_names.txt')
-    core_genome_length_file_path = os.path.join(aligned_core_genome_path, 'core_length.txt')
-    number_of_core_genome_members_file_path = os.path.join(aligned_core_genome_path, 'number_of_core_genes.txt')
     if not os.path.exists(done_file_path):
         logger.info('Extracting aligned core genome...')
 
-        params = [dna_alignments_path, num_of_strains, strains_names_path,
+        aligned_core_genome_file_path = os.path.join(aligned_core_genome_path, 'aligned_core_genome.fas')
+        core_genome_length_file_path = os.path.join(aligned_core_genome_path, 'core_length.txt')
+
+        params = [dna_alignments_path, strains_names_path,
                   aligned_core_genome_file_path,
-                  core_genome_ogs_names_file_path,
                   core_genome_length_file_path,
-                  number_of_core_genome_members_file_path,
                   f'--core_minimal_percentage {args.core_minimal_percentage}']  # how many members induce a core group?
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path,
                           args.queue_name, args.account_name, job_name='core_genome')
@@ -1111,7 +1102,38 @@ def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, err
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    return aligned_core_proteome_file_path, core_proteome_length
+
+    # 09_3.	extract aligned_core_proteome.py (for phylogeny reconstruction)
+    step_number = '09_3'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_aligned_core_proteome_reduced'
+    script_path = os.path.join(consts.SRC_DIR, 'steps/extract_core_genome.py')
+    aligned_core_proteome_reduced_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    aligned_core_proteome_reduced_file_path = os.path.join(aligned_core_proteome_reduced_path, 'aligned_core_proteome.fas')
+    core_proteome_reduced_length_file_path = os.path.join(aligned_core_proteome_reduced_path, 'core_length.txt')
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        logger.info('Extracting aligned core proteome for phylogeny reconstruction...')
+
+        params = [aa_alignments_path, strains_names_path,
+                  aligned_core_proteome_reduced_file_path,
+                  core_proteome_reduced_length_file_path,
+                  f'--core_minimal_percentage {args.core_minimal_percentage}', # how many members induce a core group?
+                  f'--max_number_of_ogs {consts.NAX_NUMBER_OF_CORE_OGS_FOR_PHYLOGENY}']
+        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path,
+                          args.queue_name, args.account_name, job_name='core_proteome')
+
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+                         num_of_expected_results=1, error_file_path=error_file_path)
+
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+    with open(core_proteome_reduced_length_file_path, 'r') as fp:
+        core_proteome_reduced_length = int(fp.read().strip())
+
+    return aligned_core_proteome_reduced_file_path, core_proteome_reduced_length
 
 
 def step_10_genome_numeric_representation(args, logger, times_logger, error_file_path, output_dir,
@@ -1405,9 +1427,9 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         logger.info("Step 8 completed.")
         return
 
-    aligned_core_proteome_file_path, core_proteome_length = step_9_extract_core_genome_and_core_proteome(
+    aligned_core_proteome_reduced_file_path, core_proteome_reduced_length = step_9_extract_core_genome_and_core_proteome(
         args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir, done_files_dir,
-        number_of_genomes, genomes_names_path, ogs_aa_alignments_path, ogs_dna_alignments_path)
+        genomes_names_path, ogs_aa_alignments_path, ogs_dna_alignments_path)
     update_progressbar(progressbar_file_path, 'Infer core genome and proteome')
     edit_progress(output_html_path, progress=75)
 
@@ -1426,7 +1448,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         return
 
     step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
-                      done_files_dir, aligned_core_proteome_file_path, genomes_names_path, number_of_genomes, core_proteome_length)
+                      done_files_dir, aligned_core_proteome_reduced_file_path, genomes_names_path, number_of_genomes, core_proteome_reduced_length)
     update_progressbar(progressbar_file_path, 'Reconstruct species phylogeny')
     edit_progress(output_html_path, progress=95)
 
