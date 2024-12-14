@@ -2,9 +2,9 @@ import os
 import pandas as pd
 from sklearn import metrics
 
-BASE_PATH = r"C:\repos\microbializer\pipeline\tests\pipeline_optimization_experiments\73_ecoli_optimizations_summary"
-OG_TABLE_NO_CLUSTER = os.path.join(BASE_PATH, "outputs_preCluster_no_optimizedMmseqs_yes_useParquet_no", "orthogroups.csv")
-OG_TABLE_CLUSTER = os.path.join(BASE_PATH, "outputs_preCluster_mergeAfterMmseqs_optimizedMmseqs_yes_useParquet_no", "orthogroups.csv")
+BASE_PATH = r"C:\Users\TalPNB22\Downloads"
+OG_TABLE_NO_CLUSTER = os.path.join(BASE_PATH, "73", "orthogroups.csv")
+OG_TABLE_CLUSTER = os.path.join(BASE_PATH, "10", "orthogroups.csv")
 
 
 def compare_clusterings(true_labels, pred_labels, output_path):

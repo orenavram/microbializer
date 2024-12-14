@@ -12,12 +12,12 @@ sys.path.append(os.path.dirname(SCRIPT_DIR))
 from auxiliaries.pipeline_auxiliaries import get_job_logger
 
 
-def mcl(logger, input_file, output_file):
+def mcl(logger, input_file, output_file, cpus):
     if os.path.exists(output_file):
         return
 
     # --abc for a columns format, i.e., item1\item2\tscore
-    cmd = f'mcl "{input_file}" -I 1.5 --abc -o "{output_file}"'
+    cmd = f'mcl "{input_file}" -I 1.5 --abc -o "{output_file}" -te {cpus}'
     logger.info(f'Starting MCL. Calling:\n{cmd}')
     subprocess.run(cmd, shell=True)
 
@@ -29,6 +29,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('input_file', help='path to an MCL input file')
     parser.add_argument('output_file', help='path to which the MCL analysis will be written')
+    parser.add_argument('--cpus', type=int, default=1, help='Number of CPUs to use')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('--error_file_path', help='path to error file')
@@ -39,7 +40,7 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        mcl(logger, args.input_file, args.output_file)
+        mcl(logger, args.input_file, args.output_file, args.cpus)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:

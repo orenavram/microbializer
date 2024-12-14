@@ -116,11 +116,39 @@ def unify_clusters_mmseqs_hits(logger, times_logger, output_dir, tmp_dir, done_f
     return orthologs_output_dir, orthologs_scores_statistics_dir, paralogs_output_dir, paralogs_scores_statistics_dir
 
 
+def run_mcl_on_all_hits_together(logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
+                                 all_hits_file, max_parallel_jobs, base_step_number,
+                                 start_substep_number, account_name, queue_name, number_of_genomes):
+    # run_mcl.py
+    step_number = f'{base_step_number}_{start_substep_number}'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_mcl_analysis'
+    script_path = os.path.join(consts.SRC_DIR, 'steps/run_mcl.py')
+    mcl_outputs_dir, mcl_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        mcl_output_path = os.path.join(mcl_outputs_dir, 'mcl_output.txt')
+        params = [all_hits_file,
+                  mcl_output_path,
+                  f'--cpus {consts.MCL_NUM_OF_CORES}']
+
+        mcl_memory_gb = str(int(math.ceil(number_of_genomes * 0.1)))
+        submit_mini_batch(logger, script_path, [params], mcl_tmp_dir, error_file_path, queue_name,
+                          account_name, job_name='mcl', num_of_cpus=consts.MCL_NUM_OF_CORES,
+                          memory=mcl_memory_gb)
+
+        wait_for_results(logger, times_logger, step_name, mcl_tmp_dir, 1, error_file_path)
+
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+
 def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
                                        orthologs_output_dir, orthologs_scores_statistics_dir, paralogs_output_dir,
                                        paralogs_scores_statistics_dir, max_parallel_jobs, base_step_number,
                                        start_substep_number, account_name, queue_name, use_parquet, prepare_mcl_v2,
-                                       strains_names_path):
+                                       strains_names_path, run_mcl_on_all_hits_together):
     with open(strains_names_path) as f:
         strains_names = f.read().rstrip().split('\n')
 
@@ -211,6 +239,10 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+    if run_mcl_on_all_hits_together:
+        run_mcl_on_all_hits_together()
+        return
 
     # construct_putative_orthologs_table.py
     # Input: (1) a path for a i_vs_j_reciprocal_hits.tsv file (2) a path for a putative orthologs file (with a single line).
