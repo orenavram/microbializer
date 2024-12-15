@@ -17,32 +17,34 @@ def max_rbh_score_per_gene(logger, rbh_m8_dir, strain_name, output_dir, step_nam
     max_score_per_gene = pd.Series(dtype=float)
 
     output_file_path = os.path.join(output_dir, f'{strain_name}.{step_name}')
-    if not os.path.exists(output_file_path):
-        for rbh_hits_file in os.listdir(rbh_m8_dir):
-            if not rbh_hits_file.endswith('m8'):
-                continue
-            query_vs_reference_file_name = os.path.splitext(rbh_hits_file)[0]
-            query_strain, target_strain = query_vs_reference_file_name.split('_vs_')
-            if query_strain != strain_name and target_strain != strain_name:
-                continue
+    if os.path.exists(output_file_path):
+        return
 
-            try:
-                if use_parquet:
-                    rbh_hits_df = pd.read_parquet(os.path.join(rbh_m8_dir, rbh_hits_file))
-                else:
-                    rbh_hits_df = pd.read_csv(os.path.join(rbh_m8_dir, rbh_hits_file))
+    for rbh_hits_file in os.listdir(rbh_m8_dir):
+        if not rbh_hits_file.endswith('m8'):
+            continue
+        query_vs_reference_file_name = os.path.splitext(rbh_hits_file)[0]
+        query_strain, target_strain = query_vs_reference_file_name.split('_vs_')
+        if query_strain != strain_name and target_strain != strain_name:
+            continue
 
-                if query_strain == strain_name:
-                    genes_max_scores = rbh_hits_df.groupby(['query']).max(numeric_only=True)['score']
-                else:  # target_strain == strain_name
-                    genes_max_scores = rbh_hits_df.groupby(['target']).max(numeric_only=True)['score']
+        try:
+            if use_parquet:
+                rbh_hits_df = pd.read_parquet(os.path.join(rbh_m8_dir, rbh_hits_file))
+            else:
+                rbh_hits_df = pd.read_csv(os.path.join(rbh_m8_dir, rbh_hits_file))
 
-                max_score_per_gene = max_score_per_gene.combine(genes_max_scores, max_with_nan)
-            except Exception as e:
-                logger.exception(f'Error while processing {rbh_hits_file} in step max_rbh_score_per_gene: {e}')
-                fail(logger, f'Error while processing {rbh_hits_file} in step max_rbh_score_per_gene: {e}', error_file_path)
+            if query_strain == strain_name:
+                genes_max_scores = rbh_hits_df.groupby(['query']).max(numeric_only=True)['score']
+            else:  # target_strain == strain_name
+                genes_max_scores = rbh_hits_df.groupby(['target']).max(numeric_only=True)['score']
 
-        max_score_per_gene.to_csv(output_file_path, index_label='gene', header=['max_ortholog_score'])
+            max_score_per_gene = max_score_per_gene.combine(genes_max_scores, max_with_nan)
+        except Exception as e:
+            logger.exception(f'Error while processing {rbh_hits_file} in step max_rbh_score_per_gene: {e}')
+            fail(logger, f'Error while processing {rbh_hits_file} in step max_rbh_score_per_gene: {e}', error_file_path)
+
+    max_score_per_gene.to_csv(output_file_path, index_label='gene', header=['max_ortholog_score'])
 
 
 if __name__ == '__main__':

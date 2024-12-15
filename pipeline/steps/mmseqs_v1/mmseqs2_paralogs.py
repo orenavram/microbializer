@@ -38,9 +38,15 @@ def search_paralogs(logger, protein_fasta, m8_outfile, genome_max_scores_path, s
     output: mmseqs2 paralogs results file
     """
     strain_name = os.path.splitext(os.path.basename(protein_fasta))[0]
-    tmp_dir = os.path.join(os.path.dirname(m8_outfile), f'tmp_{strain_name}')
+    filtered_m8_output = f'{m8_outfile}_filtered'
+    score_stats_file = os.path.join(scores_statistics_dir, f'{strain_name}_vs_{strain_name}.stats')
 
+    if os.path.exists(filtered_m8_output) and os.path.exists(score_stats_file):
+        return
+
+    tmp_dir_base = os.path.join(os.path.dirname(m8_outfile), f'tmp_{strain_name}')
     i = 1
+    tmp_dir = f"{tmp_dir_base}_try_{i}"
     while not os.path.exists(m8_outfile):
         # when the data set is very big some files are not generated because of the heavy load
         # so we need to make sure they will be generated!
@@ -57,7 +63,7 @@ def search_paralogs(logger, protein_fasta, m8_outfile, genome_max_scores_path, s
             shutil.rmtree(tmp_dir)
         except Exception:
             if not os.path.exists(m8_outfile):
-                tmp_dir = f"{tmp_dir}_try_{i}"
+                tmp_dir = f"{tmp_dir_base}_try_{i}"
 
     logger.info(f"{m8_outfile} was created successfully. Adding score column and filtering to include only recent paralogs...")
     # Add 'score' column to mmseqs output
@@ -88,12 +94,11 @@ def search_paralogs(logger, protein_fasta, m8_outfile, genome_max_scores_path, s
         return
 
     if use_parquet:
-        df[['query', 'target', 'score']].to_parquet(f'{m8_outfile}_filtered', index=False)
+        df[['query', 'target', 'score']].to_parquet(filtered_m8_output, index=False)
     else:
-        df[['query', 'target', 'score']].to_csv(f'{m8_outfile}_filtered', index=False)
+        df[['query', 'target', 'score']].to_csv(filtered_m8_output, index=False)
     logger.info(f"{m8_outfile}_filtered was created successfully.")
 
-    score_stats_file = os.path.join(scores_statistics_dir, f'{strain_name}_vs_{strain_name}.stats')
     scores_statistics = {'mean': statistics.mean(df['score']), 'sum': sum(df['score']),
                          'number of records': len(df['score'])}
     with open(score_stats_file, 'w') as fp:

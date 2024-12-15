@@ -39,10 +39,14 @@ def search_all_vs_all(logger, protein_fasta_1, protein_fasta_2, m8_outfile, scor
     """
     strain_1 = os.path.splitext(os.path.basename(protein_fasta_1))[0]
     strain_2 = os.path.splitext(os.path.basename(protein_fasta_2))[0]
-    tmp_dir = os.path.join(os.path.dirname(m8_outfile), f'tmp_{strain_1}_vs_{strain_2}')
+    score_stats_file = os.path.join(scores_statistics_dir, f'{strain_1}_vs_{strain_2}.stats')
+    if os.path.exists(m8_outfile) and os.path.exists(score_stats_file):
+        return
 
-    m8_outfile_raw = m8_outfile + '.raw'
+    tmp_dir_base = os.path.join(os.path.dirname(m8_outfile), f'tmp_{strain_1}_vs_{strain_2}')
     i = 1
+    tmp_dir = f"{tmp_dir_base}_try_{i}"
+    m8_outfile_raw = m8_outfile + '.raw'
     while not os.path.exists(m8_outfile_raw):
         # when the data set is very big some files are not generated because of the heavy load
         # so we need to make sure they will be generated!
@@ -59,7 +63,7 @@ def search_all_vs_all(logger, protein_fasta_1, protein_fasta_2, m8_outfile, scor
             shutil.rmtree(tmp_dir)
         except Exception:
             if not os.path.exists(m8_outfile_raw):
-                tmp_dir = f"{tmp_dir}_try_{i}"
+                tmp_dir = f"{tmp_dir_base}_try_{i}"
 
     if os.path.getsize(m8_outfile_raw) == 0:
         logger.info(f"{m8_outfile_raw}  was created successfully but is empty. No rbh-hits were found.")
@@ -76,7 +80,6 @@ def search_all_vs_all(logger, protein_fasta_1, protein_fasta_2, m8_outfile, scor
         df[['query', 'target', 'score']].to_csv(m8_outfile, index=False)
     logger.info(f"{m8_outfile} was created successfully.")
 
-    score_stats_file = os.path.join(scores_statistics_dir, f'{strain_1}_vs_{strain_2}.stats')
     scores_statistics = {'mean': statistics.mean(df['score']), 'sum': sum(df['score']),
                          'number of records': len(df['score'])}
     with open(score_stats_file, 'w') as fp:
