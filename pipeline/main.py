@@ -11,7 +11,6 @@ import subprocess
 from datetime import timedelta
 
 import matplotlib.pyplot as plt
-import mmap
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -380,30 +379,6 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
-
-    # make sure that all ORF files contain something....
-    missing_orfs = 0
-    error_msg = ''
-    for file in sorted(os.listdir(orfs_dir)):
-        if '02_ORFs' not in file:  # Ignore system files that are automatically created sometimes
-            continue
-        try:
-            with open(os.path.join(orfs_dir, file), 'rb', 0) as orf_f, mmap.mmap(orf_f.fileno(), 0,
-                                                                                 access=mmap.ACCESS_READ) as s:
-                if s.find(b'>') > -1:
-                    continue
-        except:
-            if not missing_orfs:
-                # add msg prefix when a genome without orfs detected for the first time
-                error_msg = f'{flask_interface_consts.WEBSERVER_NAME} could not detect any ORFs in:\n<br> '
-                missing_orfs = 1
-            # add genome-without-orfs name
-            error_msg += f'{os.path.splitext(file)[0]}\n<br>'
-
-    if missing_orfs:
-        error_msg += f'\n<br>Please remove the abovementioned from the dataset and re-submit your job. In general, ' \
-                     f'it is recommended to use genomic files that contain at least 20K base pairs (each).'
-        fail(logger, error_msg, error_file_path)
 
     # 02_2.	extract_orfs_statistics.py
     # Input: (1) A path to ORFs file (2) An output dir of orfs statistics

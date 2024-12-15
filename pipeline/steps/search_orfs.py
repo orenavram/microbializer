@@ -5,6 +5,7 @@ import argparse
 import logging
 import os
 import traceback
+import mmap
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -23,6 +24,12 @@ def find_genes(logger, genome, output_dir):
     cmd = f'prodigal -i "{genome}" -d {orfs_output_file_path}'
     logger.info(f'Starting prodigal. Executed command is:\n{cmd}')
     subprocess.run(cmd, shell=True)
+
+    if not os.path.exists(orfs_output_file_path) or os.stat(orfs_output_file_path).st_size == 0:
+        raise Exception(f'Could not extract ORFs for {fasta_file_prefix}')
+    with open(orfs_output_file_path, 'rb', 0) as orf_f, mmap.mmap(orf_f.fileno(), 0, access=mmap.ACCESS_READ) as s:
+        if s.find(b'>') == -1:
+            raise Exception(f'{fasta_file_prefix} does not contain any ORFs')
 
 
 if __name__ == '__main__':
