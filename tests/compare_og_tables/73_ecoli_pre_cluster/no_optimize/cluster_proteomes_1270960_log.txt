@@ -1,0 +1,6 @@
+Starting command is: /groups/pupko/yairshimony/microbializer/pipeline/steps/cluster_proteomes.py /groups/pupko/yairshimony/microbializer_runs/73Escherichia/outputs_no_optimize/steps_results/02d_translated_orfs /groups/pupko/yairshimony/microbializer_runs/73Escherichia/outputs_no_optimize/steps_results/04_cluster_proteomes /groups/pupko/yairshimony/microbializer_runs/73Escherichia/outputs_no_optimize/steps_results/04_cluster_proteomes/clusters.tsv 5 10 20 --num_of_clusters_in_orthogroup_inference 1 --logs_dir /groups/pupko/yairshimony/microbializer_runs/73Escherichia/outputs_no_optimize/tmp/04_cluster_proteomes --error_file_path /groups/pupko/yairshimony/microbializer_runs/73Escherichia/error.txt
+Calling:
+cat /groups/pupko/yairshimony/microbializer_runs/73Escherichia/outputs_no_optimize/steps_results/02d_translated_orfs/* > /groups/pupko/yairshimony/microbializer_runs/73Escherichia/outputs_no_optimize/steps_results/04_cluster_proteomes/temp/all_proteomes.faa
+Number of clusters: 1, Number of sequence comparisons to be done: 59435762253.0
+/groups/pupko/yairshimony/microbializer_runs/73Escherichia/outputs_no_optimize/tmp/04_cluster_proteomes/cluster_proteomes.done was generated.
+   RunTime=00:00:07 TimeLimit=1-00:00:00 TimeMin=N/A

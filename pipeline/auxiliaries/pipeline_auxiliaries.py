@@ -10,7 +10,6 @@ import stat
 import sys
 
 from . import consts
-from . import cgi_consts
 from .email_sender import send_email
 from .q_submitter_power import submit_cmds_from_file_to_q
 
@@ -324,30 +323,6 @@ def send_email_in_pipeline_end(logger, process_id, email_address, job_name, stat
     elif state == SharedConsts.State.Crashed:
         send_email(logger, SharedConsts.EMAIL_CONSTS.create_title(state, job_name),
                    SharedConsts.EMAIL_CONSTS.CONTENT_PROCESS_CRASHED.format(process_id=process_id), email_addresses)
-
-
-def notify_admin(meta_output_dir, meta_output_url, run_number):
-    email = 'NO_EMAIL'
-    user_email_path = os.path.join(meta_output_dir, cgi_consts.EMAIL_FILE_NAME)
-    if os.path.exists(user_email_path):
-        with open(user_email_path) as f:
-            email = f.read().rstrip()
-    error_log_path = 'NO_ERROR_LOG'
-    file_with_job_id_on_qstat = os.path.join(meta_output_dir, 'qsub.log')
-    if os.path.exists(file_with_job_id_on_qstat):
-        with open(file_with_job_id_on_qstat) as f:
-            job_id_on_qstat = f.read().strip()
-        error_log_path = os.path.join(meta_output_dir, f'{job_id_on_qstat}.ER')
-        # TODO: change to ER url and add reading permissions
-    # Send me a notification email every time there's a failure
-    send_email(smtp_server=consts.SMTP_SERVER,
-               sender=consts.ADMIN_EMAIL,
-               receiver=flask_interface_consts.OWNER_EMAIL,
-               subject=f'{cgi_consts.WEBSERVER_NAME} job {run_number} by {email} has been failed: ',
-               content=f"{email}\n\n{os.path.join(meta_output_url, cgi_consts.RESULT_WEBPAGE_NAME)}\n\n"
-                       f"{os.path.join(meta_output_url, cgi_consts.CGI_DEBUG_FILE_NAME)}\n\n"
-                       f"{os.path.join(meta_output_url, error_log_path)}\n\n"
-                       f"{os.path.join(meta_output_dir, error_log_path.replace('ER', 'OU'))}")
 
 
 def add_results_to_final_dir(logger, source, final_output_dir, keep_in_source_dir=True):

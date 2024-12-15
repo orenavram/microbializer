@@ -7,8 +7,6 @@ from enum import Enum
 import numpy as np
 
 KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR = True
-IGNORE_HTML = True
-SEND_MAILS = False
 LOG_IN_SEPARATE_FILES = True
 
 # ENV = 'wsl'

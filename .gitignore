@@ -4,4 +4,4 @@ pipeline/flask/api_secrets.py
 pipeline_output_example
 benchmark_data
 pipeline/data/kegg/prokaryote_database.*
-pipeline/tests/kegg_prepare/raw_data/profiles
+tests/kegg_prepare/raw_data/profiles

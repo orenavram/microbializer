@@ -1,0 +1,49 @@
+2024-11-18 17:03:17,270 INFO pipeline_auxiliaries.py:81 Step 02a_orfs took 1:20 minutes. There were 4 jobs and cumulatively they took 0:00:49 wallclock time. 
+2024-11-18 17:04:09,480 INFO pipeline_auxiliaries.py:81 Step 02b_orfs_statistics took 50 seconds. There were 4 jobs and cumulatively they took 0:00:08 wallclock time. 
+2024-11-18 17:05:03,658 INFO pipeline_auxiliaries.py:81 Step 02d_translated_orfs took 50 seconds. There were 4 jobs and cumulatively they took 0:00:14 wallclock time. 
+2024-11-18 17:06:14,455 INFO pipeline_auxiliaries.py:81 Step 04_cluster_proteomes took 1:10 minutes. There were 1 jobs and cumulatively they took 0:00:09 wallclock time. 
+2024-11-18 17:07:04,978 INFO pipeline_auxiliaries.py:81 Step 050_filter_fastas_by_cluster took 50 seconds. There were 1 jobs and cumulatively they took 0 days 00:00:00 wallclock time. 
+2024-11-18 17:23:46,483 INFO pipeline_auxiliaries.py:79 Sub-step 05a_all_vs_all_analysis took cumulatively 0 days 00:00:11 wallclock time
+2024-11-18 17:23:46,483 INFO pipeline_auxiliaries.py:79 Sub-step 05b_extract_rbh_hits took cumulatively 0 days 00:00:12 wallclock time
+2024-11-18 17:23:46,483 INFO pipeline_auxiliaries.py:79 Sub-step 05c_paralogs took cumulatively 0 days 00:00:12 wallclock time
+2024-11-18 17:23:46,483 INFO pipeline_auxiliaries.py:79 Sub-step 05d_normalize_scores took cumulatively 0 days 00:00:16 wallclock time
+2024-11-18 17:23:46,484 INFO pipeline_auxiliaries.py:79 Sub-step 05e_concatenate_hits took cumulatively 0 days 00:16:31 wallclock time
+2024-11-18 17:23:46,484 INFO pipeline_auxiliaries.py:79 Sub-step 05f_putative_table took cumulatively 0 days 00:00:03 wallclock time
+2024-11-18 17:23:46,484 INFO pipeline_auxiliaries.py:79 Sub-step 05g_mcl_input_files took cumulatively 0 days 00:13:55 wallclock time
+2024-11-18 17:23:46,484 INFO pipeline_auxiliaries.py:79 Sub-step 05h_mcl_analysis took cumulatively 0 days 02:11:59 wallclock time
+2024-11-18 17:23:46,484 INFO pipeline_auxiliaries.py:79 Sub-step 05i_verified_clusters took cumulatively 0 days 02:05:54 wallclock time
+2024-11-18 17:23:46,484 INFO pipeline_auxiliaries.py:79 Sub-step 05j_verified_table took cumulatively 0 days 00:00:04 wallclock time
+2024-11-18 17:23:46,484 INFO pipeline_auxiliaries.py:81 Step 05_infer_orthogroups took 16:41 minutes. There were 1 jobs and cumulatively they took 0 days 04:49:17 wallclock time. 
+2024-11-18 17:24:38,389 INFO pipeline_auxiliaries.py:81 Step 06_orphan_genes took 50 seconds. There were 4 jobs and cumulatively they took 0:00:17 wallclock time. 
+2024-11-18 17:25:09,910 INFO pipeline_auxiliaries.py:81 Step 07a_orthogroups took 30 seconds. There were 1 jobs and cumulatively they took 0:00:07 wallclock time. 
+2024-11-18 17:25:16,827 INFO main.py:1882 Total pipeline time: 23:23 minutes
+2024-11-18 19:24:30,925 INFO main.py:1882 Total pipeline time: 5:31 minutes
+2024-11-18 20:42:34,680 INFO pipeline_auxiliaries.py:79 Sub-step 05a_all_vs_all_analysis took cumulatively 0 days 00:00:11 wallclock time
+2024-11-18 20:42:34,681 INFO pipeline_auxiliaries.py:79 Sub-step 05b_extract_rbh_hits took cumulatively 0 days 00:00:17 wallclock time
+2024-11-18 20:42:34,681 INFO pipeline_auxiliaries.py:79 Sub-step 05c_paralogs took cumulatively 0 days 00:00:15 wallclock time
+2024-11-18 20:42:34,681 INFO pipeline_auxiliaries.py:79 Sub-step 05d_normalize_scores took cumulatively 0 days 00:00:25 wallclock time
+2024-11-18 20:42:34,681 INFO pipeline_auxiliaries.py:79 Sub-step 05e_concatenate_hits took cumulatively 0 days 00:04:24 wallclock time
+2024-11-18 20:42:34,681 INFO pipeline_auxiliaries.py:79 Sub-step 05f_putative_table took cumulatively 0 days 00:00:03 wallclock time
+2024-11-18 20:42:34,681 INFO pipeline_auxiliaries.py:79 Sub-step 05g_mcl_input_files took cumulatively 0 days 00:06:47 wallclock time
+2024-11-18 20:42:34,681 INFO pipeline_auxiliaries.py:79 Sub-step 05h_mcl_analysis took cumulatively 0 days 01:24:51 wallclock time
+2024-11-18 20:42:34,682 INFO pipeline_auxiliaries.py:79 Sub-step 05i_verified_clusters took cumulatively 0 days 01:19:14 wallclock time
+2024-11-18 20:42:34,682 INFO pipeline_auxiliaries.py:79 Sub-step 05j_verified_table took cumulatively 0 days 00:00:09 wallclock time
+2024-11-18 20:42:34,682 INFO pipeline_auxiliaries.py:81 Step 05_infer_orthogroups took 18:01 minutes. There were 1 jobs and cumulatively they took 0 days 02:56:36 wallclock time. 
+2024-11-18 20:43:06,862 INFO pipeline_auxiliaries.py:81 Step 06_orphan_genes took 30 seconds. There were 4 jobs and cumulatively they took 0:00:20 wallclock time. 
+2024-11-18 20:43:48,716 INFO pipeline_auxiliaries.py:81 Step 07a_orthogroups took 40 seconds. There were 1 jobs and cumulatively they took 0:00:06 wallclock time. 
+2024-11-18 20:43:54,602 INFO main.py:1882 Total pipeline time: 19:21 minutes
+2024-11-18 22:23:51,248 INFO main.py:1882 Total pipeline time: 2:20 minutes
+2024-11-19 00:58:09,244 INFO pipeline_auxiliaries.py:79 Sub-step 05a_all_vs_all_analysis took cumulatively 0 days 00:00:10 wallclock time
+2024-11-19 00:58:09,244 INFO pipeline_auxiliaries.py:79 Sub-step 05b_extract_rbh_hits took cumulatively 0 days 00:00:07 wallclock time
+2024-11-19 00:58:09,245 INFO pipeline_auxiliaries.py:79 Sub-step 05c_paralogs took cumulatively 0 days 00:00:08 wallclock time
+2024-11-19 00:58:09,245 INFO pipeline_auxiliaries.py:79 Sub-step 05d_normalize_scores took cumulatively 0 days 00:00:14 wallclock time
+2024-11-19 00:58:09,245 INFO pipeline_auxiliaries.py:79 Sub-step 05e_concatenate_hits took cumulatively 0 days 00:02:20 wallclock time
+2024-11-19 00:58:09,245 INFO pipeline_auxiliaries.py:79 Sub-step 05f_putative_table took cumulatively 0 days 00:00:01 wallclock time
+2024-11-19 00:58:09,245 INFO pipeline_auxiliaries.py:79 Sub-step 05g_mcl_input_files took cumulatively 0 days 00:02:45 wallclock time
+2024-11-19 00:58:09,245 INFO pipeline_auxiliaries.py:79 Sub-step 05h_mcl_analysis took cumulatively 0 days 01:33:38 wallclock time
+2024-11-19 00:58:09,245 INFO pipeline_auxiliaries.py:79 Sub-step 05i_verified_clusters took cumulatively 0 days 01:37:12 wallclock time
+2024-11-19 00:58:09,245 INFO pipeline_auxiliaries.py:79 Sub-step 05j_verified_table took cumulatively 0 days 00:00:03 wallclock time
+2024-11-19 00:58:09,245 INFO pipeline_auxiliaries.py:81 Step 05_infer_orthogroups took 12:00 minutes. There were 1 jobs and cumulatively they took 0 days 03:16:38 wallclock time. 
+2024-11-19 00:58:30,948 INFO pipeline_auxiliaries.py:81 Step 06_orphan_genes took 20 seconds. There were 4 jobs and cumulatively they took 0:00:11 wallclock time. 
+2024-11-19 00:58:52,486 INFO pipeline_auxiliaries.py:81 Step 07a_orthogroups took 20 seconds. There were 1 jobs and cumulatively they took 0:00:05 wallclock time. 
+2024-11-19 00:58:58,218 INFO main.py:1882 Total pipeline time: 12:50 minutes

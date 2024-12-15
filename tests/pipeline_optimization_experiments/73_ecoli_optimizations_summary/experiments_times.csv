@@ -1,0 +1,13 @@
+preCluster,optimizedMmseqs,useParquet,totalTime
+mergeAfterMmseqs,no,no,4 days 20:29:20
+mergeAfterMmseqs,no,yes,
+mergeAfterMmseqs,yes,no,0 days 23:48:06
+mergeAfterMmseqs,yes,yes,
+mergeAtEnd,no,no,5 days 05:57:04
+mergeAtEnd,no,yes,11 days 01:24:19
+mergeAtEnd,yes,no,1 days 13:13:32
+mergeAtEnd,yes,yes,1 days 10:59:10
+no,no,no,2 days 06:20:14
+no,no,yes,2 days 08:13:25
+no,yes,no,0 days 21:33:24
+no,yes,yes,1 days 00:31:15
