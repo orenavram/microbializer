@@ -117,8 +117,8 @@ def unify_clusters_mmseqs_hits(logger, times_logger, output_dir, tmp_dir, done_f
 
 
 def run_mcl_on_all_hits_together(logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
-                                 all_hits_file, max_parallel_jobs, base_step_number,
-                                 start_substep_number, account_name, queue_name, number_of_genomes):
+                                 all_hits_file, base_step_number, start_substep_number, account_name, queue_name,
+                                 number_of_genomes):
     # run_mcl.py
     step_number = f'{base_step_number}_{start_substep_number}'
     logger.info(f'Step {step_number}: {"_" * 100}')
@@ -241,7 +241,9 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
     if run_mcl_on_all_hits_together_flag:
-        run_mcl_on_all_hits_together()
+        run_mcl_on_all_hits_together(logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
+                                     all_hits_file, base_step_number, start_substep_number + 2, account_name, queue_name,
+                                     len(strains_names))
         return
 
     # construct_putative_orthologs_table.py
