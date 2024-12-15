@@ -17,7 +17,7 @@ from .q_submitter_power import submit_cmds_from_file_to_q
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-from flask import flask_interface_consts
+from flask import flask_interface_consts, SharedConsts
 
 
 def execute(logger, process, process_is_string=False):
@@ -307,6 +307,23 @@ def wait_for_output_folder(logger, output_folder, max_waiting_time=300):
             raise OSError(
                 f'{output_folder} was not generated after {max_waiting_time} second. Failed to continue the analysis.')
         sleep(1)
+
+
+def send_email_in_pipeline_end(logger, process_id, email_address, job_name, state):
+    email_addresses = [flask_interface_consts.OWNER_EMAIL]
+    email_addresses.extend(flask_interface_consts.ADDITIONAL_OWNER_EMAILS)
+    if email_address is not None:
+        email_addresses.append(email_address)
+    else:
+        logger.warning(f'process_id = {process_id} email_address is None, state = {state}, job_name = {job_name}')
+
+    # sends mail once the job finished or crashes
+    if state == SharedConsts.State.Finished:
+        send_email(logger, SharedConsts.EMAIL_CONSTS.create_title(state, job_name),
+                   SharedConsts.EMAIL_CONSTS.CONTENT_PROCESS_FINISHED.format(process_id=process_id), email_addresses)
+    elif state == SharedConsts.State.Crashed:
+        send_email(logger, SharedConsts.EMAIL_CONSTS.create_title(state, job_name),
+                   SharedConsts.EMAIL_CONSTS.CONTENT_PROCESS_CRASHED.format(process_id=process_id), email_addresses)
 
 
 def notify_admin(meta_output_dir, meta_output_url, run_number):

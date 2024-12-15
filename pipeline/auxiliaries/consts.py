@@ -169,18 +169,5 @@ ONLY_CALC_OGS_TABLE_STEPS_NAMES_FOR_PROGRESS_BAR = [
 ]
 
 
-# constants to use when sending e-mails using the server admin's email address.
-ADMIN_EMAIL = 'TAU BioSequence <bioSequence@tauex.tau.ac.il>'
-SMTP_SERVER = 'mxout.tau.ac.il'
-
 # general vars
 CSV_DELIMITER = ','
-
-# relevant modules
-GCC = 'gcc/gcc-6.2.0'
-MCL = 'MCL-edge/mcl-14-137'
-MAFFT = 'mafft/mafft-7.407'
-RAXML = 'raXML'
-PRODIGAL = 'prodigal/prodigal-2.6.3'
-MMSEQS = 'MMseqs2/June2020'
-

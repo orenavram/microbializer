@@ -21,16 +21,16 @@ from auxiliaries.file_writer import write_to_file
 from auxiliaries.input_verifications import prepare_and_verify_input_data
 from auxiliaries.pipeline_auxiliaries import wait_for_results, \
     prepare_directories, fail, submit_mini_batch, submit_batch, notify_admin, add_results_to_final_dir, remove_path,\
-    str_to_bool, execute
-from auxiliaries.html_editor import edit_success_html, edit_failure_html, edit_progress
+    str_to_bool, execute, send_email_in_pipeline_end
+from auxiliaries.html_editor import edit_success_html, edit_failure_html
 from auxiliaries import consts, cgi_consts
 from flask import flask_interface_consts
 from auxiliaries.logic_auxiliaries import mimic_prodigal_output, remove_bootstrap_values, \
     plot_genomes_histogram, update_progressbar, define_intervals
 from auxiliaries.cluster_mmseqs_hits_to_orthogroups import cluster_mmseqs_hits_to_orthogroups, unify_clusters_mmseqs_hits, run_mmseqs_and_extract_hits
-from flask.SharedConsts import USER_FILE_NAME_ZIP, USER_FILE_NAME_TAR
+from flask.SharedConsts import USER_FILE_NAME_ZIP, USER_FILE_NAME_TAR, State
 
-PIPELINE_STEPS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
+PIPELINE_STEPS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14']
 
 
 def get_arguments():
@@ -44,8 +44,8 @@ def get_arguments():
                              ' in it. Mutually exclusive with --run_dir.')
     parser.add_argument('--output_dir', help='relative path of directory where the output files will be written to',
                         default='outputs')
-    parser.add_argument('--email', help='A notification will be sent once the pipeline is done',
-                        default=flask_interface_consts.OWNER_EMAIL)
+    parser.add_argument('--email', help='A notification will be sent once the pipeline is done to this email. Optional.')
+    parser.add_argument('--job_name', help='Optional job name.')
     parser.add_argument('--identity_cutoff', default=40,
                         help='minimum required percent of identity level (lower values will be filtered out)')
     parser.add_argument('--coverage_cutoff', default=70,
@@ -81,7 +81,6 @@ def get_arguments():
     parser.add_argument('--step_to_complete', help='The final step to execute', default=None,
                         choices=[*PIPELINE_STEPS, None])
     parser.add_argument('--only_calc_ogs', help='Do only the necessary steps to calculate OGs', action='store_true')
-    parser.add_argument('--zip_results_in_partial_pipeline', help='Zip results also when the pipeline is partially run', action='store_true')
     parser.add_argument('--bypass_number_of_genomes_limit', help='Bypass the limit on number of genomes',
                         action='store_true')
     parser.add_argument('--pre_cluster_orthogroups_inference', help='Optimize the orthogroups inference using heuristics',
@@ -1319,7 +1318,7 @@ def step_14_orthogroups_annotations(args, logger, times_logger, error_file_path,
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
 
-def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_file_path, output_html_path, output_dir,
+def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_file_path, output_dir,
                       tmp_dir, done_files_dir, data_path, genomes_names_path, final_output_dir):
     with open(genomes_names_path, 'r') as genomes_names_fp:
         genomes_names = genomes_names_fp.read().split('\n')
@@ -1335,7 +1334,6 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         data_path = filtered_inputs_dir
         if args.filter_out_plasmids:
             update_progressbar(progressbar_file_path, 'Filter out plasmids')
-        edit_progress(output_html_path, progress=5)
 
     if args.step_to_complete == '0':
         logger.info("Step 0 completed.")
@@ -1345,7 +1343,6 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         step_1_calculate_ani(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
                              done_files_dir, data_path)
         update_progressbar(progressbar_file_path, 'Calculate ANI (Average Nucleotide Identity)')
-        edit_progress(output_html_path, progress=10)
 
     if args.step_to_complete == '1':
         logger.info("Step 1 completed.")
@@ -1355,7 +1352,6 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir, done_files_dir, data_path)
     update_progressbar(progressbar_file_path, 'Predict and translate ORFs')
     update_progressbar(progressbar_file_path, 'Translate ORFs')
-    edit_progress(output_html_path, progress=15)
 
     if args.step_to_complete == '2':
         logger.info("Step 2 completed.")
@@ -1365,7 +1361,6 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         step_3_analyze_genome_completeness(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                                            final_output_dir, done_files_dir, translated_orfs_dir)
         update_progressbar(progressbar_file_path, 'Calculate genomes completeness')
-        edit_progress(output_html_path, progress=20)
 
     if args.step_to_complete == '3':
         logger.info("Step 3 completed.")
@@ -1374,7 +1369,6 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
     if args.pre_cluster_orthogroups_inference:
         clusters_output_dir = step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                                  done_files_dir, all_proteins_fasta_path, translated_orfs_dir)
-        edit_progress(output_html_path, progress=35)
 
         if args.step_to_complete == '4':
             logger.info("Step 4 completed.")
@@ -1384,7 +1378,6 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
                                                                    output_dir, tmp_dir, done_files_dir,
                                                                    clusters_output_dir, genomes_names_path)
         update_progressbar(progressbar_file_path, 'Infer orthogroups')
-        edit_progress(output_html_path, progress=35)
     else:
         orthogroups_file_path = step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output_dir,
                                                          tmp_dir, done_files_dir, translated_orfs_dir,
@@ -1398,7 +1391,6 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
     orphan_genes_dir = step_6_extract_orphan_genes(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                                                    final_output_dir, done_files_dir, orfs_dir, orthogroups_file_path)
     update_progressbar(progressbar_file_path, 'Find orphan genes')
-    edit_progress(output_html_path, progress=35)
 
     if args.step_to_complete == '6':
         logger.info("Step 6 completed.")
@@ -1407,7 +1399,6 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
     final_orthologs_table_file_path = \
         step_7_orthologs_table_variations(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                                           final_output_dir, done_files_dir, orthogroups_file_path, orphan_genes_dir)
-    edit_progress(output_html_path, progress=55)
 
     if args.step_to_complete == '7':
         logger.info("Step 7 completed.")
@@ -1421,7 +1412,6 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
                                                output_dir, tmp_dir, final_output_dir, done_files_dir, orfs_dir,
                                                final_orthologs_table_file_path)
     update_progressbar(progressbar_file_path, 'Prepare orthogroups fasta files')
-    edit_progress(output_html_path, progress=60)
 
     if args.step_to_complete == '8':
         logger.info("Step 8 completed.")
@@ -1431,7 +1421,6 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir, done_files_dir,
         genomes_names_path, ogs_aa_alignments_path, ogs_dna_alignments_path)
     update_progressbar(progressbar_file_path, 'Infer core genome and proteome')
-    edit_progress(output_html_path, progress=75)
 
     if args.step_to_complete == '9':
         logger.info("Step 9 completed.")
@@ -1441,7 +1430,6 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         step_10_genome_numeric_representation(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                                               final_output_dir, done_files_dir, orfs_dir, final_orthologs_table_file_path)
         update_progressbar(progressbar_file_path, 'Calculate genomes numeric representation')
-        edit_progress(output_html_path, progress=90)
 
     if args.step_to_complete == '10':
         logger.info("Step 10 completed.")
@@ -1450,7 +1438,6 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
     step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
                       done_files_dir, aligned_core_proteome_reduced_file_path, genomes_names_path, number_of_genomes, core_proteome_reduced_length)
     update_progressbar(progressbar_file_path, 'Reconstruct species phylogeny')
-    edit_progress(output_html_path, progress=95)
 
     if args.step_to_complete == '11':
         logger.info("Step 11 completed.")
@@ -1459,7 +1446,6 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
     cai_table_path = step_12_codon_bias(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
                        done_files_dir, orfs_dir, ogs_dna_sequences_path)
     update_progressbar(progressbar_file_path, 'Analyze codon bias')
-    edit_progress(output_html_path, progress=65)
 
     if args.step_to_complete == '12':
         logger.info("Step 12 completed.")
@@ -1468,7 +1454,6 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
     kegg_table_path = step_13_kegg_annotation(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                             done_files_dir, og_aa_sequences_path, final_orthologs_table_file_path)
     update_progressbar(progressbar_file_path, 'Annotate orthogroups with KEGG Orthology (KO) terms')
-    edit_progress(output_html_path, progress=65)
 
     if args.step_to_complete == '13':
         logger.info("Step 13 completed.")
@@ -1476,50 +1461,48 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
 
     step_14_orthogroups_annotations(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
                                     done_files_dir, final_orthologs_table_file_path, kegg_table_path, cai_table_path)
-    edit_progress(output_html_path, progress=65)
 
     if args.step_to_complete == '14':
         logger.info("Step 14 completed.")
         return
 
 
-def report_error_in_main_pipeline_to_admin(logger, e, meta_output_dir, error_file_path, run_number, output_html_path,
-                                           meta_output_url):
-    error_msg = f'{flask_interface_consts.WEBSERVER_NAME} failed :('
-    if os.path.exists(error_file_path):
-        with open(error_file_path) as error_f:
-            error_txt = error_f.read()
-            logger.error(f'error.txt file says:\n{error_txt}')
-            error_msg = f'The job was failed due to the following reason:<br>{error_txt}'
-
-    exc_type, exc_obj, exc_tb = sys.exc_info()
-    fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-    logger.error(f'\n\n{"$" * 100}\n\n{error_msg}\n\n{fname}: {exc_type}, at line: {exc_tb.tb_lineno}\n\n'
-                 f'e: {e}\n\n{traceback.format_exc()}\n\n{"$" * 100}')
-
-    edit_failure_html(logger, output_html_path, run_number, error_msg)
-    edit_progress(output_html_path, active=False)
-
-    if consts.SEND_MAILS:
-        notify_admin(meta_output_dir, meta_output_url, run_number)
-
-
-def report_main_pipeline_result_to_user(args, logger, status, total_time, output_url, run_number):
-    msg = f'M1CR0B1AL1Z3R pipeline {status}'
-    if status == 'is done':
-        msg += f' (Took {total_time}).\nResults can be found at {output_url}.\nPlease note that the ' \
-               f'results will be kept in the server for three months.'
-    else:
-        msg += f'. For further information please visit: {output_url}'
-    logger.info(msg)
-
-    if consts.SEND_MAILS:
-        logger.info(f'Sending a notification email to {args.email}')
-        try:
-            send_email('mxout.tau.ac.il', 'TAU BioSequence <bioSequence@tauex.tau.ac.il>', args.email,
-                       subject=f'{flask_interface_consts.WEBSERVER_NAME} run number {run_number} {status}.', content=msg)
-        except:
-            logger.error(f'\nFailed sending notification to {args.email}\n')
+# def report_error_in_main_pipeline_to_admin(logger, e, meta_output_dir, error_file_path, run_number, output_html_path,
+#                                            meta_output_url):
+#     error_msg = f'{flask_interface_consts.WEBSERVER_NAME} failed :('
+#     if os.path.exists(error_file_path):
+#         with open(error_file_path) as error_f:
+#             error_txt = error_f.read()
+#             logger.error(f'error.txt file says:\n{error_txt}')
+#             error_msg = f'The job was failed due to the following reason:<br>{error_txt}'
+#
+#     exc_type, exc_obj, exc_tb = sys.exc_info()
+#     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+#     logger.error(f'\n\n{"$" * 100}\n\n{error_msg}\n\n{fname}: {exc_type}, at line: {exc_tb.tb_lineno}\n\n'
+#                  f'e: {e}\n\n{traceback.format_exc()}\n\n{"$" * 100}')
+#
+#     edit_failure_html(logger, output_html_path, run_number, error_msg)
+#
+#     if consts.SEND_MAILS:
+#         notify_admin(meta_output_dir, meta_output_url, run_number)
+#
+#
+# def report_main_pipeline_result_to_user(args, logger, status, total_time, output_url, run_number):
+#     msg = f'M1CR0B1AL1Z3R pipeline {status}'
+#     if status == 'is done':
+#         msg += f' (Took {total_time}).\nResults can be found at {output_url}.\nPlease note that the ' \
+#                f'results will be kept in the server for three months.'
+#     else:
+#         msg += f'. For further information please visit: {output_url}'
+#     logger.info(msg)
+#
+#     if consts.SEND_MAILS:
+#         logger.info(f'Sending a notification email to {args.email}')
+#         try:
+#             send_email('mxout.tau.ac.il', 'TAU BioSequence <bioSequence@tauex.tau.ac.il>', args.email,
+#                        subject=f'{flask_interface_consts.WEBSERVER_NAME} run number {run_number} {status}.', content=msg)
+#         except:
+#             logger.error(f'\nFailed sending notification to {args.email}\n')
 
 
 # def run_pipeline_extensions(args, logger, times_logger, error_file_path, run_number, output_dir, tmp_dir,
@@ -1933,44 +1916,31 @@ def main(args):
         update_progressbar(progressbar_file_path, 'Validate input files')
 
         run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_file_path,
-                          output_html_path, steps_results_dir, tmp_dir, done_files_dir,
+                          steps_results_dir, tmp_dir, done_files_dir,
                           data_path, genomes_names_path, final_output_dir)
 
-        if args.step_to_complete is None or args.step_to_complete == PIPELINE_STEPS[-1] or args.only_calc_ogs \
-                or args.zip_results_in_partial_pipeline:
+        if args.step_to_complete is None and not args.only_calc_ogs:
             logger.info('Zipping results folder...')
             shutil.make_archive(final_output_dir, 'zip', meta_output_dir, final_output_dir_name)
             update_progressbar(progressbar_file_path, 'Finalize results')
 
-        logger.info('Editing results html...')
-        edit_success_html(logger, output_html_path, meta_output_dir, final_output_dir_name, run_number)
-        edit_progress(output_html_path, progress=100, active=False)
-
-        # run_pipeline_extensions(args, logger, error_file_path, run_number, output_dir, tmp_dir, done_files_dir,
-        #                         data_path,
-        #                         orfs_dir, orfs_step_number, final_orthologs_table_file_path,
-        #                         phylogenetic_raw_tree_path, final_output_dir_name)
-
-        status = 'is done'
-
         # remove intermediate results
-        if run_number.lower() != 'example' and not consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR:
+        if not consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR:
             logger.info('Cleaning up intermediate results...')
-            remove_path(logger, steps_results_dir)
-            remove_path(logger, tmp_dir)
+            remove_path(logger, output_dir)
+
+        state = State.Finished
     except Exception as e:
-        status = 'was failed'
-        with open(error_file_path, 'a+') as f:
-            traceback.print_exc(file=f)
-        report_error_in_main_pipeline_to_admin(logger, e, meta_output_dir, error_file_path, run_number,
-                                               output_html_path,
-                                               meta_output_url)
+        if not os.path.exists(error_file_path):
+            with open(error_file_path, 'a+') as f:
+                traceback.print_exc(file=f)
+        state = State.Crashed
 
     total_time = timedelta(seconds=int(time() - start_time))
-    times_logger.info(f'Total pipeline time: {total_time}')
-    report_main_pipeline_result_to_user(args, logger, status, total_time, output_url, run_number)
+    times_logger.info(f'Total pipeline time: {total_time}. Done')
 
-    logger.info('Done.')
+    if flask_interface_consts.SEND_EMAIL_WHEN_JOB_FINISHED_FROM_PIPELINE:
+        send_email_in_pipeline_end(logger, run_number, args.email, args.job_name, state)
 
 
 if __name__ == '__main__':
