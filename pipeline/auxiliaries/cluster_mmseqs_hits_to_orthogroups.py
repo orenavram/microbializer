@@ -148,7 +148,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
                                        orthologs_output_dir, orthologs_scores_statistics_dir, paralogs_output_dir,
                                        paralogs_scores_statistics_dir, max_parallel_jobs, base_step_number,
                                        start_substep_number, account_name, queue_name, use_parquet, prepare_mcl_v2,
-                                       strains_names_path, run_mcl_on_all_hits_together):
+                                       strains_names_path, run_mcl_on_all_hits_together_flag):
     with open(strains_names_path) as f:
         strains_names = f.read().rstrip().split('\n')
 
@@ -240,7 +240,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    if run_mcl_on_all_hits_together:
+    if run_mcl_on_all_hits_together_flag:
         run_mcl_on_all_hits_together()
         return
 
