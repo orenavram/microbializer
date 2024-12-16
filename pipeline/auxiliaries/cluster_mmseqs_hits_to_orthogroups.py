@@ -11,22 +11,23 @@ from .file_writer import write_to_file
 
 
 def run_mmseqs_and_extract_hits(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,
-                               translated_orfs_dir, all_proteins_path, strains_names_path, queue_name,
-                               account_name, identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs,
-                               run_optimized_mmseqs, use_parquet, verbose):
+                                translated_orfs_dir, all_proteins_path, strains_names_path, queue_name,
+                                account_name, identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs,
+                                run_optimized_mmseqs, use_parquet, use_linux_to_parse_big_files, verbose):
     with open(strains_names_path) as f:
         strains_names = f.read().rstrip().split('\n')
 
     if run_optimized_mmseqs:
         orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir =\
             run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
-                           done_files_dir, all_proteins_path, strains_names, queue_name, account_name,
-                           identity_cutoff, coverage_cutoff,  e_value_cutoff, max_parallel_jobs, use_parquet, verbose)
+                               done_files_dir, all_proteins_path, strains_names, queue_name, account_name,
+                               identity_cutoff, coverage_cutoff,  e_value_cutoff, max_parallel_jobs, use_parquet,
+                               use_linux_to_parse_big_files, verbose)
     else:
         orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir =\
             run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
-                               done_files_dir, translated_orfs_dir, strains_names, queue_name, account_name,
-                               identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs, use_parquet)
+                                   done_files_dir, translated_orfs_dir, strains_names, queue_name, account_name,
+                                   identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs, use_parquet)
 
     return orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir
 
@@ -119,6 +120,8 @@ def unify_clusters_mmseqs_hits(logger, times_logger, output_dir, tmp_dir, done_f
 def run_mcl_on_all_hits_together(logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
                                  all_hits_file, base_step_number, start_substep_number, account_name, queue_name,
                                  number_of_genomes):
+    ### TODO: Only a start - should finish function, check optimized way to do that (read MCL documentation).
+
     # run_mcl.py
     step_number = f'{base_step_number}_{start_substep_number}'
     logger.info(f'Step {step_number}: {"_" * 100}')
@@ -458,7 +461,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
 
 def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,
                        all_proteins_path, strains_names, queue_name, account_name, identity_cutoff, coverage_cutoff,
-                       e_value_cutoff, n_jobs_per_step, use_parquet, verbose):
+                       e_value_cutoff, n_jobs_per_step, use_parquet, use_linux_to_parse_big_files, verbose):
     # 1.	mmseqs2_all_vs_all.py
     step_number = f'{base_step_number}_1'
     logger.info(f'Step {step_number}: {"_" * 100}')
@@ -484,15 +487,16 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, 1, error_file_path)
 
-        logger.info(f"Starting to read {m8_raw_output_path} and create a reduced version of it...")
-        m8_df = dd.read_csv(m8_raw_output_path, sep='\t', names=consts.MMSEQS_OUTPUT_HEADER, dtype=consts.MMSEQS_OUTPUT_COLUMNS_TYPES)
-        m8_df = m8_df[m8_df['query'] != m8_df['target']]
-        add_score_column_to_mmseqs_output(m8_df)
-        m8_df['query_genome'] = m8_df['query'].str.split(':').str[0]
-        m8_df['target_genome'] = m8_df['target'].str.split(':').str[0]
-        m8_df = m8_df[['query', 'query_genome', 'target', 'target_genome', 'score']]
-        m8_df.to_parquet(m8_output_path)  # Here I always use parquet since it's a huge file
-        logger.info(f"{m8_output_path} was created successfully.")
+        if not use_linux_to_parse_big_files:
+            logger.info(f"Starting to read {m8_raw_output_path} and create a reduced version of it...")
+            m8_df = dd.read_csv(m8_raw_output_path, sep='\t', names=consts.MMSEQS_OUTPUT_HEADER, dtype=consts.MMSEQS_OUTPUT_COLUMNS_TYPES)
+            m8_df = m8_df[m8_df['query'] != m8_df['target']]
+            add_score_column_to_mmseqs_output(m8_df)
+            m8_df['query_genome'] = m8_df['query'].str.split(':').str[0]
+            m8_df['target_genome'] = m8_df['target'].str.split(':').str[0]
+            m8_df = m8_df[['query', 'query_genome', 'target', 'target_genome', 'score']]
+            m8_df.to_parquet(m8_output_path)  # Here I always use parquet since it's a huge file
+            logger.info(f"{m8_output_path} was created successfully.")
 
         write_to_file(logger, done_file_path, '.')
     else:
