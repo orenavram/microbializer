@@ -8,8 +8,8 @@ sys.path.append(SCRIPT_DIR)
 
 import flask_interface_consts
 
-WEBSERVER_DOMAIN = 'dev.microbializer.tau.ac.il'
-WEBSERVER_ADDRESS = f'http://{WEBSERVER_DOMAIN}'
+WEBSERVER_DOMAIN = 'microbializer.tau.ac.il'
+WEBSERVER_ADDRESS = f'https://{WEBSERVER_DOMAIN}'
 
 # OUTPUT consts
 K_MER_COUNTER_MATRIX_FILE_NAME = Path('CounterMatrixForUI.csv')

@@ -1465,7 +1465,7 @@ def main(args):
     total_time = timedelta(seconds=int(time() - start_time))
     times_logger.info(f'Total pipeline time: {total_time}. Done')
 
-    if flask_interface_consts.SEND_EMAIL_WHEN_JOB_FINISHED_FROM_PIPELINE:
+    if consts.ENV == 'lsweb' and flask_interface_consts.SEND_EMAIL_WHEN_JOB_FINISHED_FROM_PIPELINE:
         send_email_in_pipeline_end(logger, run_number, args.email, args.job_name, state)
 
 
