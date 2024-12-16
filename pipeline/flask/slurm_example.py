@@ -113,9 +113,3 @@ def submit_job(script_commands, job_name, logs_path, num_cpus, queue, memory, ti
                 return value
     else:
         logger.error(f'failed to submit job {job_name} return from job = {jobs_result}')
-
-# import logging
-#
-# logger = logging.getLogger(__name__)
-#
-# submit_job("#!/bin/bash\n\nsource /lsweb/pupko/genomefltr/venv/bin/activate\nsleep 5\npython --version", 'test', "/lsweb/pupko/genomefltr/logs/", "1", "pupkoweb", "1", logger)
