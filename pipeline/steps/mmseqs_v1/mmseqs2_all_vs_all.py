@@ -51,7 +51,7 @@ def search_all_vs_all(logger, protein_fasta_1, protein_fasta_2, m8_outfile, scor
         # when the data set is very big some files are not generated because of the heavy load
         # so we need to make sure they will be generated!
         # control verbosity level by -v [3] param ; verbosity levels: 0=nothing, 1: +errors, 2: +warnings, 3: +info
-        cmd = f'mmseqs easy-rbh {protein_fasta_1} {protein_fasta_2} {m8_outfile_raw} {tmp_dir} --format-output {consts.MMSEQS_OUTPUT_FORMAT} --min-seq-id {identity_cutoff} -c {coverage_cutoff} --cov-mode 0 -e {e_value_cutoff} --threads 1'
+        cmd = f'mmseqs easy-rbh {protein_fasta_1} {protein_fasta_2} {m8_outfile_raw} {tmp_dir} --format-output {consts.MMSEQS_OUTPUT_FORMAT} --min-seq-id {identity_cutoff} -c {coverage_cutoff} --cov-mode 0 -e {e_value_cutoff} --threads 1 -v 1'
         logger.info(f'Iteration #{i} - Calling:\n{cmd}')
         subprocess.run(cmd, shell=True)
         i += 1
