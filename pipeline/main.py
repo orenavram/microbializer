@@ -101,15 +101,6 @@ def get_arguments():
                         action='store_true')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
 
-    # parser.add_argument('--promoters_length', default=300,
-    #                     help='How many basepairs upstream to the ATG will be used for the sweeps analysis',
-    #                     type=lambda x: int(x) if int(x) >= 0 else parser.error(
-    #                         f'Minimal number of upstream basepairs should be non-negative!'))
-    # parser.add_argument('--minimal_number_of_sequences_allowed_for_sweeps_analysis', default=21,
-    #                     help='MSAs with fewer sequences will be ignore in the sweeps analysis.',
-    #                     type=lambda x: int(x) if int(x) > 4 else parser.error(
-    #                         f'Minimal number of sequences required for sweeps analysis is 5!'))
-
     args = parser.parse_args()
 
     # Override arguments with args_json_path content

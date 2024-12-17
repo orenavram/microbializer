@@ -74,7 +74,7 @@ PATH2SAVE_PREVIOUS_DF = r'SavedObjects/previous_processes.csv'
 PATH2SAVE_WAITING_LIST = r'SavedObjects/waiting.lst'
 PATH2SAVE_MONITOR_DATA = r'SavedObjects/monitored_data'
 
-INTERVAL_BETWEEN_LISTENER_SAMPLES = 10  # in seconds
+INTERVAL_BETWEEN_LISTENER_SAMPLES = 120  # in seconds
 INTERVAL_BETWEEN_CLEANING_THE_PROCESSES_DICT = 24  # in hours
 TIME_TO_SAVE_PROCESSES_IN_THE_PROCESSES_DICT = 30  # in days
 TIME_TO_KEEP_PROCSES_IDS_FOLDERS = 14  # in days the entire folder of the process
