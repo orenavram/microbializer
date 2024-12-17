@@ -8,12 +8,13 @@ import traceback
 import json
 import statistics
 import subprocess
-import dask.dataframe as dd
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
 
 from auxiliaries.pipeline_auxiliaries import fail, get_job_logger
+from auxiliaries.logic_auxiliaries import add_score_column_to_mmseqs_output
+from auxiliaries import consts
 
 
 def extract_paralogs_of_genome(logger, m8_path, genome_name, max_scores_parts_dir, paralogs_dir,
@@ -42,7 +43,9 @@ def extract_paralogs_of_genome(logger, m8_path, genome_name, max_scores_parts_di
     cmd = f"awk -F'\\t' '$1 ~ /^{genome_name}/ && $2 ~ /^{genome_name}/' {m8_path} > {genome_paralogs_path}"
     subprocess.run(cmd, shell=True)
 
-    m8_df = pd.read_csv(genome_paralogs_path, sep='\t', names=['query', 'target', 'score'])
+    m8_df = pd.read_csv(genome_paralogs_path, sep='\t', names=consts.MMSEQS_OUTPUT_HEADER)
+    m8_df = m8_df.loc[m8_df['query'] != m8_df['target']]  # Remove self hits
+    add_score_column_to_mmseqs_output(m8_df)
 
     # Keep only hits that have score higher than the max score of both query and target.
     # If only one of the genes was identified as rbh to a gene in another genome (and thus the other one doesn't

@@ -13,6 +13,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
 
 from auxiliaries.pipeline_auxiliaries import fail, get_job_logger
+from auxiliaries.logic_auxiliaries import add_score_column_to_mmseqs_output
 from auxiliaries import consts
 
 
@@ -37,6 +38,8 @@ def extract_rbh_hits_of_pair(logger, m8_path, genome1, genome2, rbh_hits_dir, te
 
     genome1_to_2_df = pd.read_csv(genome_1_to_2_path, sep='\t', names=consts.MMSEQS_OUTPUT_HEADER)
     genome2_to_1_df = pd.read_csv(genome_2_to_1_path, sep='\t', names=consts.MMSEQS_OUTPUT_HEADER)
+    add_score_column_to_mmseqs_output(genome1_to_2_df)
+    add_score_column_to_mmseqs_output(genome2_to_1_df)
 
     # Step 1: Identify the best hits from genome1 to genome2
     genome1_to_2_best_hits_df = genome1_to_2_df[genome1_to_2_df['score'] == genome1_to_2_df.groupby('query')['score'].transform('max')]

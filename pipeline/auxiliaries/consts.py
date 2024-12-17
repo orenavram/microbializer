@@ -100,7 +100,7 @@ OUTPUT_TSV_OF_ORTHOLOGS_PAIRS = False
 
 class SimilarityScore(Enum):
     BITS = 1
-    # EVALUE = 2  # Currently not supported
+    EVALUE = 2  # Currently not supported
 
 
 SIMILARITY_SCORE_CRITERION = SimilarityScore.BITS
