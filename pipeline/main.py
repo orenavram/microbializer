@@ -161,7 +161,7 @@ def prepare_pipeline_framework(args):
     os.makedirs(final_output_dir, exist_ok=True)
 
     error_file_path = os.path.join(final_output_dir, flask_interface_consts.ERROR_FILE_NAME)
-    progressbar_file_path = os.path.join(final_output_dir, flask_interface_consts.PROGRESSBAR_FILE_NAME)
+    progressbar_file_path = os.path.join(meta_output_dir, flask_interface_consts.PROGRESSBAR_FILE_NAME)
 
     run_number = os.path.join(os.path.split(meta_output_dir)[1])
     logger.info(f'run_number is {run_number}')
@@ -1439,13 +1439,13 @@ def main(args):
         if args.step_to_complete is None and not args.only_calc_ogs:
             logger.info('Zipping results folder...')
             shutil.make_archive(final_output_dir, 'zip', meta_output_dir, final_output_dir_name)
-            update_progressbar(progressbar_file_path, 'Finalize results')
 
         # remove intermediate results
-        if not consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR:
+        if consts.ENV == 'lsweb' and not consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR:
             logger.info('Cleaning up intermediate results...')
             remove_path(logger, output_dir)
 
+        update_progressbar(progressbar_file_path, 'Finalize results')
         state = State.Finished
     except Exception as e:
         if not os.path.exists(error_file_path):

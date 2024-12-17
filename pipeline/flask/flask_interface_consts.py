@@ -38,7 +38,6 @@ SEND_EMAIL_WHEN_JOB_FINISHED_FROM_PIPELINE = True  # If True, flask won't send e
 
 # Progress bar file (the path is relative to the unique folder of the job)
 PROGRESSBAR_FILE_NAME = "progressbar.csv"
-PROGRESSBAR_FILE_PATH = os.path.join(ALL_OUTPUTS_DIRECTORY, PROGRESSBAR_FILE_NAME)
 
 ANI_CSV = f"{ALL_OUTPUTS_DIRECTORY}/01_ani/ani_pairwise_values.csv"
 ANI_MAP = f"{ALL_OUTPUTS_DIRECTORY}/01_ani/ani_map.png"
