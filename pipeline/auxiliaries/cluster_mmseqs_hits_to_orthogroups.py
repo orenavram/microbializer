@@ -11,22 +11,31 @@ from .file_writer import write_to_file
 
 
 def run_mmseqs_and_extract_hits(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,
-                               translated_orfs_dir, all_proteins_path, strains_names_path, queue_name,
-                               account_name, identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs,
-                               run_optimized_mmseqs, use_parquet, verbose):
+                                translated_orfs_dir, all_proteins_path, strains_names_path, queue_name,
+                                account_name, identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs,
+                                run_optimized_mmseqs, use_parquet, use_linux_to_parse_big_files, verbose):
     with open(strains_names_path) as f:
         strains_names = f.read().rstrip().split('\n')
 
     if run_optimized_mmseqs:
-        orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir =\
-            run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
-                           done_files_dir, all_proteins_path, strains_names, queue_name, account_name,
-                           identity_cutoff, coverage_cutoff,  e_value_cutoff, max_parallel_jobs, use_parquet, verbose)
+        if use_linux_to_parse_big_files:
+            orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir =\
+                run_unified_mmseqs_with_linux_parsing(logger, times_logger, base_step_number, error_file_path,
+                                                      output_dir, tmp_dir, done_files_dir, all_proteins_path,
+                                                      strains_names, queue_name, account_name, identity_cutoff,
+                                                      coverage_cutoff,  e_value_cutoff, max_parallel_jobs, use_parquet,
+                                                      verbose)
+        else:
+            orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir =\
+                run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
+                                   done_files_dir, all_proteins_path, strains_names, queue_name, account_name,
+                                   identity_cutoff, coverage_cutoff,  e_value_cutoff, max_parallel_jobs, use_parquet,
+                                   verbose)
     else:
         orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir =\
             run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
-                               done_files_dir, translated_orfs_dir, strains_names, queue_name, account_name,
-                               identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs, use_parquet)
+                                   done_files_dir, translated_orfs_dir, strains_names, queue_name, account_name,
+                                   identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs, use_parquet)
 
     return orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir
 
@@ -119,6 +128,8 @@ def unify_clusters_mmseqs_hits(logger, times_logger, output_dir, tmp_dir, done_f
 def run_mcl_on_all_hits_together(logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
                                  all_hits_file, base_step_number, start_substep_number, account_name, queue_name,
                                  number_of_genomes):
+    ### TODO: Only a start - should finish function, check optimized way to do that (read MCL documentation).
+
     # run_mcl.py
     step_number = f'{base_step_number}_{start_substep_number}'
     logger.info(f'Step {step_number}: {"_" * 100}')
@@ -599,6 +610,125 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
                                                    queue_name=queue_name,
                                                    account_name=account_name,
                                                    memory=m8_output_parsing_memory)
+
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+                         num_of_batches, error_file_path)
+
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+    return orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir
+
+
+def run_unified_mmseqs_with_linux_parsing(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
+                                          done_files_dir, all_proteins_path, strains_names, queue_name, account_name,
+                                          identity_cutoff, coverage_cutoff, e_value_cutoff, n_jobs_per_step,
+                                          use_parquet, verbose):
+    # 1.	mmseqs2_all_vs_all.py
+    step_number = f'{base_step_number}_1'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_all_vs_all_analysis'
+    script_path = os.path.join(consts.SRC_DIR, 'steps/mmseqs_v2/mmseqs2_all_vs_all.py')
+    all_vs_all_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    m8_output_path = os.path.join(all_vs_all_output_dir, 'all_vs_all.tsv')
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        params = [all_proteins_path,
+                  all_vs_all_output_dir,
+                  m8_output_path,
+                  f'--identity_cutoff {identity_cutoff / 100}',
+                  f'--coverage_cutoff {coverage_cutoff / 100}',
+                  f'--e_value_cutoff {e_value_cutoff}',
+                  f'--number_of_genomes {len(strains_names)}',
+                  f'--cpus {consts.MMSEQS_BIG_DATASET_NUM_OF_CORES}']
+
+        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path, queue_name,
+                          account_name, job_name='mmseqs', num_of_cpus=consts.MMSEQS_BIG_DATASET_NUM_OF_CORES,
+                          memory=consts.MMSEQS_BIG_DATASET_REQUIRED_MEMORY_GB, time_in_hours=consts.MMSEQS_JOB_TIME_LIMIT_HOURS)
+
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, 1, error_file_path)
+
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+    # 2.	extract_rbh_hits.py
+    step_number = f'{base_step_number}_2'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_extract_rbh_hits'
+    script_path = os.path.join(consts.SRC_DIR, 'steps/mmseqs_v3/extract_rbh_hits.py')
+    orthologs_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    orthologs_scores_statistics_dir = os.path.join(orthologs_output_dir, 'scores_statistics')
+    os.makedirs(orthologs_scores_statistics_dir, exist_ok=True)
+    max_rbh_scores_parts_output_dir = os.path.join(orthologs_output_dir, 'max_rbh_scores_parts')
+    os.makedirs(max_rbh_scores_parts_output_dir, exist_ok=True)
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        if len(strains_names) >= 2:
+            logger.info('Searching for rbhs between each 2 genomes')
+
+            rbh_temp_dir = os.path.join(orthologs_output_dir, 'temp')
+            os.makedirs(rbh_temp_dir, exist_ok=True)
+
+            all_cmds_params = []
+            for genome1, genome2 in itertools.combinations(strains_names, 2):
+                params = [m8_output_path, genome1, genome2, orthologs_output_dir, rbh_temp_dir,
+                          orthologs_scores_statistics_dir, max_rbh_scores_parts_output_dir]
+                if use_parquet:
+                    params.append('--use_parquet')
+                if verbose:
+                    params.append('--verbose')
+                all_cmds_params.append(params)
+
+            num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+                                                       error_file_path,
+                                                       num_of_cmds_per_job=max(1, len(all_cmds_params) // n_jobs_per_step),
+                                                       job_name_suffix='rbh_analysis',
+                                                       queue_name=queue_name,
+                                                       account_name=account_name,
+                                                       time_in_hours=consts.MMSEQS_JOB_TIME_LIMIT_HOURS)
+
+            wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+                             num_of_batches, error_file_path)
+
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+    # 3. extract_paralogs.py
+    step_number = f'{base_step_number}_3'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_paralogs'
+    script_path = os.path.join(consts.SRC_DIR, 'steps/mmseqs_v3/extract_paralogs.py')
+    paralogs_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    paralogs_scores_statistics_dir = os.path.join(paralogs_output_dir, 'scores_statistics')
+    os.makedirs(paralogs_scores_statistics_dir, exist_ok=True)
+    max_rbh_scores_unified_dir = os.path.join(paralogs_output_dir, 'max_rbh_scores_unified')
+    os.makedirs(max_rbh_scores_unified_dir, exist_ok=True)
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        logger.info('Searching for paralogs in each genome')
+
+        paralogs_temp_dir = os.path.join(paralogs_output_dir, 'temp')
+        os.makedirs(paralogs_temp_dir, exist_ok=True)
+
+        all_cmds_params = []
+        for genome in strains_names:
+            single_cmd_params = [m8_output_path, genome, max_rbh_scores_parts_output_dir, paralogs_output_dir,
+                                 max_rbh_scores_unified_dir, paralogs_scores_statistics_dir, paralogs_temp_dir]
+            if use_parquet:
+                single_cmd_params.append('--use_parquet')
+            if verbose:
+                single_cmd_params.append('--verbose')
+            all_cmds_params.append(single_cmd_params)
+
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+                                                   error_file_path,
+                                                   num_of_cmds_per_job=max(1, len(all_cmds_params) // n_jobs_per_step),
+                                                   job_name_suffix='paralogs_analysis',
+                                                   queue_name=queue_name,
+                                                   account_name=account_name)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)

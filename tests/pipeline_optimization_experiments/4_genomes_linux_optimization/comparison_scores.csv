@@ -1,0 +1,2 @@
+adjusted_rand_score,adjusted_mutual_info_score,homogeneity,completeness,v_measure,fowlkes_mallows_score
+1.0,0.9999999999999987,0.9999999999999998,0.9999999999999998,0.9999999999999998,1.0
