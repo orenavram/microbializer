@@ -86,12 +86,14 @@ def max_with_nan(x, y):
 def add_score_column_to_mmseqs_output(mmseqs_output_df):
     if consts.SIMILARITY_SCORE_CRITERION == consts.SimilarityScore.BITS:
         mmseqs_output_df['score'] = mmseqs_output_df['bits']
-    else:  # consts.SIMILARITY_SCORE_CRITERION == consts.SimilarityScore.EVALUE
-        mmseqs_output_df['score'] = -np.log10(mmseqs_output_df['evalue'])
-
-        # Change Infinity scores (evalue = 0) to the max hit score + 1
-        max_score = max(set(mmseqs_output_df['score']) - {np.inf})
-        mmseqs_output_df.loc[mmseqs_output_df['score'] == np.inf, 'score'] = max_score + 1
+    # elif consts.SIMILARITY_SCORE_CRITERION == consts.SimilarityScore.EVALUE:
+    #     mmseqs_output_df['score'] = -np.log10(mmseqs_output_df['evalue'])
+    #
+    #     # Change Infinity scores (evalue = 0) to the max hit score + 1
+    #     max_score = max(set(mmseqs_output_df['score']) - {np.inf})
+    #     mmseqs_output_df.loc[mmseqs_output_df['score'] == np.inf, 'score'] = max_score + 1
+    else:
+        raise ValueError(f"Unknown similarity score criterion: {consts.SIMILARITY_SCORE_CRITERION}")
 
 
 def remove_bootstrap_values(in_tree_path, out_tree_path):
