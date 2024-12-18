@@ -99,6 +99,7 @@ def get_arguments():
                         action='store_true')
     parser.add_argument('--run_mcl_on_all_hits_together', help='When True, run MCL on all hits together',
                         action='store_true')
+    parser.add_argument('--use_linux_to_parse_big_files', action='store_true')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
 
     args = parser.parse_args()
@@ -655,6 +656,8 @@ def step_5_infer_orthogroups_clustered(args, logger, times_logger, error_file_pa
                 params.append('--prepare_mcl_v2')
             if args.run_mcl_on_all_hits_together:
                 params.append('--run_mcl_on_all_hits_together')
+            if args.use_linux_to_parse_big_files:
+                params.append('--use_linux_to_parse_big_files')
             all_cmds_params.append(params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, infer_orthogroups_tmp_dir, error_file_path,
@@ -702,7 +705,8 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
         run_mmseqs_and_extract_hits(logger, times_logger, '05', error_file_path, output_dir, tmp_dir,
                                     done_files_dir, translated_orfs_dir, all_proteins_path, strains_names_path,
                                     args.queue_name, args.account_name, args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff,
-                                    consts.MAX_PARALLEL_JOBS, args.run_optimized_mmseqs, args.use_parquet, args.verbose)
+                                    consts.MAX_PARALLEL_JOBS, args.run_optimized_mmseqs, args.use_parquet,
+                                    args.use_linux_to_parse_big_files, args.verbose)
 
     orthogroups_file_path = \
         cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, output_dir, tmp_dir,

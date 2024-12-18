@@ -2,9 +2,9 @@ import os
 import pandas as pd
 from sklearn import metrics
 
-BASE_PATH = r"C:\Users\TalPNB22\Downloads"
-OG_TABLE_NO_CLUSTER = os.path.join(BASE_PATH, "73", "orthogroups.csv")
-OG_TABLE_CLUSTER = os.path.join(BASE_PATH, "10", "orthogroups.csv")
+BASE_PATH = r"C:\repos\microbializer\tests\pipeline_optimization_experiments\4_genomes_linux_optimization"
+OG_TABLE_NO_LINUX = os.path.join(BASE_PATH, "without_linux", "orthogroups.csv")
+OG_TABLE_LINUX = os.path.join(BASE_PATH, "with_linux", "orthogroups.csv")
 
 
 def compare_clusterings(true_labels, pred_labels, output_path):
@@ -54,16 +54,16 @@ def convert_og_table_to_labels(og_table_path):
 
 
 def main():
-    no_cluster_labels, no_cluster_genes = convert_og_table_to_labels(OG_TABLE_NO_CLUSTER)
-    cluster_labels, cluster_genes = convert_og_table_to_labels(OG_TABLE_CLUSTER)
+    without_linux_labels, without_linux_genes = convert_og_table_to_labels(OG_TABLE_NO_LINUX)
+    linux_labels, linux_genes = convert_og_table_to_labels(OG_TABLE_LINUX)
 
-    if len(no_cluster_labels) != len(cluster_labels):
-        genes_difference = set(no_cluster_genes).difference(set(cluster_genes))
-        genes_difference.add(set(cluster_genes).difference(set(no_cluster_genes)))
+    if len(without_linux_labels) != len(linux_labels):
+        genes_difference = set(without_linux_genes).difference(set(linux_genes))
+        genes_difference.add(set(linux_genes).difference(set(without_linux_genes)))
         print(f"Genes in no_optimize but not in optimize or vice versa: {genes_difference}")
         return
 
-    compare_clusterings(no_cluster_labels, cluster_labels, os.path.join(BASE_PATH, "comparison_scores.csv"))
+    compare_clusterings(without_linux_labels, linux_labels, os.path.join(BASE_PATH, "comparison_scores.csv"))
 
 
 if __name__ == '__main__':
