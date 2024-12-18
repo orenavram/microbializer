@@ -71,8 +71,8 @@ def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path
     if number_of_genomes > consts.MAX_NUMBER_OF_GENOMES_TO_ANALYZE and not args.bypass_number_of_genomes_limit:
         error_msg = f'The dataset contains too many genomes. {flask_interface_consts.WEBSERVER_NAME} allows analyzing up to ' \
                     f'{consts.MAX_NUMBER_OF_GENOMES_TO_ANALYZE} genomes due to the high resource consumption. However, ' \
-                    f'upon request (and supervision), we do allow analyzing large datasets. Please contact us ' \
-                    f'directly and we will do that for you.'
+                    f'upon request, we might be able to analyze larger datasets. Please contact us ' \
+                    f'directly and we will try to do that for you.'
         fail(logger, error_msg, error_file_path)
 
     # must be only after the spaces removal from the species names!!
