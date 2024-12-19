@@ -128,15 +128,17 @@ PATHS_TO_DOWNLOAD = {
 
 # Microbializer processor Job variables
 MICROBIALIZER_PROCESSOR_JOB_QUEUE_NAME = 'pupkoweb'
+MICROBIALIZER_PROCESSOR_JOB_ACCOUNT_NAME = 'pupkoweb-users'
 NUBMER_OF_CPUS_MICROBIALIZER_PROCESSOR_JOB = '1'
 MICROBIALIZER_MAIN_JOB_MEMORY = '4096'  # in MB
 MICROBIALIZER_MAIN_JOB_TIME_LIMIT_IN_HOURS = 168  # 7 days (the max time of pupkoweb)
 MICROBIALIZER_PROCESSOR_JOB_PREFIX = 'MC'
 MICROBIALIZER_PROCESSOR_RESULTS_FILE_NAME = ALL_OUTPUTS_ZIPPED
+INTERVAL_BETWEEN_LISTENER_SAMPLES = 120  # in seconds
 
-MICROBIALIZER_JOB_TEMPLATE = '''#!/bin/bash
+MICROBIALIZER_JOB_TEMPLATE = f'''#!/bin/bash
 
-sleep {sleep_interval}
+sleep {INTERVAL_BETWEEN_LISTENER_SAMPLES}
 
 echo "Job ID: $SLURM_JOB_ID"
 echo "Running on nodes: $SLURM_JOB_NODELIST"
@@ -149,17 +151,17 @@ export PATH=$CONDA_PREFIX/bin:$PATH
 
 echo "PATH: $PATH"
 
-python "/lsweb/pupko/microbializer/pipeline/main.py" --{args_json_path_key} {args_json_path} --account_name pupkoweb-users --queue_name pupkoweb
+python "/lsweb/pupko/microbializer/pipeline/main.py" --{ARGS_JSON_PATH_KEY} {{args_json_path}} --account_name {MICROBIALIZER_PROCESSOR_JOB_ACCOUNT_NAME} --queue_name {MICROBIALIZER_PROCESSOR_JOB_QUEUE_NAME}
 '''
 
-MICROBIALIZER_JOB_HEADER_TEMPLATE = '''
+MICROBIALIZER_JOB_HEADER_TEMPLATE = f'''
 #SBATCH --job-name=microbializer
-#SBATCH --account=pupkoweb-users
-#SBATCH --partition=pupkoweb
+#SBATCH --account={MICROBIALIZER_PROCESSOR_JOB_ACCOUNT_NAME}
+#SBATCH --partition={MICROBIALIZER_PROCESSOR_JOB_QUEUE_NAME}
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task={num_cpus}
-#SBATCH --mem={memory}
-#SBATCH --time={time_limit_in_hours}:00:00
-#SBATCH --output={output_file}
-#SBATCH --error={error_file}
+#SBATCH --cpus-per-task={NUBMER_OF_CPUS_MICROBIALIZER_PROCESSOR_JOB}
+#SBATCH --mem={MICROBIALIZER_MAIN_JOB_MEMORY}
+#SBATCH --time={MICROBIALIZER_MAIN_JOB_TIME_LIMIT_IN_HOURS}:00:00
+#SBATCH --output={{output_file}}
+#SBATCH --error={{error_file}}
 '''

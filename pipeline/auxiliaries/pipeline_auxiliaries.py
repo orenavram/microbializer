@@ -76,7 +76,7 @@ def wait_for_results(logger, times_logger, script_name, path, num_of_expected_re
     validate_slurm_error_logs(logger, path, error_file_path)
 
     if not recursive_step:
-        walltime_sum, cpus_used_per_job, log_files_without_times, log_files_without_cpus = get_jobs_cummulative_time(path)
+        walltime_sum, cpus_used_per_job, log_files_without_times, log_files_without_cpus = get_jobs_cummulative_time(logger, path)
         times_logger.info(f'Step {script_name} took {total_time_waited}. '
                           f'There were {num_of_expected_results} jobs and '
                           f'cumulatively they took {walltime_sum} wallclock time (times {cpus_used_per_job} cpus used '
@@ -124,7 +124,7 @@ def get_job_time_from_log_file(log_file_content, pattern_for_runtime, pattern_fo
     return runtime, cpus
 
 
-def get_jobs_cummulative_time(path):
+def get_jobs_cummulative_time(logger, path):
     log_files = [file_path for file_path in os.listdir(path) if file_path.endswith('log.txt')]
     pattern_for_walltime = re.compile(f'{consts.JOB_WALL_TIME_KEY}(.+) TimeLimit')
     pattern_for_cpus = re.compile(f'{consts.JOB_CPUS_KEY}(.+) NumTasks')
@@ -152,7 +152,9 @@ def get_jobs_cummulative_time(path):
     if cpus_used_in_jobs == {1, 2} or cpus_used_in_jobs == {2}:  # Sometimes when we submit jobs with 1 cpu, 2 are allocated and it's not an error
         cpus_used_in_jobs = {1}
     if len(cpus_used_in_jobs) != 1:  # The way that jobs are submitted ensures that each job in a step uses the same number of cpus
-        raise ValueError(f'Not all jobs used the same number of cpus in path {path}')
+        logger.error(f'Not all jobs used the same number of cpus in path {path}. cpus_used_in_jobs = {cpus_used_in_jobs}. '
+                     f'Setting cpus_used_in_jobs to 1 to avoid errors.')
+        cpus_used_in_jobs = {1}
 
     return walltime_sum, next(iter(cpus_used_in_jobs)), log_files_without_times, log_files_without_cpus
 

@@ -4,13 +4,13 @@ import os
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
 
-from auxiliaries.pipeline_auxiliaries import get_recursive_step_cummulative_times
+from pipeline.auxiliaries.pipeline_auxiliaries import get_jobs_cummulative_time
 
-PATH = r"C:\Users\yairs\Downloads\temp"
+PATH = SCRIPT_DIR
 
 
 def main():
-    get_recursive_step_cummulative_times(PATH)
+    get_jobs_cummulative_time(PATH)
 
 
 if __name__ == "__main__":
