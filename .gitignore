@@ -1,7 +1,7 @@
 .idea/
 __pycache__/
-pipeline/flask/api_secrets.py
 pipeline_output_example
 benchmark_data
 pipeline/data/kegg/prokaryote_database.*
 tests/kegg_prepare/raw_data/profiles
+pipeline/flask/api_secrets.py
