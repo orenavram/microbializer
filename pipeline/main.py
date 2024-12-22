@@ -100,6 +100,7 @@ def get_arguments():
     parser.add_argument('--run_mcl_on_all_hits_together', help='When True, run MCL on all hits together',
                         action='store_true')
     parser.add_argument('--use_linux_to_parse_big_files', action='store_true')
+    parser.add_argument('--mmseqs_use_dbs', action='store_true')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
 
     args = parser.parse_args()
@@ -201,7 +202,17 @@ def validate_arguments(args):
     if type(args.use_parquet) == str:
         args.use_parquet = str_to_bool(args.use_parquet)
     if type(args.auto_pre_cluster) == str:
-        args.use_parquet = str_to_bool(args.auto_pre_cluster)
+        args.auto_pre_cluster = str_to_bool(args.auto_pre_cluster)
+    if type(args.mmseqs_use_dbs) == str:
+        args.mmseqs_use_dbs = str_to_bool(args.mmseqs_use_dbs)
+    if type(args.run_optimized_mmseqs) == str:
+        args.run_optimized_mmseqs = str_to_bool(args.run_optimized_mmseqs)
+    if type(args.prepare_mcl_v2) == str:
+        args.prepare_mcl_v2 = str_to_bool(args.prepare_mcl_v2)
+    if type(args.run_mcl_on_all_hits_together) == str:
+        args.run_mcl_on_all_hits_together = str_to_bool(args.run_mcl_on_all_hits_together)
+    if type(args.use_linux_to_parse_big_files) == str:
+        args.use_linux_to_parse_big_files = str_to_bool(args.use_linux_to_parse_big_files)
 
     if args.pre_cluster_orthogroups_inference and args.unify_clusters_after_mmseqs and args.use_parquet:
         raise ValueError('If unify_clusters_after_mmseqs is True, we can not use parquet since we concat the csv hit files')
@@ -706,7 +717,7 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
                                     done_files_dir, translated_orfs_dir, all_proteins_path, strains_names_path,
                                     args.queue_name, args.account_name, args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff,
                                     consts.MAX_PARALLEL_JOBS, args.run_optimized_mmseqs, args.use_parquet,
-                                    args.use_linux_to_parse_big_files, args.verbose)
+                                    args.use_linux_to_parse_big_files, args.mmseqs_use_dbs, args.verbose)
 
     orthogroups_file_path = \
         cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, output_dir, tmp_dir,

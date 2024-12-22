@@ -20,7 +20,7 @@ from auxiliaries import consts
 
 
 def search_rbh(logger, genome1, genome2, dbs_dir, rbh_hits_dir, scores_statistics_dir, max_rbh_score_per_gene_dir,
-               error_file_path, identity_cutoff, coverage_cutoff, e_value_cutoff, use_parquet):
+               temp_dir, identity_cutoff, coverage_cutoff, e_value_cutoff, use_parquet):
     """
     input:  2 protein dbs
     output: query_vs_reference "mmseqs2 easy-rbh" results file
@@ -34,40 +34,50 @@ def search_rbh(logger, genome1, genome2, dbs_dir, rbh_hits_dir, scores_statistic
             and os.path.exists(output_genome1_max_scores) and os.path.exists(output_genome2_max_scores):
         return
 
-    tmp_dir = os.path.join(rbh_hits_dir, f'tmp_{genome1}_vs_{genome2}')
-    m8_outfile_raw = os.path.join(rbh_hits_dir, f'{genome1}_vs_{genome2}.m8.raw')
- 
+    tmp_dir = os.path.join(temp_dir, f'tmp_{genome1}_vs_{genome2}')
+
     # control verbosity level by -v [3] param ; verbosity levels: 0=nothing, 1: +errors, 2: +warnings, 3: +info
     db_1_path = os.path.join(dbs_dir, f'{genome1}.db')
     db_2_path = os.path.join(dbs_dir, f'{genome2}.db')
-    rbh_command = f'mmseqs rbh {db_1_path} {db_2_path} {{result_db}} {{tmp_dir}} ' \
-    f'--min-seq-id {IDENTITY_CUTOFF} ' \
-    f'-c {COVERAGE_CUTOFF} --cov-mode 0 -e {E_VALUE_CUTOFF} --threads {{cpus}} --search-type 1 --comp-bias-corr 0'
+    result_db_path = os.path.join(temp_dir, f'{genome1}_vs_{genome2}.db')
+    rbh_command = f'mmseqs rbh {db_1_path} {db_2_path} {result_db_path} {tmp_dir} --min-seq-id {identity_cutoff} ' \
+                  f'-c {coverage_cutoff} --cov-mode 0 -e {e_value_cutoff} --threads 1 --search-type 1 ' \
+                  f'--comp-bias-corr 0 -v 1'
+    logger.info(f'Calling: {rbh_command}')
+    subprocess.run(rbh_command, shell=True, check=True)
 
-    cmd = f'mmseqs easy-rbh {protein_fasta_1} {protein_fasta_2} {m8_outfile_raw} {tmp_dir} --format-output {consts.MMSEQS_OUTPUT_FORMAT} --min-seq-id {identity_cutoff} -c {coverage_cutoff} --cov-mode 0 -e {e_value_cutoff} --threads 1 -v 1'
-    logger.info(f'Iteration #{i} - Calling:\n{cmd}')
-    subprocess.run(cmd, shell=True)
-
-
-    if os.path.getsize(m8_outfile_raw) == 0:
-        logger.info(f"{m8_outfile_raw}  was created successfully but is empty. No rbh-hits were found.")
+    if os.path.getsize(result_db_path) == 0:
+        logger.info(f"{result_db_path} was created successfully but is empty. No rbh-hits were found.")
         return
+
+    m8_outfile_raw = os.path.join(temp_dir, f'{genome1}_vs_{genome2}.m8.raw')
+    convert_command = f'mmseqs convertalis {db_1_path} {db_2_path} {result_db_path} {m8_outfile_raw} ' \
+                      f'--format-output {consts.MMSEQS_OUTPUT_FORMAT} --search-type 1 --threads 1 -v 1'
+    logger.info(f'Calling: {convert_command}')
+    subprocess.run(convert_command, shell=True, check=True)
 
     logger.info(f"{m8_outfile_raw} was created successfully. Adding 'score' column to it...")
     # Add 'score' column to mmseqs output
-    df = pd.read_csv(m8_outfile_raw, sep='\t', names=consts.MMSEQS_OUTPUT_HEADER)
-    add_score_column_to_mmseqs_output(df)
+    rbh_df = pd.read_csv(m8_outfile_raw, sep='\t', names=consts.MMSEQS_OUTPUT_HEADER)
+    add_score_column_to_mmseqs_output(rbh_df)
 
     if use_parquet:
-        df[['query', 'target', 'score']].to_parquet(m8_outfile, index=False)
+        rbh_df.to_parquet(output_rbh_path, index=False)
     else:
-        df[['query', 'target', 'score']].to_csv(m8_outfile, index=False)
-    logger.info(f"{m8_outfile} was created successfully.")
+        rbh_df.to_csv(output_rbh_path, index=False)
+    logger.info(f"{output_rbh_path} was created successfully.")
 
-    scores_statistics = {'mean': statistics.mean(df['score']), 'sum': sum(df['score']),
-                         'number of records': len(df['score'])}
-    with open(score_stats_file, 'w') as fp:
+    # Calculate statistics of scores
+    scores_statistics = {'mean': statistics.mean(rbh_df['score']), 'sum': sum(rbh_df['score']),
+                         'number of records': len(rbh_df['score'])}
+    with open(output_statistics_path, 'w') as fp:
         json.dump(scores_statistics, fp)
+
+    # Calculate max rbh score for each gene
+    genome1_max_scores = rbh_df.groupby(['query']).max(numeric_only=True)['score']
+    genome2_max_scores = rbh_df.groupby(['target']).max(numeric_only=True)['score']
+    genome1_max_scores.to_csv(output_genome1_max_scores, index_label='gene', header=['max_rbh_score'])
+    genome2_max_scores.to_csv(output_genome2_max_scores, index_label='gene', header=['max_rbh_score'])
 
 
 if __name__ == '__main__':
@@ -75,10 +85,13 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('protein_fasta_1', help='path to a protein fasta')
-    parser.add_argument('protein_fasta_2', help='path to another protein fasta')
-    parser.add_argument('output_path', help='path to which the results will be written (blast m8 format)')
+    parser.add_argument('genome1', help='name of the first genome')
+    parser.add_argument('genome2', help='name of the second genome')
+    parser.add_argument('dbs_dir', help='path to dbs dir')
+    parser.add_argument('rbh_hits_dir', help='path to which the results will be written (blast m8 format)')
     parser.add_argument('scores_statistics_dir', help='path to output dir of score statistics')
+    parser.add_argument('max_rbh_score_per_gene_dir', help='')
+    parser.add_argument('temp_dir', help='path to temp dir')
     parser.add_argument('--identity_cutoff', type=float)
     parser.add_argument('--coverage_cutoff', type=float)
     parser.add_argument('--e_value_cutoff', type=float)
@@ -93,8 +106,8 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        search_all_vs_all(logger, args.protein_fasta_1, args.protein_fasta_2, args.output_path, args.scores_statistics_dir,
-                          args.error_file_path, args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff, args.use_parquet)
+        search_rbh(logger, args.genome1, args.genome2, args.dbs_dir, args.rbh_hits_dir, args.scores_statistics_dir, args.max_rbh_score_per_gene_dir,
+                   args.temp_dir, args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff, args.use_parquet)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:
