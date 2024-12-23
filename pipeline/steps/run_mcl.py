@@ -17,7 +17,7 @@ def mcl(logger, input_file, output_file, cpus):
         return
 
     # --abc for a columns format, i.e., item1\item2\tscore
-    cmd = f'mcl "{input_file}" -I 1.5 --abc -o "{output_file}" -te {cpus} -V'
+    cmd = f'mcl "{input_file}" -I 1.5 --abc -o "{output_file}" -te {cpus}'
     logger.info(f'Starting MCL. Calling:\n{cmd}')
     subprocess.run(cmd, shell=True)
 
