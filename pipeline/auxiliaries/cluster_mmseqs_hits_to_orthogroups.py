@@ -922,7 +922,7 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, base_step_number, erro
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
     # 2.	mmseqs2_rbh.py
-    step_number = f'{base_step_number}_1'
+    step_number = f'{base_step_number}_2'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_mmseqs_rbh'
     script_path = os.path.join(consts.SRC_DIR, 'steps/mmseqs_v4/mmseqs2_rbh.py')
@@ -936,6 +936,7 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, base_step_number, erro
         if len(strains_names) >= 2:
             logger.info(f'Querying all VS all (using mmseqs2)...')
             temp_dir = os.path.join(orthologs_output_dir, 'temp')
+            os.makedirs(temp_dir, exist_ok=True)
             all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
             for strain1_name, strain2_name in itertools.combinations(strains_names, 2):
                 single_cmd_params = [strain1_name,
@@ -983,6 +984,7 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, base_step_number, erro
     if not os.path.exists(done_file_path):
         logger.info('Searching for paralogs in each genome')
         temp_dir = os.path.join(paralogs_output_dir, 'temp')
+        os.makedirs(temp_dir, exist_ok=True)
         all_cmds_params = []
         for strain_name in strains_names:
             logger.info(f'Querying {strain_name} for paralogs')

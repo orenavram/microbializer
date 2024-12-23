@@ -61,6 +61,7 @@ def search_paralogs(logger, genome_name, dbs_dir, max_scores_parts_dir, paralogs
     # Add 'score' column to mmseqs output
     m8_df = pd.read_csv(m8_outfile_raw, sep='\t', names=consts.MMSEQS_OUTPUT_HEADER)
     add_score_column_to_mmseqs_output(m8_df)
+    m8_df = m8_df[['query', 'target', 'score']]
 
     # Keep only hits that have score higher than the max score of both query and target.
     # If only one of the genes was identified as rbh to a gene in another genome (and thus the other one doesn't

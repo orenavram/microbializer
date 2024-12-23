@@ -60,6 +60,7 @@ def search_rbh(logger, genome1, genome2, dbs_dir, rbh_hits_dir, scores_statistic
     # Add 'score' column to mmseqs output
     rbh_df = pd.read_csv(m8_outfile_raw, sep='\t', names=consts.MMSEQS_OUTPUT_HEADER)
     add_score_column_to_mmseqs_output(rbh_df)
+    rbh_df = rbh_df[['query', 'target', 'score']]
 
     if use_parquet:
         rbh_df.to_parquet(output_rbh_path, index=False)
