@@ -25,12 +25,12 @@ def create_db(logger, genome_name, proteomes_dir, output_dir):
 
     logger.info(f"{db_path} was created successfully.")
 
-    tmp_dir = os.path.join(output_dir, f'tmp_index_{genome_name}')
-    create_index_command = f'mmseqs createindex {db_path} {tmp_dir} --threads 1 --search-type 1 --comp-bias-corr 0 -v 1'
-    logger.info(f'Calling: {create_index_command}')
-    subprocess.run(create_index_command, shell=True, check=True)
+    # tmp_dir = os.path.join(output_dir, f'tmp_index_{genome_name}')
+    # create_index_command = f'mmseqs createindex {db_path} {tmp_dir} --threads 1 --search-type 1 --comp-bias-corr 0'
+    # logger.info(f'Calling: {create_index_command}')
+    # subprocess.run(create_index_command, shell=True, check=True)
 
-    logger.info(f"Index for {db_path} was created successfully.")
+    # logger.info(f"Index for {db_path} was created successfully.")
 
 
 if __name__ == '__main__':
