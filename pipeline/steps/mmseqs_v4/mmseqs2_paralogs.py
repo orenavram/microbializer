@@ -94,6 +94,8 @@ def search_paralogs(logger, genome_name, dbs_dir, max_scores_parts_dir, paralogs
     with open(score_stats_file, 'w') as fp:
         json.dump(scores_statistics, fp)
 
+    logger.info(f"{score_stats_file} was created successfully.")
+
 
 if __name__ == '__main__':
     script_run_message = f'Starting command is: {" ".join(argv)}'

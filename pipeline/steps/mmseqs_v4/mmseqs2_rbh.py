@@ -74,11 +74,15 @@ def search_rbh(logger, genome1, genome2, dbs_dir, rbh_hits_dir, scores_statistic
     with open(output_statistics_path, 'w') as fp:
         json.dump(scores_statistics, fp)
 
+    logger.info(f"{output_statistics_path} was created successfully.")
+
     # Calculate max rbh score for each gene
     genome1_max_scores = rbh_df.groupby(['query']).max(numeric_only=True)['score']
     genome2_max_scores = rbh_df.groupby(['target']).max(numeric_only=True)['score']
     genome1_max_scores.to_csv(output_genome1_max_scores, index_label='gene', header=['max_rbh_score'])
     genome2_max_scores.to_csv(output_genome2_max_scores, index_label='gene', header=['max_rbh_score'])
+
+    logger.info(f"{output_genome1_max_scores} and {output_genome2_max_scores} were created successfully.")
 
 
 if __name__ == '__main__':
