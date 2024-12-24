@@ -104,6 +104,8 @@ def search_paralogs(logger, protein_fasta, m8_outfile, genome_max_scores_path, s
     with open(score_stats_file, 'w') as fp:
         json.dump(scores_statistics, fp)
 
+    logger.info(f"{score_stats_file} was created successfully.")
+
 
 if __name__ == '__main__':
     script_run_message = f'Starting command is: {" ".join(argv)}'

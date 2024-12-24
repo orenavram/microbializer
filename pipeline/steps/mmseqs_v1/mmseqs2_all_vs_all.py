@@ -85,6 +85,8 @@ def search_all_vs_all(logger, protein_fasta_1, protein_fasta_2, m8_outfile, scor
     with open(score_stats_file, 'w') as fp:
         json.dump(scores_statistics, fp)
 
+    logger.info(f"{score_stats_file} was created successfully.")
+
 
 if __name__ == '__main__':
     script_run_message = f'Starting command is: {" ".join(argv)}'

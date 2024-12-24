@@ -45,6 +45,7 @@ def max_rbh_score_per_gene(logger, rbh_m8_dir, strain_name, output_dir, step_nam
             fail(logger, f'Error while processing {rbh_hits_file} in step max_rbh_score_per_gene: {e}', error_file_path)
 
     max_score_per_gene.to_csv(output_file_path, index_label='gene', header=['max_ortholog_score'])
+    logger.info(f'{output_file_path} was created successfully.')
 
 
 if __name__ == '__main__':
