@@ -1456,7 +1456,7 @@ def main(args):
                           steps_results_dir, tmp_dir, done_files_dir,
                           data_path, genomes_names_path, final_output_dir)
 
-        if args.step_to_complete is None and not args.only_calc_ogs:
+        if args.step_to_complete is None and not args.only_calc_ogs and consts.COPY_OUTPUTS_TO_FINAL_RESULTS_DIR:
             logger.info('Zipping results folder...')
             shutil.make_archive(final_output_dir, 'zip', meta_output_dir, final_output_dir_name)
 
