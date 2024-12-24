@@ -15,14 +15,14 @@ from auxiliaries.cluster_mmseqs_hits_to_orthogroups import cluster_mmseqs_hits_t
 
 def full_orthogroups_infernece(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,
                                translated_orfs_dir, all_proteins_path, strains_names_path, queue_name,
-                               account_name, identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs,
+                               account_name, node_name, identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs,
                                run_optimized_mmseqs, unify_clusters_after_mmseqs, use_parquet, prepare_mcl_v2,
                                run_mcl_on_all_hits_together, use_linux_to_parse_big_files, mmseqs_use_dbs, verbose):
 
     orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir = \
         run_mmseqs_and_extract_hits(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
                                     done_files_dir, translated_orfs_dir, all_proteins_path, strains_names_path, queue_name,
-                                    account_name, identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs,
+                                    account_name, node_name, identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs,
                                     run_optimized_mmseqs, use_parquet, use_linux_to_parse_big_files, mmseqs_use_dbs, verbose)
 
     if unify_clusters_after_mmseqs:
@@ -31,7 +31,7 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
     cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
                                        orthologs_output_dir, orthologs_scores_statistics_dir, paralogs_output_dir,
                                        paralogs_scores_statistics_dir, max_parallel_jobs, base_step_number,
-                                       4, account_name, queue_name, use_parquet, prepare_mcl_v2, strains_names_path,
+                                       4, account_name, queue_name, node_name, use_parquet, prepare_mcl_v2, strains_names_path,
                                        run_mcl_on_all_hits_together)
 
 
@@ -49,6 +49,7 @@ if __name__ == '__main__':
     parser.add_argument('strains_names_path', help='')
     parser.add_argument('queue_name', help='')
     parser.add_argument('account_name', help='')
+    parser.add_argument('node_name', help='')
     parser.add_argument('identity_cutoff', help='', type=float)
     parser.add_argument('coverage_cutoff', help='', type=float)
     parser.add_argument('e_value_cutoff', help='', type=float)
@@ -73,7 +74,7 @@ if __name__ == '__main__':
     try:
         full_orthogroups_infernece(logger, times_logger, args.step_number, args.error_file_path, args.output_dir,
                                    args.tmp_dir, args.done_files_dir, args.translated_orfs_dir, args.all_proteins_path,
-                                   args.strains_names_path, args.queue_name, args.account_name,
+                                   args.strains_names_path, args.queue_name, args.account_name, args.node_name,
                                    args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff,
                                    args.max_parallel_jobs, args.run_optimized_mmseqs, args.unify_clusters_after_mmseqs,
                                    args.use_parquet, args.prepare_mcl_v2, args.run_mcl_on_all_hits_together,

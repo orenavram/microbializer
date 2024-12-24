@@ -76,6 +76,7 @@ def get_arguments():
                         default=consts.DEFAULT_SLURM_PARTITION)
     parser.add_argument('--account_name', help='The slurm account to submit jobs to',
                         default=consts.DEFAULT_SLURM_ACCOUNT)
+    parser.add_argument('--node_name', help='The node name to submit jobs to', default=None)
     parser.add_argument('--step_to_complete', help='The final step to execute', default=None,
                         choices=[*PIPELINE_STEPS, None])
     parser.add_argument('--only_calc_ogs', help='Do only the necessary steps to calculate OGs', action='store_true')
@@ -296,7 +297,8 @@ def step_0_fix_input_files(args, logger, times_logger, error_file_path, output_d
                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                    job_name_suffix='drop_plasmids',
                                                    queue_name=args.queue_name,
-                                                   account_name=args.account_name)
+                                                   account_name=args.account_name,
+                                                   node_name=args.node_name)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)
@@ -329,7 +331,7 @@ def step_1_calculate_ani(args, logger, times_logger, error_file_path,  output_di
         single_cmd_params = [genomes_list_path, ani_output_dir, f'--cpus {consts.ANI_NUM_OF_CORES}']
 
         submit_mini_batch(logger, script_path, [single_cmd_params], ani_tmp_dir, error_file_path, args.queue_name, args.account_name,
-                          job_name='ANI', num_of_cpus=consts.ANI_NUM_OF_CORES, memory=consts.ANI_REQUIRED_MEMORY_GB)
+                          job_name='ANI', num_of_cpus=consts.ANI_NUM_OF_CORES, memory=consts.ANI_REQUIRED_MEMORY_GB, node_name=args.node_name)
         wait_for_results(logger, times_logger, step_name, ani_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path)
 
@@ -369,7 +371,8 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
                                                        num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                        job_name_suffix='search_orfs',
                                                        queue_name=args.queue_name,
-                                                       account_name=args.account_name)
+                                                       account_name=args.account_name,
+                                                       node_name=args.node_name)
 
             wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                              num_of_batches, error_file_path)
@@ -406,7 +409,8 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
                                                                  num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                                  job_name_suffix='orfs_statistics',
                                                                  queue_name=args.queue_name,
-                                                                 account_name=args.account_name,)
+                                                                 account_name=args.account_name,
+                                                                 node_name=args.node_name)
 
         wait_for_results(logger, times_logger, step_name, orfs_statistics_tmp_dir,
                          num_of_expected_orfs_results, error_file_path=error_file_path)
@@ -467,7 +471,8 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                    job_name_suffix='orfs_dna_translation',
                                                    queue_name=args.queue_name,
-                                                   account_name=args.account_name,)
+                                                   account_name=args.account_name,
+                                                   node_name=args.node_name)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)
@@ -524,7 +529,8 @@ def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_pa
                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                    job_name_suffix='genomes_completeness',
                                                    queue_name=args.queue_name,
-                                                   account_name=args.account_name,)
+                                                   account_name=args.account_name,
+                                                   node_name=args.node_name)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)
@@ -571,7 +577,7 @@ def step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output
                   ]
 
         submit_mini_batch(logger, script_path, [params], clusters_tmp_dir, error_file_path, args.queue_name, args.account_name,
-                          job_name='cluster_proteomes', num_of_cpus=cpus, memory=consts.MMSEQS_CLUSTER_REQUIRED_MEMORY_GB)
+                          job_name='cluster_proteomes', num_of_cpus=cpus, memory=consts.MMSEQS_CLUSTER_REQUIRED_MEMORY_GB, node_name=args.node_name)
         wait_for_results(logger, times_logger, step_name, clusters_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path)
 
@@ -613,7 +619,8 @@ def step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output
                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                    job_name_suffix='filter_fastas_by_clusters',
                                                    queue_name=args.queue_name,
-                                                   account_name=args.account_name)
+                                                   account_name=args.account_name,
+                                                   node_name=args.node_name)
 
         wait_for_results(logger, times_logger, step_name, clusters_fasta_tmp_dir,
                          num_of_batches, error_file_path)
@@ -652,7 +659,7 @@ def step_5_infer_orthogroups_clustered(args, logger, times_logger, error_file_pa
 
             params = [step_number, cluster_output_dir, cluster_tmp_dir, cluster_done_dir, cluster_fastas_dir_path,
                       os.path.join(cluster_fastas_dir_path, 'all_proteomes.faa'), genomes_names_path, args.queue_name,
-                      args.account_name, args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff,
+                      args.account_name, args.node_name, args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff,
                       max(1, consts.MAX_PARALLEL_JOBS // args.num_of_clusters_in_orthogroup_inference)]
 
             if args.run_optimized_mmseqs:
@@ -669,6 +676,8 @@ def step_5_infer_orthogroups_clustered(args, logger, times_logger, error_file_pa
                 params.append('--run_mcl_on_all_hits_together')
             if args.use_linux_to_parse_big_files:
                 params.append('--use_linux_to_parse_big_files')
+            if args.mmseqs_use_dbs:
+                params.append('--mmseqs_use_dbs')
             all_cmds_params.append(params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, infer_orthogroups_tmp_dir, error_file_path,
@@ -676,7 +685,8 @@ def step_5_infer_orthogroups_clustered(args, logger, times_logger, error_file_pa
                                                    job_name_suffix='infer_orthogroups',
                                                    queue_name=args.queue_name,
                                                    account_name=args.account_name,
-                                                   time_in_hours=consts.INFER_ORTHOGROUPS_JOB_TIME_LIMIT_HOURS)
+                                                   time_in_hours=consts.INFER_ORTHOGROUPS_JOB_TIME_LIMIT_HOURS,
+                                                   node_name=args.node_name)
 
         wait_for_results(logger, times_logger, step_name, infer_orthogroups_tmp_dir,
                          num_of_batches, error_file_path, recursive_step=True)
@@ -715,7 +725,7 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
     orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir = \
         run_mmseqs_and_extract_hits(logger, times_logger, '05', error_file_path, output_dir, tmp_dir,
                                     done_files_dir, translated_orfs_dir, all_proteins_path, strains_names_path,
-                                    args.queue_name, args.account_name, args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff,
+                                    args.queue_name, args.account_name, args.node_name, args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff,
                                     consts.MAX_PARALLEL_JOBS, args.run_optimized_mmseqs, args.use_parquet,
                                     args.use_linux_to_parse_big_files, args.mmseqs_use_dbs, args.verbose)
 
@@ -723,7 +733,7 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
         cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, output_dir, tmp_dir,
                                            done_files_dir, orthologs_output_dir, orthologs_scores_statistics_dir,
                                            paralogs_output_dir, paralogs_scores_statistics_dir,
-                                           consts.MAX_PARALLEL_JOBS, '05', 4, args.account_name, args.queue_name,
+                                           consts.MAX_PARALLEL_JOBS, '05', 4, args.account_name, args.queue_name, args.node_name,
                                            args.use_parquet, args.prepare_mcl_v2, strains_names_path, args.run_mcl_on_all_hits_together)
 
     return orthogroups_file_path
@@ -752,7 +762,8 @@ def step_6_extract_orphan_genes(args, logger, times_logger, error_file_path, out
                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                    job_name_suffix='extract_orphans',
                                                    queue_name=args.queue_name,
-                                                   account_name=args.account_name)
+                                                   account_name=args.account_name,
+                                                   node_name=args.node_name)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)
@@ -801,7 +812,7 @@ def step_7_orthologs_table_variations(args, logger, times_logger, error_file_pat
         if args.add_orphan_genes_to_ogs:
             params += [f'--orphan_genes_dir {orphan_genes_dir}']
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path, args.queue_name, args.account_name,
-                          job_name='final_ortholog_groups')
+                          job_name='final_ortholog_groups', node_name=args.node_name)
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path)
 
@@ -875,7 +886,8 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
                                                    num_of_cmds_per_job=1,  # =max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS)
                                                    job_name_suffix='orfs_extraction',
                                                    queue_name=args.queue_name,
-                                                   account_name=args.account_name)
+                                                   account_name=args.account_name,
+                                                   node_name=args.node_name)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)
@@ -910,7 +922,8 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                    job_name_suffix='dna_translation',
                                                    queue_name=args.queue_name,
-                                                   account_name=args.account_name)
+                                                   account_name=args.account_name,
+                                                   node_name=args.node_name)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)
@@ -947,7 +960,8 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                    job_name_suffix='genes_alignment',
                                                    queue_name=args.queue_name,
-                                                   account_name=args.account_name)
+                                                   account_name=args.account_name,
+                                                   node_name=args.node_name)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)
@@ -984,7 +998,8 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
                                                                     num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                                     job_name_suffix='induce_msa',
                                                                     queue_name=args.queue_name,
-                                                                    account_name=args.account_name)
+                                                                    account_name=args.account_name,
+                                                                    node_name=args.node_name)
 
         wait_for_results(logger, times_logger, step_name, induced_tmp_dir,
                          num_of_expected_results=num_of_expected_induced_results, error_file_path=error_file_path)
@@ -1019,7 +1034,7 @@ def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, err
                   core_proteome_length_file_path,
                   f'--core_minimal_percentage {args.core_minimal_percentage}']  # how many members induce a core group?
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path,
-                          args.queue_name, args.account_name, job_name='core_proteome')
+                          args.queue_name, args.account_name, job_name='core_proteome', node_name=args.node_name)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path)
@@ -1049,7 +1064,7 @@ def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, err
                   core_genome_length_file_path,
                   f'--core_minimal_percentage {args.core_minimal_percentage}']  # how many members induce a core group?
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path,
-                          args.queue_name, args.account_name, job_name='core_genome')
+                          args.queue_name, args.account_name, job_name='core_genome', node_name=args.node_name)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path)
@@ -1079,7 +1094,7 @@ def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, err
                   f'--core_minimal_percentage {args.core_minimal_percentage}', # how many members induce a core group?
                   f'--max_number_of_ogs {consts.NAX_NUMBER_OF_CORE_OGS_FOR_PHYLOGENY}']
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path,
-                          args.queue_name, args.account_name, job_name='core_proteome')
+                          args.queue_name, args.account_name, job_name='core_proteome', node_name=args.node_name)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path)
@@ -1114,7 +1129,7 @@ def step_10_genome_numeric_representation(args, logger, times_logger, error_file
                   numeric_representation_tmp_dir
                   ]
         submit_mini_batch(logger, script_path, [params], numeric_representation_tmp_dir, error_file_path,
-                          args.queue_name, args.account_name, job_name='numeric_representation')
+                          args.queue_name, args.account_name, job_name='numeric_representation', node_name=args.node_name)
 
         wait_for_results(logger, times_logger, step_name, numeric_representation_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path)
@@ -1162,7 +1177,8 @@ def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, t
                               args.queue_name, args.account_name, job_name='tree_reconstruction',
                               num_of_cpus=consts.PHYLOGENY_NUM_OF_CORES,
                               memory=consts.PHYLOGENY_REQUIRED_MEMORY_GB,
-                              command_to_run_before_script='export QT_QPA_PLATFORM=offscreen')  # Needed to avoid an error in drawing the tree. Taken from: https://github.com/NVlabs/instant-ngp/discussions/300
+                              command_to_run_before_script='export QT_QPA_PLATFORM=offscreen',
+                              node_name=args.node_name)  # Needed to avoid an error in drawing the tree. Taken from: https://github.com/NVlabs/instant-ngp/discussions/300
 
             # wait for the phylogenetic tree here
             wait_for_results(logger, times_logger, step_name, phylogeny_tmp_dir,
@@ -1199,7 +1215,7 @@ def step_12_codon_bias(args, logger, times_logger, error_file_path, output_dir, 
             consts.CODON_BIAS_NUM_OF_CORES
         ]
         submit_mini_batch(logger, script_path, [params], codon_bias_tmp_dir, error_file_path, args.queue_name, args.account_name, job_name='codon_bias',
-                          num_of_cpus=consts.CODON_BIAS_NUM_OF_CORES)
+                          num_of_cpus=consts.CODON_BIAS_NUM_OF_CORES, node_name=args.node_name)
 
         wait_for_results(logger, times_logger, step_name, codon_bias_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path)
@@ -1235,7 +1251,7 @@ def step_13_kegg_annotation(args, logger, times_logger, error_file_path, output_
             '--optimize'
         ]
         submit_mini_batch(logger, script_path, [params], tmp_dir, error_file_path, args.queue_name, args.account_name,
-                          job_name='kegg', num_of_cpus=consts.KEGG_NUM_OF_CORES, memory=consts.KEGG_REQUIRED_MEMORY_GB)
+                          job_name='kegg', num_of_cpus=consts.KEGG_NUM_OF_CORES, memory=consts.KEGG_REQUIRED_MEMORY_GB, node_name=args.node_name)
 
         wait_for_results(logger, times_logger, step_name, tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path)

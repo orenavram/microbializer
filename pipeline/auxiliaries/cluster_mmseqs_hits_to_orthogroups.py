@@ -12,7 +12,7 @@ from .file_writer import write_to_file
 
 def run_mmseqs_and_extract_hits(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,
                                 translated_orfs_dir, all_proteins_path, strains_names_path, queue_name,
-                                account_name, identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs,
+                                account_name, node_name, identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs,
                                 run_optimized_mmseqs, use_parquet, use_linux_to_parse_big_files, mmseqs_use_dbs, verbose):
     with open(strains_names_path) as f:
         strains_names = f.read().rstrip().split('\n')
@@ -22,32 +22,32 @@ def run_mmseqs_and_extract_hits(logger, times_logger, base_step_number, error_fi
             orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir =\
                 run_unified_mmseqs_with_linux_parsing(logger, times_logger, base_step_number, error_file_path,
                                                       output_dir, tmp_dir, done_files_dir, all_proteins_path,
-                                                      strains_names, queue_name, account_name, identity_cutoff,
+                                                      strains_names, queue_name, account_name, node_name, identity_cutoff,
                                                       coverage_cutoff,  e_value_cutoff, max_parallel_jobs, use_parquet,
                                                       verbose)
         else:
             orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir =\
                 run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
-                                   done_files_dir, all_proteins_path, strains_names, queue_name, account_name,
+                                   done_files_dir, all_proteins_path, strains_names, queue_name, account_name, node_name,
                                    identity_cutoff, coverage_cutoff,  e_value_cutoff, max_parallel_jobs, use_parquet,
                                    verbose)
     else:
         if mmseqs_use_dbs:
             orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir = \
                 run_non_unified_mmseqs_with_dbs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
-                                       done_files_dir, translated_orfs_dir, strains_names, queue_name, account_name,
+                                       done_files_dir, translated_orfs_dir, strains_names, queue_name, account_name, node_name,
                                        identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs, use_parquet)
         else:
             orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir =\
                 run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
-                                       done_files_dir, translated_orfs_dir, strains_names, queue_name, account_name,
+                                       done_files_dir, translated_orfs_dir, strains_names, queue_name, account_name, node_name,
                                        identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs, use_parquet)
 
     return orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir
 
 
 def unify_clusters_mmseqs_hits(logger, times_logger, output_dir, tmp_dir, done_files_dir, error_file_path,
-                               mmseqs_output_dir, run_optimized_mmseqs, queue_name, account_name, base_step_number,
+                               mmseqs_output_dir, run_optimized_mmseqs, queue_name, account_name, node_name, base_step_number,
                                start_substep_number):
     if run_optimized_mmseqs:
         rbhs_dir_name = '05_1_2_extract_rbh_hits'
@@ -84,7 +84,8 @@ def unify_clusters_mmseqs_hits(logger, times_logger, output_dir, tmp_dir, done_f
                                                        num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                        job_name_suffix='concat_clusters_rbhs',
                                                        queue_name=queue_name,
-                                                       account_name=account_name)
+                                                       account_name=account_name,
+                                                       node_name=node_name)
 
             wait_for_results(logger, times_logger, step_name, orthologs_tmp_dir, num_of_batches, error_file_path)
 
@@ -120,7 +121,8 @@ def unify_clusters_mmseqs_hits(logger, times_logger, output_dir, tmp_dir, done_f
                                                        num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                        job_name_suffix='concat_clusters_rbhs',
                                                        queue_name=queue_name,
-                                                       account_name=account_name)
+                                                       account_name=account_name,
+                                                       node_name=node_name)
 
             wait_for_results(logger, times_logger, step_name, paralogs_tmp_dir, num_of_batches, error_file_path)
 
@@ -133,7 +135,7 @@ def unify_clusters_mmseqs_hits(logger, times_logger, output_dir, tmp_dir, done_f
 
 def run_mcl_on_all_hits_together(logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
                                  all_hits_file, base_step_number, start_substep_number, account_name, queue_name,
-                                 number_of_genomes):
+                                 node_name, number_of_genomes):
     ### TODO: Only a start - should finish function, check optimized way to do that (read MCL documentation).
 
     # run_mcl.py
@@ -152,7 +154,7 @@ def run_mcl_on_all_hits_together(logger, times_logger, error_file_path, output_d
         mcl_memory_gb = str(int(math.ceil(number_of_genomes * 0.1)))
         submit_mini_batch(logger, script_path, [params], mcl_tmp_dir, error_file_path, queue_name,
                           account_name, job_name='mcl', num_of_cpus=consts.MCL_NUM_OF_CORES,
-                          memory=mcl_memory_gb)
+                          memory=mcl_memory_gb, node_name=node_name)
 
         wait_for_results(logger, times_logger, step_name, mcl_tmp_dir, 1, error_file_path)
 
@@ -164,7 +166,7 @@ def run_mcl_on_all_hits_together(logger, times_logger, error_file_path, output_d
 def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
                                        orthologs_output_dir, orthologs_scores_statistics_dir, paralogs_output_dir,
                                        paralogs_scores_statistics_dir, max_parallel_jobs, base_step_number,
-                                       start_substep_number, account_name, queue_name, use_parquet, prepare_mcl_v2,
+                                       start_substep_number, account_name, queue_name, node_name, use_parquet, prepare_mcl_v2,
                                        strains_names_path, run_mcl_on_all_hits_together_flag):
     with open(strains_names_path) as f:
         strains_names = f.read().rstrip().split('\n')
@@ -209,7 +211,8 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // max_parallel_jobs),
                                                    job_name_suffix='hits_normalize',
                                                    queue_name=queue_name,
-                                                   account_name=account_name)
+                                                   account_name=account_name,
+                                                   node_name=node_name)
 
         wait_for_results(logger, times_logger, step_name, normalized_hits_tmp_dir, num_of_batches, error_file_path)
 
@@ -243,7 +246,8 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // max_parallel_jobs),
                                                    job_name_suffix='concatenate_hits',
                                                    queue_name=queue_name,
-                                                   account_name=account_name)
+                                                   account_name=account_name,
+                                                   node_name=node_name)
 
         wait_for_results(logger, times_logger, step_name, concatenate_tmp_dir,
                          num_of_batches, error_file_path)
@@ -279,7 +283,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
         params = [all_hits_file,
                   putative_orthologs_table_path]
         submit_mini_batch(logger, script_path, [params], putative_orthologs_table_tmp_dir, error_file_path,
-                          queue_name, account_name, job_name=os.path.split(script_path)[-1])
+                          queue_name, account_name, job_name=os.path.split(script_path)[-1], node_name=node_name)
         wait_for_results(logger, times_logger, step_name, putative_orthologs_table_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path)
 
@@ -324,7 +328,8 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
                                                        # *times* the number of clusters_to_prepare_per_job above. 50 in total per batch!
                                                        job_name_suffix='mcl_preparation',
                                                        queue_name=queue_name,
-                                                       account_name=account_name)
+                                                       account_name=account_name,
+                                                       node_name=node_name)
 
             wait_for_results(logger, times_logger, step_name, mcl_inputs_tmp_dir, num_of_batches, error_file_path)
             write_to_file(logger, done_file_path, '.')
@@ -364,7 +369,8 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
                                                        # *times* the number of clusters_to_prepare_per_job above. 50 in total per batch!
                                                        job_name_suffix='mcl_preparation',
                                                        queue_name=queue_name,
-                                                       account_name=account_name)
+                                                       account_name=account_name,
+                                                       node_name=node_name)
 
             wait_for_results(logger, times_logger, step_name, mcl_inputs_tmp_dir, num_of_batches, error_file_path)
             write_to_file(logger, done_file_path, '.')
@@ -399,7 +405,8 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // max_parallel_jobs),
                                                    job_name_suffix='mcl_execution',
                                                    queue_name=queue_name,
-                                                   account_name=account_name)
+                                                   account_name=account_name,
+                                                   node_name=node_name)
 
         wait_for_results(logger, times_logger, step_name, mcl_tmp_dir,
                          num_of_batches, error_file_path)
@@ -431,7 +438,8 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // max_parallel_jobs),
                                                    job_name_suffix='clusters_verification',
                                                    queue_name=queue_name,
-                                                   account_name=account_name)
+                                                   account_name=account_name,
+                                                   node_name=node_name)
 
         wait_for_results(logger, times_logger, step_name, verified_clusters_tmp_dir, num_of_batches, error_file_path)
 
@@ -459,7 +467,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
                   orthogroups_file_path]
 
         submit_mini_batch(logger, script_path, [params], verified_orthologs_table_tmp_dir, error_file_path,
-                          queue_name, account_name, job_name='verified_ortholog_groups')
+                          queue_name, account_name, job_name='verified_ortholog_groups', node_name=node_name)
         wait_for_results(logger, times_logger, step_name, verified_orthologs_table_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path,
                          error_message='No ortholog groups were detected in your dataset. Please try to lower '
@@ -474,7 +482,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
 
 
 def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,
-                       all_proteins_path, strains_names, queue_name, account_name, identity_cutoff, coverage_cutoff,
+                       all_proteins_path, strains_names, queue_name, account_name, node_name, identity_cutoff, coverage_cutoff,
                        e_value_cutoff, n_jobs_per_step, use_parquet, verbose):
     # 1.	mmseqs2_all_vs_all.py
     step_number = f'{base_step_number}_1'
@@ -497,7 +505,7 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
 
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path, queue_name,
                           account_name, job_name='mmseqs', num_of_cpus=consts.MMSEQS_BIG_DATASET_NUM_OF_CORES,
-                          memory=consts.MMSEQS_BIG_DATASET_REQUIRED_MEMORY_GB, time_in_hours=consts.MMSEQS_JOB_TIME_LIMIT_HOURS)
+                          memory=consts.MMSEQS_BIG_DATASET_REQUIRED_MEMORY_GB, time_in_hours=consts.MMSEQS_JOB_TIME_LIMIT_HOURS, node_name=node_name)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, 1, error_file_path)
 
@@ -562,7 +570,8 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
                                                        queue_name=queue_name,
                                                        account_name=account_name,
                                                        memory=m8_output_parsing_memory,
-                                                       time_in_hours=consts.MMSEQS_JOB_TIME_LIMIT_HOURS)
+                                                       time_in_hours=consts.MMSEQS_JOB_TIME_LIMIT_HOURS,
+                                                       node_name=node_name)
 
             wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                              num_of_batches, error_file_path)
@@ -615,7 +624,8 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
                                                    job_name_suffix='paralogs_analysis',
                                                    queue_name=queue_name,
                                                    account_name=account_name,
-                                                   memory=m8_output_parsing_memory)
+                                                   memory=m8_output_parsing_memory,
+                                                   node_name=node_name)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)
@@ -629,7 +639,7 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
 
 def run_unified_mmseqs_with_linux_parsing(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
                                           done_files_dir, all_proteins_path, strains_names, queue_name, account_name,
-                                          identity_cutoff, coverage_cutoff, e_value_cutoff, n_jobs_per_step,
+                                          node_name, identity_cutoff, coverage_cutoff, e_value_cutoff, n_jobs_per_step,
                                           use_parquet, verbose):
     # 1.	mmseqs2_all_vs_all.py
     step_number = f'{base_step_number}_1'
@@ -651,7 +661,7 @@ def run_unified_mmseqs_with_linux_parsing(logger, times_logger, base_step_number
 
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path, queue_name,
                           account_name, job_name='mmseqs', num_of_cpus=consts.MMSEQS_BIG_DATASET_NUM_OF_CORES,
-                          memory=consts.MMSEQS_BIG_DATASET_REQUIRED_MEMORY_GB, time_in_hours=consts.MMSEQS_JOB_TIME_LIMIT_HOURS)
+                          memory=consts.MMSEQS_BIG_DATASET_REQUIRED_MEMORY_GB, time_in_hours=consts.MMSEQS_JOB_TIME_LIMIT_HOURS, node_name=node_name)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, 1, error_file_path)
 
@@ -693,7 +703,8 @@ def run_unified_mmseqs_with_linux_parsing(logger, times_logger, base_step_number
                                                        job_name_suffix='rbh_analysis',
                                                        queue_name=queue_name,
                                                        account_name=account_name,
-                                                       time_in_hours=consts.MMSEQS_JOB_TIME_LIMIT_HOURS)
+                                                       time_in_hours=consts.MMSEQS_JOB_TIME_LIMIT_HOURS,
+                                                       node_name=node_name)
 
             wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                              num_of_batches, error_file_path)
@@ -734,7 +745,8 @@ def run_unified_mmseqs_with_linux_parsing(logger, times_logger, base_step_number
                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // n_jobs_per_step),
                                                    job_name_suffix='paralogs_analysis',
                                                    queue_name=queue_name,
-                                                   account_name=account_name)
+                                                   account_name=account_name,
+                                                   node_name=node_name)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)
@@ -747,7 +759,7 @@ def run_unified_mmseqs_with_linux_parsing(logger, times_logger, base_step_number
 
 
 def run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,
-                           translated_orfs_dir, strains_names, queue_name, account_name, identity_cutoff,
+                           translated_orfs_dir, strains_names, queue_name, account_name, node_name, identity_cutoff,
                            coverage_cutoff, e_value_cutoff, n_jobs_per_step, use_parquet):
     # 1.	mmseqs2_all_vs_all.py
     # Input: (1) 2 input paths for 2 (different) genome files (query and target), g1 and g2
@@ -794,7 +806,8 @@ def run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_pa
                                                        job_name_suffix='rbh_analysis',
                                                        queue_name=queue_name,
                                                        account_name=account_name,
-                                                       time_in_hours=consts.MMSEQS_JOB_TIME_LIMIT_HOURS)
+                                                       time_in_hours=consts.MMSEQS_JOB_TIME_LIMIT_HOURS,
+                                                       node_name=node_name)
 
             wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                              num_of_batches, error_file_path)
@@ -829,7 +842,8 @@ def run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_pa
                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // n_jobs_per_step),
                                                    job_name_suffix='max_rbh_score',
                                                    queue_name=queue_name,
-                                                   account_name=account_name)
+                                                   account_name=account_name,
+                                                   node_name=node_name)
 
         wait_for_results(logger, times_logger, max_rbh_scores_step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)
@@ -877,7 +891,8 @@ def run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_pa
                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // n_jobs_per_step),
                                                    job_name_suffix='paralogs_analysis',
                                                    queue_name=queue_name,
-                                                   account_name=account_name)
+                                                   account_name=account_name,
+                                                   node_name=node_name)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)
@@ -890,7 +905,7 @@ def run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_pa
 
 
 def run_non_unified_mmseqs_with_dbs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,
-                           translated_orfs_dir, strains_names, queue_name, account_name, identity_cutoff,
+                           translated_orfs_dir, strains_names, queue_name, account_name, node_name, identity_cutoff,
                            coverage_cutoff, e_value_cutoff, n_jobs_per_step, use_parquet):
     # 1. mmseqs2_create_db
     step_number = f'{base_step_number}_1'
@@ -912,7 +927,8 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, base_step_number, erro
                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // n_jobs_per_step),
                                                    job_name_suffix='mmseqs_dbs',
                                                    queue_name=queue_name,
-                                                   account_name=account_name)
+                                                   account_name=account_name,
+                                                   node_name=node_name)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)
@@ -961,7 +977,8 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, base_step_number, erro
                                                        job_name_suffix='rbh_analysis',
                                                        queue_name=queue_name,
                                                        account_name=account_name,
-                                                       time_in_hours=consts.MMSEQS_JOB_TIME_LIMIT_HOURS)
+                                                       time_in_hours=consts.MMSEQS_JOB_TIME_LIMIT_HOURS,
+                                                       node_name=node_name)
 
             wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                              num_of_batches, error_file_path)
@@ -1009,7 +1026,8 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, base_step_number, erro
                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // n_jobs_per_step),
                                                    job_name_suffix='paralogs_analysis',
                                                    queue_name=queue_name,
-                                                   account_name=account_name)
+                                                   account_name=account_name,
+                                                   node_name=node_name)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)
