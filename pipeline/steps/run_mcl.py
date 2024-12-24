@@ -20,6 +20,7 @@ def mcl(logger, input_file, output_file, cpus):
     cmd = f'mcl "{input_file}" -I 1.5 --abc -o "{output_file}" -te {cpus}'
     logger.info(f'Starting MCL. Calling:\n{cmd}')
     subprocess.run(cmd, shell=True)
+    logger.info(f'MCL finished. Output written to {output_file}')
 
 
 if __name__ == '__main__':

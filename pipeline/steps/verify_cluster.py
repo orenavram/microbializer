@@ -24,6 +24,7 @@ def verify(logger, input_file, output_dir):
         if os.path.exists(output_file_path):
             return
         shutil.copyfile(input_file, output_file_path)
+        logger.info(f'Only one cluster in {input_file}. Copied it to {output_file_path}')
     else:  # 1 < len(lines)
         og_subset_id = 0
         for line in lines:
@@ -34,6 +35,7 @@ def verify(logger, input_file, output_dir):
                 with open(verified_cluster_path, 'w') as verified_cluster_file:
                     verified_cluster_file.write(line)
             og_subset_id += 1
+        logger.info(f'{input_file} was split into {og_subset_id} clusters in {output_dir}')
 
 
 if __name__ == '__main__':
