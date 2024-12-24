@@ -812,8 +812,7 @@ def step_7_orthologs_table_variations(args, logger, times_logger, error_file_pat
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path)
 
-        add_results_to_final_dir(logger, final_orthologs_table_dir_path, final_output_dir,
-                                 keep_in_source_dir=True)
+        add_results_to_final_dir(logger, final_orthologs_table_dir_path, final_output_dir)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -887,8 +886,7 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)
 
-        add_results_to_final_dir(logger, orthologs_dna_sequences_dir_path, final_output_dir,
-                                 keep_in_source_dir=True)
+        add_results_to_final_dir(logger, orthologs_dna_sequences_dir_path, final_output_dir)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -960,8 +958,7 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)
 
-        add_results_to_final_dir(logger, aa_alignments_path, final_output_dir,
-                                 keep_in_source_dir=True)
+        add_results_to_final_dir(logger, aa_alignments_path, final_output_dir)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -1033,8 +1030,7 @@ def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, err
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path)
 
-        add_results_to_final_dir(logger, aligned_core_proteome_path, final_output_dir,
-                                 keep_in_source_dir=True)
+        add_results_to_final_dir(logger, aligned_core_proteome_path, final_output_dir)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')

@@ -43,7 +43,7 @@ def search_paralogs(logger, genome_name, dbs_dir, max_scores_parts_dir, paralogs
     search_tmp_dir = os.path.join(temp_dir, f'tmp_{genome_name}_vs_{genome_name}')
     search_command = f'mmseqs search {genome_db_path} {genome_db_path} {result_db_path} {search_tmp_dir} ' \
                      f'--min-seq-id {identity_cutoff} -c {coverage_cutoff} --cov-mode 0 -e {e_value_cutoff} --threads 1 ' \
-                     f'--search-type 1 --comp-bias-corr 0 -v 1'
+                     f'--search-type 1 --comp-bias-corr 0 -v 1 --alignment-mode 3'
     logger.info(f'Calling: {search_command}')
     subprocess.run(search_command, shell=True, check=True)
 
@@ -60,6 +60,7 @@ def search_paralogs(logger, genome_name, dbs_dir, max_scores_parts_dir, paralogs
     logger.info(f"{m8_outfile_raw} was created successfully. Adding 'score' column to it...")
     # Add 'score' column to mmseqs output
     m8_df = pd.read_csv(m8_outfile_raw, sep='\t', names=consts.MMSEQS_OUTPUT_HEADER)
+    m8_df = m8_df[m8_df['query'] != m8_df['target']]
     add_score_column_to_mmseqs_output(m8_df)
     m8_df = m8_df[['query', 'target', 'score']]
 
