@@ -6,14 +6,15 @@ import os.path
 from enum import Enum
 import numpy as np
 
-KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR = True
-LOG_IN_SEPARATE_FILES = True
-
 # ENV = 'wsl'
 ENV = 'yair_test'
 # ENV = 'yair_prod'
 # ENV = 'lsweb'
 # ENV = 'c-001'
+
+KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR = True
+COPY_OUTPUTS_TO_FINAL_RESULTS_DIR = ENV == 'lsweb'
+LOG_IN_SEPARATE_FILES = True
 
 if ENV == 'yair_test':
     PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer'

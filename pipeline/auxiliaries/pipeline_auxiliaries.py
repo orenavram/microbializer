@@ -328,20 +328,19 @@ def send_email_in_pipeline_end(logger, process_id, email_address, job_name, stat
                    SharedConsts.EMAIL_CONSTS.CONTENT_PROCESS_CRASHED.format(process_id=process_id), email_addresses)
 
 
-def add_results_to_final_dir(logger, source, final_output_dir, keep_in_source_dir=True):
+def add_results_to_final_dir(logger, source, final_output_dir):
+    if not consts.COPY_OUTPUTS_TO_FINAL_RESULTS_DIR:
+        return
+
     source_dir_name = os.path.split(source)[1]
     dest = os.path.join(final_output_dir, consts.OUTPUTS_DIRECTORIES_MAP[source_dir_name])
 
     try:
-        if not keep_in_source_dir:
-            logger.info(f'Moving {source} TO {dest}')
-            shutil.move(source, dest)
+        logger.info(f'Copying {source} TO {dest}')
+        if os.path.isdir(source):
+            shutil.copytree(source, dest)
         else:
-            logger.info(f'Copying {source} TO {dest}')
-            if os.path.isdir(source):
-                shutil.copytree(source, dest)
-            else:
-                shutil.copy(source, dest)
+            shutil.copy(source, dest)
     except FileExistsError:
         pass
 
