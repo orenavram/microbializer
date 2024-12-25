@@ -1,7 +1,8 @@
 import pandas as pd
 
-PATH_1 = r"C:\repos\microbializer\pipeline\tests\compare_og_tables\4_genomes\no_optimize\05c_mmseqs_paralogs\NC_007606_vs_NC_007606.m8_filtered"
-PATH_2 = r"C:\repos\microbializer\pipeline\tests\compare_og_tables\4_genomes\optimize_1_mmseqs_command\05c_paralogs\NC_007606_vs_NC_007606_filtered.m8"
+PATH_1 = r"C:\temp\use_dbs\Sflexneri_5_8401_vs_Ecoli_O104_H4_2009EL_2050.m8"
+PATH_2 = r"C:\temp\original\Sflexneri_5_8401_vs_Ecoli_O104_H4_2009EL_2050.m8"
+
 
 df_1 = pd.read_csv(PATH_1)
 all_genes_1 = set(df_1['query'].tolist() + df_1['target'].tolist())

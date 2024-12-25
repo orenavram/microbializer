@@ -264,7 +264,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
     if run_mcl_on_all_hits_together_flag:
         run_mcl_on_all_hits_together(logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
                                      all_hits_file, base_step_number, start_substep_number + 2, account_name, queue_name,
-                                     len(strains_names))
+                                     node_name, len(strains_names))
         return
 
     # construct_putative_orthologs_table.py

@@ -81,7 +81,7 @@ def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path
         remove_path(logger, data_path)
         fail(logger, verification_error, error_file_path)
 
-    genomes_names = [os.path.splitext(genome_name)[0] for genome_name in os.listdir(data_path)]
+    genomes_names = [os.path.splitext(genome_name)[0] for genome_name in sorted(os.listdir(data_path))]
 
     with open(genomes_names_path, 'w') as genomes_name_fp:
         genomes_name_fp.write('\n'.join(genomes_names))

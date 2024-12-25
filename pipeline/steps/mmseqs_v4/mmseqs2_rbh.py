@@ -42,7 +42,7 @@ def search_rbh(logger, genome1, genome2, dbs_dir, rbh_hits_dir, scores_statistic
     result_db_path = os.path.join(temp_dir, f'{genome1}_vs_{genome2}.db')
     rbh_command = f'mmseqs rbh {db_1_path} {db_2_path} {result_db_path} {tmp_dir} --min-seq-id {identity_cutoff} ' \
                   f'-c {coverage_cutoff} --cov-mode 0 -e {e_value_cutoff} --threads 1 --search-type 1 ' \
-                  f'--comp-bias-corr 0 -v 1'
+                  f'--comp-bias-corr 0 -v 1 -s 5.7'
     logger.info(f'Calling: {rbh_command}')
     subprocess.run(rbh_command, shell=True, check=True)
 
