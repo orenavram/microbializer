@@ -98,12 +98,23 @@ def search_paralogs(logger, genome_name, dbs_dir, max_scores_parts_dir, paralogs
     logger.info(f"{score_stats_file} was created successfully.")
 
 
+def search_paralogs_in_all_pairs(logger, job_input_path, dbs_dir, max_scores_parts_dir, paralogs_dir,
+                                 max_rbh_scores_unified_dir, scores_statistics_dir, temp_dir, identity_cutoff,
+                                 coverage_cutoff, e_value_cutoff, use_parquet):
+    with open(job_input_path) as fp:
+        for line in fp:
+            genome_name = line.strip()
+            search_paralogs(logger, genome_name, dbs_dir, max_scores_parts_dir, paralogs_dir,
+                            max_rbh_scores_unified_dir, scores_statistics_dir, temp_dir, identity_cutoff,
+                            coverage_cutoff, e_value_cutoff, use_parquet)
+
+
 if __name__ == '__main__':
     script_run_message = f'Starting command is: {" ".join(argv)}'
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('genome_name', help='')
+    parser.add_argument('job_input_path', help='path to a file that contains the genome names to find paralogs')
     parser.add_argument('dbs_dir', help='')
     parser.add_argument('max_scores_parts_dir', help='')
     parser.add_argument('paralogs_dir', help='')
@@ -124,8 +135,10 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        search_paralogs(logger, args.genome_name, args.dbs_dir, args.max_scores_parts_dir, args.paralogs_dir, args.max_rbh_scores_unified_dir,
-                        args.scores_statistics_dir, args.temp_dir, args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff, args.use_parquet)
+        search_paralogs_in_all_pairs(logger, args.job_input_path, args.dbs_dir, args.max_scores_parts_dir,
+                                     args.paralogs_dir, args.max_rbh_scores_unified_dir, args.scores_statistics_dir,
+                                     args.temp_dir, args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff,
+                                     args.use_parquet)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:

@@ -249,18 +249,19 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
             job_index = i % max_parallel_jobs
             job_index_to_hits_file_names[job_index].append(hits_file)
 
-        jobs_input_files_dir = os.path.join(concatenate_tmp_dir, 'jobs_inputs')
-        os.makedirs(jobs_input_files_dir, exist_ok=True)
-
-        for job_index, hits_file_names in job_index_to_hits_file_names.items():
-            with open(os.path.join(jobs_input_files_dir, f'{job_index}.txt'), 'w') as f:
-                f.write('\n'.join(hits_file_names))
-
+        jobs_inputs_dir = os.path.join(concatenate_tmp_dir, 'jobs_inputs')
+        os.makedirs(jobs_inputs_dir, exist_ok=True)
         concatenated_chunks_dir = os.path.join(concatenate_output_dir, 'temp_chunks')
         os.makedirs(concatenated_chunks_dir, exist_ok=True)
 
-        all_cmds_params = [[normalized_hits_output_dir, os.path.join(jobs_input_files_dir, job_input_file), concatenated_chunks_dir]
-                           for job_input_file in os.listdir(jobs_input_files_dir)]
+        all_cmds_params = []
+        for job_index, hits_file_names in job_index_to_hits_file_names.items():
+            job_input_path = os.path.join(jobs_inputs_dir, f'{job_index}.txt')
+            with open(job_input_path, 'w') as f:
+                f.write('\n'.join(hits_file_names))
+
+            single_cmd_params = [normalized_hits_output_dir, job_input_path, concatenated_chunks_dir]
+            all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, concatenate_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=1,
@@ -929,25 +930,38 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, base_step_number, erro
     logger.info(f'Step {step_number}: {"_" * 100}')
     script_path = os.path.join(consts.SRC_DIR, 'steps/mmseqs_v4/mmseqs2_create_db.py')
     step_name = f'{step_number}_mmseqs_dbs'
-    mmseqs_dbs_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    mmseqs_dbs_output_dir, mmseqs_dbs_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Creating mmseqs dbs...')
 
+        job_index_to_strain_names = defaultdict(list)
+
+        for i, strain_name in enumerate(strains_names):
+            job_index = i % n_jobs_per_step
+            job_index_to_strain_names[job_index].append(strain_name)
+
+        jobs_inputs_dir = os.path.join(mmseqs_dbs_tmp_dir, 'job_inputs')
+        os.makedirs(jobs_inputs_dir, exist_ok=True)
+
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-        for strain_name in strains_names:
-            single_cmd_params = [strain_name, translated_orfs_dir, mmseqs_dbs_output_dir]
+        for job_index, job_strain_names in job_index_to_strain_names.items():
+            job_input_path = os.path.join(jobs_inputs_dir, f'{job_index}.txt')
+            with open(job_input_path, 'w') as f:
+                f.write('\n'.join(job_strain_names))
+
+            single_cmd_params = [job_input_path, translated_orfs_dir, mmseqs_dbs_output_dir]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, mmseqs_dbs_tmp_dir,
                                                    error_file_path,
-                                                   num_of_cmds_per_job=max(1, len(all_cmds_params) // n_jobs_per_step),
+                                                   num_of_cmds_per_job=1,
                                                    job_name_suffix='mmseqs_dbs',
                                                    queue_name=queue_name,
                                                    account_name=account_name,
                                                    node_name=node_name)
 
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, step_name, mmseqs_dbs_tmp_dir,
                          num_of_batches, error_file_path)
 
         write_to_file(logger, done_file_path, '.')
@@ -959,7 +973,7 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, base_step_number, erro
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_mmseqs_rbh'
     script_path = os.path.join(consts.SRC_DIR, 'steps/mmseqs_v4/mmseqs2_rbh.py')
-    orthologs_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    orthologs_output_dir, orthologs_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     orthologs_scores_statistics_dir = os.path.join(orthologs_output_dir, 'scores_statistics')
     os.makedirs(orthologs_scores_statistics_dir, exist_ok=True)
     max_rbh_scores_parts_output_dir = os.path.join(orthologs_output_dir, 'max_rbh_scores_parts')
@@ -971,10 +985,22 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, base_step_number, erro
             temp_dir = os.path.join(orthologs_output_dir, 'temp')
             os.makedirs(temp_dir, exist_ok=True)
 
-            all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-            for strain1_name, strain2_name in itertools.combinations(strains_names, 2):
-                single_cmd_params = [strain1_name,
-                                     strain2_name,
+            job_index_to_strain_pairs = defaultdict(list)
+            for i, (strain1_name, strain2_name) in enumerate(itertools.combinations(strains_names, 2)):
+                job_index = i % n_jobs_per_step
+                job_index_to_strain_pairs[job_index].append((strain1_name, strain2_name))
+
+            jobs_inputs_dir = os.path.join(orthologs_tmp_dir, 'job_inputs')
+            os.makedirs(jobs_inputs_dir, exist_ok=True)
+
+            all_cmds_params = []
+            for job_index, job_strain_pairs in job_index_to_strain_pairs.items():
+                job_input_path = os.path.join(jobs_inputs_dir, f'{job_index}.txt')
+                with open(job_input_path, 'w') as f:
+                    for strain1_name, strain2_name in job_strain_pairs:
+                        f.write(f'{strain1_name}\t{strain2_name}\n')
+
+                single_cmd_params = [job_input_path,
                                      mmseqs_dbs_output_dir,
                                      orthologs_output_dir,
                                      orthologs_scores_statistics_dir,
@@ -988,17 +1014,16 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, base_step_number, erro
                     single_cmd_params.append('--use_parquet')
                 all_cmds_params.append(single_cmd_params)
 
-            num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+            num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, orthologs_tmp_dir,
                                                        error_file_path,
-                                                       num_of_cmds_per_job=max(1,
-                                                                               len(all_cmds_params) // n_jobs_per_step),
+                                                       num_of_cmds_per_job=1,
                                                        job_name_suffix='rbh_analysis',
                                                        queue_name=queue_name,
                                                        account_name=account_name,
                                                        time_in_hours=consts.MMSEQS_JOB_TIME_LIMIT_HOURS,
                                                        node_name=node_name)
 
-            wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+            wait_for_results(logger, times_logger, step_name, orthologs_tmp_dir,
                              num_of_batches, error_file_path)
 
         write_to_file(logger, done_file_path, '.')
@@ -1010,7 +1035,7 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, base_step_number, erro
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_mmseqs_paralogs'
     script_path = os.path.join(consts.SRC_DIR, 'steps/mmseqs_v4/mmseqs2_paralogs.py')
-    paralogs_output_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    paralogs_output_dir, paralogs_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     paralogs_scores_statistics_dir = os.path.join(paralogs_output_dir, 'scores_statistics')
     os.makedirs(paralogs_scores_statistics_dir, exist_ok=True)
     max_rbh_scores_unified_dir = os.path.join(paralogs_output_dir, 'max_rbh_scores_unified')
@@ -1020,11 +1045,24 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, base_step_number, erro
         logger.info('Searching for paralogs in each genome')
         temp_dir = os.path.join(paralogs_output_dir, 'temp')
         os.makedirs(temp_dir, exist_ok=True)
-        all_cmds_params = []
-        for strain_name in strains_names:
-            logger.info(f'Querying {strain_name} for paralogs')
 
-            single_cmd_params = [strain_name,
+        job_index_to_strain_names = defaultdict(list)
+
+        for i, strain_name in enumerate(strains_names):
+            job_index = i % n_jobs_per_step
+            job_index_to_strain_names[job_index].append(strain_name)
+
+        jobs_inputs_dir = os.path.join(paralogs_tmp_dir, 'job_inputs')
+        os.makedirs(jobs_inputs_dir, exist_ok=True)
+
+        all_cmds_params = []
+
+        for job_index, job_strains_names in job_index_to_strain_names.items():
+            job_input_path = os.path.join(jobs_inputs_dir, f'{job_index}.txt')
+            with open(job_input_path, 'w') as f:
+                f.write('\n'.join(job_strains_names))
+
+            single_cmd_params = [job_input_path,
                                  mmseqs_dbs_output_dir,
                                  max_rbh_scores_parts_output_dir,
                                  paralogs_output_dir,
@@ -1039,15 +1077,15 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, base_step_number, erro
                 single_cmd_params.append('--use_parquet')
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, paralogs_tmp_dir,
                                                    error_file_path,
-                                                   num_of_cmds_per_job=max(1, len(all_cmds_params) // n_jobs_per_step),
+                                                   num_of_cmds_per_job=1,
                                                    job_name_suffix='paralogs_analysis',
                                                    queue_name=queue_name,
                                                    account_name=account_name,
                                                    node_name=node_name)
 
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, step_name, paralogs_tmp_dir,
                          num_of_batches, error_file_path)
 
         write_to_file(logger, done_file_path, '.')
