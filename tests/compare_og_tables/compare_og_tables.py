@@ -2,9 +2,9 @@ import os
 import pandas as pd
 from sklearn import metrics
 
-BASE_PATH = r"C:\repos\microbializer\tests\pipeline_optimization_experiments\4_genomes_linux_optimization"
-OG_TABLE_NO_LINUX = os.path.join(BASE_PATH, "without_linux", "orthogroups.csv")
-OG_TABLE_LINUX = os.path.join(BASE_PATH, "with_linux", "orthogroups.csv")
+BASE_PATH = r"C:\repos\microbializer\tests\pipeline_optimization_experiments\73_ecoli_optimization_summary_c_001"
+OG_TABLE_ORIGINAL = os.path.join(BASE_PATH, "outputs_preCluster_no_optimizedMmseqs_no_useParquet_no", "orthogroups.csv")
+OG_TABLE_S4 = os.path.join(BASE_PATH, "outputs_preCluster_no_optimizedMmseqs_no_useParquet_no_useMmseqsDbs_yes_s4", "orthogroups.csv")
 
 
 def compare_clusterings(true_labels, pred_labels, output_path):
@@ -54,16 +54,16 @@ def convert_og_table_to_labels(og_table_path):
 
 
 def main():
-    without_linux_labels, without_linux_genes = convert_og_table_to_labels(OG_TABLE_NO_LINUX)
-    linux_labels, linux_genes = convert_og_table_to_labels(OG_TABLE_LINUX)
+    original_labels, original_genes = convert_og_table_to_labels(OG_TABLE_ORIGINAL)
+    s4_labels, s4_genes = convert_og_table_to_labels(OG_TABLE_S4)
 
-    if len(without_linux_labels) != len(linux_labels):
-        genes_difference = set(without_linux_genes).difference(set(linux_genes))
-        genes_difference.add(set(linux_genes).difference(set(without_linux_genes)))
-        print(f"Genes in no_optimize but not in optimize or vice versa: {genes_difference}")
+    if len(original_labels) != len(s4_labels):
+        genes_difference = set(original_genes).difference(set(s4_genes))
+        genes_difference.add(set(s4_genes).difference(set(original_genes)))
+        print(f"Genes in original but not in s4 or vice versa: {genes_difference}")
         return
 
-    compare_clusterings(without_linux_labels, linux_labels, os.path.join(BASE_PATH, "comparison_scores.csv"))
+    compare_clusterings(original_labels, s4_labels, os.path.join(BASE_PATH, "comparison_scores.csv"))
 
 
 if __name__ == '__main__':

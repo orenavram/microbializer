@@ -867,12 +867,12 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
         with open(final_orthologs_table_file_path, 'r') as fp:
             number_of_ogs = sum(1 for _ in fp) - 1
 
-        lines_intervals = define_intervals(0, number_of_ogs, consts.MAX_PARALLEL_JOBS)
-        for (start_index, end_index_exclusive) in lines_intervals:
+        ogs_intervals = define_intervals(0, number_of_ogs - 1, consts.MAX_PARALLEL_JOBS)
+        for og_number_start, og_number_end in ogs_intervals:
             single_cmd_params = [orfs_dir,
                                  final_orthologs_table_file_path,
-                                 start_index,
-                                 end_index_exclusive,
+                                 og_number_start,
+                                 og_number_end,
                                  orthologs_dna_sequences_dir_path]
             all_cmds_params.append(single_cmd_params)
 

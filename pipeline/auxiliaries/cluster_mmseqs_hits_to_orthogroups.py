@@ -182,33 +182,40 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
         scores_statistics_file = os.path.join(normalized_hits_output_dir, 'scores_stats.json')
         scores_normalize_coefficients = aggregate_mmseqs_scores(orthologs_scores_statistics_dir, paralogs_scores_statistics_dir, scores_statistics_file)
 
-        all_cmds_params = []
-        for hits_file in os.listdir(orthologs_output_dir):
+        job_index_to_hits_files_and_coefficients = defaultdict(list)
+
+        for i, hits_file in enumerate(os.listdir(orthologs_output_dir)):
             if not hits_file.endswith('m8'):
                 continue
+            job_index = i % max_parallel_jobs
             strains_pair = os.path.splitext(hits_file)[0]
-            single_cmd_params = [os.path.join(orthologs_output_dir, hits_file),
-                                 os.path.join(normalized_hits_output_dir, f"{strains_pair}.m8"),
-                                 scores_normalize_coefficients[strains_pair]
-                                 ]
-            if use_parquet:
-                single_cmd_params.append('--use_parquet')
-            all_cmds_params.append(single_cmd_params)
+            job_index_to_hits_files_and_coefficients[job_index].append((os.path.join(orthologs_output_dir, hits_file),
+                                                                        scores_normalize_coefficients[strains_pair]))
 
-        for hits_file in os.listdir(paralogs_output_dir):
+        for i, hits_file in enumerate(os.listdir(paralogs_output_dir)):
             if not hits_file.endswith('m8_filtered'):
                 continue
+            job_index = i % max_parallel_jobs
             strains_pair = os.path.splitext(hits_file)[0]
-            single_cmd_params = [os.path.join(paralogs_output_dir, hits_file),
-                                 os.path.join(normalized_hits_output_dir, f"{strains_pair}.m8"),
-                                 scores_normalize_coefficients[strains_pair]
-                                 ]
+            job_index_to_hits_files_and_coefficients[job_index].append((os.path.join(paralogs_output_dir, hits_file),
+                                                                        scores_normalize_coefficients[strains_pair]))
+
+        all_cmds_params = []
+        jobs_inputs_dir = os.path.join(normalized_hits_tmp_dir, 'jobs_inputs')
+        os.makedirs(jobs_inputs_dir, exist_ok=True)
+        for job_index, job_input_info in job_index_to_hits_files_and_coefficients.items():
+            job_input_path = os.path.join(jobs_inputs_dir, f'{job_index}.txt')
+            with open(job_input_path, 'w') as f:
+                for hits_file, scores_normalize_coefficient in job_input_info:
+                    f.write(f'{hits_file}\t{scores_normalize_coefficient}\n')
+
+            single_cmd_params = [job_input_path, normalized_hits_output_dir]
             if use_parquet:
                 single_cmd_params.append('--use_parquet')
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, normalized_hits_tmp_dir, error_file_path,
-                                                   num_of_cmds_per_job=max(1, len(all_cmds_params) // max_parallel_jobs),
+                                                   num_of_cmds_per_job=1,
                                                    job_name_suffix='hits_normalize',
                                                    queue_name=queue_name,
                                                    account_name=account_name,
@@ -234,16 +241,29 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
     if not os.path.exists(done_file_path):
         logger.info('Concatenating hits...')
 
-        number_of_hits_files = sum(1 for file in os.listdir(normalized_hits_output_dir) if file.endswith('.m8'))
-        intervals = define_intervals(0, number_of_hits_files, max_parallel_jobs)
+        job_index_to_hits_file_names = defaultdict(list)
+        for i, hits_file in enumerate(os.listdir(normalized_hits_output_dir)):
+            if not hits_file.endswith('.m8'):
+                continue
+
+            job_index = i % max_parallel_jobs
+            job_index_to_hits_file_names[job_index].append(hits_file)
+
+        jobs_input_files_dir = os.path.join(concatenate_tmp_dir, 'jobs_inputs')
+        os.makedirs(jobs_input_files_dir, exist_ok=True)
+
+        for job_index, hits_file_names in job_index_to_hits_file_names.items():
+            with open(os.path.join(jobs_input_files_dir, f'{job_index}.txt'), 'w') as f:
+                f.write('\n'.join(hits_file_names))
 
         concatenated_chunks_dir = os.path.join(concatenate_output_dir, 'temp_chunks')
         os.makedirs(concatenated_chunks_dir, exist_ok=True)
-        all_cmds_params = [[normalized_hits_output_dir, start, end, concatenated_chunks_dir]
-                           for (start, end) in intervals]
+
+        all_cmds_params = [[normalized_hits_output_dir, os.path.join(jobs_input_files_dir, job_input_file), concatenated_chunks_dir]
+                           for job_input_file in os.listdir(jobs_input_files_dir)]
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, concatenate_tmp_dir, error_file_path,
-                                                   num_of_cmds_per_job=max(1, len(all_cmds_params) // max_parallel_jobs),
+                                                   num_of_cmds_per_job=1,
                                                    job_name_suffix='concatenate_hits',
                                                    queue_name=queue_name,
                                                    account_name=account_name,
@@ -291,6 +311,9 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
+    with open(os.path.join(os.path.split(putative_orthologs_table_path)[0], 'num_of_putative_sets.txt')) as f:
+        num_of_putative_sets = int(f.read())
+
     if not prepare_mcl_v2:
         # prepare_files_for_mcl.py
         # Input: (1) a path for a concatenated all reciprocal hits file (2) a path for a putative orthologs file (3) a path for an output folder
@@ -305,9 +328,6 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
         if not os.path.exists(done_file_path):
             logger.info('Preparing files for MCL...')
             all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-
-            with open(os.path.join(os.path.split(putative_orthologs_table_path)[0], 'num_of_putative_sets.txt')) as f:
-                num_of_putative_sets = int(f.read())
 
             # The more genomes there are, the more memory this step requires. Therefore, we split by the number of genomes.
             clusters_to_prepare_per_script = math.ceil(num_of_putative_sets / len(strains_names))
@@ -391,18 +411,15 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
     if not os.path.exists(done_file_path):
         logger.info('Executing MCL...')
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-        for putative_orthologs_group in os.listdir(mcl_inputs_dir):
-            if not putative_orthologs_group.endswith('mcl_input'):
-                continue
-            putative_orthologs_group_prefix = os.path.splitext(putative_orthologs_group)[0]
-            output_file_name = f'{putative_orthologs_group_prefix}.{step_name}'
 
-            single_cmd_params = [f'"{os.path.join(mcl_inputs_dir, putative_orthologs_group)}"',
-                                 f'"{os.path.join(mcl_outputs_dir, output_file_name)}"']
+        ogs_intervals = define_intervals(0, num_of_putative_sets - 1, max_parallel_jobs)
+
+        for og_number_start, og_number_end in ogs_intervals:
+            single_cmd_params = [mcl_inputs_dir, og_number_start, og_number_end, mcl_outputs_dir]
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, mcl_tmp_dir, error_file_path,
-                                                   num_of_cmds_per_job=max(1, len(all_cmds_params) // max_parallel_jobs),
+                                                   num_of_cmds_per_job=1,
                                                    job_name_suffix='mcl_execution',
                                                    queue_name=queue_name,
                                                    account_name=account_name,
@@ -427,15 +444,15 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
     if not os.path.exists(done_file_path):
         logger.info('Verifying clusters...')
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-        for putative_orthologs_group in os.listdir(mcl_outputs_dir):
-            if not putative_orthologs_group.endswith('mcl_analysis'):
-                continue
-            single_cmd_params = [os.path.join(mcl_outputs_dir, putative_orthologs_group),
-                                 verified_clusters_output_dir]
+
+        ogs_intervals = define_intervals(0, num_of_putative_sets - 1, max_parallel_jobs)
+
+        for og_number_start, og_number_end in ogs_intervals:
+            single_cmd_params = [mcl_outputs_dir, og_number_start, og_number_end, verified_clusters_output_dir]
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, verified_clusters_tmp_dir, error_file_path,
-                                                   num_of_cmds_per_job=max(1, len(all_cmds_params) // max_parallel_jobs),
+                                                   num_of_cmds_per_job=1,
                                                    job_name_suffix='clusters_verification',
                                                    queue_name=queue_name,
                                                    account_name=account_name,
@@ -953,6 +970,7 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, base_step_number, erro
             logger.info(f'Querying all VS all (using mmseqs2)...')
             temp_dir = os.path.join(orthologs_output_dir, 'temp')
             os.makedirs(temp_dir, exist_ok=True)
+
             all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
             for strain1_name, strain2_name in itertools.combinations(strains_names, 2):
                 single_cmd_params = [strain1_name,

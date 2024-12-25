@@ -38,14 +38,21 @@ def verify(logger, input_file, output_dir):
         logger.info(f'{input_file} was split into {og_subset_id} clusters in {output_dir}')
 
 
+def verify_all_mcl_outputs(logger, mcl_output_dir, start_og_number, end_og_number, verified_clusters_dir):
+    for og_number in range(start_og_number, end_og_number + 1):
+        input_path = os.path.join(mcl_output_dir, f'OG_{og_number}.mcl_output')
+        verify(logger, input_path, verified_clusters_dir)
+
+
 if __name__ == '__main__':
     script_run_message = f'Starting command is: {" ".join(argv)}'
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('input_file', help='path to an MCL analysis file')
-    parser.add_argument('output_dir',
-                        help='dir path to which the MCL analysis will be moved if clustering criterion was met')
+    parser.add_argument('mcl_output_dir', help='path to an MCL output dir')
+    parser.add_argument('start_og_number', type=int, help='OG number to start from')
+    parser.add_argument('end_og_number', type=int, help='OG number to end at. Inclusive.')
+    parser.add_argument('verified_clusters_dir', help='dir path to which verified clusters are written')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('--error_file_path', help='path to error file')
@@ -56,7 +63,7 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        verify(logger, args.input_file, args.output_dir)
+        verify_all_mcl_outputs(logger, args.mcl_output_dir, args.start_og_number, args.end_og_number, args.verified_clusters_dir)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:

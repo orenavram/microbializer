@@ -146,15 +146,15 @@ def update_progressbar(progressbar_file_path, step_name_finished):
 
 def define_intervals(start, end, number_of_intervals):
     # Calculate the interval length
-    interval_length = math.ceil((end - start) / number_of_intervals)
+    interval_length = math.ceil((end - start + 1) / number_of_intervals)
 
     # Create the intervals
     intervals = []
     i = start
     while i < end:
-        interval_end = i + interval_length
+        interval_end = i + interval_length - 1
         intervals.append((i, interval_end))
-        i = interval_end
+        i = interval_end + 1
 
     # Adjust the last interval to ensure it ends exactly at end
     intervals[-1] = (intervals[-1][0], end)
@@ -172,3 +172,14 @@ def get_directory_size_in_gb(directory):
     # Convert bytes to gigabytes and round up
     size_in_gb = total_size / (1024 ** 3)
     return size_in_gb
+
+
+def convert_seq_identity_to_sensitivity(seq_identity):
+    if seq_identity <= 0.3:
+        sensitivity = 6
+    elif seq_identity >= 0.8:
+        sensitivity = 1.0
+    else:
+        sensitivity = 1.0 + (1.0 * (0.8 - seq_identity) * 10)
+
+    return sensitivity
