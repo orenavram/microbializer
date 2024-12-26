@@ -48,15 +48,18 @@ def compute_genome_completeness(genomic_translated_f, out_dir, logger):
     return (score / CORE_GENES_COUNT) * 100
 
 
-def main(proteome_path, output_dir, logger):
+def main(job_input_path, output_dir, logger):
     """
     the main function that computes the genome completeness of the proteome and saves the results to the output dir.
     """
-    genome_name = os.path.splitext(os.path.basename(proteome_path))[0]
-    genome_out_dir = os.path.join(output_dir, genome_name)
-    completeness_score = compute_genome_completeness(proteome_path, genome_out_dir, logger)
-    with open(os.path.join(genome_out_dir, 'result.txt'), 'w') as fp:
-        fp.write(str(completeness_score))
+    with open(job_input_path, 'r') as f:
+        for line in f:
+            proteome_path = line.strip()
+            strain_name = os.path.splitext(os.path.basename(proteome_path))[0]
+            strain_out_dir = os.path.join(output_dir, strain_name)
+            completeness_score = compute_genome_completeness(proteome_path, strain_out_dir, logger)
+            with open(os.path.join(strain_out_dir, 'result.txt'), 'w') as fp:
+                fp.write(str(completeness_score))
 
 
 if __name__ == '__main__':
@@ -64,7 +67,7 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('proteome_path', help='path to a protein fasta file')
+    parser.add_argument('job_input_path', help='path to a file that contains the genome names to asses completeness for')
     parser.add_argument('output_dir', help='path to the output dir')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
@@ -77,7 +80,7 @@ if __name__ == '__main__':
     logger.info(script_run_message)
 
     try:
-        main(args.proteome_path, args.output_dir, logger)
+        main(args.job_input_path, args.output_dir, logger)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:
