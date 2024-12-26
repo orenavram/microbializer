@@ -18,7 +18,8 @@ from auxiliaries import consts
 
 
 def search_paralogs(logger, genome_name, dbs_dir, max_scores_parts_dir, paralogs_dir, max_rbh_scores_unified_dir,
-                    scores_statistics_dir, temp_dir, identity_cutoff, coverage_cutoff, e_value_cutoff, use_parquet):
+                    scores_statistics_dir, temp_dir, identity_cutoff, coverage_cutoff, e_value_cutoff, use_parquet,
+                    sensitivity):
     genome_max_rbh_scores_path = os.path.join(max_rbh_scores_unified_dir, f'{genome_name}.csv')
     output_paralogs_filtered_path = os.path.join(paralogs_dir, f'{genome_name}_vs_{genome_name}.m8_filtered')
     score_stats_file = os.path.join(scores_statistics_dir, f'{genome_name}_vs_{genome_name}.stats')
@@ -43,7 +44,7 @@ def search_paralogs(logger, genome_name, dbs_dir, max_scores_parts_dir, paralogs
     search_tmp_dir = os.path.join(temp_dir, f'tmp_{genome_name}_vs_{genome_name}')
     search_command = f'mmseqs search {genome_db_path} {genome_db_path} {result_db_path} {search_tmp_dir} ' \
                      f'--min-seq-id {identity_cutoff} -c {coverage_cutoff} --cov-mode 0 -e {e_value_cutoff} --threads 1 ' \
-                     f'--search-type 1 --comp-bias-corr 0 -v 1 --alignment-mode 3 -s {consts.MMSEQS_SENSITIVITY_PARAMETER}'
+                     f'--search-type 1 --comp-bias-corr 0 -v 1 --alignment-mode 3 -s {sensitivity}'
     logger.info(f'Calling: {search_command}')
     subprocess.run(search_command, shell=True, check=True)
 
@@ -100,13 +101,13 @@ def search_paralogs(logger, genome_name, dbs_dir, max_scores_parts_dir, paralogs
 
 def search_paralogs_in_all_pairs(logger, job_input_path, dbs_dir, max_scores_parts_dir, paralogs_dir,
                                  max_rbh_scores_unified_dir, scores_statistics_dir, temp_dir, identity_cutoff,
-                                 coverage_cutoff, e_value_cutoff, use_parquet):
+                                 coverage_cutoff, e_value_cutoff, use_parquet, sensitivity):
     with open(job_input_path) as fp:
         for line in fp:
             genome_name = line.strip()
             search_paralogs(logger, genome_name, dbs_dir, max_scores_parts_dir, paralogs_dir,
                             max_rbh_scores_unified_dir, scores_statistics_dir, temp_dir, identity_cutoff,
-                            coverage_cutoff, e_value_cutoff, use_parquet)
+                            coverage_cutoff, e_value_cutoff, use_parquet, sensitivity)
 
 
 if __name__ == '__main__':
@@ -124,6 +125,7 @@ if __name__ == '__main__':
     parser.add_argument('--identity_cutoff', type=float)
     parser.add_argument('--coverage_cutoff', type=float)
     parser.add_argument('--e_value_cutoff', type=float)
+    parser.add_argument('--sensitivity', type=float, default=consts.MMSEQS_HIGH_SENSITIVITY_PARAMETER)
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--use_parquet', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
@@ -138,7 +140,7 @@ if __name__ == '__main__':
         search_paralogs_in_all_pairs(logger, args.job_input_path, args.dbs_dir, args.max_scores_parts_dir,
                                      args.paralogs_dir, args.max_rbh_scores_unified_dir, args.scores_statistics_dir,
                                      args.temp_dir, args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff,
-                                     args.use_parquet)
+                                     args.use_parquet, args.sensitivity)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:

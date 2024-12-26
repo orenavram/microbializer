@@ -20,7 +20,7 @@ from auxiliaries import consts
 
 
 def search_rbh(logger, genome1, genome2, dbs_dir, rbh_hits_dir, scores_statistics_dir, max_rbh_score_per_gene_dir,
-               temp_dir, identity_cutoff, coverage_cutoff, e_value_cutoff, use_parquet):
+               temp_dir, identity_cutoff, coverage_cutoff, e_value_cutoff, use_parquet, sensitivity):
     """
     input:  2 protein dbs
     output: query_vs_reference "mmseqs2 easy-rbh" results file
@@ -42,7 +42,7 @@ def search_rbh(logger, genome1, genome2, dbs_dir, rbh_hits_dir, scores_statistic
     result_db_path = os.path.join(temp_dir, f'{genome1}_vs_{genome2}.db')
     rbh_command = f'mmseqs rbh {db_1_path} {db_2_path} {result_db_path} {tmp_dir} --min-seq-id {identity_cutoff} ' \
                   f'-c {coverage_cutoff} --cov-mode 0 -e {e_value_cutoff} --threads 1 --search-type 1 ' \
-                  f'--comp-bias-corr 0 -v 1 -s {consts.MMSEQS_SENSITIVITY_PARAMETER}'
+                  f'--comp-bias-corr 0 -v 1 -s {sensitivity}'
     logger.info(f'Calling: {rbh_command}')
     subprocess.run(rbh_command, shell=True, check=True)
 
@@ -87,13 +87,13 @@ def search_rbh(logger, genome1, genome2, dbs_dir, rbh_hits_dir, scores_statistic
 
 def search_rbhs_in_all_pairs(logger, job_input_path, dbs_dir, rbh_hits_dir, scores_statistics_dir,
                              max_rbh_score_per_gene_dir, temp_dir, identity_cutoff, coverage_cutoff, e_value_cutoff,
-                             use_parquet):
+                             use_parquet, sensitivity):
     with open(job_input_path) as fp:
         for line in fp:
             genome1, genome2 = line.strip().split()
             search_rbh(logger, genome1, genome2, dbs_dir, rbh_hits_dir, scores_statistics_dir,
                        max_rbh_score_per_gene_dir, temp_dir, identity_cutoff, coverage_cutoff, e_value_cutoff,
-                       use_parquet)
+                       use_parquet, sensitivity)
 
 
 if __name__ == '__main__':
@@ -110,6 +110,7 @@ if __name__ == '__main__':
     parser.add_argument('--identity_cutoff', type=float)
     parser.add_argument('--coverage_cutoff', type=float)
     parser.add_argument('--e_value_cutoff', type=float)
+    parser.add_argument('--sensitivity', type=float, default=consts.MMSEQS_HIGH_SENSITIVITY_PARAMETER)
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--use_parquet', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
@@ -123,7 +124,8 @@ if __name__ == '__main__':
     try:
         search_rbhs_in_all_pairs(logger, args.job_input_path, args.dbs_dir, args.rbh_hits_dir,
                                  args.scores_statistics_dir, args.max_rbh_score_per_gene_dir, args.temp_dir,
-                                 args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff, args.use_parquet)
+                                 args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff, args.use_parquet,
+                                 args.sensitivity)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:
