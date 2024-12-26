@@ -270,10 +270,10 @@ def initialize_progressbar(args, progressbar_file_path):
     df.to_csv(progressbar_file_path, index=False)
 
 
-def step_0_fix_input_files(args, logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
+def step_1_fix_input_files(args, logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
                            data_path):
-    # 00.	drop_plasmids_and_fix_frames.py
-    step_number = '00'
+    # 01.	drop_plasmids_and_fix_frames.py
+    step_number = '01'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_fix_input_files'
     script_path = os.path.join(consts.SRC_DIR, 'steps/drop_plasmids_and_fix_frames.py')
@@ -321,39 +321,6 @@ def step_0_fix_input_files(args, logger, times_logger, error_file_path, output_d
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
     return filtered_inputs_dir
-
-
-def step_1_calculate_ani(args, logger, times_logger, error_file_path,  output_dir, tmp_dir, final_output_dir,
-                         done_files_dir, data_path):
-    # 01.   ani.py
-    step_number = '01'
-    logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_ani'
-    script_path = os.path.join(consts.SRC_DIR, 'steps/ani.py')
-    ani_output_dir, ani_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-    if not os.path.exists(done_file_path):
-        logger.info('Calculating ANI values...')
-        ani_tmp_files = os.path.join(ani_tmp_dir, 'temp_results')
-        os.makedirs(ani_tmp_files, exist_ok=True)
-
-        genomes_paths = [os.path.join(data_path, genome_file_name) for genome_file_name in os.listdir(data_path)]
-        genomes_list_path = os.path.join(ani_tmp_files, 'genomes_list.txt')
-        with open(genomes_list_path, 'w') as genomes_list_file:
-            genomes_list_file.write('\n'.join(genomes_paths))
-
-        single_cmd_params = [genomes_list_path, ani_output_dir, f'--cpus {consts.ANI_NUM_OF_CORES}']
-
-        submit_mini_batch(logger, script_path, [single_cmd_params], ani_tmp_dir, error_file_path, args.queue_name, args.account_name,
-                          job_name='ANI', num_of_cpus=consts.ANI_NUM_OF_CORES, memory=consts.ANI_REQUIRED_MEMORY_GB, node_name=args.node_name)
-        wait_for_results(logger, times_logger, step_name, ani_tmp_dir,
-                         num_of_expected_results=1, error_file_path=error_file_path)
-
-        add_results_to_final_dir(logger, ani_output_dir, final_output_dir)
-
-        write_to_file(logger, done_file_path, '.')
-    else:
-        logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
 
 def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir, tmp_dir, final_output_dir,
@@ -1039,16 +1006,42 @@ def step_10_genome_numeric_representation(args, logger, times_logger, error_file
 
 
 def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
-                      done_files_dir, aligned_core_proteome_file_path, genomes_names_path, number_of_genomes, core_proteome_length):
-    # 11.	reconstruct_species_phylogeny.py
-    step_number = '11'
+                      done_files_dir, aligned_core_proteome_file_path, genomes_names_path, number_of_genomes,
+                      core_proteome_length, inputs_data_path):
+    # 11_1.   ani.py
+    step_number = '11_1'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_species_phylogeny'
+    ani_step_name = f'{step_number}_ani'
+    script_path = os.path.join(consts.SRC_DIR, 'steps/ani.py')
+    ani_output_dir, ani_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, ani_step_name)
+    ani_done_file_path = os.path.join(done_files_dir, f'{ani_step_name}.txt')
+    if not os.path.exists(ani_done_file_path):
+        logger.info('Calculating ANI values...')
+        ani_tmp_files = os.path.join(ani_tmp_dir, 'temp_results')
+        os.makedirs(ani_tmp_files, exist_ok=True)
+
+        genomes_paths = [os.path.join(inputs_data_path, genome_file_name) for genome_file_name in os.listdir(inputs_data_path)]
+        genomes_list_path = os.path.join(ani_tmp_files, 'genomes_list.txt')
+        with open(genomes_list_path, 'w') as genomes_list_file:
+            genomes_list_file.write('\n'.join(genomes_paths))
+
+        single_cmd_params = [genomes_list_path, ani_output_dir, f'--cpus {consts.ANI_NUM_OF_CORES}']
+
+        submit_mini_batch(logger, script_path, [single_cmd_params], ani_tmp_dir, error_file_path, args.queue_name, args.account_name,
+                          job_name='ANI', num_of_cpus=consts.ANI_NUM_OF_CORES, memory=consts.ANI_REQUIRED_MEMORY_GB, node_name=args.node_name)
+
+    else:
+        logger.info(f'done file {ani_done_file_path} already exists. Skipping step...')
+
+    # 11_2.	reconstruct_species_phylogeny.py
+    step_number = '11_2'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    phylogeny_step_name = f'{step_number}_species_phylogeny'
     script_path = os.path.join(consts.SRC_DIR, 'steps/reconstruct_species_phylogeny.py')
-    phylogeny_path, phylogeny_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    phylogeny_path, phylogeny_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, phylogeny_step_name)
+    phylogeny_done_file_path = os.path.join(done_files_dir, f'{phylogeny_step_name}.txt')
     start_time = time()
-    if not os.path.exists(done_file_path):
+    if not os.path.exists(phylogeny_done_file_path):
         output_tree_path = os.path.join(phylogeny_path, 'final_species_tree.newick')
         if number_of_genomes < 3 or core_proteome_length == 0:
             logger.info('Skipping phylogeny reconstruction because there are less than 3 genomes or no core proteome')
@@ -1078,14 +1071,20 @@ def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, t
                               node_name=args.node_name)  # Needed to avoid an error in drawing the tree. Taken from: https://github.com/NVlabs/instant-ngp/discussions/300
 
             # wait for the phylogenetic tree here
-            wait_for_results(logger, times_logger, step_name, phylogeny_tmp_dir,
+            wait_for_results(logger, times_logger, phylogeny_step_name, phylogeny_tmp_dir,
                              num_of_expected_results=1, error_file_path=error_file_path,
                              start=start_time)
 
         add_results_to_final_dir(logger, phylogeny_path, final_output_dir)
-        write_to_file(logger, done_file_path, '.')
+        write_to_file(logger, phylogeny_done_file_path, '.')
     else:
-        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+        logger.info(f'done file {phylogeny_done_file_path} already exists. Skipping step...')
+
+    # Wait for ANI here, such that ANI and phylogeny will run in parallel
+    wait_for_results(logger, times_logger, ani_step_name, ani_tmp_dir,
+                     num_of_expected_results=1, error_file_path=error_file_path)
+    add_results_to_final_dir(logger, ani_output_dir, final_output_dir)
+    write_to_file(logger, ani_done_file_path, '.')
 
 
 def step_12_orthogroups_annotations(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
@@ -1190,20 +1189,11 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         args.num_of_clusters_in_orthogroup_inference = int(math.sqrt(number_of_genomes))
 
     if args.filter_out_plasmids or args.inputs_fasta_type == 'orfs':
-        filtered_inputs_dir = step_0_fix_input_files(args, logger, times_logger, error_file_path, output_dir,
+        filtered_inputs_dir = step_1_fix_input_files(args, logger, times_logger, error_file_path, output_dir,
                                                      tmp_dir, done_files_dir, data_path)
         data_path = filtered_inputs_dir
         if args.filter_out_plasmids:
             update_progressbar(progressbar_file_path, 'Filter out plasmids')
-
-    if args.step_to_complete == '0':
-        logger.info("Step 0 completed.")
-        return
-
-    if not args.only_calc_ogs:
-        step_1_calculate_ani(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
-                             done_files_dir, data_path)
-        update_progressbar(progressbar_file_path, 'Calculate ANI (Average Nucleotide Identity)')
 
     if args.step_to_complete == '1':
         logger.info("Step 1 completed.")
@@ -1300,6 +1290,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
     step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
                       done_files_dir, aligned_core_proteome_reduced_file_path, genomes_names_path, number_of_genomes, core_proteome_reduced_length)
     update_progressbar(progressbar_file_path, 'Reconstruct species phylogeny')
+    update_progressbar(progressbar_file_path, 'Calculate ANI (Average Nucleotide Identity)')
 
     if args.step_to_complete == '11':
         logger.info("Step 11 completed.")
@@ -1308,7 +1299,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
     step_12_orthogroups_annotations(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
                                     done_files_dir, orfs_dir, ogs_dna_sequences_path, og_aa_sequences_path,
                                     final_orthologs_table_file_path)
-    update_progressbar(progressbar_file_path, 'Annotate orthogroups with KEGG Orthology (KO) terms and codon bias')
+    update_progressbar(progressbar_file_path, 'Annotate orthogroups with KO terms and codon bias')
 
     if args.step_to_complete == '12':
         logger.info("Step 12 completed.")
@@ -1326,7 +1317,7 @@ def main(args):
         validate_arguments(args)
         initialize_progressbar(args, progressbar_file_path)
 
-        done_file_path = os.path.join(done_files_dir, 'prepare_and_verify_inputs.txt')
+        done_file_path = os.path.join(done_files_dir, '00_prepare_and_verify_inputs.txt')
         genomes_names_path = os.path.join(output_dir, 'genomes_names.txt')
         if not os.path.exists(done_file_path):
             prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path, data_path, genomes_names_path)

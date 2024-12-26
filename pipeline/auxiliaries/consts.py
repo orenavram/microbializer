@@ -121,7 +121,7 @@ LOG_MESSAGE_FORMAT = '%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(messag
 
 # outputs directories map
 OUTPUTS_DIRECTORIES_MAP = {
-    '01_ani': '01_ani',
+    '11_1_ani': '01_ani',
     'orfs_sequences': '02a_orfs',
     '02_2_orfs_plots': '02b_orfs_plots',
     'orfs_translated': '02c_translated_orfs',
@@ -136,7 +136,7 @@ OUTPUTS_DIRECTORIES_MAP = {
     '09_1_aligned_core_proteome': '07a_aligned_core_proteome',
     '09_2_aligned_core_genome': '07b_aligned_core_genome',
     '10_genome_numeric_representation': '08_genome_numeric_representation',
-    '11_species_phylogeny': '09_species_phylogeny',
+    '11_2_species_phylogeny': '09_species_phylogeny',
     '12_1_codon_bias': '10_codon_bias',
     'orthogroups_annotated.csv': '05a_orthogroups',  # copy the annotated OG table (with KEGG+codon bias) to the same directory as the simple OG table
 }
@@ -145,7 +145,6 @@ OUTPUTS_DIRECTORIES_MAP = {
 FULL_STEPS_NAMES_FOR_PROGRESS_BAR = [
     'Validate input files',
     'Filter out plasmids',
-    'Calculate ANI (Average Nucleotide Identity)',
     'Predict and translate ORFs',
     'Calculate genomes completeness',
     'Infer orthogroups',
@@ -153,8 +152,9 @@ FULL_STEPS_NAMES_FOR_PROGRESS_BAR = [
     'Prepare orthogroups fasta files',
     'Infer core genome and proteome',
     'Calculate genomes numeric representation',
+    'Calculate ANI (Average Nucleotide Identity)',
     'Reconstruct species phylogeny',
-    'Annotate orthogroups with KEGG Orthology (KO) terms and codon bias',
+    'Annotate orthogroups with KO terms and codon bias',
     'Finalize results',
 ]
 
