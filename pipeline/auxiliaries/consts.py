@@ -96,7 +96,7 @@ KEGG_KO_LIST_PATH = os.path.join(SRC_DIR, 'data', 'kegg', 'ko_list')
 MAX_NUMBER_OF_GENOMES_TO_ANALYZE = 350
 NUMBER_OF_IQTREE_BOOTSTRAP_ITERATIONS = 1000
 NUMBER_OF_RAXML_BOOTSTRAP_ITERATIONS = 100
-NAX_NUMBER_OF_CORE_OGS_FOR_PHYLOGENY = 1000
+MAX_NUMBER_OF_CORE_OGS_FOR_PHYLOGENY = 1000
 OUTPUT_TSV_OF_ORTHOLOGS_PAIRS = False
 
 
@@ -137,7 +137,7 @@ OUTPUTS_DIRECTORIES_MAP = {
     '09_2_aligned_core_genome': '07b_aligned_core_genome',
     '10_genome_numeric_representation': '08_genome_numeric_representation',
     '11_species_phylogeny': '09_species_phylogeny',
-    '12_codon_bias': '10_codon_bias',
+    '12_1_codon_bias': '10_codon_bias',
     'orthogroups_annotated.csv': '05a_orthogroups',  # copy the annotated OG table (with KEGG+codon bias) to the same directory as the simple OG table
 }
 
@@ -154,8 +154,7 @@ FULL_STEPS_NAMES_FOR_PROGRESS_BAR = [
     'Infer core genome and proteome',
     'Calculate genomes numeric representation',
     'Reconstruct species phylogeny',
-    'Analyze codon bias',
-    'Annotate orthogroups with KEGG Orthology (KO) terms',
+    'Annotate orthogroups with KEGG Orthology (KO) terms and codon bias',
     'Finalize results',
 ]
 

@@ -28,7 +28,7 @@ from auxiliaries.cluster_mmseqs_hits_to_orthogroups import (cluster_mmseqs_hits_
                                                             unify_clusters_mmseqs_hits, run_mmseqs_and_extract_hits)
 from flask.SharedConsts import USER_FILE_NAME_ZIP, USER_FILE_NAME_TAR, State
 
-PIPELINE_STEPS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14']
+PIPELINE_STEPS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
 
 
 def get_arguments():
@@ -917,12 +917,12 @@ def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, err
     # 09_1.	extract aligned_core_proteome.py
     step_number = '09_1'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_aligned_core_proteome'
+    core_proteome_step_name = f'{step_number}_aligned_core_proteome'
     script_path = os.path.join(consts.SRC_DIR, 'steps/extract_core_genome.py')
-    aligned_core_proteome_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    aligned_core_proteome_path, aligned_core_proteome_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, core_proteome_step_name)
+    core_proteome_done_file_path = os.path.join(done_files_dir, f'{core_proteome_step_name}.txt')
 
-    if not os.path.exists(done_file_path):
+    if not os.path.exists(core_proteome_done_file_path):
         logger.info('Extracting aligned core proteome...')
 
         aligned_core_proteome_file_path = os.path.join(aligned_core_proteome_path, 'aligned_core_proteome.fas')
@@ -932,26 +932,21 @@ def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, err
                   aligned_core_proteome_file_path,
                   core_proteome_length_file_path,
                   f'--core_minimal_percentage {args.core_minimal_percentage}']  # how many members induce a core group?
-        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path,
+        submit_mini_batch(logger, script_path, [params], aligned_core_proteome_tmp_dir, error_file_path,
                           args.queue_name, args.account_name, job_name='core_proteome', node_name=args.node_name)
 
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
-                         num_of_expected_results=1, error_file_path=error_file_path)
-
-        add_results_to_final_dir(logger, aligned_core_proteome_path, final_output_dir)
-        write_to_file(logger, done_file_path, '.')
     else:
-        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+        logger.info(f'done file {core_proteome_done_file_path} already exists. Skipping step...')
 
 
     # 09_2.      extract_aligned_core_genome
     step_number = '09_2'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_aligned_core_genome'
+    core_genome_step_name = f'{step_number}_aligned_core_genome'
     script_path = os.path.join(consts.SRC_DIR, 'steps/extract_core_genome.py')
-    aligned_core_genome_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-    if not os.path.exists(done_file_path):
+    aligned_core_genome_path, aligned_core_genome_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, core_genome_step_name)
+    core_genome_done_file_path = os.path.join(done_files_dir, f'{core_genome_step_name}.txt')
+    if not os.path.exists(core_genome_done_file_path):
         logger.info('Extracting aligned core genome...')
 
         aligned_core_genome_file_path = os.path.join(aligned_core_genome_path, 'aligned_core_genome.fas')
@@ -961,44 +956,50 @@ def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, err
                   aligned_core_genome_file_path,
                   core_genome_length_file_path,
                   f'--core_minimal_percentage {args.core_minimal_percentage}']  # how many members induce a core group?
-        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path,
+        submit_mini_batch(logger, script_path, [params], aligned_core_genome_tmp_dir, error_file_path,
                           args.queue_name, args.account_name, job_name='core_genome', node_name=args.node_name)
 
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
-                         num_of_expected_results=1, error_file_path=error_file_path)
-
-        add_results_to_final_dir(logger, aligned_core_genome_path, final_output_dir)
-        write_to_file(logger, done_file_path, '.')
     else:
-        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+        logger.info(f'done file {core_genome_done_file_path} already exists. Skipping step...')
 
 
     # 09_3.	extract aligned_core_proteome.py (for phylogeny reconstruction)
     step_number = '09_3'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_aligned_core_proteome_reduced'
+    core_proteome_reduced_step_name = f'{step_number}_aligned_core_proteome_reduced'
     script_path = os.path.join(consts.SRC_DIR, 'steps/extract_core_genome.py')
-    aligned_core_proteome_reduced_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    aligned_core_proteome_reduced_path, aligned_core_proteome_reduced_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, core_proteome_reduced_step_name)
     aligned_core_proteome_reduced_file_path = os.path.join(aligned_core_proteome_reduced_path, 'aligned_core_proteome.fas')
     core_proteome_reduced_length_file_path = os.path.join(aligned_core_proteome_reduced_path, 'core_length.txt')
-    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-    if not os.path.exists(done_file_path):
+    core_proteome_reduced_done_file_path = os.path.join(done_files_dir, f'{core_proteome_reduced_step_name}.txt')
+    if not os.path.exists(core_proteome_reduced_done_file_path):
         logger.info('Extracting aligned core proteome for phylogeny reconstruction...')
 
         params = [aa_alignments_path, strains_names_path,
                   aligned_core_proteome_reduced_file_path,
                   core_proteome_reduced_length_file_path,
-                  f'--core_minimal_percentage {args.core_minimal_percentage}', # how many members induce a core group?
-                  f'--max_number_of_ogs {consts.NAX_NUMBER_OF_CORE_OGS_FOR_PHYLOGENY}']
-        submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path,
+                  f'--core_minimal_percentage {args.core_minimal_percentage}',  # how many members induce a core group?
+                  f'--max_number_of_ogs {consts.MAX_NUMBER_OF_CORE_OGS_FOR_PHYLOGENY}']
+        submit_mini_batch(logger, script_path, [params], aligned_core_proteome_reduced_tmp_dir, error_file_path,
                           args.queue_name, args.account_name, job_name='core_proteome', node_name=args.node_name)
 
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
-                         num_of_expected_results=1, error_file_path=error_file_path)
-
-        write_to_file(logger, done_file_path, '.')
     else:
-        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+        logger.info(f'done file {core_proteome_reduced_done_file_path} already exists. Skipping step...')
+
+    # Wait for all results here (since the steps aren't dependent on each other)
+    wait_for_results(logger, times_logger, core_proteome_step_name, aligned_core_proteome_tmp_dir,
+                     num_of_expected_results=1, error_file_path=error_file_path)
+    add_results_to_final_dir(logger, aligned_core_proteome_path, final_output_dir)
+    write_to_file(logger, core_proteome_done_file_path, '.')
+
+    wait_for_results(logger, times_logger, core_genome_step_name, aligned_core_genome_tmp_dir,
+                     num_of_expected_results=1, error_file_path=error_file_path)
+    add_results_to_final_dir(logger, aligned_core_genome_path, final_output_dir)
+    write_to_file(logger, core_genome_done_file_path, '.')
+
+    wait_for_results(logger, times_logger, core_proteome_reduced_step_name, aligned_core_proteome_reduced_tmp_dir,
+                     num_of_expected_results=1, error_file_path=error_file_path)
+    write_to_file(logger, core_proteome_reduced_done_file_path, '.')
 
     with open(core_proteome_reduced_length_file_path, 'r') as fp:
         core_proteome_reduced_length = int(fp.read().strip())
@@ -1087,19 +1088,20 @@ def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, t
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
 
-def step_12_codon_bias(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
-                       done_files_dir, orfs_dir, orthologs_dna_sequences_dir_path):
-    # 12.  codon_bias.py
+def step_12_orthogroups_annotations(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
+                                    done_files_dir, orfs_dir, orthologs_dna_sequences_dir_path, orthologs_aa_sequences_dir_path,
+                                    final_orthologs_table_file_path):
+    # 12_1.  codon_bias.py
     # Input: ORF dir and OG dir
     # Output: W_vector for each genome, CAI for each OG
-    step_number = '12'
+    step_number = '12_1'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_codon_bias'
+    codon_bias_step_name = f'{step_number}_codon_bias'
     script_path = os.path.join(consts.SRC_DIR, 'steps/codon_bias.py')
-    codon_bias_output_dir_path, codon_bias_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    codon_bias_output_dir_path, codon_bias_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, codon_bias_step_name)
     cai_table_path = os.path.join(codon_bias_output_dir_path, 'CAI_table.csv')
-    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-    if not os.path.exists(done_file_path):
+    codon_bias_done_file_path = os.path.join(done_files_dir, f'{codon_bias_step_name}.txt')
+    if not os.path.exists(codon_bias_done_file_path):
         logger.info('Analyzing codon bias...')
         params = [
             orfs_dir,
@@ -1112,55 +1114,46 @@ def step_12_codon_bias(args, logger, times_logger, error_file_path, output_dir, 
         submit_mini_batch(logger, script_path, [params], codon_bias_tmp_dir, error_file_path, args.queue_name, args.account_name, job_name='codon_bias',
                           num_of_cpus=consts.CODON_BIAS_NUM_OF_CORES, node_name=args.node_name)
 
-        wait_for_results(logger, times_logger, step_name, codon_bias_tmp_dir,
-                         num_of_expected_results=1, error_file_path=error_file_path)
-
-        add_results_to_final_dir(logger, codon_bias_output_dir_path, final_output_dir)
-        write_to_file(logger, done_file_path, '.')
     else:
-        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+        logger.info(f'done file {codon_bias_done_file_path} already exists. Skipping step...')
 
-    return cai_table_path
-
-
-def step_13_kegg_annotation(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
-                            done_files_dir, orthologs_aa_sequences_dir_path, final_orthologs_table_file_path):
-    # 13.  kegg_annotation.py
+    # 12_2.  kegg_annotation.py
     # Input: OG aa dir
-    step_number = '13'
+    step_number = '12_2'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_kegg'
+    kegg_step_name = f'{step_number}_kegg'
     script_path = os.path.join(consts.SRC_DIR, 'steps/kegg_annotation.py')
-    output_dir_path, tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    kegg_table_path = os.path.join(output_dir_path, 'og_kegg.csv')
-    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-    if not os.path.exists(done_file_path):
+    kegg_output_dir_path, kegg_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, kegg_step_name)
+    kegg_table_path = os.path.join(kegg_output_dir_path, 'og_kegg.csv')
+    kegg_done_file_path = os.path.join(done_files_dir, f'{kegg_step_name}.txt')
+    if not os.path.exists(kegg_done_file_path):
         logger.info('Annotation with KEGG Orthology...')
         params = [
             orthologs_aa_sequences_dir_path,
             final_orthologs_table_file_path,
-            output_dir_path,
+            kegg_output_dir_path,
             kegg_table_path,
             consts.KEGG_NUM_OF_CORES,
             '--optimize'
         ]
-        submit_mini_batch(logger, script_path, [params], tmp_dir, error_file_path, args.queue_name, args.account_name,
+        submit_mini_batch(logger, script_path, [params], kegg_tmp_dir, error_file_path, args.queue_name, args.account_name,
                           job_name='kegg', num_of_cpus=consts.KEGG_NUM_OF_CORES, memory=consts.KEGG_REQUIRED_MEMORY_GB, node_name=args.node_name)
 
-        wait_for_results(logger, times_logger, step_name, tmp_dir,
-                         num_of_expected_results=1, error_file_path=error_file_path)
-
-        write_to_file(logger, done_file_path, '.')
     else:
-        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+        logger.info(f'done file {kegg_done_file_path} already exists. Skipping step...')
 
-    return kegg_table_path
+    # Wait for results here (since the steps aren't dependent on each other)
+    wait_for_results(logger, times_logger, codon_bias_step_name, codon_bias_tmp_dir,
+                     num_of_expected_results=1, error_file_path=error_file_path)
+    add_results_to_final_dir(logger, codon_bias_output_dir_path, final_output_dir)
+    write_to_file(logger, codon_bias_done_file_path, '.')
 
+    wait_for_results(logger, times_logger, kegg_step_name, kegg_tmp_dir,
+                     num_of_expected_results=1, error_file_path=error_file_path)
+    write_to_file(logger, kegg_done_file_path, '.')
 
-def step_14_orthogroups_annotations(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
-                                    done_files_dir, final_orthologs_table_file_path, kegg_annotations, codon_bias_annotations):
-    # 14.  add annotations to otrhogroups table
-    step_number = '14'
+    # 12_3.  add annotations to otrhogroups table
+    step_number = '12_3'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orthogroups_annotations'
     output_dir_path, tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
@@ -1169,12 +1162,12 @@ def step_14_orthogroups_annotations(args, logger, times_logger, error_file_path,
         logger.info('Adding annotations to orthogroups...')
         final_orthologs_df = pd.read_csv(final_orthologs_table_file_path)
 
-        if os.path.exists(kegg_annotations):
-            kegg_table_df = pd.read_csv(kegg_annotations)[['OG_name', 'knum', 'knum_description']]
+        if os.path.exists(kegg_table_path):
+            kegg_table_df = pd.read_csv(kegg_table_path)[['OG_name', 'knum', 'knum_description']]
             final_orthologs_df = pd.merge(kegg_table_df, final_orthologs_df, on='OG_name')
 
-        if os.path.exists(codon_bias_annotations):
-            cai_df = pd.read_csv(codon_bias_annotations)[['OG_name', 'CAI_mean']]
+        if os.path.exists(cai_table_path):
+            cai_df = pd.read_csv(cai_table_path)[['OG_name', 'CAI_mean']]
             final_orthologs_df = pd.merge(cai_df, final_orthologs_df, on='OG_name')
 
         final_orthologs_table_annotated_path = os.path.join(output_dir_path, 'orthogroups_annotated.csv')
@@ -1312,27 +1305,13 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         logger.info("Step 11 completed.")
         return
 
-    cai_table_path = step_12_codon_bias(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
-                       done_files_dir, orfs_dir, ogs_dna_sequences_path)
-    update_progressbar(progressbar_file_path, 'Analyze codon bias')
+    step_12_orthogroups_annotations(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
+                                    done_files_dir, orfs_dir, ogs_dna_sequences_path, og_aa_sequences_path,
+                                    final_orthologs_table_file_path)
+    update_progressbar(progressbar_file_path, 'Annotate orthogroups with KEGG Orthology (KO) terms and codon bias')
 
     if args.step_to_complete == '12':
         logger.info("Step 12 completed.")
-        return
-
-    kegg_table_path = step_13_kegg_annotation(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
-                            done_files_dir, og_aa_sequences_path, final_orthologs_table_file_path)
-    update_progressbar(progressbar_file_path, 'Annotate orthogroups with KEGG Orthology (KO) terms')
-
-    if args.step_to_complete == '13':
-        logger.info("Step 13 completed.")
-        return
-
-    step_14_orthogroups_annotations(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
-                                    done_files_dir, final_orthologs_table_file_path, kegg_table_path, cai_table_path)
-
-    if args.step_to_complete == '14':
-        logger.info("Step 14 completed.")
         return
 
 
