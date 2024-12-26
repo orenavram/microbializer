@@ -14,7 +14,7 @@ from auxiliaries.pipeline_auxiliaries import get_job_logger
 from auxiliaries import consts
 
 
-def create_fasta_of_unified_ogs_sequences(og_aa_dir, output_fasta, optimize):
+def create_fasta_of_unified_ogs_sequences(logger, og_aa_dir, output_fasta, optimize):
     if optimize:
         records = []
         for filename in os.listdir(og_aa_dir):
@@ -24,8 +24,10 @@ def create_fasta_of_unified_ogs_sequences(og_aa_dir, output_fasta, optimize):
             records.append(first_record)
 
         SeqIO.write(records, output_fasta, 'fasta')
+        logger.info(f'Wrote {len(records)} records to {output_fasta} (only 1 gene from each og)')
     else:
         subprocess.run(f'cat {og_aa_dir}/* >> {output_fasta}', shell=True)
+        logger.info(f'Wrote all records to {output_fasta}')
 
 
 def filter_hmmsearh_output(hmmsearch_output):
@@ -86,19 +88,23 @@ def add_kegg_annotations_to_og_table(og_table_path, hmmsearch_output_df):
 
 def kegg_annotation(logger, og_aa_dir, og_table_path, output_dir, output_og_table_path, cpus, optimize):
     unified_ogs_sequences = os.path.join(output_dir, 'unified_ogs_sequences.faa')
-    create_fasta_of_unified_ogs_sequences(og_aa_dir, unified_ogs_sequences, optimize)
+    create_fasta_of_unified_ogs_sequences(logger, og_aa_dir, unified_ogs_sequences, optimize)
 
     # run hmmsearch
     hmmsearch_output = os.path.join(output_dir, 'hmmsearch_output.txt')
-    cmd = f'hmmsearch --cpu {cpus} --tblout {hmmsearch_output} {consts.KEGG_DATABASE_PATH} {unified_ogs_sequences}'
+    cmd = f'hmmsearch --noali --cpu {cpus} --tblout {hmmsearch_output} {consts.KEGG_DATABASE_PATH} {unified_ogs_sequences}'
     logger.info(f'Running: {cmd}')
     subprocess.run(cmd, shell=True)
+    logger.info(f'Finished running hmmsearch. Output written to {hmmsearch_output}')
 
     hmmsearch_output_df = filter_hmmsearh_output(hmmsearch_output)
-    hmmsearch_output_df.to_csv(os.path.join(output_dir, 'filtered_hmmsearch_output.csv'), index=False)
+    filtered_hmmsearch_output = os.path.join(output_dir, 'filtered_hmmsearch_output.csv')
+    hmmsearch_output_df.to_csv(filtered_hmmsearch_output, index=False)
+    logger.info(f'Wrote filtered hmmsearch output to {filtered_hmmsearch_output}')
 
     og_table_with_kegg_df = add_kegg_annotations_to_og_table(og_table_path, hmmsearch_output_df)
     og_table_with_kegg_df.to_csv(output_og_table_path, index=False)
+    logger.info(f'Wrote og table with kegg annotations to {output_og_table_path}')
 
 
 if __name__ == '__main__':

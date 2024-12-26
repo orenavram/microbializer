@@ -152,9 +152,10 @@ FULL_STEPS_NAMES_FOR_PROGRESS_BAR = [
     'Prepare orthogroups fasta files',
     'Infer core genome and proteome',
     'Calculate genomes numeric representation',
-    'Calculate ANI (Average Nucleotide Identity)',
     'Reconstruct species phylogeny',
-    'Annotate orthogroups with KO terms and codon bias',
+    'Calculate ANI (Average Nucleotide Identity)',
+    'Analyzing orthogroups codon bias',
+    'Annotate orthogroups with KO terms',
     'Finalize results',
 ]
 

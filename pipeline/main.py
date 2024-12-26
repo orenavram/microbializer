@@ -954,19 +954,22 @@ def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, err
         logger.info(f'done file {core_proteome_reduced_done_file_path} already exists. Skipping step...')
 
     # Wait for all results here (since the steps aren't dependent on each other)
-    wait_for_results(logger, times_logger, core_proteome_step_name, aligned_core_proteome_tmp_dir,
-                     num_of_expected_results=1, error_file_path=error_file_path)
-    add_results_to_final_dir(logger, aligned_core_proteome_path, final_output_dir)
-    write_to_file(logger, core_proteome_done_file_path, '.')
+    if not os.path.exists(core_proteome_done_file_path):
+        wait_for_results(logger, times_logger, core_proteome_step_name, aligned_core_proteome_tmp_dir,
+                         num_of_expected_results=1, error_file_path=error_file_path)
+        add_results_to_final_dir(logger, aligned_core_proteome_path, final_output_dir)
+        write_to_file(logger, core_proteome_done_file_path, '.')
 
-    wait_for_results(logger, times_logger, core_genome_step_name, aligned_core_genome_tmp_dir,
-                     num_of_expected_results=1, error_file_path=error_file_path)
-    add_results_to_final_dir(logger, aligned_core_genome_path, final_output_dir)
-    write_to_file(logger, core_genome_done_file_path, '.')
+    if not os.path.exists(core_genome_done_file_path):
+        wait_for_results(logger, times_logger, core_genome_step_name, aligned_core_genome_tmp_dir,
+                         num_of_expected_results=1, error_file_path=error_file_path)
+        add_results_to_final_dir(logger, aligned_core_genome_path, final_output_dir)
+        write_to_file(logger, core_genome_done_file_path, '.')
 
-    wait_for_results(logger, times_logger, core_proteome_reduced_step_name, aligned_core_proteome_reduced_tmp_dir,
-                     num_of_expected_results=1, error_file_path=error_file_path)
-    write_to_file(logger, core_proteome_reduced_done_file_path, '.')
+    if not os.path.exists(core_proteome_reduced_done_file_path):
+        wait_for_results(logger, times_logger, core_proteome_reduced_step_name, aligned_core_proteome_reduced_tmp_dir,
+                         num_of_expected_results=1, error_file_path=error_file_path)
+        write_to_file(logger, core_proteome_reduced_done_file_path, '.')
 
     with open(core_proteome_reduced_length_file_path, 'r') as fp:
         core_proteome_reduced_length = int(fp.read().strip())
@@ -1080,10 +1083,11 @@ def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, t
         logger.info(f'done file {phylogeny_done_file_path} already exists. Skipping step...')
 
     # Wait for ANI here, such that ANI and phylogeny will run in parallel
-    wait_for_results(logger, times_logger, ani_step_name, ani_tmp_dir,
-                     num_of_expected_results=1, error_file_path=error_file_path)
-    add_results_to_final_dir(logger, ani_output_dir, final_output_dir)
-    write_to_file(logger, ani_done_file_path, '.')
+    if not os.path.exists(ani_done_file_path):
+        wait_for_results(logger, times_logger, ani_step_name, ani_tmp_dir,
+                         num_of_expected_results=1, error_file_path=error_file_path)
+        add_results_to_final_dir(logger, ani_output_dir, final_output_dir)
+        write_to_file(logger, ani_done_file_path, '.')
 
 
 def step_12_orthogroups_annotations(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
@@ -1141,14 +1145,16 @@ def step_12_orthogroups_annotations(args, logger, times_logger, error_file_path,
         logger.info(f'done file {kegg_done_file_path} already exists. Skipping step...')
 
     # Wait for results here (since the steps aren't dependent on each other)
-    wait_for_results(logger, times_logger, codon_bias_step_name, codon_bias_tmp_dir,
-                     num_of_expected_results=1, error_file_path=error_file_path)
-    add_results_to_final_dir(logger, codon_bias_output_dir_path, final_output_dir)
-    write_to_file(logger, codon_bias_done_file_path, '.')
+    if not os.path.exists(codon_bias_done_file_path):
+        wait_for_results(logger, times_logger, codon_bias_step_name, codon_bias_tmp_dir,
+                         num_of_expected_results=1, error_file_path=error_file_path)
+        add_results_to_final_dir(logger, codon_bias_output_dir_path, final_output_dir)
+        write_to_file(logger, codon_bias_done_file_path, '.')
 
-    wait_for_results(logger, times_logger, kegg_step_name, kegg_tmp_dir,
-                     num_of_expected_results=1, error_file_path=error_file_path)
-    write_to_file(logger, kegg_done_file_path, '.')
+    if not os.path.exists(kegg_done_file_path):
+        wait_for_results(logger, times_logger, kegg_step_name, kegg_tmp_dir,
+                         num_of_expected_results=1, error_file_path=error_file_path)
+        write_to_file(logger, kegg_done_file_path, '.')
 
     # 12_3.  add annotations to otrhogroups table
     step_number = '12_3'
@@ -1287,7 +1293,8 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         return
 
     step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
-                      done_files_dir, aligned_core_proteome_reduced_file_path, genomes_names_path, number_of_genomes, core_proteome_reduced_length)
+                      done_files_dir, aligned_core_proteome_reduced_file_path, genomes_names_path, number_of_genomes,
+                      core_proteome_reduced_length, data_path)
     update_progressbar(progressbar_file_path, 'Reconstruct species phylogeny')
     update_progressbar(progressbar_file_path, 'Calculate ANI (Average Nucleotide Identity)')
 
@@ -1298,7 +1305,8 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
     step_12_orthogroups_annotations(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
                                     done_files_dir, orfs_dir, ogs_dna_sequences_path, og_aa_sequences_path,
                                     final_orthologs_table_file_path)
-    update_progressbar(progressbar_file_path, 'Annotate orthogroups with KO terms and codon bias')
+    update_progressbar(progressbar_file_path, 'Analyzing orthogroups codon bias')
+    update_progressbar(progressbar_file_path, 'Annotate orthogroups with KO terms')
 
     if args.step_to_complete == '12':
         logger.info("Step 12 completed.")
