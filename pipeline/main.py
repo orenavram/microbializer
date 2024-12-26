@@ -974,20 +974,19 @@ def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, err
     return aligned_core_proteome_reduced_file_path, core_proteome_reduced_length
 
 
-def step_10_genome_numeric_representation(args, logger, times_logger, error_file_path, output_dir,
-                                         tmp_dir, final_output_dir, done_files_dir, orfs_dir,
-                                         final_orthologs_table_file_path):
+def step_10_genome_numeric_representation(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
+                                          final_output_dir, done_files_dir, orfs_dir, final_orthologs_table_file_path):
     # 10.	genome_numeric_representation.py
     step_number = '10'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_genome_numeric_representation'
+    numeric_step_name = f'{step_number}_genome_numeric_representation'
     script_path = os.path.join(consts.SRC_DIR, 'steps/genome_numeric_representation.py')
     numeric_representation_output_dir, numeric_representation_tmp_dir = prepare_directories(logger, output_dir,
-                                                                                            tmp_dir, step_name)
+                                                                                            tmp_dir, numeric_step_name)
     core_genome_numeric_representation_file_path = os.path.join(numeric_representation_output_dir,
                                                                 'core_genome_numeric_representation.txt')
-    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-    if not os.path.exists(done_file_path):
+    numeric_done_file_path = os.path.join(done_files_dir, f'{numeric_step_name}.txt')
+    if not os.path.exists(numeric_done_file_path):
         params = [final_orthologs_table_file_path,
                   orfs_dir,
                   core_genome_numeric_representation_file_path,
@@ -996,13 +995,13 @@ def step_10_genome_numeric_representation(args, logger, times_logger, error_file
         submit_mini_batch(logger, script_path, [params], numeric_representation_tmp_dir, error_file_path,
                           args.queue_name, args.account_name, job_name='numeric_representation', node_name=args.node_name)
 
-        wait_for_results(logger, times_logger, step_name, numeric_representation_tmp_dir,
+        wait_for_results(logger, times_logger, numeric_step_name, numeric_representation_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path)
 
         add_results_to_final_dir(logger, numeric_representation_output_dir, final_output_dir)
-        write_to_file(logger, done_file_path, '.')
+        write_to_file(logger, numeric_done_file_path, '.')
     else:
-        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+        logger.info(f'done file {numeric_done_file_path} already exists. Skipping step...')
 
 
 def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
