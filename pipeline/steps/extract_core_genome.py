@@ -60,7 +60,7 @@ def extract_core_genome(logger, alignments_path, strains_names_path, core_genome
             logger.info(f'Adding to core genome: {og_file} '
                         f'({num_of_strains_in_og}/{num_of_strains} >= {core_minimal_percentage}%)')
             update_core_genome(logger, og_file, gene_name_to_sequence_dict, og_alignment_length, strain_to_core_genome_dict)
-            core_ogs.append(og_file.split('_')[1])  # e.g., og_2655_aa_mafft.fas
+            core_ogs.append(os.path.splitext(og_file)[0].split('_')[1])  # e.g., og_2655.faa -> 2655
             if max_number_of_ogs and len(core_ogs) == max_number_of_ogs:
                 break
         else:

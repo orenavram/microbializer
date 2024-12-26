@@ -54,7 +54,7 @@ def reconstruct_msa(logger, sequences_file_path, output_file_path):
         logger.info(f'Only one sequence in {sequences_file_path}. Copying it to {output_file_path}')
         shutil.copy(sequences_file_path, output_file_path)
     else:
-        cmd = f'mafft --auto --amino {sequences_file_path} > {output_file_path}'
+        cmd = f'mafft --auto --amino --quiet {sequences_file_path} > {output_file_path}'
         logger.info(f'Starting MAFFT. Executed command is: {cmd}')
         subprocess.run(cmd, shell=True)
         logger.info(f'Finished MAFFT. Output was written to {output_file_path}')
@@ -80,13 +80,13 @@ def induce_sequence(logger, aligned_aa_seq, dna_seq):
     return result
 
 
-def induce_msa(logger, og_members, gene_to_sequence_dict, aa_msa_path, output_path):
+def induce_msa(logger, og_members, gene_name_to_dna_sequence_dict, aa_msa_path, output_path):
     gene_name_to_aligned_aa_sequence = {record.id: record.seq for record in SeqIO.parse(aa_msa_path, 'fasta')}
 
     og_sequences = ''
     for gene_name in og_members:
         aligned_aa_sequence = gene_name_to_aligned_aa_sequence[gene_name]
-        induced_dna_sequence = induce_sequence(logger, aligned_aa_sequence, gene_to_sequence_dict[gene_name])
+        induced_dna_sequence = induce_sequence(logger, aligned_aa_sequence, gene_name_to_dna_sequence_dict[gene_name])
         og_sequences += f'>{gene_name}\n{induced_dna_sequence}\n'
 
     with open(output_path, 'w') as f:
@@ -112,11 +112,13 @@ def extract_orfs(logger, all_orfs_path, all_proteins_path, orthogroups_file_path
         for i, line in enumerate(f):
             if i < start_og_number or i > end_og_number:
                 continue
-            line_tokens = line.split(delimiter)
+            line_tokens = line.strip().split(delimiter)
             og_name = line_tokens[0]
             og_members = flatten([strain_genes.split(';') for strain_genes in line_tokens[1:] if strain_genes])
             if not og_members:
                 raise ValueError(f'Failed to extract any sequence for {og_name}.')
+
+            logger.info(f'Extracting sequences for {og_name} ({len(og_members)} members)...')
 
             og_dna_path = os.path.join(ogs_dna_output_dir, f'{og_name}.fna')
             write_og_dna_sequences_file(og_name, og_members, gene_to_sequence_dict, og_dna_path)

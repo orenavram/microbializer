@@ -152,7 +152,7 @@ def visualize_Ws_with_PCA(W_vectors, output_dir, logger):
 
 
 def calculate_cai(OG_dir, OG_index, genomes_codon_indexes, cais_output_dir):
-    OG_path = os.path.join(OG_dir, f'OG_{OG_index}_dna.fas')
+    OG_path = os.path.join(OG_dir, f'OG_{OG_index}.fna')
     output_file_path = os.path.join(cais_output_dir, f'OG_{OG_index}.json')
 
     logger.info(f'Calculating CAI for genes in OG {OG_path}. Will save the results in {output_file_path}')

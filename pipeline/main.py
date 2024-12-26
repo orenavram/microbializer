@@ -377,6 +377,10 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
     if not os.path.exists(done_file_path):
         logger.info('Extracting ORFs...')
 
+        os.makedirs(orfs_sequences_dir, exist_ok=True)
+        os.makedirs(orfs_statistics_dir, exist_ok=True)
+        os.makedirs(orfs_translated_dir, exist_ok=True)
+
         job_index_to_fasta_file_names = defaultdict(list)
 
         for i, fasta_file_name in enumerate(os.listdir(data_path)):
