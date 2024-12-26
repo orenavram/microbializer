@@ -122,9 +122,9 @@ LOG_MESSAGE_FORMAT = '%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(messag
 # outputs directories map
 OUTPUTS_DIRECTORIES_MAP = {
     '01_ani': '01_ani',
-    '02_1_orfs': '02a_orfs',
-    '02_3_orfs_plots': '02b_orfs_plots',
-    '02_4_translated_orfs': '02c_translated_orfs',
+    'orfs_sequences': '02a_orfs',
+    '02_2_orfs_plots': '02b_orfs_plots',
+    'orfs_translated': '02c_translated_orfs',
     '03_genomes_completeness': '03_genomes_completeness',
     '06_orphan_genes': '04_orphan_genes',
     '07_1_orthogroups': '05a_orthogroups',

@@ -10,30 +10,10 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 import seaborn as sns
 import numpy as np
+from Bio import SeqIO
 
 
 from . import consts
-
-
-def mimic_prodigal_output(orfs_dir, output_orf_file_extension):
-    for file_name in os.listdir(orfs_dir):
-        file_path = os.path.join(orfs_dir, file_name)
-
-        # edit headers of ORFs to match the structure of prodigal output
-        fixed_content = ''
-        with open(file_path, 'r') as orfs_file:
-            for line in orfs_file:
-                if line.startswith('>'):
-                    fixed_content += f'{line.strip()} # START # END # 1 # \n'
-                else:
-                    fixed_content += line
-
-        # override the old file with the fixed content
-        with open(file_path, 'w') as f:
-            f.write(fixed_content)
-
-        # change file name to match the output of step 2
-        os.rename(file_path, f'{os.path.splitext(file_path)[0]}.{output_orf_file_extension}')
 
 
 def aggregate_mmseqs_scores(orthologs_scores_statistics_dir, paralogs_scores_statistics_dir, output_file):
@@ -183,3 +163,16 @@ def convert_seq_identity_to_sensitivity(seq_identity):
         sensitivity = 1.0 + (1.0 * (0.8 - seq_identity) * 10)
 
     return sensitivity
+
+
+def fna_to_faa(logger, nucleotide_path, protein_path):
+    with open(nucleotide_path, "r") as in_handle, open(protein_path, "w") as out_handle:
+        # Iterate through each sequence record in the input file
+        for record in SeqIO.parse(in_handle, "fasta"):
+            # Translate the DNA sequence into a protein sequence
+            translated_record = record.translate(id=True, name=True, description=True)
+
+            # Write the translated record to the output file
+            SeqIO.write(translated_record, out_handle, "fasta")
+
+    logger.info(f'Translated fatsa file {nucleotide_path}. Output was written successfully to: {protein_path}')

@@ -4,6 +4,7 @@ import math
 import os
 import shutil
 import sys
+from collections import defaultdict
 from time import time
 import traceback
 import json
@@ -281,10 +282,24 @@ def step_0_fix_input_files(args, logger, times_logger, error_file_path, output_d
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Filtering plasmids out...')
-        all_cmds_params = []
-        for fasta_file in os.listdir(data_path):
-            single_cmd_params = [os.path.join(data_path, fasta_file),
-                                 os.path.join(filtered_inputs_dir, fasta_file)]
+
+        job_index_to_fasta_file_names = defaultdict(list)
+
+        for i, fasta_file_name in enumerate(os.listdir(data_path)):
+            job_index = i % consts.MAX_PARALLEL_JOBS
+            job_index_to_fasta_file_names[job_index].append(fasta_file_name)
+
+        jobs_inputs_dir = os.path.join(pipeline_step_tmp_dir, 'job_inputs')
+        os.makedirs(jobs_inputs_dir, exist_ok=True)
+
+        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
+        for job_index, job_fasta_file_names in job_index_to_fasta_file_names.items():
+            job_input_path = os.path.join(jobs_inputs_dir, f'{job_index}.txt')
+            with open(job_input_path, 'w') as f:
+                for fasta_file_name in job_fasta_file_names:
+                    f.write(f'{os.path.join(data_path, fasta_file_name)}\n')
+
+            single_cmd_params = [job_input_path, filtered_inputs_dir]
 
             if args.filter_out_plasmids:
                 single_cmd_params.append('--drop_plasmids')
@@ -294,7 +309,7 @@ def step_0_fix_input_files(args, logger, times_logger, error_file_path, output_d
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
-                                                   num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
+                                                   num_of_cmds_per_job=1,
                                                    job_name_suffix='drop_plasmids',
                                                    queue_name=args.queue_name,
                                                    account_name=args.account_name,
@@ -355,71 +370,52 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orfs'
     script_path = os.path.join(consts.SRC_DIR, 'steps/search_orfs.py')
-    orfs_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    orfs_dir, orfs_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    orfs_sequences_dir = os.path.join(orfs_dir, 'orfs_sequences')
+    orfs_statistics_dir = os.path.join(orfs_dir, 'orfs_statistics')
+    orfs_translated_dir = os.path.join(orfs_dir, 'orfs_translated')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
-        if args.inputs_fasta_type == 'genomes':
-            logger.info('Extracting ORFs...')
-            all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-            for fasta_file in os.listdir(data_path):
-                single_cmd_params = [f'"{os.path.join(data_path, fasta_file)}"',
-                                     orfs_dir]
-                all_cmds_params.append(single_cmd_params)
+        logger.info('Extracting ORFs...')
 
-            num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
-                                                       num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
-                                                       job_name_suffix='search_orfs',
-                                                       queue_name=args.queue_name,
-                                                       account_name=args.account_name,
-                                                       node_name=args.node_name)
+        job_index_to_fasta_file_names = defaultdict(list)
 
-            wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
-                             num_of_batches, error_file_path)
-        else:  # inputs are orfs
-            logger.info(f'Inputs are already annotated genomes. Skipping step {step_name}.')
-            shutil.copytree(data_path, orfs_dir, dirs_exist_ok=True)
-            mimic_prodigal_output(orfs_dir, step_name)
+        for i, fasta_file_name in enumerate(os.listdir(data_path)):
+            job_index = i % consts.MAX_PARALLEL_JOBS
+            job_index_to_fasta_file_names[job_index].append(fasta_file_name)
 
-        add_results_to_final_dir(logger, orfs_dir, final_output_dir)
-        write_to_file(logger, done_file_path, '.')
-    else:
-        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+        jobs_inputs_dir = os.path.join(orfs_tmp_dir, 'job_inputs')
+        os.makedirs(jobs_inputs_dir, exist_ok=True)
 
-    # 02_2.	extract_orfs_statistics.py
-    # Input: (1) A path to ORFs file (2) An output dir of orfs statistics
-    # Output: write the number of ORFs and GC content to the output files (respectively)
-    # Can be parallelized on cluster
-    step_number = '02_2'
-    logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_orfs_statistics'
-    script_path = os.path.join(consts.SRC_DIR, 'steps/extract_orfs_statistics.py')
-    orfs_statistics_dir, orfs_statistics_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-    if not os.path.exists(done_file_path):
-        logger.info('Collecting orfs counts...')
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-        for file in os.listdir(orfs_dir):
-            orf_path = os.path.join(orfs_dir, file)
-            single_cmd_params = [orf_path, orfs_statistics_dir]
+        for job_index, job_fasta_file_names in job_index_to_fasta_file_names.items():
+            job_input_path = os.path.join(jobs_inputs_dir, f'{job_index}.txt')
+            with open(job_input_path, 'w') as f:
+                for fasta_file_name in job_fasta_file_names:
+                    f.write(f'{os.path.join(data_path, fasta_file_name)}\n')
+
+            single_cmd_params = [job_input_path, orfs_sequences_dir, orfs_statistics_dir, orfs_translated_dir,
+                                 args.inputs_fasta_type]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_expected_orfs_results, example_cmd = submit_batch(logger, script_path, all_cmds_params,
-                                                                 orfs_statistics_tmp_dir, error_file_path,
-                                                                 num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
-                                                                 job_name_suffix='orfs_statistics',
-                                                                 queue_name=args.queue_name,
-                                                                 account_name=args.account_name,
-                                                                 node_name=args.node_name)
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, orfs_tmp_dir, error_file_path,
+                                                   num_of_cmds_per_job=1,
+                                                   job_name_suffix='search_orfs',
+                                                   queue_name=args.queue_name,
+                                                   account_name=args.account_name,
+                                                   node_name=args.node_name)
 
-        wait_for_results(logger, times_logger, step_name, orfs_statistics_tmp_dir,
-                         num_of_expected_orfs_results, error_file_path=error_file_path)
+        wait_for_results(logger, times_logger, step_name, orfs_tmp_dir, num_of_batches, error_file_path)
 
+        add_results_to_final_dir(logger, orfs_sequences_dir, final_output_dir)
+        add_results_to_final_dir(logger, orfs_translated_dir, final_output_dir)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # 02_3.	plot_orfs_statistics
-    step_number = '02_3'
+
+    # 02_2.	plot_orfs_statistics
+    step_number = '02_2'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orfs_plots'
     orfs_plots_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
@@ -445,43 +441,9 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # 02_4.  translate_fna_to_faa.py - of ORFs files
-    # Input: path to fna file and a faa file
-    # Output: translate the fna to protein and write to the faa file
-    step_number = '02_4'
-    logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_translated_orfs'
-    script_path = os.path.join(consts.SRC_DIR, 'steps/translate_fna_to_faa.py')
-    translated_orfs_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-    if not os.path.exists(done_file_path):
-        logger.info('Translating ORFs sequences...')
-        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-        for fasta_file in os.listdir(orfs_dir):
-            file_path = os.path.join(orfs_dir, fasta_file)
-            translated_file_name = f'{os.path.splitext(fasta_file)[0]}.faa'
-            output_path = os.path.join(translated_orfs_dir_path, translated_file_name)
 
-            single_cmd_params = [file_path, output_path]
-            all_cmds_params.append(single_cmd_params)
-
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
-                                                   num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
-                                                   job_name_suffix='orfs_dna_translation',
-                                                   queue_name=args.queue_name,
-                                                   account_name=args.account_name,
-                                                   node_name=args.node_name)
-
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
-                         num_of_batches, error_file_path)
-
-        add_results_to_final_dir(logger, translated_orfs_dir_path, final_output_dir)
-        write_to_file(logger, done_file_path, '.')
-    else:
-        logger.info(f'done file {done_file_path} already exists. Skipping step...')
-
-    # 02_5.  Aggregate all protein fasta files to one file
-    step_number = '02_5'
+    # 02_3.  Aggregate all protein fasta files to one file
+    step_number = '02_3'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_concat_translated_orfs'
     concat_translated_orfs_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
@@ -490,15 +452,15 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
     if not os.path.exists(done_file_path):
         logger.info('Concatenating translated ORFs sequences...')
 
-        cmd = f"cat {os.path.join(translated_orfs_dir_path, '*')} > {all_proteins_fasta_path}"
-        logger.info(f'Calling:\n{cmd}')
+        cmd = f"cat {os.path.join(orfs_translated_dir, '*')} > {all_proteins_fasta_path}"
+        logger.info(f'Calling: {cmd}')
         subprocess.run(cmd, shell=True)
 
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    return orfs_dir, translated_orfs_dir_path, all_proteins_fasta_path
+    return orfs_sequences_dir, orfs_translated_dir, all_proteins_fasta_path
 
 
 def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
