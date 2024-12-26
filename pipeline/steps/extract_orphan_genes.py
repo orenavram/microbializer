@@ -59,12 +59,19 @@ def extract_orphan_proteins(logger, orfs_file_path, orthogroups_file, output_dir
     orphans_count_df.to_csv(orphans_count_path)
 
 
+def extract_orphan_proteins_from_all_files(logger, job_input_path, orthogroups_file, output_dir):
+    with open(job_input_path, 'r') as f:
+        for line in f:
+            orfs_file_path = line.strip()
+            extract_orphan_proteins(logger, orfs_file_path, orthogroups_file, output_dir)
+
+
 def main():
     script_run_message = f'Starting command is: {" ".join(argv)}'
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('orfs_file_name', help='path to an ORFs file')
+    parser.add_argument('job_input_path', help='path to a file that contains the orfs path to extract orphan gene')
     parser.add_argument('orthogroups_file', help='path to the the orthologs table')
     parser.add_argument('output_dir', help='path to which the orphan proteins will be written')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
@@ -77,14 +84,7 @@ def main():
 
     logger.info(script_run_message)
     try:
-        if not os.path.exists(args.orfs_file_name):
-            logger.exception(f'ORFs file name does not exist in {args.orfs_dir}')
-        if not os.path.exists(args.orthogroups_file):
-            logger.exception(f'Orthogroups file does not exist in {args.orthogroups_file}')
-        if not os.path.exists(args.output_dir):
-            logger.exception(f'Output path does not exist in {args.output_dir}')
-
-        extract_orphan_proteins(logger, args.orfs_file_name, args.orthogroups_file, args.output_dir)
+        extract_orphan_proteins_from_all_files(logger, args.job_input_path, args.orthogroups_file, args.output_dir)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:

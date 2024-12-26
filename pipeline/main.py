@@ -719,26 +719,40 @@ def step_6_extract_orphan_genes(args, logger, times_logger, error_file_path, out
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orphan_genes'
     script_path = os.path.join(consts.SRC_DIR, 'steps/extract_orphan_genes.py')
-    orphan_genes_dir, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    orphan_genes_dir, orphans_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     orphan_genes_internal_dir = os.path.join(orphan_genes_dir, 'orphans_lists_per_genome')
-    os.makedirs(orphan_genes_internal_dir, exist_ok=True)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Extracting orphan genes...')
-        all_cmds_params = []
+        os.makedirs(orphan_genes_internal_dir, exist_ok=True)
 
-        for orf_file in os.listdir(orfs_dir):
-            single_cmd_params = [os.path.join(orfs_dir, orf_file), orthologs_table_file_path, orphan_genes_internal_dir]
+        job_index_to_fasta_file_names = defaultdict(list)
+
+        for i, fasta_file_name in enumerate(os.listdir(orfs_dir)):
+            job_index = i % consts.MAX_PARALLEL_JOBS
+            job_index_to_fasta_file_names[job_index].append(fasta_file_name)
+
+        jobs_inputs_dir = os.path.join(orphans_tmp_dir, 'job_inputs')
+        os.makedirs(jobs_inputs_dir, exist_ok=True)
+
+        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
+        for job_index, job_fasta_file_names in job_index_to_fasta_file_names.items():
+            job_input_path = os.path.join(jobs_inputs_dir, f'{job_index}.txt')
+            with open(job_input_path, 'w') as f:
+                for fasta_file_name in job_fasta_file_names:
+                    f.write(f'{os.path.join(orfs_dir, fasta_file_name)}\n')
+
+            single_cmd_params = [job_input_path, orthologs_table_file_path, orphan_genes_internal_dir]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, orphans_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
                                                    job_name_suffix='extract_orphans',
                                                    queue_name=args.queue_name,
                                                    account_name=args.account_name,
                                                    node_name=args.node_name)
 
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+        wait_for_results(logger, times_logger, step_name, orphans_tmp_dir,
                          num_of_batches, error_file_path)
 
         all_stat_dfs = []
