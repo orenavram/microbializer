@@ -23,8 +23,7 @@ from auxiliaries.pipeline_auxiliaries import (wait_for_results, prepare_director
                                               send_email_in_pipeline_end)
 from auxiliaries import consts
 from flask import flask_interface_consts
-from auxiliaries.logic_auxiliaries import (mimic_prodigal_output, plot_genomes_histogram, update_progressbar,
-                                           define_intervals)
+from auxiliaries.logic_auxiliaries import (plot_genomes_histogram, update_progressbar, define_intervals)
 from auxiliaries.cluster_mmseqs_hits_to_orthogroups import (cluster_mmseqs_hits_to_orthogroups,
                                                             unify_clusters_mmseqs_hits, run_mmseqs_and_extract_hits)
 from flask.SharedConsts import USER_FILE_NAME_ZIP, USER_FILE_NAME_TAR, State
@@ -413,7 +412,6 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-
     # 02_2.	plot_orfs_statistics
     step_number = '02_2'
     logger.info(f'Step {step_number}: {"_" * 100}')
@@ -441,16 +439,20 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-
     # 02_3.  Aggregate all protein fasta files to one file
     step_number = '02_3'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_concat_translated_orfs'
-    concat_translated_orfs_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    all_proteins_fasta_path = os.path.join(concat_translated_orfs_dir_path, 'all_proteomes.faa')
+    step_name = f'{step_number}_concat_orfs'
+    concat_orfs_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    all_orfs_fasta_path = os.path.join(concat_orfs_dir_path, 'all_orfs.fna')
+    all_proteins_fasta_path = os.path.join(concat_orfs_dir_path, 'all_proteomes.faa')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
-        logger.info('Concatenating translated ORFs sequences...')
+        logger.info('Concatenating ORFs sequences...')
+
+        cmd = f"cat {os.path.join(orfs_sequences_dir, '*')} > {all_orfs_fasta_path}"
+        logger.info(f'Calling: {cmd}')
+        subprocess.run(cmd, shell=True)
 
         cmd = f"cat {os.path.join(orfs_translated_dir, '*')} > {all_proteins_fasta_path}"
         logger.info(f'Calling: {cmd}')
@@ -460,7 +462,7 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    return orfs_sequences_dir, orfs_translated_dir, all_proteins_fasta_path
+    return orfs_sequences_dir, orfs_translated_dir, all_orfs_fasta_path, all_proteins_fasta_path
 
 
 def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
@@ -841,157 +843,68 @@ def step_7_orthologs_table_variations(args, logger, times_logger, error_file_pat
 
 
 def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
-                                           final_output_dir, done_files_dir, orfs_dir, final_orthologs_table_file_path):
+                                           final_output_dir, done_files_dir, all_orfs_fasta_path,
+                                           all_proteins_fasta_path, final_orthologs_table_file_path):
     # 08_1.	extract_orfs.py
     # Input: (1) a row from the final orthologs table (2) a path for a directory where the genes files are at (3) a path for an output file.
     # Output: write the sequences of the orthologs group to the output file.
     step_number = '08_1'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_orthogroups_dna'
+    step_name = f'{step_number}_orthogroups_fasta'
     script_path = os.path.join(consts.SRC_DIR, 'steps/extract_orfs.py')
-    orthologs_dna_sequences_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir,
-                                                                                  step_name)
+    orthogroups_fasta_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+
+    orthogroups_dna_dir_path = os.path.join(orthogroups_fasta_dir_path, 'orthogroups_dna')
+    orthologs_aa_dir_path = os.path.join(orthogroups_fasta_dir_path, 'orthogroups_aa')
+    orthogroups_aa_msa_dir_path = os.path.join(orthogroups_fasta_dir_path, 'orthogroups_aa_msa')
+    orthogroups_induced_dna_msa_dir_path = os.path.join(orthogroups_fasta_dir_path, 'orthogroups_induced_dna_msa')
+
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Extracting orthologs groups sequences according to final orthologs table...')
+
+        os.makedirs(orthogroups_dna_dir_path, exist_ok=True)
+        os.makedirs(orthologs_aa_dir_path, exist_ok=True)
+        os.makedirs(orthogroups_aa_msa_dir_path, exist_ok=True)
+        os.makedirs(orthogroups_induced_dna_msa_dir_path, exist_ok=True)
+
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
         with open(final_orthologs_table_file_path, 'r') as fp:
             number_of_ogs = sum(1 for _ in fp) - 1
 
         ogs_intervals = define_intervals(0, number_of_ogs - 1, consts.MAX_PARALLEL_JOBS)
         for og_number_start, og_number_end in ogs_intervals:
-            single_cmd_params = [orfs_dir,
+            single_cmd_params = [all_orfs_fasta_path,
+                                 all_proteins_fasta_path,
                                  final_orthologs_table_file_path,
                                  og_number_start,
                                  og_number_end,
-                                 orthologs_dna_sequences_dir_path]
+                                 orthogroups_dna_dir_path,
+                                 orthologs_aa_dir_path,
+                                 orthogroups_aa_msa_dir_path,
+                                 orthogroups_induced_dna_msa_dir_path]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
-                                                   num_of_cmds_per_job=1,  # =max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS)
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+                                                   error_file_path,
+                                                   num_of_cmds_per_job=1,
                                                    job_name_suffix='orfs_extraction',
                                                    queue_name=args.queue_name,
                                                    account_name=args.account_name,
                                                    node_name=args.node_name)
 
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
-                         num_of_batches, error_file_path)
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, num_of_batches, error_file_path)
 
-        add_results_to_final_dir(logger, orthologs_dna_sequences_dir_path, final_output_dir)
+        add_results_to_final_dir(logger, orthogroups_dna_dir_path, final_output_dir)
+        add_results_to_final_dir(logger, orthologs_aa_dir_path, final_output_dir)
+        add_results_to_final_dir(logger, orthogroups_aa_msa_dir_path, final_output_dir)
+        add_results_to_final_dir(logger, orthogroups_induced_dna_msa_dir_path, final_output_dir)
+
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # 08_2.  translate_fna_to_faa.py
-    # Input: path to fna file and an faa file
-    # Output: translate the fna to protein and write to the faa file
-    # Can be parallelized on cluster
-    step_number = '08_2'
-    logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_orthogroups_aa'
-    script_path = os.path.join(consts.SRC_DIR, 'steps/translate_fna_to_faa.py')
-    orthologs_aa_sequences_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-    if not os.path.exists(done_file_path):
-        logger.info('Translating orthologs groups sequences...')
-        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-        for fasta_file in os.listdir(orthologs_dna_sequences_dir_path):
-            file_path = os.path.join(orthologs_dna_sequences_dir_path, fasta_file)
-            output_path = os.path.join(orthologs_aa_sequences_dir_path, fasta_file.replace('_dna.fas', '_aa.fas'))
-
-            single_cmd_params = [file_path, output_path]
-            all_cmds_params.append(single_cmd_params)
-
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
-                                                   num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
-                                                   job_name_suffix='dna_translation',
-                                                   queue_name=args.queue_name,
-                                                   account_name=args.account_name,
-                                                   node_name=args.node_name)
-
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
-                         num_of_batches, error_file_path)
-
-        add_results_to_final_dir(logger, orthologs_aa_sequences_dir_path, final_output_dir)
-        write_to_file(logger, done_file_path, '.')
-    else:
-        logger.info(f'done file {done_file_path} already exists. Skipping step...')
-
-    # 08_3.	align_orthologs_group.py
-    # Input: (1) A path to an unaligned amino acid sequences file (2) An output file path
-    # Output: aligned sequences
-    # Can be parallelized on cluster
-    step_number = '08_3'
-    logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_orthogroups_aa_msa'
-    script_path = os.path.join(consts.SRC_DIR, 'steps/align_orthologs_group.py')
-    aa_alignments_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-    if not os.path.exists(done_file_path):
-        logger.info('Aligning orthologs groups...')
-        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-        for og_file in os.listdir(orthologs_aa_sequences_dir_path):
-            og_path = os.path.join(orthologs_aa_sequences_dir_path, og_file)
-            og_file_prefix = os.path.splitext(og_file)[0]
-            alignment_path = os.path.join(aa_alignments_path, f'{og_file_prefix}_mafft.fas')
-
-            single_cmd_params = [og_path, alignment_path]
-            all_cmds_params.append(single_cmd_params)
-
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params,
-                                                   pipeline_step_tmp_dir, error_file_path,
-                                                   num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
-                                                   job_name_suffix='genes_alignment',
-                                                   queue_name=args.queue_name,
-                                                   account_name=args.account_name,
-                                                   node_name=args.node_name)
-
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
-                         num_of_batches, error_file_path)
-
-        add_results_to_final_dir(logger, aa_alignments_path, final_output_dir)
-        write_to_file(logger, done_file_path, '.')
-    else:
-        logger.info(f'done file {done_file_path} already exists. Skipping step...')
-
-    # 08_4.	induce_dna_msa_by_aa_msa.py
-    # Input: (1) An aa alignment (2) An unaligned dna file (3) An output file path
-    # Output: write the codon alignment induced by the aa alignment to the output file
-    # Can be parallelized on cluster
-    step_number = '08_4'
-    logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_orthogroups_induced_dna_msa_by_aa_msa'
-    script_path = os.path.join(consts.SRC_DIR, 'steps/induce_dna_msa_by_aa_msa.py')
-    dna_alignments_path, induced_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-    if not os.path.exists(done_file_path):
-        logger.info(f'Inducing dna alignments...\n(from {aa_alignments_path})')
-        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-        for og_file in os.listdir(aa_alignments_path):
-            aa_alignment_path = os.path.join(aa_alignments_path, og_file)
-            dna_unaligned_path = os.path.join(orthologs_dna_sequences_dir_path, og_file.replace('aa_mafft', 'dna'))
-            dna_induced_alignment_path = os.path.join(dna_alignments_path, og_file.replace('aa_mafft', 'dna_induced'))
-
-            single_cmd_params = [aa_alignment_path, dna_unaligned_path, dna_induced_alignment_path]
-            all_cmds_params.append(single_cmd_params)
-
-        num_of_expected_induced_results, example_cmd = submit_batch(logger, script_path, all_cmds_params,
-                                                                    induced_tmp_dir, error_file_path,
-                                                                    num_of_cmds_per_job=max(1, len(all_cmds_params) // consts.MAX_PARALLEL_JOBS),
-                                                                    job_name_suffix='induce_msa',
-                                                                    queue_name=args.queue_name,
-                                                                    account_name=args.account_name,
-                                                                    node_name=args.node_name)
-
-        wait_for_results(logger, times_logger, step_name, induced_tmp_dir,
-                         num_of_expected_results=num_of_expected_induced_results, error_file_path=error_file_path)
-
-        add_results_to_final_dir(logger, dna_alignments_path, final_output_dir)
-        write_to_file(logger, done_file_path, '.')
-    else:
-        logger.info(f'done file {done_file_path} already exists. Skipping step...')
-
-    return orthologs_dna_sequences_dir_path, orthologs_aa_sequences_dir_path, aa_alignments_path, dna_alignments_path
+    return orthogroups_dna_dir_path, orthologs_aa_dir_path, orthogroups_aa_msa_dir_path, orthogroups_induced_dna_msa_dir_path
 
 
 def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, error_file_path,
@@ -1299,7 +1212,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         logger.info("Step 1 completed.")
         return
 
-    orfs_dir, translated_orfs_dir, all_proteins_fasta_path = step_2_search_orfs(
+    orfs_dir, translated_orfs_dir, all_orfs_fasta_path, all_proteins_fasta_path = step_2_search_orfs(
         args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir, done_files_dir, data_path)
     update_progressbar(progressbar_file_path, 'Predict and translate ORFs')
     update_progressbar(progressbar_file_path, 'Translate ORFs')
@@ -1360,7 +1273,8 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
 
     ogs_dna_sequences_path, og_aa_sequences_path, ogs_aa_alignments_path, ogs_dna_alignments_path = \
         step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_file_path,
-                                               output_dir, tmp_dir, final_output_dir, done_files_dir, orfs_dir,
+                                               output_dir, tmp_dir, final_output_dir, done_files_dir,
+                                               all_orfs_fasta_path, all_proteins_fasta_path,
                                                final_orthologs_table_file_path)
     update_progressbar(progressbar_file_path, 'Prepare orthogroups fasta files')
 
