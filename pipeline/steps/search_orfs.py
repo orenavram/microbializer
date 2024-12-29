@@ -22,7 +22,7 @@ def find_genes(logger, genome_path, orfs_output_file_path):
         input:path to fasta file with prokaryotic genome to be analyzed
         output: protein-coding gene prediction for input genome
     """
-    cmd = f'prodigal -i "{genome_path}" -d {orfs_output_file_path}'
+    cmd = f'prodigal -q -i "{genome_path}" -d {orfs_output_file_path}'
     logger.info(f'Starting prodigal. Executed command is: {cmd}')
     subprocess.run(cmd, shell=True)
 
