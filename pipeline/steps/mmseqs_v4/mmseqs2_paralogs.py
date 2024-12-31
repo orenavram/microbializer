@@ -49,6 +49,9 @@ def search_paralogs(logger, genome_name, dbs_dir, max_scores_parts_dir, paralogs
     else:
         max_score_per_gene.to_csv(genome_max_rbh_scores_path, index=False)
 
+    max_score_per_gene.set_index('gene', inplace=True)
+    max_score_per_gene = max_score_per_gene['max_rbh_score']
+
     genome_db_path = os.path.join(dbs_dir, f'{genome_name}.db')
 
     tmp_dir = os.path.join(temp_dir, f'tmp_{genome_name}_vs_{genome_name}')
@@ -89,8 +92,8 @@ def search_paralogs(logger, genome_name, dbs_dir, max_scores_parts_dir, paralogs
     # have max_score value), that's ok.
     # If both genes were not identified as rbh to genes in another genomes, we keep the pair (because we want to
     # keep also paralogs that don't have orthologs in other genomes).
-    m8_df['query_max_score'] = m8_df['query'].map(max_score_per_gene['gene'])
-    m8_df['target_max_score'] = m8_df['target'].map(max_score_per_gene['gene'])
+    m8_df['query_max_score'] = m8_df['query'].map(max_score_per_gene)
+    m8_df['target_max_score'] = m8_df['target'].map(max_score_per_gene)
     m8_df = m8_df.loc[((m8_df['score'] >= m8_df['query_max_score']) | (m8_df['query_max_score'].isna())) &
                       ((m8_df['score'] >= m8_df['target_max_score']) | (m8_df['target_max_score'].isna()))]
 
