@@ -1,0 +1,17 @@
+2024-12-31 19:36:50,599 INFO pipeline_auxiliaries.py:80 Step 02_1_orfs took 0:00:30. There were 50 jobs and cumulatively they took 0:13:58 wallclock time (times 1 cpus used per job = 0:13:58 wallclock time). 
+2024-12-31 19:37:38,223 INFO pipeline_auxiliaries.py:80 Step 05_1_mmseqs_dbs took 0:00:30. There were 50 jobs and cumulatively they took 0:13:12 wallclock time (times 1 cpus used per job = 0:13:12 wallclock time). 
+2024-12-31 19:47:27,103 INFO pipeline_auxiliaries.py:80 Step 05_2_mmseqs_rbh took 0:09:40. There were 50 jobs and cumulatively they took 7:39:15 wallclock time (times 1 cpus used per job = 7:39:15 wallclock time). 
+2024-12-31 19:48:04,565 INFO pipeline_auxiliaries.py:80 Step 05_3_mmseqs_paralogs took 0:00:30. There were 50 jobs and cumulatively they took 0:09:49 wallclock time (times 1 cpus used per job = 0:09:49 wallclock time). 
+2024-12-31 19:48:35,368 INFO pipeline_auxiliaries.py:80 Step 05_4_normalize_scores took 0:00:20. There were 50 jobs and cumulatively they took 0:07:56 wallclock time (times 1 cpus used per job = 0:07:56 wallclock time). 
+2024-12-31 19:49:15,329 INFO pipeline_auxiliaries.py:80 Step 05_5_concatenate_hits took 0:00:30. There were 50 jobs and cumulatively they took 0:09:15 wallclock time (times 1 cpus used per job = 0:09:15 wallclock time). 
+2024-12-31 19:50:14,493 INFO pipeline_auxiliaries.py:80 Step 05_6_putative_table took 0:00:30. There were 1 jobs and cumulatively they took 0:00:15 wallclock time (times 1 cpus used per job = 0:00:15 wallclock time). 
+2024-12-31 19:50:52,041 INFO pipeline_auxiliaries.py:80 Step 05_7_mcl_input_files took 0:00:30. There were 50 jobs and cumulatively they took 0:17:22 wallclock time (times 1 cpus used per job = 0:17:22 wallclock time). 
+2024-12-31 19:51:29,912 INFO pipeline_auxiliaries.py:80 Step 05_8_mcl_analysis took 0:00:30. There were 50 jobs and cumulatively they took 0:11:54 wallclock time (times 1 cpus used per job = 0:11:54 wallclock time). 
+2024-12-31 19:51:58,522 INFO pipeline_auxiliaries.py:80 Step 05_9_verified_clusters took 0:00:20. There were 50 jobs and cumulatively they took 0:04:50 wallclock time (times 1 cpus used per job = 0:04:50 wallclock time). 
+2024-12-31 19:52:18,732 INFO pipeline_auxiliaries.py:80 Step 05_10_verified_table took 0:00:20. There were 1 jobs and cumulatively they took 0:00:04 wallclock time (times 1 cpus used per job = 0:00:04 wallclock time). 
+2024-12-31 19:52:46,414 INFO pipeline_auxiliaries.py:80 Step 06_orphan_genes took 0:00:20. There were 50 jobs and cumulatively they took 0:02:51 wallclock time (times 1 cpus used per job = 0:02:51 wallclock time). 
+2024-12-31 19:53:17,302 INFO pipeline_auxiliaries.py:80 Step 07_1_orthogroups took 0:00:30. There were 1 jobs and cumulatively they took 0:00:11 wallclock time (times 1 cpus used per job = 0:00:11 wallclock time). 
+2024-12-31 19:53:18,750 INFO main.py:1359 Total pipeline time: 0:17:26. Done
+
+
+overall intermediate storage: 5.8 GB
