@@ -80,9 +80,9 @@ def search_rbh(logger, genome1, genome2, dbs_dir, rbh_hits_dir, scores_statistic
 
     # Calculate max rbh score for each gene
     genome1_max_scores = rbh_df.groupby(['query']).max(numeric_only=True)['score'].reset_index()
-    genome1_max_scores.rename(columns={'query': 'gene', 'score': 'max_rbh_score'})
+    genome1_max_scores.rename(columns={'query': 'gene', 'score': 'max_rbh_score'}, inplace=True)
     genome2_max_scores = rbh_df.groupby(['target']).max(numeric_only=True)['score'].reset_index()
-    genome2_max_scores.rename(columns={'target': 'gene', 'score': 'max_rbh_score'})
+    genome2_max_scores.rename(columns={'target': 'gene', 'score': 'max_rbh_score'}, inplace=True)
 
     if use_parquet:
         genome1_max_scores.to_parquet(output_genome1_max_scores, index=False)

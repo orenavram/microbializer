@@ -63,7 +63,7 @@ def search_paralogs(logger, genome_name, dbs_dir, max_scores_parts_dir, paralogs
     subprocess.run(search_command, shell=True, check=True)
 
     if os.path.getsize(result_db_path) == 0:
-        logger.info(f"{result_db_path} was created successfully but is empty. No rbh-hits were found.")
+        logger.info(f"{result_db_path} was created successfully but is empty. No paralogs were found.")
         return
 
     m8_outfile_raw = os.path.join(tmp_dir, f'{genome_name}_vs_{genome_name}.m8.raw')

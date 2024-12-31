@@ -32,7 +32,7 @@ def too_many_trials(logger, cmd, error_file_path):
 
 
 def search_paralogs(logger, protein_fasta, m8_outfile, genome_max_scores_path, scores_statistics_dir, error_file_path,
-                    identity_cutoff, coverage_cutoff, e_value_cutoff, use_parquet):
+                    identity_cutoff, coverage_cutoff, e_value_cutoff, sensitivity, use_parquet):
     """
     input:  protein fasta and a file that contains the max scores of all its genes
     output: mmseqs2 paralogs results file
@@ -52,7 +52,8 @@ def search_paralogs(logger, protein_fasta, m8_outfile, genome_max_scores_path, s
         # so we need to make sure they will be generated!
         # control verbosity level by -v [3] param ; verbosity levels: 0=nothing, 1: +errors, 2: +warnings, 3: +info
         cmd = f'mmseqs easy-search {protein_fasta} {protein_fasta} {m8_outfile} {tmp_dir} --format-output {consts.MMSEQS_OUTPUT_FORMAT} ' \
-              f'--min-seq-id {identity_cutoff} -c {coverage_cutoff} --cov-mode 0 -e {e_value_cutoff} --comp-bias-corr 0 --threads 1 -v 1'
+              f'--min-seq-id {identity_cutoff} -c {coverage_cutoff} --cov-mode 0 -e {e_value_cutoff} --comp-bias-corr 0 --threads 1 -v 1 ' \
+              f'-s {sensitivity}'
         logger.info(f'Iteration #{i} - Calling:\n{cmd}')
         subprocess.run(cmd, shell=True)
         i += 1
@@ -121,6 +122,7 @@ if __name__ == '__main__':
     parser.add_argument('--identity_cutoff', type=float)
     parser.add_argument('--coverage_cutoff', type=float)
     parser.add_argument('--e_value_cutoff', type=float)
+    parser.add_argument('--sensitivity', type=float, default=consts.MMSEQS_HIGH_SENSITIVITY_PARAMETER)
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--use_parquet', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
@@ -133,7 +135,8 @@ if __name__ == '__main__':
     logger.info(script_run_message)
     try:
         search_paralogs(logger, args.protein_fasta, args.output_path, args.genome_max_scores_path, args.scores_statistics_dir,
-                        args.error_file_path, args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff, args.use_parquet)
+                        args.error_file_path, args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff,
+                        args.sensitivity, args.use_parquet)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:

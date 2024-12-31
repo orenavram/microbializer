@@ -781,6 +781,12 @@ def run_unified_mmseqs_with_linux_parsing(logger, times_logger, base_step_number
 def run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,
                            translated_orfs_dir, strains_names, queue_name, account_name, node_name, identity_cutoff,
                            coverage_cutoff, e_value_cutoff, n_jobs_per_step, use_parquet):
+    number_of_genomes = len(strains_names)
+    if number_of_genomes <= 100:
+        sensitivity_parameter = consts.MMSEQS_HIGH_SENSITIVITY_PARAMETER
+    else:
+        sensitivity_parameter = consts.MMSEQS_LOW_SENSITIVITY_PARAMETER
+
     # 1.	mmseqs2_all_vs_all.py
     # Input: (1) 2 input paths for 2 (different) genome files (query and target), g1 and g2
     #        (2) an output file path (with a suffix as follows: i_vs_j.tsv. especially relevant for the wrapper).
@@ -814,6 +820,7 @@ def run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_pa
                                      f'--identity_cutoff {identity_cutoff / 100}',
                                      f'--coverage_cutoff {coverage_cutoff / 100}',
                                      f'--e_value_cutoff {e_value_cutoff}',
+                                     f'--sensitivity {sensitivity_parameter}',
                                      ]
                 if use_parquet:
                     single_cmd_params.append('--use_parquet')
@@ -901,6 +908,7 @@ def run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_pa
                                  f'--identity_cutoff {identity_cutoff / 100}',
                                  f'--coverage_cutoff {coverage_cutoff / 100}',
                                  f'--e_value_cutoff {e_value_cutoff}',
+                                 f'--sensitivity {sensitivity_parameter}',
                                  ]
             if use_parquet:
                 single_cmd_params.append('--use_parquet')
