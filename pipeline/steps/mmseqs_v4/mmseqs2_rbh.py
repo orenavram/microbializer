@@ -35,12 +35,14 @@ def search_rbh(logger, genome1, genome2, dbs_dir, rbh_hits_dir, scores_statistic
         return
 
     tmp_dir = os.path.join(temp_dir, f'tmp_{genome1}_vs_{genome2}')
+    os.makedirs(tmp_dir, exist_ok=True)
 
     # control verbosity level by -v [3] param ; verbosity levels: 0=nothing, 1: +errors, 2: +warnings, 3: +info
     db_1_path = os.path.join(dbs_dir, f'{genome1}.db')
     db_2_path = os.path.join(dbs_dir, f'{genome2}.db')
-    result_db_path = os.path.join(temp_dir, f'{genome1}_vs_{genome2}.db')
-    rbh_command = f'mmseqs rbh {db_1_path} {db_2_path} {result_db_path} {tmp_dir} --min-seq-id {identity_cutoff} ' \
+    result_db_path = os.path.join(tmp_dir, f'{genome1}_vs_{genome2}.db')
+    rbh_command_tmp_dir = os.path.join(tmp_dir, 'tmp_rbh_command')
+    rbh_command = f'mmseqs rbh {db_1_path} {db_2_path} {result_db_path} {rbh_command_tmp_dir} --min-seq-id {identity_cutoff} ' \
                   f'-c {coverage_cutoff} --cov-mode 0 -e {e_value_cutoff} --threads 1 --search-type 1 ' \
                   f'--comp-bias-corr 0 -v 1 -s {sensitivity}'
     logger.info(f'Calling: {rbh_command}')
@@ -50,7 +52,7 @@ def search_rbh(logger, genome1, genome2, dbs_dir, rbh_hits_dir, scores_statistic
         logger.info(f"{result_db_path} was created successfully but is empty. No rbh-hits were found.")
         return
 
-    m8_outfile_raw = os.path.join(temp_dir, f'{genome1}_vs_{genome2}.m8.raw')
+    m8_outfile_raw = os.path.join(tmp_dir, f'{genome1}_vs_{genome2}.m8.raw')
     convert_command = f'mmseqs convertalis {db_1_path} {db_2_path} {result_db_path} {m8_outfile_raw} ' \
                       f'--format-output {consts.MMSEQS_OUTPUT_FORMAT} --search-type 1 --threads 1 -v 1'
     logger.info(f'Calling: {convert_command}')
@@ -77,12 +79,22 @@ def search_rbh(logger, genome1, genome2, dbs_dir, rbh_hits_dir, scores_statistic
     logger.info(f"{output_statistics_path} was created successfully.")
 
     # Calculate max rbh score for each gene
-    genome1_max_scores = rbh_df.groupby(['query']).max(numeric_only=True)['score']
-    genome2_max_scores = rbh_df.groupby(['target']).max(numeric_only=True)['score']
-    genome1_max_scores.to_csv(output_genome1_max_scores, index_label='gene', header=['max_rbh_score'])
-    genome2_max_scores.to_csv(output_genome2_max_scores, index_label='gene', header=['max_rbh_score'])
+    genome1_max_scores = rbh_df.groupby(['query']).max(numeric_only=True)['score'].reset_index()
+    genome1_max_scores.rename(columns={'query': 'gene', 'score': 'max_rbh_score'})
+    genome2_max_scores = rbh_df.groupby(['target']).max(numeric_only=True)['score'].reset_index()
+    genome2_max_scores.rename(columns={'target': 'gene', 'score': 'max_rbh_score'})
+
+    if use_parquet:
+        genome1_max_scores.to_parquet(output_genome1_max_scores, index=False)
+        genome2_max_scores.to_parquet(output_genome2_max_scores, index=False)
+    else:
+        genome1_max_scores.to_csv(output_genome1_max_scores, index=False)
+        genome2_max_scores.to_csv(output_genome2_max_scores, index=False)
 
     logger.info(f"{output_genome1_max_scores} and {output_genome2_max_scores} were created successfully.")
+
+    # Delete intermediate files
+    shutil.rmtree(tmp_dir)
 
 
 def search_rbhs_in_all_pairs(logger, job_input_path, dbs_dir, rbh_hits_dir, scores_statistics_dir,

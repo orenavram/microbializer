@@ -12,60 +12,60 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger
+from auxiliaries.logic_auxiliaries import flatten
 
 
-def add_hits_file_pair_to_mcl_inputs_files(logger, hits_file_path, gene_pair_to_og, ogs_texts_for_mcl):
-    with open(hits_file_path, 'r') as fp:
-        fp.readline()  # skip the header
-        for line in fp:
-            tokens = line.strip().split(',')
-            if (tokens[0], tokens[1]) in gene_pair_to_og:
-                og = gene_pair_to_og[(tokens[0], tokens[1])]
-            elif (tokens[1], tokens[0]) in gene_pair_to_og:
-                og = gene_pair_to_og[(tokens[1], tokens[0])]
-            else:
+def load_all_ogs_hits(all_reciprocal_hits_path, all_relevant_genes):
+    gene_pair_to_score = {}
+    with open(all_reciprocal_hits_path) as f:
+        for line in f:
+            line_tokens = line.rstrip().split(',')
+            if 'score' in line:
+                # new reciprocal hits file starts
                 continue
+            gene_1, gene_2 = line_tokens[:2]
+            if gene_1 in all_relevant_genes:  # gene_1 in all_relevant_genes <==> gene_2 in all_relevant_genes
+                score = line_tokens[2]
+                gene_pair_to_score[(gene_1, gene_2)] = score
 
-            score = tokens[2]
-            ogs_texts_for_mcl[og] += f'{tokens[0]}\t{tokens[1]}\t{score}\n'
+    return gene_pair_to_score
 
 
-def prepare_ogs_for_mcl(logger, hits_dir, putative_ogs_path, start, end, output_path):
+def prepare_ogs_for_mcl(logger, all_reciprocal_hits_path, putative_ogs_path, job_input_path, output_path):
     putative_ogs_df = pd.read_csv(putative_ogs_path, index_col=0)
-    putative_ogs_df = putative_ogs_df.iloc[start:end]
+    with open(job_input_path, 'r') as f:
+        ogs_numbers = [f'OG_{num}' for num in f.read().splitlines()]
 
-    ogs_texts_for_mcl = {og_name: '' for og_name in putative_ogs_df.index}
+    logger.info(f'Aggregating all genes from the specified {len(ogs_numbers)} putative OGs...')
+    all_relevant_genes = set()
+    og_to_genes = {}
+    for og_number in ogs_numbers:
+        og_row = putative_ogs_df.loc[og_number]
+        og_genes = flatten([strain_genes.split(';') for strain_genes in og_row if not pd.isna(strain_genes)])
+        og_to_genes[og_number] = og_genes
+        all_relevant_genes.update(og_genes)
+    logger.info(f'All relevant genes were aggregated successfully. Number of relevant genes is {len(all_relevant_genes)}.')
 
-    for hits_file_name in os.listdir(hits_dir):
-        if not hits_file_name.endswith('.m8'):
-            continue
-        strain_1, strain_2 = os.path.splitext(hits_file_name)[0].split('_vs_')
-        hits_file_path = os.path.join(hits_dir, hits_file_name)
+    logger.info('Loading relevant hits scores to memory...')
+    gene_pair_to_score = load_all_ogs_hits(all_reciprocal_hits_path, all_relevant_genes)
+    logger.info(f'All relevant hits were loaded successfully. Number of relevant hits (gene pairs) is {len(gene_pair_to_score)}.')
 
-        gene_pair_to_og = {}
-        for og_name, og_row in putative_ogs_df.iterrows():
-            if pd.isna(og_row[strain_1]) or pd.isna(og_row[strain_2]):
-                continue
-
-            strain_1_genes = og_row[strain_1].split(';')
-            strain_2_genes = og_row[strain_2].split(';')
-
-            if strain_1 != strain_2:
-                for pair in itertools.product(strain_1_genes, strain_2_genes):
-                    gene_pair_to_og[pair] = og_name
-            else:
-                for pair in itertools.combinations(strain_1_genes, 2):
-                    gene_pair_to_og[pair] = og_name
-
-        add_hits_file_pair_to_mcl_inputs_files(logger, hits_file_path, gene_pair_to_og, ogs_texts_for_mcl)
-
-    for og_name, og_text in ogs_texts_for_mcl.items():
-        mcl_file_path = os.path.join(output_path, f'{og_name}.mcl_input')
+    logger.info('Preparing input files for MCL...')
+    for og_number, genes in og_to_genes.items():
+        mcl_file_path = os.path.join(output_path, og_number + '.mcl_input')
         if os.path.exists(mcl_file_path):
-            return
+            continue
+
+        og_text_for_mcl = ''
+        for gene1, gene2 in itertools.combinations(genes, 2):
+            score = gene_pair_to_score.get((gene1, gene2), gene_pair_to_score.get((gene2, gene1)))
+            if score:
+                og_text_for_mcl += f'{gene1}\t{gene2}\t{score}\n'
 
         with open(mcl_file_path, 'w') as mcl_f:
-            mcl_f.write(og_text)
+            mcl_f.write(og_text_for_mcl)
+
+    logger.info('Input files for MCL were written successfully.')
 
 
 if __name__ == '__main__':
@@ -73,10 +73,9 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('hits_dir', help='path to a dir with all hits')
+    parser.add_argument('all_reciprocal_hits_path', help='path to a file with all hits')
     parser.add_argument('putative_ogs_path', help='path to a putative ogs path')
-    parser.add_argument('start', help='first ortholog set to prepare', type=int)
-    parser.add_argument('end', help='last ortholog set to prepare, exclusive', type=int)
+    parser.add_argument('job_input_path', help='')
     parser.add_argument('output_path', help='a folder in which the input files for mcl will be written')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
@@ -88,7 +87,7 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        prepare_ogs_for_mcl(logger, args.hits_dir, args.putative_ogs_path, args.start, args.end, args.output_path)
+        prepare_ogs_for_mcl(logger, args.all_reciprocal_hits_path, args.putative_ogs_path, args.job_input_path, args.output_path)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:

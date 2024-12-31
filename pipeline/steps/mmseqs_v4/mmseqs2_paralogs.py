@@ -8,6 +8,7 @@ import traceback
 import json
 import statistics
 import subprocess
+import shutil
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
@@ -32,16 +33,29 @@ def search_paralogs(logger, genome_name, dbs_dir, max_scores_parts_dir, paralogs
     max_scores_dfs = []
     for max_scores_file in max_scores_files:
         max_scores_path = os.path.join(max_scores_parts_dir, max_scores_file)
-        max_scores_df = pd.read_csv(max_scores_path, index_col='gene')
+
+        if use_parquet:
+            max_scores_df = pd.read_parquet(max_scores_path)
+        else:
+            max_scores_df = pd.read_csv(max_scores_path)
+
         max_scores_dfs.append(max_scores_df)
 
     max_scores_combined_df = pd.concat(max_scores_dfs)
-    max_score_per_gene = max_scores_combined_df.groupby('gene')['max_rbh_score'].max()
-    max_score_per_gene.to_csv(genome_max_rbh_scores_path)
+    max_score_per_gene = max_scores_combined_df.groupby('gene')['max_rbh_score'].max().reset_index()
+
+    if use_parquet:
+        max_score_per_gene.to_parquet(genome_max_rbh_scores_path, index=False)
+    else:
+        max_score_per_gene.to_csv(genome_max_rbh_scores_path, index=False)
 
     genome_db_path = os.path.join(dbs_dir, f'{genome_name}.db')
-    result_db_path = os.path.join(temp_dir, f'{genome_name}_vs_{genome_name}.db')
-    search_tmp_dir = os.path.join(temp_dir, f'tmp_{genome_name}_vs_{genome_name}')
+
+    tmp_dir = os.path.join(temp_dir, f'tmp_{genome_name}_vs_{genome_name}')
+    os.makedirs(tmp_dir, exist_ok=True)
+
+    result_db_path = os.path.join(tmp_dir, f'{genome_name}_vs_{genome_name}.db')
+    search_tmp_dir = os.path.join(tmp_dir, f'tmp_search_command')
     search_command = f'mmseqs search {genome_db_path} {genome_db_path} {result_db_path} {search_tmp_dir} ' \
                      f'--min-seq-id {identity_cutoff} -c {coverage_cutoff} --cov-mode 0 -e {e_value_cutoff} --threads 1 ' \
                      f'--search-type 1 --comp-bias-corr 0 -v 1 --alignment-mode 3 -s {sensitivity}'
@@ -52,7 +66,7 @@ def search_paralogs(logger, genome_name, dbs_dir, max_scores_parts_dir, paralogs
         logger.info(f"{result_db_path} was created successfully but is empty. No rbh-hits were found.")
         return
 
-    m8_outfile_raw = os.path.join(temp_dir, f'{genome_name}_vs_{genome_name}.m8.raw')
+    m8_outfile_raw = os.path.join(tmp_dir, f'{genome_name}_vs_{genome_name}.m8.raw')
     convert_command = f'mmseqs convertalis {genome_db_path} {genome_db_path} {result_db_path} {m8_outfile_raw} ' \
                       f'--format-output {consts.MMSEQS_OUTPUT_FORMAT} --search-type 1 --threads 1 -v 1'
     logger.info(f'Calling: {convert_command}')
@@ -65,13 +79,18 @@ def search_paralogs(logger, genome_name, dbs_dir, max_scores_parts_dir, paralogs
     add_score_column_to_mmseqs_output(m8_df)
     m8_df = m8_df[['query', 'target', 'score']]
 
+    if use_parquet:
+        m8_df.to_parquet(os.path.join(paralogs_dir, f'{genome_name}_vs_{genome_name}.m8'), index=False)
+    else:
+        m8_df.to_csv(os.path.join(paralogs_dir, f'{genome_name}_vs_{genome_name}.m8'), index=False)
+
     # Keep only hits that have score higher than the max score of both query and target.
     # If only one of the genes was identified as rbh to a gene in another genome (and thus the other one doesn't
     # have max_score value), that's ok.
     # If both genes were not identified as rbh to genes in another genomes, we keep the pair (because we want to
     # keep also paralogs that don't have orthologs in other genomes).
-    m8_df['query_max_score'] = m8_df['query'].map(max_score_per_gene)
-    m8_df['target_max_score'] = m8_df['target'].map(max_score_per_gene)
+    m8_df['query_max_score'] = m8_df['query'].map(max_score_per_gene['gene'])
+    m8_df['target_max_score'] = m8_df['target'].map(max_score_per_gene['gene'])
     m8_df = m8_df.loc[((m8_df['score'] >= m8_df['query_max_score']) | (m8_df['query_max_score'].isna())) &
                       ((m8_df['score'] >= m8_df['target_max_score']) | (m8_df['target_max_score'].isna()))]
 
@@ -97,6 +116,9 @@ def search_paralogs(logger, genome_name, dbs_dir, max_scores_parts_dir, paralogs
         json.dump(scores_statistics, fp)
 
     logger.info(f"{score_stats_file} was created successfully.")
+
+    # Delete intermediate files
+    shutil.rmtree(tmp_dir)
 
 
 def search_paralogs_in_all_pairs(logger, job_input_path, dbs_dir, max_scores_parts_dir, paralogs_dir,

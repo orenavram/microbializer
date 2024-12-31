@@ -10,6 +10,7 @@ import logging
 import sys
 from collections import defaultdict
 import traceback
+import pandas as pd
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -106,6 +107,14 @@ def construct_table(logger, all_reciprocal_hits_path, putative_orthologs_path, d
 
     with open(putative_orthologs_path, 'w') as f:
         f.write(result)
+
+    logger.info(f'Wrote putative orthogroups table to {putative_orthologs_path}')
+
+    orthogroups_df = pd.read_csv(putative_orthologs_path, delimiter=delimiter)
+    orthogroups_df = orthogroups_df.sort_values(by=list(orthogroups_df.columns[1:])).reset_index(drop=True)
+    orthogroups_df['OG_name'] = [f'OG_{i}' for i in range(len(orthogroups_df.index))]
+    orthogroups_df.to_csv(putative_orthologs_path, index=False)
+    logger.info(f'Wrote sorted putative orthogroups table to {putative_orthologs_path}')
 
     output_dir = os.path.dirname(putative_orthologs_path)
     with open(os.path.join(output_dir, 'num_of_putative_sets.txt'), 'w') as f:

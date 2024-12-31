@@ -372,21 +372,23 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
             with open(os.path.join(os.path.split(putative_orthologs_table_path)[0], 'num_of_putative_sets.txt')) as f:
                 num_of_putative_sets = int(f.read())
 
-            clusters_to_prepare_per_job = math.ceil(num_of_putative_sets / max_parallel_jobs)
-            for i in range(0, num_of_putative_sets, clusters_to_prepare_per_job):
-                first_mcl = str(i)
-                last_mcl = str(min(i + clusters_to_prepare_per_job,
-                                   num_of_putative_sets))  # 1-10, 11-20, etc... for clusters_to_prepare_per_job=10
+            job_index_to_ogs = defaultdict(list)
+            for i in range(num_of_putative_sets):
+                job_index = i % max_parallel_jobs
+                job_index_to_ogs[job_index].append(i)
 
-                single_cmd_params = [normalized_hits_output_dir,
-                                     putative_orthologs_table_path,
-                                     first_mcl,
-                                     last_mcl,
-                                     mcl_inputs_dir]
+            job_inputs_dir = os.path.join(mcl_inputs_tmp_dir, 'jobs_inputs')
+            os.makedirs(job_inputs_dir, exist_ok=True)
+            for job_index, ogs in job_index_to_ogs.items():
+                job_path = os.path.join(job_inputs_dir, f'{job_index}.txt')
+                with open(job_path, 'w') as f:
+                    f.write('\n'.join(map(str, ogs)))
+
+                single_cmd_params = [all_hits_file, putative_orthologs_table_path, job_path, mcl_inputs_dir]
                 all_cmds_params.append(single_cmd_params)
 
             num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, mcl_inputs_tmp_dir, error_file_path,
-                                                       num_of_cmds_per_job=max(1, len(all_cmds_params) // max_parallel_jobs),
+                                                       num_of_cmds_per_job=1,
                                                        # *times* the number of clusters_to_prepare_per_job above. 50 in total per batch!
                                                        job_name_suffix='mcl_preparation',
                                                        queue_name=queue_name,
