@@ -22,7 +22,7 @@ def find_genes(logger, genome_path, orfs_output_file_path):
         input:path to fasta file with prokaryotic genome to be analyzed
         output: protein-coding gene prediction for input genome
     """
-    cmd = f'prodigal -q -i "{genome_path}" -d {orfs_output_file_path}'
+    cmd = f'prodigal -q -i "{genome_path}" -d {orfs_output_file_path} -o /dev/null'
     logger.info(f'Starting prodigal. Executed command is: {cmd}')
     subprocess.run(cmd, shell=True)
 
@@ -84,7 +84,7 @@ def find_genes_of_all_files(logger, job_input_path, orfs_sequences_dir, orfs_sta
 
             if inputs_fasta_type == 'genomes':
                 find_genes(logger, genome_path, orfs_output_file_path)
-            else: # inputs_fasta_type == 'orfs'
+            else:  # inputs_fasta_type == 'orfs'
                 mimic_prodigal_output(genome_name, orfs_output_file_path)
 
             extract_orfs_statistics(logger, orfs_output_file_path, orfs_statistics_dir)
