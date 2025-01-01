@@ -71,8 +71,9 @@ def iqtree_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num
         logger.info(f'{consts.NUMBER_OF_IQTREE_BOOTSTRAP_ITERATIONS} bootstrap iterations are going to be done')
         cmd += f' -B {consts.NUMBER_OF_IQTREE_BOOTSTRAP_ITERATIONS}'
 
-    logger.info(f'Reconstructing species phylogeny with IQTree. Executed command is:\n{cmd}')
+    logger.info(f'Reconstructing species phylogeny with IQTree. Executed command is: {cmd}')
     subprocess.run(cmd, shell=True)
+    logger.info(f'IQTree finished successfully. The tree was saved to {search_prefix}.treefile')
 
     final_tree_path = search_prefix + ".treefile"
     if os.path.exists(final_tree_path):
@@ -104,10 +105,11 @@ def draw_tree(logger, phylogenetic_tree_path, bootstrap):
     tree_image_png_path = phylogenetic_tree_path.replace('.newick', '.png')
     tree_image_svg_path = phylogenetic_tree_path.replace('.newick', '.svg')
 
-    logger.info('Drawing the phylogenetic tree. The tree will be saved as PNG and SVG files in the same folder as the tree file.')
-
+    logger.info('Drawing the phylogenetic tree. The tree will be saved as PNG and SVG files in the same folder as '
+                'the tree file.')
     tree.render(tree_image_png_path, tree_style=ts)
     tree.render(tree_image_svg_path, tree_style=ts)
+    logger.info(f'The tree was saved as PNG and SVG files in the same folder as the tree file.')
 
 
 def generate_phylogenetic_tree(logger, msa_path, phylogenetic_tree_path, tmp_folder, seed, tree_search_software, outgroup,

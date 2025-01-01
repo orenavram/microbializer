@@ -30,8 +30,9 @@ def run_ani(logger, all_genomes_reference_path, output_path,  cpus):
 
     # No ANI output is reported for a genome pair if ANI value is much below 80% (https://github.com/ParBLiSS/FastANI)
     cmd = f'fastANI --ql {all_genomes_reference_path} --rl {all_genomes_reference_path} -o {raw_output_path} -t {cpus}'
-    logger.info(f'Starting fastANI. Executed command is:\n{cmd}')
+    logger.info(f'Starting fastANI. Executed command is: {cmd}')
     subprocess.run(cmd, shell=True)
+    logger.info(f'fastANI finished successfully. Output is saved to {raw_output_path}')
 
     df = pd.read_csv(raw_output_path, delimiter='\t',
                      names=['query', 'subject', 'ani_value', 'orthologous_segments', 'total_segments'])
@@ -39,7 +40,9 @@ def run_ani(logger, all_genomes_reference_path, output_path,  cpus):
     df['subject'] = df['subject'].apply(lambda path: os.path.splitext(os.path.basename(path))[0])
 
     ani_values_df = df.pivot_table(index='query', columns='subject', values='ani_value')
-    ani_values_df.to_csv(os.path.join(tmp_results, 'ani_pairwise_values.csv'))
+    ani_values_temp_path = os.path.join(tmp_results, 'ani_pairwise_values_temp.csv')
+    ani_values_df.to_csv(ani_values_temp_path)
+    logger.info(f'ANI temp values were saved to {ani_values_temp_path}')
 
     plot_ani_clustermap(ani_values_df, Path(output_path))
 
@@ -54,7 +57,9 @@ def run_ani(logger, all_genomes_reference_path, output_path,  cpus):
     ani_values_df['max_value'] = max_values
     ani_values_df['max_column'] = max_values_columns
 
-    ani_values_df.to_csv(os.path.join(output_path, 'ani_pairwise_values.csv'))
+    ani_values_path = os.path.join(output_path, 'ani_pairwise_values.csv')
+    ani_values_df.to_csv(ani_values_path)
+    logger.info(f'ANI values were saved to {ani_values_path}')
 
 
 def plot_ani_clustermap(
@@ -125,8 +130,10 @@ def plot_ani_clustermap(
 
     # Output ANI clustermap figure
     plt.tight_layout()
-    plt.savefig(outdir / "ani_map.png", dpi=600)
+    ani_map_path = outdir / "ani_map.png"
+    plt.savefig(ani_map_path, dpi=600)
     plt.close()
+    logger.info(f'ANI clustermap was saved to {ani_map_path}')
 
 
 if __name__ == '__main__':

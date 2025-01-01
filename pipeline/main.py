@@ -1102,11 +1102,16 @@ def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, t
                     logger.info(f'Outgroup {args.outgroup} was specified but it is not one of the input species:\n'
                                 f'{",".join(sorted(strains_names))}\nAn unrooted tree is going to be reconstructed')
 
+            # Needed to avoid an error in drawing the tree (since the default xdg_runtime_dir is sometimes not writable)
+            xdg_runtime_dir = os.path.join(phylogeny_tmp_dir, 'xdg_runtime_dir')
+            os.makedirs(xdg_runtime_dir, exist_ok=True)
+            os.chmod(xdg_runtime_dir, 0o700)
+
             submit_mini_batch(logger, script_path, [params], phylogeny_tmp_dir, error_file_path,
                               args.queue_name, args.account_name, job_name='tree_reconstruction',
                               num_of_cpus=consts.PHYLOGENY_NUM_OF_CORES,
                               memory=consts.PHYLOGENY_REQUIRED_MEMORY_GB,
-                              command_to_run_before_script='export QT_QPA_PLATFORM=offscreen',
+                              command_to_run_before_script=f'export QT_QPA_PLATFORM=offscreen\nexport XDG_RUNTIME_DIR={xdg_runtime_dir}',
                               node_name=args.node_name)  # Needed to avoid an error in drawing the tree. Taken from: https://github.com/NVlabs/instant-ngp/discussions/300
 
             # wait for the phylogenetic tree here

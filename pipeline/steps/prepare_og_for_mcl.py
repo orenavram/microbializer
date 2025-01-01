@@ -39,14 +39,10 @@ def prepare_ogs_for_mcl(logger, all_reciprocal_hits_path, putative_ogs_path, job
         ogs_numbers = [f'OG_{num}' for num in f.read().splitlines()]
 
     logger.info(f'Aggregating all genes from the specified {len(ogs_numbers)} putative OGs...')
-    # all_relevant_genes = set()
-    # og_to_genes = {}
     gene_to_og = {}
     for og_number in ogs_numbers:
         og_row = putative_ogs_df.loc[og_number]
         og_genes = flatten([strain_genes.split(';') for strain_genes in og_row if not pd.isna(strain_genes)])
-        # og_to_genes[og_number] = og_genes
-        # all_relevant_genes.update(og_genes)
         for gene in og_genes:
             gene_to_og[gene] = og_number
     logger.info(f'All relevant genes were aggregated successfully. Number of relevant genes is {len(gene_to_og)}.')
