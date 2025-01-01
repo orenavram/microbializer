@@ -329,9 +329,6 @@ def send_email_in_pipeline_end(logger, process_id, email_address, job_name, stat
 
 
 def add_results_to_final_dir(logger, source, final_output_dir):
-    if not consts.COPY_OUTPUTS_TO_FINAL_RESULTS_DIR:
-        return
-
     source_dir_name = os.path.split(source)[1]
     dest = os.path.join(final_output_dir, consts.OUTPUTS_DIRECTORIES_MAP[source_dir_name])
 
