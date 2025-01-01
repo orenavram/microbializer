@@ -666,8 +666,8 @@ def step_5_infer_orthogroups_clustered(args, logger, times_logger, error_file_pa
     return orthogroups_file_path
 
 
-def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
-                             translated_orfs_dir, all_proteins_path, strains_names_path):
+def step_5_infer_orthogroups_non_clustered(args, logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
+                                           translated_orfs_dir, all_proteins_path, strains_names_path):
     orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir = \
         run_mmseqs_and_extract_hits(logger, times_logger, '05', error_file_path, output_dir, tmp_dir,
                                     done_files_dir, translated_orfs_dir, all_proteins_path, strains_names_path,
@@ -681,6 +681,28 @@ def step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output
                                            paralogs_output_dir, paralogs_scores_statistics_dir,
                                            consts.MAX_PARALLEL_JOBS, '05', 4, args.account_name, args.queue_name, args.node_name,
                                            args.use_parquet, args.prepare_mcl_v2, strains_names_path, args.run_mcl_on_all_hits_together)
+
+    return orthogroups_file_path
+
+
+def step_5_full_orthogroups_inference(args, logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
+                                      translated_orfs_dir, all_proteins_fasta_path, genomes_names_path):
+    if args.pre_cluster_orthogroups_inference:
+        clusters_output_dir = step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
+                                                       done_files_dir, all_proteins_fasta_path, translated_orfs_dir)
+
+        if args.step_to_complete == '4':
+            logger.info("Step 4 completed.")
+            return
+
+        orthogroups_file_path = step_5_infer_orthogroups_clustered(args, logger, times_logger, error_file_path,
+                                                                   output_dir, tmp_dir, done_files_dir,
+                                                                   clusters_output_dir, genomes_names_path)
+    else:
+        orthogroups_file_path = step_5_infer_orthogroups_non_clustered(args, logger, times_logger, error_file_path,
+                                                                       output_dir,
+                                                                       tmp_dir, done_files_dir, translated_orfs_dir,
+                                                                       all_proteins_fasta_path, genomes_names_path)
 
     return orthogroups_file_path
 
@@ -1222,23 +1244,10 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         logger.info("Step 3 completed.")
         return
 
-    if args.pre_cluster_orthogroups_inference:
-        clusters_output_dir = step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
-                                 done_files_dir, all_proteins_fasta_path, translated_orfs_dir)
-
-        if args.step_to_complete == '4':
-            logger.info("Step 4 completed.")
-            return
-
-        orthogroups_file_path = step_5_infer_orthogroups_clustered(args, logger, times_logger, error_file_path,
-                                                                   output_dir, tmp_dir, done_files_dir,
-                                                                   clusters_output_dir, genomes_names_path)
-        update_progressbar(progressbar_file_path, 'Infer orthogroups')
-    else:
-        orthogroups_file_path = step_5_infer_orthogroups(args, logger, times_logger, error_file_path, output_dir,
-                                                         tmp_dir, done_files_dir, translated_orfs_dir,
-                                                         all_proteins_fasta_path, genomes_names_path)
-        update_progressbar(progressbar_file_path, 'Infer orthogroups')
+    orthogroups_file_path = step_5_full_orthogroups_inference(args, logger, times_logger, error_file_path, output_dir,
+                                                              tmp_dir, done_files_dir, translated_orfs_dir,
+                                                              all_proteins_fasta_path, genomes_names_path)
+    update_progressbar(progressbar_file_path, 'Infer orthogroups')
 
     if args.step_to_complete == '5':
         logger.info("Step 5 completed.")

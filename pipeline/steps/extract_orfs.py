@@ -122,10 +122,13 @@ def extract_orfs(logger, all_orfs_path, all_proteins_path, orthogroups_file_path
 
             og_dna_path = os.path.join(ogs_dna_output_dir, f'{og_name}.fna')
             write_og_dna_sequences_file(og_name, og_members, gene_to_sequence_dict, og_dna_path)
+
             og_aa_path = os.path.join(ogs_aa_output_dir, f'{og_name}.faa')
             write_og_aa_sequences_file(og_name, og_members, protein_to_sequence_dict, og_aa_path)
+
             og_aligned_aa_path = os.path.join(ogs_aa_aligned_output_dir, f'{og_name}.faa')
             reconstruct_msa(logger, og_aa_path, og_aligned_aa_path)
+
             og_induced_dna_aligned_path = os.path.join(ogs_induced_dna_aligned_output_dir, f'{og_name}.fna')
             induce_msa(logger, og_members, gene_to_sequence_dict, og_aligned_aa_path, og_induced_dna_aligned_path)
 
