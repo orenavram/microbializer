@@ -27,6 +27,11 @@ def load_all_ogs_hits(all_reciprocal_hits_path, gene_to_og):
             if gene_1 in gene_to_og:  # if gene_1 is in gene_to_og and mapped to OG x, then gene_2 is also in OG x
                                       # (becuase each putative OG is a conneceted component of the graph described in all_reciprocal_hits_path)
                 og = gene_to_og[gene_1]
+
+                if gene_2 not in gene_to_og or gene_to_og[gene_2] != og:
+                    raise ValueError(f'Gene {gene_2} is not in the same putative OG as gene {gene_1}, but they appear '
+                                     f'as a hit in {all_reciprocal_hits_path}.')
+
                 score = line_tokens[2]
                 og_to_gene_pair_to_score[og][(gene_1, gene_2)] = score
 
