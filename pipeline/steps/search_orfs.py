@@ -85,7 +85,7 @@ def find_genes_of_all_files(logger, job_input_path, orfs_sequences_dir, orfs_sta
             if inputs_fasta_type == 'genomes':
                 find_genes(logger, genome_path, orfs_output_file_path)
             else:  # inputs_fasta_type == 'orfs'
-                mimic_prodigal_output(genome_name, orfs_output_file_path)
+                mimic_prodigal_output(genome_path, orfs_output_file_path)
 
             extract_orfs_statistics(logger, orfs_output_file_path, orfs_statistics_dir)
             fna_to_faa(logger, orfs_output_file_path, os.path.join(orfs_translated_dir, f'{genome_name}.faa'))
