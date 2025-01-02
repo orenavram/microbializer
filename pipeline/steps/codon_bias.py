@@ -56,14 +56,14 @@ def find_HEGs_in_orf_file(ORFs_file, genome_name, hegs_output_dir, logger):
     db_dir = os.path.join(hegs_output_dir, f'{genome_name}_db')
     db_name = os.path.join(db_dir, genome_name + '.db')
     cmd = f'makeblastdb -in {ORFs_file} -out {db_name} -dbtype nucl'
-    logger.info('Making blastdb with command: \n' + cmd)
+    logger.info('Making blastdb with command: ' + cmd)
     subprocess.run(cmd, shell=True)
 
     # Query blast db with ecoli HEGs reference file
     hegs_hits_file = os.path.join(hegs_output_dir, genome_name + '_HEG_hits.tsv')
     cmd = f'tblastn -db {db_name} -query {consts.HEGS_ECOLI_FILE_PATH} -out {hegs_hits_file} -outfmt 6 ' \
           f'-max_target_seqs {MAX_HITS_TO_KEEP_FOR_EACH_REFERENCE_HEG}'
-    logger.info("Finding Hits with command: \n" + cmd)
+    logger.info("Finding Hits with command: " + cmd)
     subprocess.run(cmd, shell=True)
 
     shutil.rmtree(db_dir, ignore_errors=True)
@@ -85,14 +85,20 @@ def get_W(ORFs_file, hegs_output_dir, logger):
     # Identify HEGs in the ORFs file
     HEGs_names = find_HEGs_in_orf_file(ORFs_file, genome_name, hegs_output_dir, logger)
     HEGs_records = [record for record in SeqIO.parse(ORFs_file, "fasta") if record.id in HEGs_names]
-    SeqIO.write(HEGs_records, os.path.join(hegs_output_dir, genome_name + "_HEGs.fa"), "fasta")  # Write HEGs to a file for logging and debugging
+    HEGs_fasta_path = os.path.join(hegs_output_dir, genome_name + "_HEGs.fa")
+    SeqIO.write(HEGs_records, HEGs_fasta_path, "fasta")  # Write HEGs to a file for logging and debugging
+    logger.info(f'Found {len(HEGs_names)} HEGs in {genome_name}, and wrote them to {HEGs_fasta_path}')
 
     # Find genome codon index of HEGs
     records_were_cleaned = clean_seq_records(HEGs_records)
     if records_were_cleaned:
-        logger.warning(f'Non-complete or illegal codons were found in the ORFs of {genome_name}. They were removed.')
-        SeqIO.write(HEGs_records, os.path.join(hegs_output_dir, genome_name + "_HEGs_cleaned.fa"), "fasta")  # Write cleaned HEGs to a file for logging and debugging
+        HEGs_cleaned_fasta_path = os.path.join(hegs_output_dir, genome_name + "_HEGs_cleaned.fa")
+        SeqIO.write(HEGs_records, HEGs_cleaned_fasta_path, "fasta")  # Write cleaned HEGs to a file for logging and debugging
+        logger.warning(f'Non-complete or illegal codons were found in the ORFs of {genome_name}. They were removed,'
+                       f'and the cleaned HEGs were written to {HEGs_cleaned_fasta_path}')
+
     genome_codon_index = CodonAdaptationIndex(HEGs_records)
+    logger.info(f'W vector was calculated for {genome_name}')
 
     return genome_name, genome_codon_index
 
@@ -141,12 +147,16 @@ def visualize_Ws_with_PCA(W_vectors, output_dir, logger):
 
     # Save plot to output_dir
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, 'Relative_Adaptiveness_scatter_plot.png'), dpi=600)
+    w_vectors_pca_plot_path = os.path.join(output_dir, 'Relative_Adaptiveness_scatter_plot.png')
+    plt.savefig(w_vectors_pca_plot_path, dpi=600)
+    logger.info(f'PCA plot of w_vectors was saved to {w_vectors_pca_plot_path}')
     plt.close()
 
     # Save point labels and coordinates to file
     point_labels_df = pd.DataFrame({'Genome': W_vectors.index, 'X': x, 'Y': y, 'Cluster': cluster_labels + 1})
-    point_labels_df.to_csv(os.path.join(output_dir, 'Relative_Adaptiveness_scatter_plot_clusters.csv'), index=False)
+    point_labels_path = os.path.join(output_dir, 'Relative_Adaptiveness_scatter_plot_clusters.csv')
+    point_labels_df.to_csv(point_labels_path, index=False)
+    logger.info(f'Point labels and coordinates were saved to {point_labels_path}')
 
     logger.info("Time for PCA:", time.time() - start_time)
 
@@ -175,19 +185,22 @@ def calculate_cai(OG_dir, OG_index, genomes_codon_indexes, cais_output_dir):
     return f'OG_{OG_index}', summarized_cai_info
 
 
-def plot_CAI_histogram(ogs_cai_info_df, output_dir):
+def plot_CAI_histogram(logger, ogs_cai_info_df, output_dir):
     plt.title("CAI Mean distribution across OGs", fontsize=20, loc='center', wrap=True)
     plt.xlabel('CAI value', fontsize=15)
     plt.ylabel('Frequency', fontsize=15)
     plt.axis('auto')
     plt.hist(ogs_cai_info_df["CAI_mean"], bins=30)
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, 'CAI_histogram.png'), dpi=600)
+    cai_histogram_path = os.path.join(output_dir, 'CAI_histogram.png')
+    plt.savefig(cai_histogram_path, dpi=600)
+    logger.info(f'CAI histogram was saved to {cai_histogram_path}')
     plt.close()
 
 
 def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, cpus, logger):
     # 1. Calculate W vector for each genome
+    logger.info("Finding HEGs in ORFs files and calculating W vectors...")
     hegs_output_dir = os.path.join(tmp_dir, 'HEGs')
     os.makedirs(hegs_output_dir, exist_ok=True)
     with Pool(processes=cpus) as pool:
@@ -196,13 +209,16 @@ def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, cpu
 
     genomes_codon_indexes = dict(genomes_codon_indexes)
     genomes_W_vectors_df = pd.DataFrame.from_dict(genomes_codon_indexes, orient='index')
-    genomes_W_vectors_df.to_csv(os.path.join(output_dir, 'W_vectors.csv'), index_label='Genome')
+    genomes_W_vectors_path = os.path.join(output_dir, 'W_vectors.csv')
+    genomes_W_vectors_df.to_csv(genomes_W_vectors_path, index_label='Genome')
+    logger.info(f"W vectors were calculated successfully and written to {genomes_W_vectors_path}")
 
     # 2. Visualize W vectors with PCA
     if len(genomes_W_vectors_df) >= 4:
         visualize_Ws_with_PCA(genomes_W_vectors_df, output_dir, logger)
 
     # 3. Calculate CAI for each OG
+    logger.info("Calculating CAI for each OG...")
     cais_output_dir = os.path.join(tmp_dir, 'OGs_CAIs')
     os.makedirs(cais_output_dir, exist_ok=True)
     with Pool(processes=cpus) as pool:
@@ -212,9 +228,10 @@ def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, cpu
     ogs_cai_info_df = pd.DataFrame.from_dict(dict(ogs_cai_info), orient='index')
     ogs_cai_info_df.sort_values("CAI_mean", ascending=False, inplace=True)
     ogs_cai_info_df.to_csv(cai_table_path, index_label='OG_name')
+    logger.info(f"CAI values for all OGs were calculated successfully and written to {cai_table_path}")
 
     # 4. Aggregate CAI data
-    plot_CAI_histogram(ogs_cai_info_df, output_dir)
+    plot_CAI_histogram(logger, ogs_cai_info_df, output_dir)
 
 
 if __name__ == '__main__':
