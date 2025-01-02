@@ -1223,6 +1223,7 @@ def step_12_orthogroups_annotations(args, logger, times_logger, error_file_path,
 
         final_orthologs_table_annotated_path = os.path.join(output_dir_path, 'orthogroups_annotated.csv')
         final_orthologs_df.to_csv(final_orthologs_table_annotated_path, index=False)
+        logger.info(f'Final orthologs table with annotations saved to {final_orthologs_table_annotated_path}')
 
         if not args.do_not_copy_outputs_to_final_results_dir:
             add_results_to_final_dir(logger, final_orthologs_table_annotated_path, final_output_dir)
@@ -1376,11 +1377,13 @@ def main(args):
         if args.step_to_complete is None and not args.only_calc_ogs and not args.do_not_copy_outputs_to_final_results_dir:
             logger.info('Zipping results folder...')
             shutil.make_archive(final_output_dir, 'zip', meta_output_dir, final_output_dir_name)
+            logger.info(f'Zipped results folder to {final_output_dir}.zip')
 
         # remove intermediate results
         if consts.ENV == 'lsweb' and not consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR:
             logger.info('Cleaning up intermediate results...')
             remove_path(logger, output_dir)
+            logger.info('Intermediate results cleaned up')
 
         update_progressbar(progressbar_file_path, 'Finalize results')
         state = State.Finished
