@@ -1,0 +1,12 @@
+{
+    "identity_cutoff": "40.0",
+    "core_minimal_percentage": "100.0",
+    "outgroup": "Waddlia_chondrophila_WSU_86-1044",
+    "bootstrap": "True",
+    "coverage_cutoff": "70.0",
+    "filter_out_plasmids": "False",
+    "add_orphan_genes_to_ogs": "False",
+    "inputs_fasta_type": "genomes",
+    "job_name": "Chlamydia_run_A",
+    "run_dir": "/lsweb/pupko/microbializer/user_results/1c60cfef-e466-4987-9565-e06ddac46b82"
+}

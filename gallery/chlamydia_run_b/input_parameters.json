@@ -1,0 +1,13 @@
+{
+    "identity_cutoff": "60.0",
+    "core_minimal_percentage": "100.0",
+    "outgroup": "No outgroup",
+    "bootstrap": "False",
+    "coverage_cutoff": "80.0",
+    "filter_out_plasmids": "True",
+    "add_orphan_genes_to_ogs": "True",
+    "inputs_fasta_type": "genomes",
+    "job_name": "Chlamydia_run_B",
+    "email": "irislyubman@mail.tau.ac.il",
+    "run_dir": "/lsweb/pupko/microbializer/user_results/a026a9ee-5a8d-40c3-a298-10ce92ddddab"
+}

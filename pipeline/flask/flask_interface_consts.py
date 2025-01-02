@@ -1,6 +1,7 @@
 import os
 
 WEBSERVER_NAME = 'M1CR0B1AL1Z3R'
+WEBSERVER_PROJECT_ROOT_DIR = '/lsweb/pupko/microbializer'
 OWNER_EMAIL = 'yairshimony@mail.tau.ac.il'
 ADDITIONAL_OWNER_EMAILS = ['edodotan@mail.tau.ac.il']
 
@@ -144,14 +145,14 @@ echo "Job ID: $SLURM_JOB_ID"
 echo "Running on nodes: $SLURM_JOB_NODELIST"
 echo "Allocated CPUs: $SLURM_JOB_CPUS_PER_NODE"
 
-export HOME=/lsweb/pupko/microbializer
-source /lsweb/pupko/microbializer/miniconda3/etc/profile.d/conda.sh
-conda activate /lsweb/pupko/microbializer/miniconda3/envs/microbializer
+export HOME={WEBSERVER_PROJECT_ROOT_DIR}
+source {WEBSERVER_PROJECT_ROOT_DIR}/miniconda3/etc/profile.d/conda.sh
+conda activate {WEBSERVER_PROJECT_ROOT_DIR}/miniconda3/envs/microbializer
 export PATH=$CONDA_PREFIX/bin:$PATH
 
 echo "PATH: $PATH"
 
-python "/lsweb/pupko/microbializer/pipeline/main.py" --{ARGS_JSON_PATH_KEY} {{args_json_path}} --account_name {MICROBIALIZER_PROCESSOR_JOB_ACCOUNT_NAME} --queue_name {MICROBIALIZER_PROCESSOR_JOB_QUEUE_NAME}
+python "{WEBSERVER_PROJECT_ROOT_DIR}/pipeline/main.py" --{ARGS_JSON_PATH_KEY} {{args_json_path}} --account_name {MICROBIALIZER_PROCESSOR_JOB_ACCOUNT_NAME} --queue_name {MICROBIALIZER_PROCESSOR_JOB_QUEUE_NAME}
 '''
 
 MICROBIALIZER_JOB_HEADER_TEMPLATE = f'''
