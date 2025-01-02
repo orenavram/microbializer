@@ -92,7 +92,7 @@ def kegg_annotation(logger, og_aa_dir, og_table_path, output_dir, output_og_tabl
 
     # run hmmsearch
     hmmsearch_output = os.path.join(output_dir, 'hmmsearch_output.txt')
-    cmd = f'hmmsearch --noali --cpu {cpus} --tblout {hmmsearch_output} {consts.KEGG_DATABASE_PATH} {unified_ogs_sequences}'
+    cmd = f'hmmsearch --noali -o /dev/null --cpu {cpus} --tblout {hmmsearch_output} {consts.KEGG_DATABASE_PATH} {unified_ogs_sequences}'
     logger.info(f'Running: {cmd}')
     subprocess.run(cmd, shell=True)
     logger.info(f'Finished running hmmsearch. Output written to {hmmsearch_output}')

@@ -1382,7 +1382,8 @@ def main(args):
         # remove intermediate results
         if consts.ENV == 'lsweb' and not consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR:
             logger.info('Cleaning up intermediate results...')
-            remove_path(logger, output_dir)
+            remove_path(logger, steps_results_dir)
+            remove_path(logger, data_path)
             logger.info('Intermediate results cleaned up')
 
         update_progressbar(progressbar_file_path, 'Finalize results')
