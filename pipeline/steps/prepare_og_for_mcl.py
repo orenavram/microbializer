@@ -65,8 +65,6 @@ def prepare_ogs_for_mcl(logger, all_reciprocal_hits_path, putative_ogs_path, job
     logger.info('Preparing input files for MCL...')
     for og_number in ogs_numbers:
         mcl_file_path = os.path.join(output_path, og_number + '.mcl_input')
-        if os.path.exists(mcl_file_path):
-            continue
 
         og_text_for_mcl = ''
         for (gene1, gene2), score in og_to_gene_pair_to_score[og_number].items():
