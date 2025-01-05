@@ -82,10 +82,15 @@ def search_paralogs(logger, genome_name, dbs_dir, max_scores_parts_dir, paralogs
     add_score_column_to_mmseqs_output(m8_df)
     m8_df = m8_df[['query', 'target', 'score']]
 
+    outputs_paralogs_processed = os.path.join(paralogs_dir, f'{genome_name}_vs_{genome_name}.m8')
     if use_parquet:
-        m8_df.to_parquet(os.path.join(paralogs_dir, f'{genome_name}_vs_{genome_name}.m8'), index=False)
+        m8_df.to_parquet(outputs_paralogs_processed, index=False)
     else:
-        m8_df.to_csv(os.path.join(paralogs_dir, f'{genome_name}_vs_{genome_name}.m8'), index=False)
+        m8_df.to_csv(outputs_paralogs_processed, index=False)
+    logger.info(f"{outputs_paralogs_processed} was created successfully.")
+
+    # Delete intermediate files
+    shutil.rmtree(tmp_dir)
 
     # Keep only hits that have score higher than the max score of both query and target.
     # If only one of the genes was identified as rbh to a gene in another genome (and thus the other one doesn't
@@ -119,9 +124,6 @@ def search_paralogs(logger, genome_name, dbs_dir, max_scores_parts_dir, paralogs
         json.dump(scores_statistics, fp)
 
     logger.info(f"{score_stats_file} was created successfully.")
-
-    # Delete intermediate files
-    shutil.rmtree(tmp_dir)
 
 
 def search_paralogs_in_all_pairs(logger, job_input_path, dbs_dir, max_scores_parts_dir, paralogs_dir,

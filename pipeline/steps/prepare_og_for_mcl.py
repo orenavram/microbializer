@@ -43,6 +43,12 @@ def prepare_ogs_for_mcl(logger, all_reciprocal_hits_path, putative_ogs_path, job
     with open(job_input_path, 'r') as f:
         ogs_numbers = [f'OG_{num}' for num in f.read().splitlines()]
 
+    # Filter out OGs that already have an output file (this might happen if the job was restarted)
+    ogs_numbers = [og_number for og_number in ogs_numbers if not os.path.exists(os.path.join(output_path, og_number + '.mcl_input'))]
+    if not ogs_numbers:
+        logger.info('All OGs already have an output file. Exiting...')
+        return
+
     logger.info(f'Aggregating all genes from the specified {len(ogs_numbers)} putative OGs...')
     gene_to_og = {}
     for og_number in ogs_numbers:
