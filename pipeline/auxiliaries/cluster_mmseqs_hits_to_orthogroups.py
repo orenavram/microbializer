@@ -133,36 +133,6 @@ def unify_clusters_mmseqs_hits(logger, times_logger, output_dir, tmp_dir, done_f
     return orthologs_output_dir, orthologs_scores_statistics_dir, paralogs_output_dir, paralogs_scores_statistics_dir
 
 
-def run_mcl_on_all_hits_together(logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
-                                 all_hits_file, base_step_number, start_substep_number, account_name, queue_name,
-                                 node_name, number_of_genomes):
-    ### TODO: Only a start - should finish function, check optimized way to do that (read MCL documentation).
-
-    # run_mcl.py
-    step_number = f'{base_step_number}_{start_substep_number}'
-    logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_mcl_analysis'
-    script_path = os.path.join(consts.SRC_DIR, 'steps/run_mcl.py')
-    mcl_outputs_dir, mcl_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-    if not os.path.exists(done_file_path):
-        mcl_output_path = os.path.join(mcl_outputs_dir, 'mcl_output.txt')
-        params = [all_hits_file,
-                  mcl_output_path,
-                  f'--cpus {consts.MCL_NUM_OF_CORES}']
-
-        mcl_memory_gb = str(int(math.ceil(number_of_genomes * 0.1)))
-        submit_mini_batch(logger, script_path, [params], mcl_tmp_dir, error_file_path, queue_name,
-                          account_name, job_name='mcl', num_of_cpus=consts.MCL_NUM_OF_CORES,
-                          memory=mcl_memory_gb, node_name=node_name)
-
-        wait_for_results(logger, times_logger, step_name, mcl_tmp_dir, 1, error_file_path)
-
-        write_to_file(logger, done_file_path, '.')
-    else:
-        logger.info(f'done file {done_file_path} already exists. Skipping step...')
-
-
 def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
                                        orthologs_output_dir, orthologs_scores_statistics_dir, paralogs_output_dir,
                                        paralogs_scores_statistics_dir, max_parallel_jobs, base_step_number,
@@ -227,66 +197,6 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # concatenate_all_hits
-    # Input: path to folder with all hits files
-    # Output: concatenated file of all hits files
-    # CANNOT be parallelized on cluster
-    step_number = f'{base_step_number}_{start_substep_number + 1}'
-    script_path = os.path.join(consts.SRC_DIR, 'steps/concatenate_hits.py')
-    logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_concatenate_hits'
-    concatenate_output_dir, concatenate_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-    all_hits_file = os.path.join(concatenate_output_dir, 'concatenated_all_hits.txt')
-    if not os.path.exists(done_file_path):
-        logger.info('Concatenating hits...')
-
-        job_index_to_hits_file_names = defaultdict(list)
-        for i, hits_file in enumerate(os.listdir(normalized_hits_output_dir)):
-            if not hits_file.endswith('.m8'):
-                continue
-
-            job_index = i % max_parallel_jobs
-            job_index_to_hits_file_names[job_index].append(hits_file)
-
-        jobs_inputs_dir = os.path.join(concatenate_tmp_dir, 'jobs_inputs')
-        os.makedirs(jobs_inputs_dir, exist_ok=True)
-        concatenated_chunks_dir = os.path.join(concatenate_output_dir, 'temp_chunks')
-        os.makedirs(concatenated_chunks_dir, exist_ok=True)
-
-        all_cmds_params = []
-        for job_index, hits_file_names in job_index_to_hits_file_names.items():
-            job_input_path = os.path.join(jobs_inputs_dir, f'{job_index}.txt')
-            with open(job_input_path, 'w') as f:
-                f.write('\n'.join(hits_file_names))
-
-            single_cmd_params = [normalized_hits_output_dir, job_input_path, concatenated_chunks_dir]
-            all_cmds_params.append(single_cmd_params)
-
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, concatenate_tmp_dir, error_file_path,
-                                                   num_of_cmds_per_job=1,
-                                                   job_name_suffix='concatenate_hits',
-                                                   queue_name=queue_name,
-                                                   account_name=account_name,
-                                                   node_name=node_name)
-
-        wait_for_results(logger, times_logger, step_name, concatenate_tmp_dir,
-                         num_of_batches, error_file_path)
-
-        for chunk_file in os.listdir(concatenated_chunks_dir):
-            execute(logger, f'cat {os.path.join(concatenated_chunks_dir, chunk_file)} >> {all_hits_file}', process_is_string=True)
-
-        execute(logger, f'rm -rf {concatenated_chunks_dir}', process_is_string=True)
-
-        write_to_file(logger, done_file_path, '.')
-    else:
-        logger.info(f'done file {done_file_path} already exists. Skipping step...')
-
-    if run_mcl_on_all_hits_together_flag:
-        run_mcl_on_all_hits_together(logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
-                                     all_hits_file, base_step_number, start_substep_number + 2, account_name, queue_name,
-                                     node_name, len(strains_names))
-        return
 
     # construct_putative_orthologs_table.py
     # Input: (1) a path for a i_vs_j_reciprocal_hits.tsv file (2) a path for a putative orthologs file (with a single line).
@@ -301,7 +211,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Constructing putative orthologs table...')
-        params = [all_hits_file,
+        params = [normalized_hits_output_dir,
                   putative_orthologs_table_path]
         submit_mini_batch(logger, script_path, [params], putative_orthologs_table_tmp_dir, error_file_path,
                           queue_name, account_name, job_name=os.path.split(script_path)[-1], node_name=node_name)
@@ -337,7 +247,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
                 last_mcl = str(min(i + clusters_to_prepare_per_script - 1,
                                    num_of_putative_sets))  # 1-10, 11-20, etc... for clusters_to_prepare_per_job=10
 
-                single_cmd_params = [all_hits_file,
+                single_cmd_params = [normalized_hits_output_dir,
                                      putative_orthologs_table_path,
                                      first_mcl,
                                      last_mcl,
@@ -384,7 +294,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
                 with open(job_path, 'w') as f:
                     f.write('\n'.join(map(str, ogs)))
 
-                single_cmd_params = [all_hits_file, putative_orthologs_table_path, job_path, mcl_inputs_dir]
+                single_cmd_params = [normalized_hits_output_dir, putative_orthologs_table_path, job_path, mcl_inputs_dir]
                 all_cmds_params.append(single_cmd_params)
 
             num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, mcl_inputs_tmp_dir, error_file_path,

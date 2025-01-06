@@ -78,19 +78,22 @@ def build_orthoxml_and_tsv_output(logger, all_clusters_df, output_dir, qfo_bench
         genes_xml = orthoxml.genes()
 
         all_strain_genes = all_clusters_df[strain_column]
-        for og_strain_genes in all_strain_genes:
+        for og_index, og_strain_genes in all_strain_genes.items():
             if pd.isna(og_strain_genes):
                 continue
 
-            for gene_name in og_strain_genes.split(';'):
-                prot_id = parse_gene_name(logger, gene_name, qfo_benchmark)
-                gene_xml = orthoxml.gene(id=str(next_id), protId=prot_id)
-                genes_xml.add_gene(gene_xml)
+            try:
+                for gene_name in og_strain_genes.split(';'):
+                    prot_id = parse_gene_name(logger, gene_name, qfo_benchmark)
+                    gene_xml = orthoxml.gene(id=str(next_id), protId=prot_id)
+                    genes_xml.add_gene(gene_xml)
 
-                gene_name_to_gene_id[gene_name] = next_id
-                gene_name_to_gene_prot_id[gene_name] = prot_id
+                    gene_name_to_gene_id[gene_name] = next_id
+                    gene_name_to_gene_prot_id[gene_name] = prot_id
 
-                next_id += 1
+                    next_id += 1
+            except Exception as e:
+                 raise BrokenPipeError(f"Failed parsing gene names for column {strain_column} and OG {og_index}: {e}")
 
         database_xml.set_genes(genes_xml)
         species_xml.add_database(database_xml)

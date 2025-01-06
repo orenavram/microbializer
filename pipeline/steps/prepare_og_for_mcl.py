@@ -5,6 +5,7 @@ import logging
 import os
 import sys
 import traceback
+from time import sleep
 import pandas as pd
 from collections import defaultdict
 
@@ -15,30 +16,33 @@ from auxiliaries.pipeline_auxiliaries import get_job_logger
 from auxiliaries.logic_auxiliaries import flatten
 
 
-def load_all_ogs_hits(all_reciprocal_hits_path, gene_to_og):
+def load_all_ogs_hits(normalized_hits_dir, strain_to_gene_to_og):
     og_to_gene_pair_to_score = defaultdict(dict)
-    with open(all_reciprocal_hits_path) as f:
-        for line in f:
-            line_tokens = line.rstrip().split(',')
-            if 'score' in line:
-                # new reciprocal hits file starts
-                continue
-            gene_1, gene_2 = line_tokens[:2]
-            if gene_1 in gene_to_og:  # if gene_1 is in gene_to_og and mapped to OG x, then gene_2 is also in OG x
-                                      # (becuase each putative OG is a conneceted component of the graph described in all_reciprocal_hits_path)
-                og = gene_to_og[gene_1]
 
-                if gene_2 not in gene_to_og or gene_to_og[gene_2] != og:
-                    raise ValueError(f'Gene {gene_2} is not in the same putative OG as gene {gene_1}, but they appear '
-                                     f'as a hit in {all_reciprocal_hits_path}.')
+    for normalized_hits_file_name in os.listdir(normalized_hits_dir):
+        if not normalized_hits_file_name.endswith('.m8'):
+            continue
 
-                score = line_tokens[2]
-                og_to_gene_pair_to_score[og][(gene_1, gene_2)] = score
+        strain_1, strain_2 = os.path.splitext(normalized_hits_file_name)[0].split('_vs_')
+        if strain_1 not in strain_to_gene_to_og or strain_2 not in strain_to_gene_to_og:  # it means that this hit file isn't relevant for the examined OGs
+            continue
+
+        strain_1_genes_to_of = strain_to_gene_to_og[strain_1]
+
+        hits_file_path = os.path.join(normalized_hits_dir, normalized_hits_file_name)
+        with open(hits_file_path) as f:
+            f.readline()  # skip header
+            for line in f:
+                gene_1, gene_2, score = line.rstrip().split(',')
+                if gene_1 in strain_1_genes_to_of:  # if gene_1 is in strain_1_genes_to_of and mapped to OG x, then gene_2 is also in OG x
+                                                    # (becuase each putative OG is a conneceted component of the hits graph)
+                    og = strain_1_genes_to_of[gene_1]
+                    og_to_gene_pair_to_score[og][(gene_1, gene_2)] = score
 
     return og_to_gene_pair_to_score
 
 
-def prepare_ogs_for_mcl(logger, all_reciprocal_hits_path, putative_ogs_path, job_input_path, output_path):
+def prepare_ogs_for_mcl(logger, normalized_hits_dir, putative_ogs_path, job_input_path, output_path):
     putative_ogs_df = pd.read_csv(putative_ogs_path, index_col=0)
     with open(job_input_path, 'r') as f:
         ogs_numbers = [f'OG_{num}' for num in f.read().splitlines()]
@@ -50,28 +54,42 @@ def prepare_ogs_for_mcl(logger, all_reciprocal_hits_path, putative_ogs_path, job
         return
 
     logger.info(f'Aggregating all genes from the specified {len(ogs_numbers)} putative OGs...')
-    gene_to_og = {}
-    for og_number in ogs_numbers:
-        og_row = putative_ogs_df.loc[og_number]
-        og_genes = flatten([strain_genes.split(';') for strain_genes in og_row if not pd.isna(strain_genes)])
-        for gene in og_genes:
-            gene_to_og[gene] = og_number
-    logger.info(f'All relevant genes were aggregated successfully. Number of relevant genes is {len(gene_to_og)}.')
+    strain_to_gene_to_og = {}
+    number_of_genes = 0
+    for strain in putative_ogs_df.columns[1:]:
+        strain_to_gene_to_og[strain] = {}
+        for og_number in ogs_numbers:
+            og_row = putative_ogs_df.loc[og_number]
+            if pd.isna(og_row[strain]):
+                continue
+            for gene in og_row[strain].split(';'):
+                strain_to_gene_to_og[strain][gene] = og_number
+                number_of_genes += 1
+    logger.info(f'All relevant genes were aggregated successfully. Number of relevant genes is {number_of_genes}.')
 
     logger.info('Loading relevant hits scores to memory...')
-    og_to_gene_pair_to_score = load_all_ogs_hits(all_reciprocal_hits_path, gene_to_og)
+    og_to_gene_pair_to_score = load_all_ogs_hits(normalized_hits_dir, strain_to_gene_to_og)
     logger.info(f'All relevant hits were loaded successfully.')
 
     logger.info('Preparing input files for MCL...')
     for og_number in ogs_numbers:
-        mcl_file_path = os.path.join(output_path, og_number + '.mcl_input')
+        mcl_file_name = og_number + '.mcl_input'
+        mcl_file_path = os.path.join(output_path, mcl_file_name)
 
         og_text_for_mcl = ''
         for (gene1, gene2), score in og_to_gene_pair_to_score[og_number].items():
             og_text_for_mcl += f'{gene1}\t{gene2}\t{score}\n'
 
-        with open(mcl_file_path, 'w') as mcl_f:
-            mcl_f.write(og_text_for_mcl)
+        mcl_write_try_index = 1
+        while not os.path.exists(mcl_file_path):
+            try:
+                with open(mcl_file_path, 'w') as mcl_f:
+                    mcl_f.write(og_text_for_mcl)
+                logger.info(f'Wrote {mcl_file_name}')
+            except Exception as e:
+                logger.error(f'Error writing {mcl_file_path} (try {mcl_write_try_index}): {e}')
+                sleep(1)
+                mcl_write_try_index += 1
 
     logger.info('Input files for MCL were written successfully.')
 
@@ -81,7 +99,7 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('all_reciprocal_hits_path', help='path to a file with all hits')
+    parser.add_argument('normalized_hits_dir', help='path to a file with all hits')
     parser.add_argument('putative_ogs_path', help='path to a putative ogs path')
     parser.add_argument('job_input_path', help='')
     parser.add_argument('output_path', help='a folder in which the input files for mcl will be written')
@@ -95,7 +113,7 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        prepare_ogs_for_mcl(logger, args.all_reciprocal_hits_path, args.putative_ogs_path, args.job_input_path, args.output_path)
+        prepare_ogs_for_mcl(logger, args.normalized_hits_dir, args.putative_ogs_path, args.job_input_path, args.output_path)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:

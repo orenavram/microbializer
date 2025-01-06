@@ -19,73 +19,78 @@ from auxiliaries.pipeline_auxiliaries import get_job_logger
 from auxiliaries import consts
 
 
-def construct_table(logger, all_reciprocal_hits_path, putative_orthologs_path, delimiter):
+def construct_table(logger, normalized_hits_dir, putative_orthologs_path, delimiter):
     member_gene_to_group_name = {}
     member_gene_to_strain_name_dict = {}
     group_name_to_member_genes = {}
     next_group_id = 0
-    with open(all_reciprocal_hits_path) as f:
-        for i, line in enumerate(f):
-            if i % 1_000_000 == 0:
-                logger.info(f'Reciprocal pair number {i}')
-            line_tokens = line.rstrip().split(delimiter)
-            if 'score' in line:
-                # new reciprocal hits file starts
-                strain1, strain2 = line_tokens[:2]
-            else:
-                gene1, gene2 = line_tokens[:2]
 
-                gene1_was_seen = gene1 in member_gene_to_strain_name_dict
-                gene2_was_seen = gene2 in member_gene_to_strain_name_dict
+    for file in os.listdir(normalized_hits_dir):
+        if not file.endswith('.m8'):
+            continue
 
-                if not gene1_was_seen and not gene2_was_seen:
-                    # non of the two genes was seen before
-                    # update strain name
-                    member_gene_to_strain_name_dict[gene1] = strain1
-                    member_gene_to_strain_name_dict[gene2] = strain2
-
-                    group = f'OG_{next_group_id}'
-                    next_group_id += 1
-                    # add gene1 to group
-                    member_gene_to_group_name[gene1] = group
-                    # add gene2 to group
-                    member_gene_to_group_name[gene2] = group
-                    # create group (for the first time)
-                    group_name_to_member_genes[group] = [gene1, gene2]
-
-                elif gene1_was_seen and not gene2_was_seen:
-                    # update strain name
-                    member_gene_to_strain_name_dict[gene2] = strain2
-                    # gene1 is already in the table
-                    group = member_gene_to_group_name[gene1]
-                    # add gene2 to gene1's group
-                    member_gene_to_group_name[gene2] = group
-                    group_name_to_member_genes[group].append(gene2)
-
-                elif not gene1_was_seen and gene2_was_seen:
-                    # update strain name
-                    member_gene_to_strain_name_dict[gene1] = strain1
-
-                    # gene2 is already in the table
-                    group = member_gene_to_group_name[gene2]
-                    # add gene1 to gene2's group
-                    member_gene_to_group_name[gene1] = group
-                    group_name_to_member_genes[group].append(gene1)
-
+        logger.info(f'Processing file: {file}')
+        hits_file_path = os.path.join(normalized_hits_dir, file)
+        with open(hits_file_path) as f:
+            for line in f:
+                line_tokens = line.rstrip().split(delimiter)
+                if 'score' in line:
+                    # new reciprocal hits file starts
+                    strain1, strain2 = line_tokens[:2]
                 else:
-                    # both genes were already seen; merge groups...
-                    group1 = member_gene_to_group_name[gene1]
-                    group2 = member_gene_to_group_name[gene2]
-                    if group1 == group2:
-                        # groups are already merged
-                        continue
-                    min_group, max_group = sorted([group1, group2])
-                    # remove max_group from dictionary
-                    max_group_members = group_name_to_member_genes.pop(max_group)
-                    # merge groups
-                    for gene in max_group_members:
-                        member_gene_to_group_name[gene] = min_group
-                    group_name_to_member_genes[min_group].extend(max_group_members)
+                    gene1, gene2 = line_tokens[:2]
+
+                    gene1_was_seen = gene1 in member_gene_to_strain_name_dict
+                    gene2_was_seen = gene2 in member_gene_to_strain_name_dict
+
+                    if not gene1_was_seen and not gene2_was_seen:
+                        # non of the two genes was seen before
+                        # update strain name
+                        member_gene_to_strain_name_dict[gene1] = strain1
+                        member_gene_to_strain_name_dict[gene2] = strain2
+
+                        group = f'OG_{next_group_id}'
+                        next_group_id += 1
+                        # add gene1 to group
+                        member_gene_to_group_name[gene1] = group
+                        # add gene2 to group
+                        member_gene_to_group_name[gene2] = group
+                        # create group (for the first time)
+                        group_name_to_member_genes[group] = [gene1, gene2]
+
+                    elif gene1_was_seen and not gene2_was_seen:
+                        # update strain name
+                        member_gene_to_strain_name_dict[gene2] = strain2
+                        # gene1 is already in the table
+                        group = member_gene_to_group_name[gene1]
+                        # add gene2 to gene1's group
+                        member_gene_to_group_name[gene2] = group
+                        group_name_to_member_genes[group].append(gene2)
+
+                    elif not gene1_was_seen and gene2_was_seen:
+                        # update strain name
+                        member_gene_to_strain_name_dict[gene1] = strain1
+
+                        # gene2 is already in the table
+                        group = member_gene_to_group_name[gene2]
+                        # add gene1 to gene2's group
+                        member_gene_to_group_name[gene1] = group
+                        group_name_to_member_genes[group].append(gene1)
+
+                    else:
+                        # both genes were already seen; merge groups...
+                        group1 = member_gene_to_group_name[gene1]
+                        group2 = member_gene_to_group_name[gene2]
+                        if group1 == group2:
+                            # groups are already merged
+                            continue
+                        min_group, max_group = sorted([group1, group2])
+                        # remove max_group from dictionary
+                        max_group_members = group_name_to_member_genes.pop(max_group)
+                        # merge groups
+                        for gene in max_group_members:
+                            member_gene_to_group_name[gene] = min_group
+                        group_name_to_member_genes[min_group].extend(max_group_members)
 
     # strains sorted lexicographically
     sorted_strains = sorted(set(member_gene_to_strain_name_dict.values()))
@@ -130,8 +135,8 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('all_reciprocal_hits_path',
-                        help='path to a file with all the reciprocal hits files concatenated')
+    parser.add_argument('normalized_hits_dir',
+                        help='path to a dir with all the hits files')
     parser.add_argument('putative_orthologs_path',
                         help='path to an output file in which the putative orthologs table will be written')
     parser.add_argument('--delimiter', help='delimiter for the input and output files', default=consts.CSV_DELIMITER)
@@ -145,7 +150,7 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        construct_table(logger, args.all_reciprocal_hits_path, args.putative_orthologs_path, args.delimiter)
+        construct_table(logger, args.normalized_hits_dir, args.putative_orthologs_path, args.delimiter)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:
