@@ -27,16 +27,16 @@ def load_all_ogs_hits(normalized_hits_dir, strain_to_gene_to_og):
         if strain_1 not in strain_to_gene_to_og or strain_2 not in strain_to_gene_to_og:  # it means that this hit file isn't relevant for the examined OGs
             continue
 
-        strain_1_genes_to_of = strain_to_gene_to_og[strain_1]
+        strain_1_genes_to_og = strain_to_gene_to_og[strain_1]
 
         hits_file_path = os.path.join(normalized_hits_dir, normalized_hits_file_name)
         with open(hits_file_path) as f:
             f.readline()  # skip header
             for line in f:
                 gene_1, gene_2, score = line.rstrip().split(',')
-                if gene_1 in strain_1_genes_to_of:  # if gene_1 is in strain_1_genes_to_of and mapped to OG x, then gene_2 is also in OG x
+                if gene_1 in strain_1_genes_to_og:  # if gene_1 is in strain_1_genes_to_of and mapped to OG x, then gene_2 is also in OG x
                                                     # (becuase each putative OG is a conneceted component of the hits graph)
-                    og = strain_1_genes_to_of[gene_1]
+                    og = strain_1_genes_to_og[gene_1]
                     og_to_gene_pair_to_score[og][(gene_1, gene_2)] = score
 
     return og_to_gene_pair_to_score

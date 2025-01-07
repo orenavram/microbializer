@@ -202,7 +202,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
     # Input: (1) a path for a i_vs_j_reciprocal_hits.tsv file (2) a path for a putative orthologs file (with a single line).
     # Output: updates the table with the info from the reciprocal hit file.
     # CANNOT be parallelized on cluster
-    step_number = f'{base_step_number}_{start_substep_number + 2}'
+    step_number = f'{base_step_number}_{start_substep_number + 1}'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_putative_table'
     script_path = os.path.join(consts.SRC_DIR, 'steps/construct_putative_orthologs_table.py')
@@ -230,7 +230,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
         # Input: (1) a path for a concatenated all reciprocal hits file (2) a path for a putative orthologs file (3) a path for an output folder
         # Output: an input file for MCL for each putative orthologs group
         # CANNOT be parallelized on cluster (if running on the concatenated file)
-        step_number = f'{base_step_number}_{start_substep_number + 3}'
+        step_number = f'{base_step_number}_{start_substep_number + 2}'
         logger.info(f'Step {step_number}: {"_" * 100}')
         step_name = f'{step_number}_mcl_input_files'
         script_path = os.path.join(consts.SRC_DIR, 'steps/prepare_files_for_mcl.py')
@@ -269,7 +269,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
 
     else:
         # prepare_og_for_mcl.py
-        step_number = f'{base_step_number}_{start_substep_number + 3}'
+        step_number = f'{base_step_number}_{start_substep_number + 2}'
         logger.info(f'Step {step_number}: {"_" * 100}')
         step_name = f'{step_number}_mcl_input_files'
         script_path = os.path.join(consts.SRC_DIR, 'steps/prepare_og_for_mcl.py')
@@ -315,7 +315,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
     # Input: (1) a path to an MCL input file (2) a path to MCL's output.
     # Output: MCL analysis.
     # Can be parallelized on cluster
-    step_number = f'{base_step_number}_{start_substep_number + 4}'
+    step_number = f'{base_step_number}_{start_substep_number + 3}'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_mcl_analysis'
     script_path = os.path.join(consts.SRC_DIR, 'steps/run_mcl.py')
@@ -348,7 +348,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
     # Input: (1) mcl analysis file (2) a path to which the file will be moved if relevant (3) optional: maximum number of clusters allowed [default=1]
     # Output: filter irrelevant clusters by moving the relevant to an output directory
     # Can be parallelized on cluster
-    step_number = f'{base_step_number}_{start_substep_number + 5}'
+    step_number = f'{base_step_number}_{start_substep_number + 4}'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_verified_clusters'
     script_path = os.path.join(consts.SRC_DIR, 'steps/verify_cluster.py')
@@ -383,7 +383,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
     # construct_verified_orthologs_table.py
     # Input: (1) a path for directory with all the verified OGs (2) an output path to a final OGs table.
     # Output: aggregates all the well-clustered OGs to the final table.
-    step_number = f'{base_step_number}_{start_substep_number + 6}'
+    step_number = f'{base_step_number}_{start_substep_number + 5}'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_verified_table'
     script_path = os.path.join(consts.SRC_DIR, 'steps/construct_verified_orthologs_table.py')
