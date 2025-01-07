@@ -1105,8 +1105,9 @@ def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, t
                               args.queue_name, args.account_name, job_name='tree_reconstruction',
                               num_of_cpus=consts.PHYLOGENY_NUM_OF_CORES,
                               memory=consts.PHYLOGENY_REQUIRED_MEMORY_GB,
-                              command_to_run_before_script=f'export QT_QPA_PLATFORM=offscreen\nexport XDG_RUNTIME_DIR={xdg_runtime_dir}',
-                              node_name=args.node_name)  # Needed to avoid an error in drawing the tree. Taken from: https://github.com/NVlabs/instant-ngp/discussions/300
+                              command_to_run_before_script=f'export QT_QPA_PLATFORM=offscreen\nexport XDG_RUNTIME_DIR={xdg_runtime_dir}', # Needed to avoid an error in drawing the tree. Taken from: https://github.com/NVlabs/instant-ngp/discussions/300
+                              node_name=args.node_name,
+                              time_in_hours=consts.PHYLOGENY_JOB_TIME_LIMIT_HOURS)
 
             # wait for the phylogenetic tree here
             wait_for_results(logger, times_logger, phylogeny_step_name, phylogeny_tmp_dir,
