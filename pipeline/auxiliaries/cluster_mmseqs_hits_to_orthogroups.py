@@ -137,7 +137,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
                                        orthologs_output_dir, orthologs_scores_statistics_dir, paralogs_output_dir,
                                        paralogs_scores_statistics_dir, max_parallel_jobs, base_step_number,
                                        start_substep_number, account_name, queue_name, node_name, use_parquet, prepare_mcl_v2,
-                                       strains_names_path, run_mcl_on_all_hits_together_flag):
+                                       strains_names_path):
     with open(strains_names_path) as f:
         strains_names = f.read().rstrip().split('\n')
 
