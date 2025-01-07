@@ -30,27 +30,31 @@ def search_paralogs(logger, genome_name, dbs_dir, max_scores_parts_dir, paralogs
 
     # Unify all max_rbh_scores files of the genome to one file
     max_scores_files = [f for f in os.listdir(max_scores_parts_dir) if f.split('_max_scores_with_')[0] == genome_name]
-    max_scores_dfs = []
-    for max_scores_file in max_scores_files:
-        max_scores_path = os.path.join(max_scores_parts_dir, max_scores_file)
+    if max_scores_files:
+        max_scores_dfs = []
+        for max_scores_file in max_scores_files:
+            max_scores_path = os.path.join(max_scores_parts_dir, max_scores_file)
+
+            if use_parquet:
+                max_scores_df = pd.read_parquet(max_scores_path)
+            else:
+                max_scores_df = pd.read_csv(max_scores_path)
+
+            max_scores_dfs.append(max_scores_df)
+
+        max_scores_combined_df = pd.concat(max_scores_dfs)
+        max_score_per_gene = max_scores_combined_df.groupby('gene')['max_rbh_score'].max().reset_index()
 
         if use_parquet:
-            max_scores_df = pd.read_parquet(max_scores_path)
+            max_score_per_gene.to_parquet(genome_max_rbh_scores_path, index=False)
         else:
-            max_scores_df = pd.read_csv(max_scores_path)
+            max_score_per_gene.to_csv(genome_max_rbh_scores_path, index=False)
 
-        max_scores_dfs.append(max_scores_df)
-
-    max_scores_combined_df = pd.concat(max_scores_dfs)
-    max_score_per_gene = max_scores_combined_df.groupby('gene')['max_rbh_score'].max().reset_index()
-
-    if use_parquet:
-        max_score_per_gene.to_parquet(genome_max_rbh_scores_path, index=False)
+        max_score_per_gene.set_index('gene', inplace=True)
+        max_score_per_gene = max_score_per_gene['max_rbh_score']
     else:
-        max_score_per_gene.to_csv(genome_max_rbh_scores_path, index=False)
-
-    max_score_per_gene.set_index('gene', inplace=True)
-    max_score_per_gene = max_score_per_gene['max_rbh_score']
+        logger.info(f"No max_rbh_scores files were found for {genome_name}.")
+        max_score_per_gene = {}
 
     genome_db_path = os.path.join(dbs_dir, f'{genome_name}.db')
 
