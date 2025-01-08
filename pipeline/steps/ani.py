@@ -46,16 +46,17 @@ def run_ani(logger, all_genomes_reference_path, output_path,  cpus):
 
     plot_ani_clustermap(ani_values_df, Path(output_path))
 
-    # Iterate over rows and find max value ignoring diagonal
-    max_values = []
-    max_values_columns = []
-    for i, row in ani_values_df.iterrows():
-        row_values = row.drop(i)  # Drop diagonal element
-        max_values.append(row_values.max())
-        max_values_columns.append(row_values.idxmax())
+    if len(ani_values_df) >= 2:
+        # Iterate over rows and find max value ignoring diagonal
+        max_values = []
+        max_values_columns = []
+        for i, row in ani_values_df.iterrows():
+            row_values = row.drop(i)  # Drop diagonal element
+            max_values.append(row_values.max())
+            max_values_columns.append(row_values.idxmax())
 
-    ani_values_df['max_value'] = max_values
-    ani_values_df['max_column'] = max_values_columns
+        ani_values_df['max_value'] = max_values
+        ani_values_df['max_column'] = max_values_columns
 
     ani_values_path = os.path.join(output_path, 'ani_pairwise_values.csv')
     ani_values_df.to_csv(ani_values_path)
@@ -80,7 +81,7 @@ def plot_ani_clustermap(
     mycmap.set_under("lightgrey")
 
     figure_size = min(max(len(ani_df) / 5, 10), 60)
-    if ani_df.isnull().values.any():
+    if ani_df.isnull().values.any() or len(ani_df) <= 2:
         # Plot heatmap, since clustermap isn't possible with NaN values
         fig, ax = plt.subplots(figsize=(figure_size, figure_size))
         sns.heatmap(

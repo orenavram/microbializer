@@ -56,7 +56,7 @@ def prepare_ogs_for_mcl(logger, normalized_hits_dir, putative_ogs_path, job_inpu
     logger.info(f'Aggregating all genes from the specified {len(ogs_numbers)} putative OGs...')
     strain_to_gene_to_og = {}
     number_of_genes = 0
-    for strain in putative_ogs_df.columns[1:]:
+    for strain in putative_ogs_df.columns:
         strain_to_gene_to_og[strain] = {}
         for og_number in ogs_numbers:
             og_row = putative_ogs_df.loc[og_number]
