@@ -41,7 +41,7 @@ def finalize_table(logger, putative_orthologs_path, verified_clusters_path, fina
         for gene in genes:
             strain = get_strain_name(gene)
             strain_to_genes[strain].append(gene)
-        strain_to_genes = {strain: ';'.join(genes) for strain, genes in strain_to_genes.items()}
+        strain_to_genes = {strain: ';'.join(sorted(genes)) for strain, genes in strain_to_genes.items()}
         strain_to_genes['OG_name'] = ''  # Set a temp empty OG name
         new_cluster = pd.Series(strain_to_genes)
         new_clusters.append(new_cluster)
@@ -49,10 +49,12 @@ def finalize_table(logger, putative_orthologs_path, verified_clusters_path, fina
     # Merge new clusters and verified clusters
     new_clusters_df = pd.DataFrame(new_clusters)
     all_clusters_df = pd.concat([verified_clusters_df, new_clusters_df], ignore_index=True)
+    all_clusters_df = all_clusters_df.sort_values(by=list(all_clusters_df.columns[1:])).reset_index(drop=True)
     all_clusters_df['OG_name'] = [f'OG_{i}' for i in range(len(all_clusters_df.index))]
-    logger.info(f'Finished adding split clusters. OG table now contains {len(all_clusters_df.index)} groups.')
-
     all_clusters_df.to_csv(finalized_table_path, index=False)
+
+    logger.info(f'Finished adding split clusters. OG table now contains {len(all_clusters_df.index)} groups, '
+                f'and was written to {finalized_table_path}')
 
 
 if __name__ == '__main__':

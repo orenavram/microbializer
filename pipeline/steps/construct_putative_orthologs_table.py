@@ -106,7 +106,7 @@ def construct_table(logger, normalized_hits_dir, putative_orthologs_path, delimi
         for member in group_genes:
             strain = member_gene_to_strain_name_dict[member]
             strain_to_members[strain].append(member)
-        strain_to_members = {strain: ';'.join(members) for strain, members in strain_to_members.items()}
+        strain_to_members = {strain: ';'.join(sorted(members)) for strain, members in strain_to_members.items()}
         group_row_str = delimiter.join([f'OG_{group_index}'] + [strain_to_members.get(strain, '') for strain in sorted_strains])
         result += group_row_str + '\n'
 
