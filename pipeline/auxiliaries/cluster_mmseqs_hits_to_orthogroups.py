@@ -2,6 +2,7 @@ import os
 import math
 from collections import defaultdict
 import dask.dataframe as dd
+import pandas as pd
 import itertools
 
 from . import consts
@@ -279,13 +280,18 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
             logger.info('Preparing files for MCL...')
             all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
 
-            with open(os.path.join(os.path.split(putative_orthologs_table_path)[0], 'num_of_putative_sets.txt')) as f:
-                num_of_putative_sets = int(f.read())
+            job_index_to_ogs = {i: [] for i in range(max_parallel_jobs)}
+            job_index_to_genes_count = {i: 0 for i in range(max_parallel_jobs)}
 
-            job_index_to_ogs = defaultdict(list)
-            for i in range(num_of_putative_sets):
-                job_index = i % max_parallel_jobs
-                job_index_to_ogs[job_index].append(i)
+            ogs_genes_count = pd.read_csv(os.path.join(putative_orthologs_table_output_dir, 'num_of_genes_in_putative_sets.csv'))
+            ogs_genes_count.sort_values(by='genes_count', ascending=False, inplace=True)
+            for _, row in ogs_genes_count.iterrows():
+                # Find the job with the smallest current genes count
+                job_index_with_min_genes_count = min(job_index_to_genes_count, key=job_index_to_genes_count.get)
+                # Assign the current OG to this job
+                job_index_to_ogs[job_index_with_min_genes_count].append(row["OG_name"])
+                # Update the job's genes count
+                job_index_to_genes_count[job_index_with_min_genes_count] += row["genes_count"]
 
             job_inputs_dir = os.path.join(mcl_inputs_tmp_dir, 'jobs_inputs')
             os.makedirs(job_inputs_dir, exist_ok=True)

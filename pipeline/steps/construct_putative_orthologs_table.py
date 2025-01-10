@@ -116,6 +116,10 @@ def construct_table(logger, normalized_hits_dir, putative_orthologs_path, delimi
     logger.info(f'Wrote putative orthogroups table to {putative_orthologs_path}')
 
     orthogroups_df = pd.read_csv(putative_orthologs_path, delimiter=delimiter)
+    if len(orthogroups_df) == 0:
+        raise ValueError('No putative ortholog groups were detected in your dataset. Please try to lower the '
+                         'similarity parameters (see Advanced Options in the submission page) and re-submit your job.')
+
     orthogroups_df = orthogroups_df.sort_values(by=list(orthogroups_df.columns[1:])).reset_index(drop=True)
     orthogroups_df['OG_name'] = [f'OG_{i}' for i in range(len(orthogroups_df.index))]
     orthogroups_df.to_csv(putative_orthologs_path, index=False)
@@ -123,11 +127,14 @@ def construct_table(logger, normalized_hits_dir, putative_orthologs_path, delimi
 
     output_dir = os.path.dirname(putative_orthologs_path)
     with open(os.path.join(output_dir, 'num_of_putative_sets.txt'), 'w') as f:
-        f.write(f'{len(group_name_to_member_genes)}\n')
+        f.write(f'{len(orthogroups_df)}\n')
 
-    if len(group_name_to_member_genes) == 0:
-        raise ValueError('No putative ortholog groups were detected in your dataset. Please try to lower the '
-                         'similarity parameters (see Advanced Options in the submission page) and re-submit your job.')
+    orthogroups_df['strains_count'] = orthogroups_df.notnat().sum(axis=1) - 1
+    orthogroups_df['paralogs_count'] = orthogroups_df.apply(lambda row:
+                                                            sum(genes.count(';') for genes in row[1:] if pd.notna(genes)),
+                                                            axis=1)
+    orthogroups_df['genes_count'] = orthogroups_df['strains_count'] + orthogroups_df['paralogs_count']
+    orthogroups_df[['OG_name', 'genes_count']].to_csv(os.path.join(output_dir, 'num_of_genes_in_putative_sets.csv'))
 
 
 if __name__ == '__main__':

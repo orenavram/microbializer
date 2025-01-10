@@ -45,7 +45,7 @@ def load_all_ogs_hits(normalized_hits_dir, strain_to_gene_to_og):
 def prepare_ogs_for_mcl(logger, normalized_hits_dir, putative_ogs_path, job_input_path, output_path):
     putative_ogs_df = pd.read_csv(putative_ogs_path, index_col=0)
     with open(job_input_path, 'r') as f:
-        ogs_numbers = [f'OG_{num}' for num in f.read().splitlines()]
+        ogs_numbers = [line.strip() for line in f]
 
     # Filter out OGs that already have an output file (this might happen if the job was restarted)
     ogs_numbers = [og_number for og_number in ogs_numbers if not os.path.exists(os.path.join(output_path, og_number + '.mcl_input'))]
