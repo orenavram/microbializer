@@ -277,8 +277,9 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
         mcl_inputs_dir, mcl_inputs_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
         done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
         if not os.path.exists(done_file_path):
-            logger.info('Preparing files for MCL...')
             all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
+
+            logger.info('Preparing jobs inputs for prepare_og_for_mcl...')
 
             job_index_to_ogs = {i: [] for i in range(max_parallel_jobs)}
             job_index_to_genes_count = {i: 0 for i in range(max_parallel_jobs)}
@@ -302,6 +303,8 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
 
                 single_cmd_params = [normalized_hits_output_dir, putative_orthologs_table_path, job_path, mcl_inputs_dir]
                 all_cmds_params.append(single_cmd_params)
+
+            logger.info('Done preparing jobs inputs for prepare_og_for_mcl.')
 
             num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, mcl_inputs_tmp_dir, error_file_path,
                                                        num_of_cmds_per_job=1,
