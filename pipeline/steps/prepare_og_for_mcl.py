@@ -13,7 +13,6 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger
-from auxiliaries.logic_auxiliaries import flatten
 
 
 def load_all_ogs_hits(normalized_hits_dir, strain_to_gene_to_og):

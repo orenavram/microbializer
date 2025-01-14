@@ -13,7 +13,6 @@ ENV = 'yair_test'
 # ENV = 'c-001'
 
 KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR = True
-LOG_IN_SEPARATE_FILES = True
 
 if ENV == 'yair_test':
     PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer'

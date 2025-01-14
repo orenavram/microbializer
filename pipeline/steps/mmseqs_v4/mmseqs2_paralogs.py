@@ -49,6 +49,7 @@ def search_paralogs(logger, genome_name, dbs_dir, max_scores_parts_dir, paralogs
             max_score_per_gene.to_parquet(genome_max_rbh_scores_path, index=False)
         else:
             max_score_per_gene.to_csv(genome_max_rbh_scores_path, index=False)
+        logger.info(f"{genome_max_rbh_scores_path} was created successfully.")
 
         max_score_per_gene.set_index('gene', inplace=True)
         max_score_per_gene = max_score_per_gene['max_rbh_score']

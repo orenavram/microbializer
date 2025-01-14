@@ -137,21 +137,19 @@ def prepare_pipeline_framework(args):
     os.makedirs(output_dir, exist_ok=True)
 
     level = logging.DEBUG if args.verbose else logging.INFO
-    logging.basicConfig(format=consts.LOG_MESSAGE_FORMAT,
-                        level=level)
+    formatter = logging.Formatter(consts.LOG_MESSAGE_FORMAT)
+
     logger = logging.getLogger('main')
+    main_file_handler = logging.FileHandler(os.path.join(output_dir, 'main_log.txt'), mode='w')
+    main_file_handler.setFormatter(formatter)
+    logger.addHandler(main_file_handler)
+    logger.setLevel(level)
+
     times_logger = logging.getLogger('times')
-
-    if consts.LOG_IN_SEPARATE_FILES:
-        formatter = logging.Formatter(consts.LOG_MESSAGE_FORMAT)
-
-        main_file_handler = logging.FileHandler(os.path.join(output_dir, 'main_log.txt'))
-        main_file_handler.setFormatter(formatter)
-        logger.addHandler(main_file_handler)
-
-        times_file_handler = logging.FileHandler(os.path.join(output_dir, 'times_log.txt'))
-        times_file_handler.setFormatter(formatter)
-        times_logger.addHandler(times_file_handler)
+    times_file_handler = logging.FileHandler(os.path.join(output_dir, 'times_log.txt'), mode='w')
+    times_file_handler.setFormatter(formatter)
+    times_logger.addHandler(times_file_handler)
+    times_logger.setLevel(level)
 
     logger.info(args)
     logger.info(f'meta_output_dir is: {meta_output_dir}')

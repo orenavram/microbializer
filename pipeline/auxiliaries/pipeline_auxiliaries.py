@@ -8,6 +8,8 @@ from datetime import timedelta
 import pandas as pd
 import stat
 import sys
+import random
+import string
 
 from . import consts
 from .email_sender import send_email
@@ -357,31 +359,29 @@ def remove_path(logger, path_to_remove):
 
 
 def get_job_logger(log_file_dir, level=logging.INFO):
-    job_name = os.environ.get(consts.JOB_NAME_ENVIRONMENT_VARIABLE, None)
-    job_id = os.environ.get(consts.JOB_ID_ENVIRONMENT_VARIABLE, None)
+    job_name = os.environ.get(consts.JOB_NAME_ENVIRONMENT_VARIABLE, ''.join(random.choice(string.ascii_letters) for _ in range(5)))
+    job_id = os.environ.get(consts.JOB_ID_ENVIRONMENT_VARIABLE, ''.join(random.choice(string.digits) for _ in range(5)))
 
-    logging.basicConfig(format=consts.LOG_MESSAGE_FORMAT,
-                        level=level)
     logger = logging.getLogger('main')
-
-    if consts.LOG_IN_SEPARATE_FILES and job_name and job_id:
-        file_handler = logging.FileHandler(os.path.join(log_file_dir, f'{job_name}_{job_id}_log.txt'))
-        logger.addHandler(file_handler)
+    file_handler = logging.FileHandler(os.path.join(log_file_dir, f'{job_name}_{job_id}_log.txt'), mode='w')
+    formatter = logging.Formatter(consts.LOG_MESSAGE_FORMAT)
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+    logger.setLevel(level)
 
     return logger
 
 
 def get_job_times_logger(log_file_dir, level=logging.INFO):
-    job_name = os.environ.get(consts.JOB_NAME_ENVIRONMENT_VARIABLE, None)
-    job_id = os.environ.get(consts.JOB_ID_ENVIRONMENT_VARIABLE, None)
+    job_name = os.environ.get(consts.JOB_NAME_ENVIRONMENT_VARIABLE, ''.join(random.choice(string.ascii_letters) for _ in range(5)))
+    job_id = os.environ.get(consts.JOB_ID_ENVIRONMENT_VARIABLE, ''.join(random.choice(string.digits) for _ in range(5)))
 
-    logging.basicConfig(format=consts.LOG_MESSAGE_FORMAT,
-                        level=level)
     logger = logging.getLogger('times')
-
-    if consts.LOG_IN_SEPARATE_FILES and job_name and job_id:
-        file_handler = logging.FileHandler(os.path.join(log_file_dir, f'{job_name}_{job_id}_times_log.txt'))
-        logger.addHandler(file_handler)
+    file_handler = logging.FileHandler(os.path.join(log_file_dir, f'{job_name}_{job_id}_times_log.txt'), mode='w')
+    formatter = logging.Formatter(consts.LOG_MESSAGE_FORMAT)
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+    logger.setLevel(level)
 
     return logger
 
