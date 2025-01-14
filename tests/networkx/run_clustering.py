@@ -119,9 +119,9 @@ def process_files_in_parallel(logger, input_dir, output_dir, num_workers, verbos
     summary = pd.DataFrame({
         'parallelize_load_hits': [parallelize_load_hits],
         'parallelize_write_ogs': [parallelize_write_ogs],
-        'build_graph_runtime': [build_graph_runtime],
-        'write_ogs_runtime': [write_ogs_runtime],
-        'script_runtime': [script_runtime],
+        'build_graph_runtime (minutes)': [build_graph_runtime / 60],
+        'write_ogs_runtime (minutes)': [write_ogs_runtime / 60],
+        'script_runtime (minutes)': [script_runtime / 60],
     })
     summary_path = os.path.join(output_dir, 'summary.csv')
     summary.to_csv(summary_path, index=False)
