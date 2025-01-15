@@ -7,10 +7,13 @@ import argparse
 import logging
 import time
 from time import sleep
+from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed, ProcessPoolExecutor
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 HITS_INPUT_DIR = "/home/ai_center/ai_users/yairshimony/microbializer_runs/73_ecoli/outputs_mcl_v2_no_concat_mmseqs_v4_use_parquet/steps_results/05_4_normalize_scores/"
+# HITS_INPUT_DIR = "/home/yair/microbializer_runs/4_genomes/outputs_mcl_v2/steps_results/05_4_normalize_scores"
+# HITS_INPUT_DIR = "/home/ai_center/ai_users/yairshimony/microbializer_runs/salmonella_300/outputs_mcl_v2_mmseqs_v4_use_parquet/steps_results/05_4_normalize_scores/"
 
 
 def load_file_to_graph(logger, hits_path):
@@ -63,6 +66,8 @@ def process_files_in_parallel(logger, input_dir, output_dir, num_workers, verbos
     build_graph_start_time = time.time()
     graph = nx.Graph()
     hits_file_paths = [os.path.join(input_dir, f) for f in os.listdir(input_dir) if f.endswith('.m8')]
+    strains = set([f.split('_vs_')[0] for f in os.listdir(input_dir) if f.endswith('.m8')])
+    strains_sorted = sorted(strains)
 
     if parallelize_load_hits == 'no':
         for hits_file_path in hits_file_paths:
@@ -90,11 +95,22 @@ def process_files_in_parallel(logger, input_dir, output_dir, num_workers, verbos
     logger.info(f"Found {len(components)} connected components.")
 
     # Step 3: Save putative OG table
-    # with open('putative_orthologs_table.csv', 'w', newline='') as file:
-    #     writer = csv.writer(file)
-    #     for i, component in enumerate(components):
-    #
-    #         writer.writerow([f'OG_{i}', ';'.join(component)])
+    logger.info("Writing putative orthologs table to file...")
+    write_putative_og_table_start_time = time.time()
+
+    putative_ogs_path = os.path.join(output_dir, 'putative_orthologs_table.csv')
+    with open(putative_ogs_path, 'w') as file:
+        writer = csv.writer(file)
+        writer.writerow(['OG_name'] + strains_sorted)
+        for i, component in enumerate(components):
+            strain_to_genes = defaultdict(list)
+            for gene in component:
+                strain = gene.split(':')[0]
+                strain_to_genes[strain].append(gene)
+            writer.writerow([f'OG_{i}', *[';'.join(sorted(strain_to_genes[strain])) for strain in strains_sorted]])
+
+    write_putative_og_table_runtime = time.time() - write_putative_og_table_start_time
+    logger.info(f"Writing putative orthologs table to file {putative_ogs_path} took {write_putative_og_table_runtime:.2f} seconds.")
 
     # Step 4: Save each putaitve OG to a separate file
     logger.info(f"Writing {len(components)} connected components to files in {output_dir}...")
@@ -120,6 +136,7 @@ def process_files_in_parallel(logger, input_dir, output_dir, num_workers, verbos
         'parallelize_load_hits': [parallelize_load_hits],
         'parallelize_write_ogs': [parallelize_write_ogs],
         'build_graph_runtime (minutes)': [build_graph_runtime / 60],
+        'write_putative_og_table_runtime (minutes)': [write_putative_og_table_runtime / 60],
         'write_ogs_runtime (minutes)': [write_ogs_runtime / 60],
         'script_runtime (minutes)': [script_runtime / 60],
     })
@@ -136,7 +153,7 @@ def main():
     parser.add_argument('--parallelize_write_ogs', type=str, choices=['no', 'threads', 'processes'], default='no')
     args = parser.parse_args()
 
-    output_directory = f"{SCRIPT_DIR}/outputs/outputs_{args.parallelize_load_hits}_{args.parallelize_write_ogs}/"
+    output_directory = f"{SCRIPT_DIR}/outputs_73_{args.parallelize_load_hits}_{args.parallelize_write_ogs}_{args.num_workers}/"
     os.makedirs(output_directory, exist_ok=True)
 
     logger = logging.getLogger(__name__)

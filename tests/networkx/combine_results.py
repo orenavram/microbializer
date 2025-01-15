@@ -9,6 +9,8 @@ def main():
     dfs = []
 
     for dir_name in os.listdir(outputs_dir):
+        if not os.path.isdir(os.path.join(outputs_dir, dir_name)):
+            continue
         summary_path = os.path.join(outputs_dir, dir_name, 'summary.csv')
         df = pd.read_csv(summary_path)
         dfs.append(df)
