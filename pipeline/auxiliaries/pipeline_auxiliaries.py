@@ -33,6 +33,9 @@ def validate_slurm_error_logs(logger, slurm_logs_dir, error_file_path):
             continue
 
         file_path = os.path.join(slurm_logs_dir, file_name)
+        if os.path.getsize(file_path) == 0:
+            continue
+
         with open(file_path) as f:
             for line in f:
                 pass
@@ -363,7 +366,7 @@ def get_job_logger(log_file_dir, level=logging.INFO):
     job_id = os.environ.get(consts.JOB_ID_ENVIRONMENT_VARIABLE, ''.join(random.choice(string.digits) for _ in range(5)))
 
     logger = logging.getLogger('main')
-    file_handler = logging.FileHandler(os.path.join(log_file_dir, f'{job_name}_{job_id}_log.txt'), mode='w')
+    file_handler = logging.FileHandler(os.path.join(log_file_dir, f'{job_name}_{job_id}_log.txt'), mode='a')
     formatter = logging.Formatter(consts.LOG_MESSAGE_FORMAT)
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
@@ -377,7 +380,7 @@ def get_job_times_logger(log_file_dir, level=logging.INFO):
     job_id = os.environ.get(consts.JOB_ID_ENVIRONMENT_VARIABLE, ''.join(random.choice(string.digits) for _ in range(5)))
 
     logger = logging.getLogger('times')
-    file_handler = logging.FileHandler(os.path.join(log_file_dir, f'{job_name}_{job_id}_times_log.txt'), mode='w')
+    file_handler = logging.FileHandler(os.path.join(log_file_dir, f'{job_name}_{job_id}_times_log.txt'), mode='a')
     formatter = logging.Formatter(consts.LOG_MESSAGE_FORMAT)
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)

@@ -138,13 +138,13 @@ def prepare_pipeline_framework(args):
     formatter = logging.Formatter(consts.LOG_MESSAGE_FORMAT)
 
     logger = logging.getLogger('main')
-    main_file_handler = logging.FileHandler(os.path.join(output_dir, 'main_log.txt'), mode='w')
+    main_file_handler = logging.FileHandler(os.path.join(output_dir, 'main_log.txt'), mode='a')
     main_file_handler.setFormatter(formatter)
     logger.addHandler(main_file_handler)
     logger.setLevel(level)
 
     times_logger = logging.getLogger('times')
-    times_file_handler = logging.FileHandler(os.path.join(output_dir, 'times_log.txt'), mode='w')
+    times_file_handler = logging.FileHandler(os.path.join(output_dir, 'times_log.txt'), mode='a')
     times_file_handler.setFormatter(formatter)
     times_logger.addHandler(times_file_handler)
     times_logger.setLevel(level)
