@@ -16,7 +16,7 @@ from auxiliaries.cluster_mmseqs_hits_to_orthogroups import cluster_mmseqs_hits_t
 def full_orthogroups_infernece(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,
                                translated_orfs_dir, all_proteins_path, strains_names_path, queue_name,
                                account_name, node_name, identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs,
-                               run_optimized_mmseqs, unify_clusters_after_mmseqs, use_parquet, prepare_mcl_v2,
+                               run_optimized_mmseqs, unify_clusters_after_mmseqs, use_parquet,
                                use_linux_to_parse_big_files, mmseqs_use_dbs, verbose):
 
     orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir = \
@@ -31,7 +31,7 @@ def full_orthogroups_infernece(logger, times_logger, base_step_number, error_fil
     cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
                                        orthologs_output_dir, orthologs_scores_statistics_dir, paralogs_output_dir,
                                        paralogs_scores_statistics_dir, max_parallel_jobs, base_step_number,
-                                       4, account_name, queue_name, node_name, use_parquet, prepare_mcl_v2, strains_names_path)
+                                       4, account_name, queue_name, node_name, use_parquet, strains_names_path)
 
 
 if __name__ == '__main__':
@@ -56,7 +56,6 @@ if __name__ == '__main__':
     parser.add_argument('--run_optimized_mmseqs', help='', action='store_true')
     parser.add_argument('--unify_clusters_after_mmseqs', help='', action='store_true')
     parser.add_argument('--use_parquet', action='store_true')
-    parser.add_argument('--prepare_mcl_v2', action='store_true')
     parser.add_argument('--use_linux_to_parse_big_files', action='store_true')
     parser.add_argument('--mmseqs_use_dbs', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
@@ -75,8 +74,7 @@ if __name__ == '__main__':
                                    args.strains_names_path, args.queue_name, args.account_name, args.node_name,
                                    args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff,
                                    args.max_parallel_jobs, args.run_optimized_mmseqs, args.unify_clusters_after_mmseqs,
-                                   args.use_parquet, args.prepare_mcl_v2,
-                                   args.use_linux_to_parse_big_files, args.mmseqs_use_dbs, args.verbose)
+                                   args.use_parquet, args.use_linux_to_parse_big_files, args.mmseqs_use_dbs, args.verbose)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:

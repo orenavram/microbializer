@@ -137,7 +137,7 @@ def unify_clusters_mmseqs_hits(logger, times_logger, output_dir, tmp_dir, done_f
 def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
                                        orthologs_output_dir, orthologs_scores_statistics_dir, paralogs_output_dir,
                                        paralogs_scores_statistics_dir, max_parallel_jobs, base_step_number,
-                                       start_substep_number, account_name, queue_name, node_name, use_parquet, prepare_mcl_v2,
+                                       start_substep_number, account_name, queue_name, node_name, use_parquet,
                                        strains_names_path):
     with open(strains_names_path) as f:
         strains_names = f.read().rstrip().split('\n')
@@ -226,98 +226,57 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
     with open(os.path.join(os.path.split(putative_orthologs_table_path)[0], 'num_of_putative_sets.txt')) as f:
         num_of_putative_sets = int(f.read())
 
-    if not prepare_mcl_v2:
-        # prepare_files_for_mcl.py
-        # Input: (1) a path for a concatenated all reciprocal hits file (2) a path for a putative orthologs file (3) a path for an output folder
-        # Output: an input file for MCL for each putative orthologs group
-        # CANNOT be parallelized on cluster (if running on the concatenated file)
-        step_number = f'{base_step_number}_{start_substep_number + 2}'
-        logger.info(f'Step {step_number}: {"_" * 100}')
-        step_name = f'{step_number}_mcl_input_files'
-        script_path = os.path.join(consts.SRC_DIR, 'steps/prepare_files_for_mcl.py')
-        mcl_inputs_dir, mcl_inputs_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-        done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-        if not os.path.exists(done_file_path):
-            logger.info('Preparing files for MCL...')
-            all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
 
-            # The more genomes there are, the more memory this step requires. Therefore, we split by the number of genomes.
-            clusters_to_prepare_per_script = math.ceil(num_of_putative_sets / len(strains_names))
-            for i in range(1, num_of_putative_sets + 1, clusters_to_prepare_per_script):
-                first_mcl = str(i)
-                last_mcl = str(min(i + clusters_to_prepare_per_script - 1,
-                                   num_of_putative_sets))  # 1-10, 11-20, etc... for clusters_to_prepare_per_job=10
+    # prepare_og_for_mcl.py
+    step_number = f'{base_step_number}_{start_substep_number + 2}'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_mcl_input_files'
+    script_path = os.path.join(consts.SRC_DIR, 'steps/prepare_og_for_mcl.py')
+    mcl_inputs_dir, mcl_inputs_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
 
-                single_cmd_params = [normalized_hits_output_dir,
-                                     putative_orthologs_table_path,
-                                     first_mcl,
-                                     last_mcl,
-                                     mcl_inputs_dir]
-                all_cmds_params.append(single_cmd_params)
+        logger.info('Preparing jobs inputs for prepare_og_for_mcl...')
 
-            num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, mcl_inputs_tmp_dir, error_file_path,
-                                                       num_of_cmds_per_job=max(1, len(all_cmds_params) // max_parallel_jobs),
-                                                       # *times* the number of clusters_to_prepare_per_job above. 50 in total per batch!
-                                                       job_name_suffix='mcl_preparation',
-                                                       queue_name=queue_name,
-                                                       account_name=account_name,
-                                                       node_name=node_name)
+        job_index_to_ogs = {i: [] for i in range(max_parallel_jobs)}
+        job_index_to_genes_count = {i: 0 for i in range(max_parallel_jobs)}
 
-            wait_for_results(logger, times_logger, step_name, mcl_inputs_tmp_dir, num_of_batches, error_file_path)
-            write_to_file(logger, done_file_path, '.')
-        else:
-            logger.info(f'done file {done_file_path} already exists. Skipping step...')
+        # Split the putative OGs between jobs in a way that each job will have a similar number of genes
+        ogs_genes_count = pd.read_csv(os.path.join(putative_orthologs_table_output_dir, 'num_of_genes_in_putative_sets.csv'))
+        ogs_genes_count.sort_values(by='genes_count', ascending=False, inplace=True)
+        for _, row in ogs_genes_count.iterrows():
+            # Find the job with the smallest current genes count
+            job_index_with_min_genes_count = min(job_index_to_genes_count, key=job_index_to_genes_count.get)
+            # Assign the current OG to this job
+            job_index_to_ogs[job_index_with_min_genes_count].append(row["OG_name"])
+            # Update the job's genes count
+            job_index_to_genes_count[job_index_with_min_genes_count] += row["genes_count"]
 
+        job_inputs_dir = os.path.join(mcl_inputs_tmp_dir, 'jobs_inputs')
+        os.makedirs(job_inputs_dir, exist_ok=True)
+        for job_index, ogs in job_index_to_ogs.items():
+            job_path = os.path.join(job_inputs_dir, f'{job_index}.txt')
+            with open(job_path, 'w') as f:
+                f.write('\n'.join(map(str, ogs)))
+
+            single_cmd_params = [normalized_hits_output_dir, putative_orthologs_table_path, job_path, mcl_inputs_dir]
+            all_cmds_params.append(single_cmd_params)
+
+        logger.info('Done preparing jobs inputs for prepare_og_for_mcl.')
+
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, mcl_inputs_tmp_dir, error_file_path,
+                                                   num_of_cmds_per_job=1,
+                                                   # *times* the number of clusters_to_prepare_per_job above. 50 in total per batch!
+                                                   job_name_suffix='mcl_preparation',
+                                                   queue_name=queue_name,
+                                                   account_name=account_name,
+                                                   node_name=node_name)
+
+        wait_for_results(logger, times_logger, step_name, mcl_inputs_tmp_dir, num_of_batches, error_file_path)
+        write_to_file(logger, done_file_path, '.')
     else:
-        # prepare_og_for_mcl.py
-        step_number = f'{base_step_number}_{start_substep_number + 2}'
-        logger.info(f'Step {step_number}: {"_" * 100}')
-        step_name = f'{step_number}_mcl_input_files'
-        script_path = os.path.join(consts.SRC_DIR, 'steps/prepare_og_for_mcl.py')
-        mcl_inputs_dir, mcl_inputs_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-        done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-        if not os.path.exists(done_file_path):
-            all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-
-            logger.info('Preparing jobs inputs for prepare_og_for_mcl...')
-
-            job_index_to_ogs = {i: [] for i in range(max_parallel_jobs)}
-            job_index_to_genes_count = {i: 0 for i in range(max_parallel_jobs)}
-
-            ogs_genes_count = pd.read_csv(os.path.join(putative_orthologs_table_output_dir, 'num_of_genes_in_putative_sets.csv'))
-            ogs_genes_count.sort_values(by='genes_count', ascending=False, inplace=True)
-            for _, row in ogs_genes_count.iterrows():
-                # Find the job with the smallest current genes count
-                job_index_with_min_genes_count = min(job_index_to_genes_count, key=job_index_to_genes_count.get)
-                # Assign the current OG to this job
-                job_index_to_ogs[job_index_with_min_genes_count].append(row["OG_name"])
-                # Update the job's genes count
-                job_index_to_genes_count[job_index_with_min_genes_count] += row["genes_count"]
-
-            job_inputs_dir = os.path.join(mcl_inputs_tmp_dir, 'jobs_inputs')
-            os.makedirs(job_inputs_dir, exist_ok=True)
-            for job_index, ogs in job_index_to_ogs.items():
-                job_path = os.path.join(job_inputs_dir, f'{job_index}.txt')
-                with open(job_path, 'w') as f:
-                    f.write('\n'.join(map(str, ogs)))
-
-                single_cmd_params = [normalized_hits_output_dir, putative_orthologs_table_path, job_path, mcl_inputs_dir]
-                all_cmds_params.append(single_cmd_params)
-
-            logger.info('Done preparing jobs inputs for prepare_og_for_mcl.')
-
-            num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, mcl_inputs_tmp_dir, error_file_path,
-                                                       num_of_cmds_per_job=1,
-                                                       # *times* the number of clusters_to_prepare_per_job above. 50 in total per batch!
-                                                       job_name_suffix='mcl_preparation',
-                                                       queue_name=queue_name,
-                                                       account_name=account_name,
-                                                       node_name=node_name)
-
-            wait_for_results(logger, times_logger, step_name, mcl_inputs_tmp_dir, num_of_batches, error_file_path)
-            write_to_file(logger, done_file_path, '.')
-        else:
-            logger.info(f'done file {done_file_path} already exists. Skipping step...')
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
 
     # run_mcl.py

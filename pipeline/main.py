@@ -96,8 +96,6 @@ def get_arguments():
                         action='store_true')
     parser.add_argument('--use_parquet', help='When True, use parquet files when possible instead of csv',
                         action='store_true')
-    parser.add_argument('--prepare_mcl_v2', help='When True, use prepare_mcl_v2',
-                        action='store_true')
     parser.add_argument('--use_linux_to_parse_big_files', action='store_true')
     parser.add_argument('--mmseqs_use_dbs', action='store_true')
     parser.add_argument('--do_not_copy_outputs_to_final_results_dir', action='store_true')
@@ -205,8 +203,6 @@ def validate_arguments(args):
         args.mmseqs_use_dbs = str_to_bool(args.mmseqs_use_dbs)
     if type(args.run_optimized_mmseqs) == str:
         args.run_optimized_mmseqs = str_to_bool(args.run_optimized_mmseqs)
-    if type(args.prepare_mcl_v2) == str:
-        args.prepare_mcl_v2 = str_to_bool(args.prepare_mcl_v2)
     if type(args.use_linux_to_parse_big_files) == str:
         args.use_linux_to_parse_big_files = str_to_bool(args.use_linux_to_parse_big_files)
     if type(args.do_not_copy_outputs_to_final_results_dir) == str:
@@ -616,8 +612,6 @@ def step_5_infer_orthogroups_clustered(args, logger, times_logger, error_file_pa
                 params.append('--use_parquet')
             if args.verbose:
                 params.append('--verbose')
-            if args.prepare_mcl_v2:
-                params.append('--prepare_mcl_v2')
             if args.use_linux_to_parse_big_files:
                 params.append('--use_linux_to_parse_big_files')
             if args.mmseqs_use_dbs:
@@ -649,7 +643,7 @@ def step_5_infer_orthogroups_clustered(args, logger, times_logger, error_file_pa
                                                done_files_dir, orthologs_output_dir, orthologs_scores_statistics_dir,
                                                paralogs_output_dir, paralogs_scores_statistics_dir,
                                                consts.MAX_PARALLEL_JOBS, '05', 4, args.account_name, args.queue_name, args.node_name,
-                                               args.use_parquet, args.prepare_mcl_v2, genomes_names_path)
+                                               args.use_parquet, genomes_names_path)
     else:  # Aggregate OG tables of all clusters
         all_og_tables = []
         for cluster_dir_name in os.listdir(infer_orthogroups_output_dir):
@@ -678,7 +672,7 @@ def step_5_infer_orthogroups_non_clustered(args, logger, times_logger, error_fil
                                            done_files_dir, orthologs_output_dir, orthologs_scores_statistics_dir,
                                            paralogs_output_dir, paralogs_scores_statistics_dir,
                                            consts.MAX_PARALLEL_JOBS, '05', 4, args.account_name, args.queue_name, args.node_name,
-                                           args.use_parquet, args.prepare_mcl_v2, strains_names_path)
+                                           args.use_parquet, strains_names_path)
 
     return orthogroups_file_path
 
