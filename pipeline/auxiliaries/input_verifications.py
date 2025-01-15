@@ -152,7 +152,7 @@ def unpack_data(logger, data_path, meta_output_dir, error_file_path):
     return data_path
 
 
-def fix_illegal_chars_in_file_name(logger, file_name, illegal_chars='\\|( ):;,\xa0'):
+def fix_illegal_chars_in_file_name(logger, file_name, illegal_chars='\\|( )&:;,\xa0'):
     new_file_name = file_name
     for char in illegal_chars:
         if char in new_file_name:

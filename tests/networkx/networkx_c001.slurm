@@ -29,6 +29,6 @@ export PATH=$CONDA_PREFIX/bin:$PATH
 #python ~/microbializer/tests/networkx/run_clustering.py --num_workers 20 --parallelize_load_hits threads --parallelize_write_ogs processes
 #python ~/microbializer/tests/networkx/run_clustering.py --num_workers 20 --parallelize_load_hits processes --parallelize_write_ogs no
 #python ~/microbializer/tests/networkx/run_clustering.py --num_workers 20 --parallelize_load_hits processes --parallelize_write_ogs threads
-python ~/microbializer/tests/networkx/run_clustering.py --num_workers $SLURM_JOB_CPUS_PER_NODE --parallelize_load_hits processes --parallelize_write_ogs processes
+python ~/microbializer/tests/networkx/run_clustering.py --num_workers $SLURM_JOB_CPUS_PER_NODE --parallelize_load_hits processes --parallelize_write_ogs processes --verbose
 
 #python ~/microbializer/tests/networkx/combine_results.py

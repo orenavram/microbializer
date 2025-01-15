@@ -11,23 +11,28 @@ from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed, ProcessPoolExecutor
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-HITS_INPUT_DIR = "/home/ai_center/ai_users/yairshimony/microbializer_runs/73_ecoli/outputs_mcl_v2_no_concat_mmseqs_v4_use_parquet/steps_results/05_4_normalize_scores/"
+# HITS_INPUT_DIR = "/home/ai_center/ai_users/yairshimony/microbializer_runs/73_ecoli/outputs_mcl_v2_no_concat_mmseqs_v4_use_parquet/steps_results/05_4_normalize_scores/"
 # HITS_INPUT_DIR = "/home/yair/microbializer_runs/4_genomes/outputs_mcl_v2/steps_results/05_4_normalize_scores"
-# HITS_INPUT_DIR = "/home/ai_center/ai_users/yairshimony/microbializer_runs/salmonella_300/outputs_mcl_v2_mmseqs_v4_use_parquet/steps_results/05_4_normalize_scores/"
+HITS_INPUT_DIR = "/home/ai_center/ai_users/yairshimony/microbializer_runs/salmonella_300/outputs_mcl_v2_mmseqs_v4_use_parquet/steps_results/05_4_normalize_scores/"
 
 
-def load_file_to_graph(logger, hits_path):
+def load_file_to_graph(logger, job_input_path):
     """Load edges from CSV files into a graph."""
     start_time = time.time()
     partial_graph = nx.Graph()
-    with open(hits_path, 'r') as hits_file:
-        reader = csv.reader(hits_file)
-        next(reader)  # Skip header
-        for geneA, geneB, score in reader:
-            partial_graph.add_edge(geneA, geneB, weight=float(score))
+
+    with open(job_input_path, 'r') as f:
+        hits_file_paths = f.read().splitlines()
+
+    for hits_path in hits_file_paths:
+        with open(hits_path, 'r') as hits_file:
+            reader = csv.reader(hits_file)
+            next(reader)  # Skip header
+            for geneA, geneB, score in reader:
+                partial_graph.add_edge(geneA, geneB, weight=round(float(score), 2))
 
     runtime = time.time() - start_time
-    logger.info(f'Partial graph built successfully from file {hits_path} in {runtime:.2f} seconds')
+    logger.info(f'Partial graph built successfully from file {job_input_path} in {runtime:.2f} seconds')
     return partial_graph
 
 
@@ -75,8 +80,23 @@ def process_files_in_parallel(logger, input_dir, output_dir, num_workers, verbos
             graph.update(partial_graph)
     else:
         executor_type = ThreadPoolExecutor if parallelize_load_hits == 'threads' else ProcessPoolExecutor
+
+        jobs_inputs_dir = os.path.join(output_dir, 'jobs_inputs')
+        os.makedirs(jobs_inputs_dir, exist_ok=True)
+        job_index_to_hits_file_paths = defaultdict(list)
+        for i, hits_file_path in enumerate(hits_file_paths):
+            job_index = i % num_workers
+            job_index_to_hits_file_paths[job_index].append(hits_file_path)
+
+        job_input_paths = []
+        for job_index, hits_file_paths in job_index_to_hits_file_paths.items():
+            job_input_path = os.path.join(jobs_inputs_dir, f'job_{job_index}.txt')
+            job_input_paths.append(job_input_path)
+            with open(job_input_path, 'w') as job_input_fp:
+                job_input_fp.write('\n'.join(hits_file_paths))
+
         with executor_type(max_workers=num_workers) as executor:
-            futures = [executor.submit(load_file_to_graph, logger, hits_file_path) for hits_file_path in hits_file_paths]
+            futures = [executor.submit(load_file_to_graph, logger, job_input_path) for job_input_path in job_input_paths]
 
             for future in as_completed(futures):
                 partial_graph = future.result()
@@ -147,13 +167,14 @@ def process_files_in_parallel(logger, input_dir, output_dir, num_workers, verbos
 def main():
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description='Process MCL input files in parallel.')
+    parser.add_argument('--inputs_hits_dir', type=str, required=True, help='Directory containing hits files.')
     parser.add_argument('--num_workers', type=int, default=2, help='Number of worker processes.')
     parser.add_argument('--verbose', action='store_true')
     parser.add_argument('--parallelize_load_hits', type=str, choices=['no', 'threads', 'processes'], default='no')
     parser.add_argument('--parallelize_write_ogs', type=str, choices=['no', 'threads', 'processes'], default='no')
     args = parser.parse_args()
 
-    output_directory = f"{SCRIPT_DIR}/outputs_73_{args.parallelize_load_hits}_{args.parallelize_write_ogs}_{args.num_workers}/"
+    output_directory = f"{SCRIPT_DIR}/outputs_300_{args.parallelize_load_hits}_{args.parallelize_write_ogs}_{args.num_workers}_load_hits_less_processes/"
     os.makedirs(output_directory, exist_ok=True)
 
     logger = logging.getLogger(__name__)
@@ -164,7 +185,7 @@ def main():
     logger.setLevel(logging.INFO)
 
     logger.info(f'Start clustering (parallelize_load_hits={args.parallelize_load_hits}, parallelize_write_ogs={args.parallelize_write_ogs})...')
-    process_files_in_parallel(logger, HITS_INPUT_DIR, output_directory, args.num_workers, args.verbose,
+    process_files_in_parallel(logger, args.inputs_hits_dir, output_directory, args.num_workers, args.verbose,
                               args.parallelize_load_hits, args.parallelize_write_ogs)
 
 

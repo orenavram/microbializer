@@ -22,3 +22,5 @@ dependencies:
   - fasttree=2.1.11
   - iqtree=2.2.5
   - dask=2023.5.0
+  - networkx=3.1
+  - pympler=1.1

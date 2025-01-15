@@ -1,7 +1,7 @@
 import pandas as pd
 
-PATH = r"C:\Users\TalPNB22\Downloads\putative_orthologs_table_73_old.txt"
-OUTPUT_PATH = r"C:\Users\TalPNB22\Downloads\putative_orthologs_table_73_old_sorted.csv"
+PATH = r"C:\Users\TalPNB22\Downloads\putative_orthologs_table_300_c001.txt"
+OUTPUT_PATH = r"C:\Users\TalPNB22\Downloads\putative_orthologs_table_300_c001_sorted.txt"
 
 # PATH = r"C:\temp\compare_salmonella_300\old\putative_orthologs_table_old.txt"
 # OUTPUT_PATH = r"C:\temp\compare_salmonella_300\old\putative_orthologs_table_old_sorted.txt"

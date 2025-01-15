@@ -21,7 +21,7 @@ def normalize_hits_scores(logger, blast_result, output_path, scores_normalize_co
     else:
         df = pd.read_csv(blast_result)
 
-    df['score'] = df['score'] / scores_normalize_coefficient
+    df['score'] = (df['score'] / scores_normalize_coefficient).round(2)
     df.to_csv(output_path, index=False, header=[strain1_name, strain2_name, 'score'])
     logger.info(f'Normalized scores of {blast_result} written to {output_path}')
 
