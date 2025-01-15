@@ -161,7 +161,7 @@ FULL_STEPS_NAMES_FOR_PROGRESS_BAR = [
     'Calculate genomes numeric representation',
     'Reconstruct species phylogeny',
     'Calculate ANI (Average Nucleotide Identity)',
-    'Analyzing orthogroups codon bias',
+    'Analyze orthogroups codon bias',
     'Annotate orthogroups with KO terms',
     'Finalize results',
 ]

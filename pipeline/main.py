@@ -1328,7 +1328,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
     step_12_orthogroups_annotations(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
                                     done_files_dir, orfs_dir, ogs_dna_sequences_path, og_aa_sequences_path,
                                     final_orthologs_table_file_path)
-    update_progressbar(progressbar_file_path, 'Analyzing orthogroups codon bias')
+    update_progressbar(progressbar_file_path, 'Analyze orthogroups codon bias')
     update_progressbar(progressbar_file_path, 'Annotate orthogroups with KO terms')
 
     if args.step_to_complete == '12':
