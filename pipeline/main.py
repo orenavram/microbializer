@@ -701,8 +701,8 @@ def step_5_full_orthogroups_inference(args, logger, times_logger, error_file_pat
 
 def step_6_extract_orphan_genes(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
                                 done_files_dir, orfs_dir, orthologs_table_file_path):
-    # 6.   extract_orphan_genes.py
-    step_number = '06'
+    # 06_1.   extract_orphan_genes.py
+    step_number = '06_1'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orphan_genes'
     script_path = os.path.join(consts.SRC_DIR, 'steps/extract_orphan_genes.py')
@@ -762,11 +762,41 @@ def step_6_extract_orphan_genes(args, logger, times_logger, error_file_path, out
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    return orphan_genes_internal_dir
+
+    # 06_2.	orthogroups_final
+    step_number = '06_2'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_orthogroups_final'
+    script_path = os.path.join(consts.SRC_DIR, 'steps/add_orphans_to_orthogroups.py')
+    final_orthogroups_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    final_orthogroups_file_path = os.path.join(final_orthogroups_dir_path, 'orthogroups.csv')
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        logger.info('Constructing final orthologs table...')
+
+        if args.add_orphan_genes_to_ogs:
+            params = [orthologs_table_file_path, final_orthogroups_file_path, f'--orphan_genes_dir {orphan_genes_dir}']
+
+            submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path, args.queue_name, args.account_name,
+                              job_name='add_orphans_to_orthogroups', node_name=args.node_name)
+            wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
+                             num_of_expected_results=1, error_file_path=error_file_path)
+        else:
+            shutil.copy(orthologs_table_file_path, final_orthogroups_file_path)
+            logger.info(f'args.add_orphan_genes_to_ogs is False. Skipping adding orphans to orthogroups. Copied '
+                        f'{orthologs_table_file_path} to {final_orthogroups_file_path}.')
+
+        if not args.do_not_copy_outputs_to_final_results_dir:
+            add_results_to_final_dir(logger, final_orthogroups_dir_path, final_output_dir)
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+    return final_orthogroups_file_path
 
 
 def step_7_orthologs_table_variations(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
-                                      final_output_dir, done_files_dir, orthologs_table_file_path, orphan_genes_dir):
+                                      final_output_dir, done_files_dir, final_orthogroups_file_path):
     # 07_1.	orthologs_table_variations.py
     # Input: (1) path to the orthologs table (2) path to the orphan genes directory.
     # Output: build variations of the orthologs table.
@@ -774,25 +804,24 @@ def step_7_orthologs_table_variations(args, logger, times_logger, error_file_pat
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orthogroups'
     script_path = os.path.join(consts.SRC_DIR, 'steps/orthologs_table_variations.py')
-    final_orthologs_table_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    final_orthologs_table_file_path = os.path.join(final_orthologs_table_dir_path, 'orthogroups.csv')
+    orthogroups_variations_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
-        logger.info('Constructing final orthologs table...')
-        params = [orthologs_table_file_path,
-                  final_orthologs_table_file_path
+        logger.info('Adding orthogroups variations...')
+
+        params = [final_orthogroups_file_path,
+                  orthogroups_variations_dir_path
                   ]
         if args.qfo_benchmark:
             params += ['--qfo_benchmark']
-        if args.add_orphan_genes_to_ogs:
-            params += [f'--orphan_genes_dir {orphan_genes_dir}']
+
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path, args.queue_name, args.account_name,
-                          job_name='final_ortholog_groups', node_name=args.node_name)
+                          job_name='orthologs_table_variations', node_name=args.node_name)
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path)
 
         if not args.do_not_copy_outputs_to_final_results_dir:
-            add_results_to_final_dir(logger, final_orthologs_table_dir_path, final_output_dir)
+            add_results_to_final_dir(logger, orthogroups_variations_dir_path, final_output_dir)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -806,7 +835,7 @@ def step_7_orthologs_table_variations(args, logger, times_logger, error_file_pat
     if not os.path.exists(done_file_path):
         logger.info('Collecting sizes...')
 
-        final_orthologs_table_df = pd.read_csv(final_orthologs_table_file_path, index_col='OG_name')
+        final_orthologs_table_df = pd.read_csv(final_orthogroups_file_path, index_col='OG_name')
         group_sizes = final_orthologs_table_df.apply(lambda row: row.count(), axis=1)
         group_sizes.name = 'OG size (number of genomes)'
         group_sizes.to_csv(os.path.join(group_sizes_path, 'groups_sizes.csv'))
@@ -826,8 +855,6 @@ def step_7_orthologs_table_variations(args, logger, times_logger, error_file_pat
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
-
-    return final_orthologs_table_file_path
 
 
 def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
@@ -1267,17 +1294,17 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         logger.info("Step 5 completed.")
         return
 
-    orphan_genes_dir = step_6_extract_orphan_genes(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
-                                                   final_output_dir, done_files_dir, orfs_dir, orthogroups_file_path)
+    final_orthogroups_file_path = step_6_extract_orphan_genes(args, logger, times_logger, error_file_path, output_dir,
+                                                              tmp_dir, final_output_dir, done_files_dir, orfs_dir,
+                                                              orthogroups_file_path)
     update_progressbar(progressbar_file_path, 'Find orphan genes')
 
     if args.step_to_complete == '6':
         logger.info("Step 6 completed.")
         return
 
-    final_orthologs_table_file_path = \
-        step_7_orthologs_table_variations(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
-                                          final_output_dir, done_files_dir, orthogroups_file_path, orphan_genes_dir)
+    step_7_orthologs_table_variations(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
+                                      final_output_dir, done_files_dir, final_orthogroups_file_path)
 
     if args.step_to_complete == '7':
         logger.info("Step 7 completed.")
@@ -1290,7 +1317,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_file_path,
                                                output_dir, tmp_dir, final_output_dir, done_files_dir,
                                                all_orfs_fasta_path, all_proteins_fasta_path,
-                                               final_orthologs_table_file_path)
+                                               final_orthogroups_file_path)
     update_progressbar(progressbar_file_path, 'Prepare orthogroups fasta files')
 
     if args.step_to_complete == '8':
@@ -1308,7 +1335,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
 
     if args.core_minimal_percentage == 100:
         step_10_genome_numeric_representation(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
-                                              final_output_dir, done_files_dir, orfs_dir, final_orthologs_table_file_path)
+                                              final_output_dir, done_files_dir, orfs_dir, final_orthogroups_file_path)
         update_progressbar(progressbar_file_path, 'Calculate genomes numeric representation')
 
     if args.step_to_complete == '10':
@@ -1327,7 +1354,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
 
     step_12_orthogroups_annotations(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
                                     done_files_dir, orfs_dir, ogs_dna_sequences_path, og_aa_sequences_path,
-                                    final_orthologs_table_file_path)
+                                    final_orthogroups_file_path)
     update_progressbar(progressbar_file_path, 'Analyze orthogroups codon bias')
     update_progressbar(progressbar_file_path, 'Annotate orthogroups with KO terms')
 
