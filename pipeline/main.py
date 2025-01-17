@@ -678,7 +678,7 @@ def step_5_infer_orthogroups_non_clustered(args, logger, times_logger, error_fil
 
 
 def step_5_full_orthogroups_inference(args, logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
-                                      translated_orfs_dir, all_proteins_fasta_path, genomes_names_path):
+                                      final_output_dir, translated_orfs_dir, all_proteins_fasta_path, genomes_names_path):
     if args.pre_cluster_orthogroups_inference:
         clusters_output_dir = step_4_cluster_proteomes(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                                                        done_files_dir, all_proteins_fasta_path, translated_orfs_dir)
@@ -696,11 +696,19 @@ def step_5_full_orthogroups_inference(args, logger, times_logger, error_file_pat
                                                                        tmp_dir, done_files_dir, translated_orfs_dir,
                                                                        all_proteins_fasta_path, genomes_names_path)
 
-    return orthogroups_file_path
+    final_orthogroups_file_path = step_6_extract_orphan_genes(args, logger, times_logger, error_file_path, output_dir,
+                                                              tmp_dir, final_output_dir, done_files_dir, translated_orfs_dir,
+                                                              orthogroups_file_path)
+
+    if args.step_to_complete == '6':
+        logger.info("Step 6 completed.")
+        return
+
+    return final_orthogroups_file_path
 
 
 def step_6_extract_orphan_genes(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
-                                done_files_dir, orfs_dir, orthologs_table_file_path):
+                                done_files_dir, translated_orfs_dir, orthologs_table_file_path):
     # 06_1.   extract_orphan_genes.py
     step_number = '06_1'
     logger.info(f'Step {step_number}: {"_" * 100}')
@@ -715,7 +723,7 @@ def step_6_extract_orphan_genes(args, logger, times_logger, error_file_path, out
 
         job_index_to_fasta_file_names = defaultdict(list)
 
-        for i, fasta_file_name in enumerate(os.listdir(orfs_dir)):
+        for i, fasta_file_name in enumerate(os.listdir(translated_orfs_dir)):
             job_index = i % consts.MAX_PARALLEL_JOBS
             job_index_to_fasta_file_names[job_index].append(fasta_file_name)
 
@@ -727,7 +735,7 @@ def step_6_extract_orphan_genes(args, logger, times_logger, error_file_path, out
             job_input_path = os.path.join(jobs_inputs_dir, f'{job_index}.txt')
             with open(job_input_path, 'w') as f:
                 for fasta_file_name in job_fasta_file_names:
-                    f.write(f'{os.path.join(orfs_dir, fasta_file_name)}\n')
+                    f.write(f'{os.path.join(translated_orfs_dir, fasta_file_name)}\n')
 
             single_cmd_params = [job_input_path, orthologs_table_file_path, orphan_genes_internal_dir]
             all_cmds_params.append(single_cmd_params)
@@ -1285,22 +1293,14 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         logger.info("Step 3 completed.")
         return
 
-    orthogroups_file_path = step_5_full_orthogroups_inference(args, logger, times_logger, error_file_path, output_dir,
-                                                              tmp_dir, done_files_dir, translated_orfs_dir,
+    final_orthogroups_file_path = step_5_full_orthogroups_inference(args, logger, times_logger, error_file_path, output_dir,
+                                                              tmp_dir, done_files_dir, final_output_dir, translated_orfs_dir,
                                                               all_proteins_fasta_path, genomes_names_path)
     update_progressbar(progressbar_file_path, 'Infer orthogroups')
+    update_progressbar(progressbar_file_path, 'Find orphan genes')
 
     if args.step_to_complete == '5':
         logger.info("Step 5 completed.")
-        return
-
-    final_orthogroups_file_path = step_6_extract_orphan_genes(args, logger, times_logger, error_file_path, output_dir,
-                                                              tmp_dir, final_output_dir, done_files_dir, orfs_dir,
-                                                              orthogroups_file_path)
-    update_progressbar(progressbar_file_path, 'Find orphan genes')
-
-    if args.step_to_complete == '6':
-        logger.info("Step 6 completed.")
         return
 
     step_7_orthologs_table_variations(args, logger, times_logger, error_file_path, output_dir, tmp_dir,

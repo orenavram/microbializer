@@ -22,14 +22,14 @@ from auxiliaries.pipeline_auxiliaries import get_job_logger
 from auxiliaries.logic_auxiliaries import plot_genomes_histogram, flatten
 
 
-def extract_gene_names_from_fasta(orfs_file):
-    with open(orfs_file) as ORFS:
-        gene_names = [record.name.strip() for record in SeqIO.parse(ORFS, 'fasta')]
+def extract_gene_names_from_fasta(proteins_file_path):
+    with open(proteins_file_path) as proteins_file_fp:
+        gene_names = [record.name.strip() for record in SeqIO.parse(proteins_file_fp, 'fasta')]
     return gene_names
 
 
-def extract_orphan_proteins(logger, orfs_file_path, orthogroups_file, output_dir):
-    strain_name = os.path.splitext(os.path.basename(orfs_file_path))[0]
+def extract_orphan_proteins(logger, proteins_file_path, orthogroups_file, output_dir):
+    strain_name = os.path.splitext(os.path.basename(proteins_file_path))[0]
 
     orthogroups_df = pd.read_csv(orthogroups_file)
     orthogroups_df.drop(columns=['OG_name'], inplace=True)
@@ -42,7 +42,7 @@ def extract_orphan_proteins(logger, orfs_file_path, orthogroups_file, output_dir
     # Orphan genes (not in any orthogroup)
     orthogroups_strain_column = orthogroups_df[strain_name].dropna()
     genes_in_orthogroups = flatten([value.split(';') for value in orthogroups_strain_column])
-    all_strain_genes = set(extract_gene_names_from_fasta(orfs_file_path))
+    all_strain_genes = set(extract_gene_names_from_fasta(proteins_file_path))
     orphans = list(all_strain_genes.difference(genes_in_orthogroups))
 
     orphans_path = os.path.join(output_dir, f'{strain_name}_orphans.txt')
@@ -64,8 +64,8 @@ def extract_orphan_proteins(logger, orfs_file_path, orthogroups_file, output_dir
 def extract_orphan_proteins_from_all_files(logger, job_input_path, orthogroups_file, output_dir):
     with open(job_input_path, 'r') as f:
         for line in f:
-            orfs_file_path = line.strip()
-            extract_orphan_proteins(logger, orfs_file_path, orthogroups_file, output_dir)
+            proteins_file_path = line.strip()
+            extract_orphan_proteins(logger, proteins_file_path, orthogroups_file, output_dir)
 
 
 def main():
