@@ -339,12 +339,10 @@ def add_results_to_final_dir(logger, source, final_output_dir):
 
     try:
         logger.info(f'Copying {source} TO {dest}')
-        if os.path.isdir(source):
-            shutil.copytree(source, dest)
-        else:
-            shutil.copy(source, dest)
-    except FileExistsError:
-        pass
+        shutil.copytree(source, dest, dirs_exist_ok=True)
+    except Exception:
+        logger.exception(f'Failed to copy {source} to {dest}')
+        raise
 
     return dest
 

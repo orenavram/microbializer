@@ -59,16 +59,12 @@ JOB_NAME_ENVIRONMENT_VARIABLE = 'SLURM_JOB_NAME'
 JOB_ID_ENVIRONMENT_VARIABLE = 'SLURM_JOB_ID'
 JOB_FILES_DEBUG_MODE = False
 
-MMSEQS_CLUSTER_MIN_SEQ_ID = 5
-MMSEQS_CLUSTER_MIN_COVERAGE = 10
 JOB_WALL_TIME_KEY ='RunTime='
 JOB_CPUS_KEY = 'NumCPUs='
 
 DEFAULT_MEMORY_PER_JOB_GB = '4'
 MMSEQS_BIG_DATASET_NUM_OF_CORES = 20 if USE_JOB_MANAGER else 1
 MMSEQS_BIG_DATASET_REQUIRED_MEMORY_GB = '64'
-MMSEQS_CLUSTER_NUM_OF_CORES = 20 if USE_JOB_MANAGER else 1
-MMSEQS_CLUSTER_REQUIRED_MEMORY_GB = '64'
 PHYLOGENY_NUM_OF_CORES = 20 if USE_JOB_MANAGER else 1
 PHYLOGENY_REQUIRED_MEMORY_GB = '64'
 KEGG_NUM_OF_CORES = 20 if USE_JOB_MANAGER else 1
@@ -76,7 +72,6 @@ KEGG_REQUIRED_MEMORY_GB = '64'
 CODON_BIAS_NUM_OF_CORES = 20 if USE_JOB_MANAGER else 1
 ANI_NUM_OF_CORES = 20 if USE_JOB_MANAGER else 1
 ANI_REQUIRED_MEMORY_GB = '64'
-MCL_NUM_OF_CORES = 20 if USE_JOB_MANAGER else 1
 
 INFER_ORTHOGROUPS_JOB_TIME_LIMIT_HOURS = 144
 MMSEQS_JOB_TIME_LIMIT_HOURS = 96
@@ -133,8 +128,9 @@ OUTPUTS_DIRECTORIES_MAP = {
     '02_2_orfs_plots': '02b_orfs_plots',
     'orfs_translated': '02c_translated_orfs',
     '03_genomes_completeness': '03_genomes_completeness',
-    '06_1_orphan_genes': '04_orphan_genes',
-    '06_2_orthogroups': '05a_orthogroups',
+    '05_10_orphan_genes': '04_orphan_genes',
+    '05_11_orthogroups_final': '05a_orthogroups',
+    '07_1_orthogroups_variations': '05a_orthogroups',
     '07_2_orthogroups_sizes': '05b_orthogroups_sizes',
     'orthogroups_dna': '06a_orthogroups_dna',
     'orthogroups_aa': '06b_orthogroups_aa',
@@ -145,7 +141,7 @@ OUTPUTS_DIRECTORIES_MAP = {
     '10_genome_numeric_representation': '08_genome_numeric_representation',
     '11_2_species_phylogeny': '09_species_phylogeny',
     '12_1_codon_bias': '10_codon_bias',
-    'orthogroups_annotated.csv': '05a_orthogroups',  # copy the annotated OG table (with KEGG+codon bias) to the same directory as the simple OG table
+    '12_3_orthogroups_annotations': '05a_orthogroups',
 }
 
 # steps for progress bar

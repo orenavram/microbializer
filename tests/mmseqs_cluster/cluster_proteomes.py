@@ -13,6 +13,12 @@ sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger
 
+MMSEQS_CLUSTER_MIN_SEQ_ID = 5
+MMSEQS_CLUSTER_MIN_COVERAGE = 10
+
+MMSEQS_CLUSTER_NUM_OF_CORES = 20 if USE_JOB_MANAGER else 1
+MMSEQS_CLUSTER_REQUIRED_MEMORY_GB = '64'
+
 
 def prepare_proteomes_subsets(logger, all_proteins_fasta_path, output_dir, clusters_file_path, min_seq_identity,
                               min_coverage, threads, num_of_clusters_in_orthogroup_inference):
