@@ -8,7 +8,7 @@ import logging
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger, get_job_times_logger
+from auxiliaries.pipeline_auxiliaries import get_job_logger, get_job_times_logger, none_or_str
 from auxiliaries.infer_orthogroups_logic import infer_orthogroups
 
 
@@ -26,7 +26,7 @@ if __name__ == '__main__':
     parser.add_argument('strains_names_path', help='')
     parser.add_argument('queue_name', help='')
     parser.add_argument('account_name', help='')
-    parser.add_argument('node_name', help='')
+    parser.add_argument('node_name', type=none_or_str, help='')
     parser.add_argument('identity_cutoff', help='', type=float)
     parser.add_argument('coverage_cutoff', help='', type=float)
     parser.add_argument('e_value_cutoff', help='', type=float)

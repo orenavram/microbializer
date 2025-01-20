@@ -389,3 +389,9 @@ def get_job_times_logger(log_file_dir, level=logging.INFO):
 
 def str_to_bool(s):
     return s.lower() in ['true', '1', 't', 'y', 'yes']
+
+
+def none_or_str(value):
+    if value == 'None':
+        return None
+    return value

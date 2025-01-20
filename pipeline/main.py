@@ -490,7 +490,7 @@ def step_5_approximate_orthogroups_inference(args, logger, times_logger, error_f
     with open(genomes_names_path, 'r') as genomes_names_fp:
         genomes_names = genomes_names_fp.read().split('\n')
 
-    # 05.	proteomes_subset
+    # 05.	subsets_inference
     step_number = '05'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_subsets_inference'
@@ -516,19 +516,21 @@ def step_5_approximate_orthogroups_inference(args, logger, times_logger, error_f
             os.makedirs(subset_done_dir, exist_ok=True)
 
             subset_genomes_names_path = os.path.join(subset_output_dir, f'genomes_names.txt')
-            with open(subset_genomes_names_path, 'w') as subset_genomes_names_fp:
-                subset_genomes_names_fp.write('\n'.join(subset_genome_names))
+            if not os.path.exists(subset_genomes_names_path):
+                with open(subset_genomes_names_path, 'w') as subset_genomes_names_fp:
+                    subset_genomes_names_fp.write('\n'.join(subset_genome_names))
 
             subset_proteomes_dir = os.path.join(subset_output_dir, 'proteomes')
-            os.makedirs(subset_proteomes_dir, exist_ok=True)
-
-            for genome_name in subset_genome_names:
-                shutil.copy(os.path.join(translated_orfs_dir, f'{genome_name}.faa'), os.path.join(subset_proteomes_dir, f'{genome_name}.faa'))
+            if not os.path.exists(subset_proteomes_dir):
+                os.makedirs(subset_proteomes_dir, exist_ok=True)
+                for genome_name in subset_genome_names:
+                    shutil.copy(os.path.join(translated_orfs_dir, f'{genome_name}.faa'), os.path.join(subset_proteomes_dir, f'{genome_name}.faa'))
 
             subset_proteins_fasta_path = os.path.join(subset_output_dir, 'all_proteomes.faa')
-            cmd = f"cat {os.path.join(subset_proteomes_dir, '*')} > {subset_proteins_fasta_path}"
-            logger.info(f'Calling: {cmd}')
-            subprocess.run(cmd, shell=True)
+            if not os.path.exists(subset_proteins_fasta_path):
+                cmd = f"cat {os.path.join(subset_proteomes_dir, '*')} > {subset_proteins_fasta_path}"
+                logger.info(f'Calling: {cmd}')
+                subprocess.run(cmd, shell=True)
 
             params = [step_number, subset_output_dir, subset_tmp_dir, subset_done_dir, subset_proteomes_dir,
                       subset_proteins_fasta_path, subset_genomes_names_path, args.queue_name,
