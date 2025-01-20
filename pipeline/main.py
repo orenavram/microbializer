@@ -468,7 +468,7 @@ def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_pa
 
 def step_5_full_orthogroups_inference(args, logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir,
                                       final_output_dir, translated_orfs_dir, all_proteins_path, strains_names_path):
-    final_orthogroups_dir_path, orphan_genes_dir = infer_orthogroups(
+    final_orthogroups_dir_path, orphan_genes_dir, _ = infer_orthogroups(
         logger, times_logger, '05', error_file_path, output_dir, tmp_dir, done_files_dir, translated_orfs_dir,
         all_proteins_path, strains_names_path, args.queue_name, args.account_name, args.node_name, args.identity_cutoff,
         args.coverage_cutoff, args.e_value_cutoff, consts.MAX_PARALLEL_JOBS, args.run_optimized_mmseqs,
@@ -494,7 +494,7 @@ def step_5_approximate_orthogroups_inference(args, logger, times_logger, error_f
     step_number = '05'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_subsets_inference'
-    script_path = os.path.join(consts.SRC_DIR, 'steps/infer_orthogroups.py')
+    script_path = os.path.join(consts.SRC_DIR, 'steps/infer_orthogroups_on_genomes_batch.py')
     inference_dir_path, inference_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     done_dir_path = os.path.join(done_files_dir, step_name)
@@ -503,7 +503,6 @@ def step_5_approximate_orthogroups_inference(args, logger, times_logger, error_f
         intervals = define_intervals(0, len(genomes_names) - 1, number_of_batches)
 
         all_cmds_params = []
-
         for i, (start_index, end_index) in enumerate(intervals):
             logger.info(f'Infer orthogroups for subset {i} of proteomes: {start_index} - {end_index}')
             subset_genome_names = genomes_names[start_index:end_index + 1]
@@ -520,22 +519,10 @@ def step_5_approximate_orthogroups_inference(args, logger, times_logger, error_f
                 with open(subset_genomes_names_path, 'w') as subset_genomes_names_fp:
                     subset_genomes_names_fp.write('\n'.join(subset_genome_names))
 
-            subset_proteomes_dir = os.path.join(subset_output_dir, 'proteomes')
-            if not os.path.exists(subset_proteomes_dir):
-                os.makedirs(subset_proteomes_dir, exist_ok=True)
-                for genome_name in subset_genome_names:
-                    shutil.copy(os.path.join(translated_orfs_dir, f'{genome_name}.faa'), os.path.join(subset_proteomes_dir, f'{genome_name}.faa'))
-
-            subset_proteins_fasta_path = os.path.join(subset_output_dir, 'all_proteomes.faa')
-            if not os.path.exists(subset_proteins_fasta_path):
-                cmd = f"cat {os.path.join(subset_proteomes_dir, '*')} > {subset_proteins_fasta_path}"
-                logger.info(f'Calling: {cmd}')
-                subprocess.run(cmd, shell=True)
-
-            params = [step_number, subset_output_dir, subset_tmp_dir, subset_done_dir, subset_proteomes_dir,
-                      subset_proteins_fasta_path, subset_genomes_names_path, args.queue_name,
+            params = [step_number, subset_output_dir, subset_tmp_dir, subset_done_dir, translated_orfs_dir,
+                      subset_genomes_names_path, args.queue_name,
                       args.account_name, args.node_name, args.identity_cutoff, args.coverage_cutoff,
-                      args.e_value_cutoff, max(1, consts.MAX_PARALLEL_JOBS // number_of_batches)]
+                      args.e_value_cutoff, max(1, consts.MAX_PARALLEL_JOBS // len(intervals))]
 
             if args.run_optimized_mmseqs:
                 params.append('--run_optimized_mmseqs')
@@ -547,9 +534,8 @@ def step_5_approximate_orthogroups_inference(args, logger, times_logger, error_f
                 params.append('--use_linux_to_parse_big_files')
             if args.mmseqs_use_dbs:
                 params.append('--mmseqs_use_dbs')
-            if args.add_orphan_genes_to_ogs:
-                params.append('--add_orphan_genes_to_ogs')
 
+            params.append('--add_orphan_genes_to_ogs')  # Always add orphan genes to OGs in this step
             all_cmds_params.append(params)
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, inference_tmp_dir,
@@ -569,16 +555,55 @@ def step_5_approximate_orthogroups_inference(args, logger, times_logger, error_f
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
 
-    # Aggregate OG tables of all clusters
-    # all_og_tables = []
-    # for cluster_dir_name in os.listdir(infer_orthogroups_output_dir):
-    #     cluster_og_table = os.path.join(infer_orthogroups_output_dir, cluster_dir_name, '05_10_verified_table', 'orthogroups.csv')
-    #     cluster_og_df = pd.read_csv(cluster_og_table)
-    #     all_og_tables.append(cluster_og_df)
-    # unified_og_table = pd.concat(all_og_tables, axis=0, ignore_index=True)
-    # unified_og_table['OG_name'] = [f'OG_{i}' for i in range(len(unified_og_table.index))]
-    # orthogroups_file_path = os.path.join(infer_orthogroups_output_dir, 'orthogroups.csv')
-    # unified_og_table.to_csv(orthogroups_file_path, index=False)
+    # 06_0.	aggregate_sub_orthogroups
+    step_number = '06_0'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_aggregate_sub_orthogroups'
+    aggregate_orthogroups_dir_path, aggregate_orthogroups_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    pseudo_genomes_strains_names_path = os.path.join(aggregate_orthogroups_dir_path, 'pseudo_genomes_names.txt')
+    pseudo_genomes_dir_path = os.path.join(aggregate_orthogroups_dir_path, 'pseudo_genomes')
+    all_pseudo_genomes_path = os.path.join(aggregate_orthogroups_dir_path, f'all_pseudo_proteomes.faa')
+    sub_orthogroups_dir_path = os.path.join(aggregate_orthogroups_dir_path, 'sub_orthogroups')
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        logger.info('Collection psuedo genomes and sub-orthogroups...')
+
+        os.makedirs(pseudo_genomes_dir_path, exist_ok=True)
+        os.makedirs(sub_orthogroups_dir_path, exist_ok=True)
+        pseudo_genomes_names = []
+
+        for batch_dir_name in os.listdir(inference_dir_path):
+            batch_id = batch_dir_name.split('_')[1]
+            batch_dir_path = os.path.join(inference_dir_path, batch_dir_name)
+            if not os.path.isdir(batch_dir_path):
+                continue
+
+            batch_orthogroups_file_path = os.path.join(batch_dir_path, '05_11_orthogroups_final', 'orthogroups.csv')
+            pseudo_genome_index_path = os.path.join(batch_dir_path, '05_13_pseudo_genome', 'pseudo_genome_index.csv')
+            pseudo_genome_file_path = os.path.join(batch_dir_path, '05_13_pseudo_genome', 'pseudo_genome.faa')
+
+            shutil.copy(batch_orthogroups_file_path, os.path.join(sub_orthogroups_dir_path, f'orthogroups_{batch_id}.csv'))
+            shutil.copy(pseudo_genome_index_path, os.path.join(sub_orthogroups_dir_path, f'pseudo_genome_index_{batch_id}.csv'))
+            shutil.copy(pseudo_genome_file_path, os.path.join(pseudo_genomes_dir_path, f'pseudo_genome_{batch_id}.faa'))
+            pseudo_genomes_names.append(f'pseudo_genome_{batch_id}')
+
+        cmd = f"cat {os.path.join(pseudo_genomes_dir_path, '*')} > {all_pseudo_genomes_path}"
+        logger.info(f'Calling: {cmd}')
+        subprocess.run(cmd, shell=True)
+
+        with open(pseudo_genomes_strains_names_path, 'w') as pseudo_genomes_strains_names_fp:
+            pseudo_genomes_strains_names_fp.write('\n'.join(pseudo_genomes_names))
+
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+    pseudo_orthogroups_dir_path, _, final_substep_number = infer_orthogroups(
+        logger, times_logger, '06', error_file_path, output_dir, tmp_dir, done_files_dir, pseudo_genomes_dir_path,
+        all_pseudo_genomes_path, pseudo_genomes_strains_names_path, args.queue_name, args.account_name, args.node_name, args.identity_cutoff,
+        args.coverage_cutoff, args.e_value_cutoff, consts.MAX_PARALLEL_JOBS, args.run_optimized_mmseqs,
+        args.use_parquet, args.use_linux_to_parse_big_files, args.mmseqs_use_dbs, args.verbose,
+        True)
 
 
 def step_7_orthologs_table_variations(args, logger, times_logger, error_file_path, output_dir, tmp_dir,

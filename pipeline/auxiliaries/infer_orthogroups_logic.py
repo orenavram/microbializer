@@ -26,14 +26,14 @@ def infer_orthogroups(logger, times_logger, base_step_number, error_file_path, o
                                     max_parallel_jobs, run_optimized_mmseqs, use_parquet,
                                     use_linux_to_parse_big_files, mmseqs_use_dbs, verbose)
 
-    final_orthogroups_dir_path, orphan_genes_dir = \
+    final_orthogroups_dir_path, orphan_genes_dir, final_substep_number = \
         cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, output_dir, tmp_dir,
                                            done_files_dir, orthologs_output_dir, orthologs_scores_statistics_dir,
                                            paralogs_output_dir, paralogs_scores_statistics_dir,
                                            max_parallel_jobs, base_step_number, 4, account_name, queue_name, node_name,
                                            use_parquet, strains_names_path, translated_orfs_dir, add_orphan_genes_to_ogs)
 
-    return final_orthogroups_dir_path, orphan_genes_dir
+    return final_orthogroups_dir_path, orphan_genes_dir, final_substep_number
 
 
 def run_mmseqs_and_extract_hits(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,
@@ -404,7 +404,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    return final_orthogroups_dir_path, orphan_genes_dir
+    return final_orthogroups_dir_path, orphan_genes_dir, start_substep_number + 7
 
 
 def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,

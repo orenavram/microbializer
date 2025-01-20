@@ -96,11 +96,12 @@ def induce_msa(logger, og_members, gene_name_to_dna_sequence_dict, aa_msa_path, 
 
 def extract_orfs(logger, all_orfs_path, all_proteins_path, orthogroups_file_path, start_og_number, end_og_number,
                  ogs_dna_output_dir, ogs_aa_output_dir, ogs_aa_aligned_output_dir, ogs_induced_dna_aligned_output_dir,
-                 delimiter):
-    gene_to_sequence_dict = {}
-    for seq_record in SeqIO.parse(all_orfs_path, 'fasta'):
-        gene_to_sequence_dict[seq_record.id] = seq_record.seq
-    logger.info(f'Loaded all ({len(gene_to_sequence_dict)}) gene sequences into memory')
+                 only_output_ogs_aa):
+    if not only_output_ogs_aa:
+        gene_to_sequence_dict = {}
+        for seq_record in SeqIO.parse(all_orfs_path, 'fasta'):
+            gene_to_sequence_dict[seq_record.id] = seq_record.seq
+        logger.info(f'Loaded all ({len(gene_to_sequence_dict)}) gene sequences into memory')
 
     protein_to_sequence_dict = {}
     for seq_record in SeqIO.parse(all_proteins_path, 'fasta'):
@@ -112,7 +113,7 @@ def extract_orfs(logger, all_orfs_path, all_proteins_path, orthogroups_file_path
         for i, line in enumerate(f):
             if i < start_og_number or i > end_og_number:
                 continue
-            line_tokens = line.strip().split(delimiter)
+            line_tokens = line.strip().split(consts.CSV_DELIMITER)
             og_name = line_tokens[0]
             og_members = flatten([strain_genes.split(';') for strain_genes in line_tokens[1:] if strain_genes])
             if not og_members:
@@ -120,17 +121,18 @@ def extract_orfs(logger, all_orfs_path, all_proteins_path, orthogroups_file_path
 
             logger.info(f'Extracting sequences for {og_name} ({len(og_members)} members)...')
 
-            og_dna_path = os.path.join(ogs_dna_output_dir, f'{og_name}.fna')
-            write_og_dna_sequences_file(og_name, og_members, gene_to_sequence_dict, og_dna_path)
-
             og_aa_path = os.path.join(ogs_aa_output_dir, f'{og_name}.faa')
             write_og_aa_sequences_file(og_name, og_members, protein_to_sequence_dict, og_aa_path)
 
-            og_aligned_aa_path = os.path.join(ogs_aa_aligned_output_dir, f'{og_name}.faa')
-            reconstruct_msa(logger, og_aa_path, og_aligned_aa_path)
+            if not only_output_ogs_aa:
+                og_dna_path = os.path.join(ogs_dna_output_dir, f'{og_name}.fna')
+                write_og_dna_sequences_file(og_name, og_members, gene_to_sequence_dict, og_dna_path)
 
-            og_induced_dna_aligned_path = os.path.join(ogs_induced_dna_aligned_output_dir, f'{og_name}.fna')
-            induce_msa(logger, og_members, gene_to_sequence_dict, og_aligned_aa_path, og_induced_dna_aligned_path)
+                og_aligned_aa_path = os.path.join(ogs_aa_aligned_output_dir, f'{og_name}.faa')
+                reconstruct_msa(logger, og_aa_path, og_aligned_aa_path)
+
+                og_induced_dna_aligned_path = os.path.join(ogs_induced_dna_aligned_output_dir, f'{og_name}.fna')
+                induce_msa(logger, og_members, gene_to_sequence_dict, og_aligned_aa_path, og_induced_dna_aligned_path)
 
 
 if __name__ == '__main__':
@@ -147,7 +149,7 @@ if __name__ == '__main__':
     parser.add_argument('ogs_aa_output_dir', help='path to an output directory of ogs aa')
     parser.add_argument('ogs_aa_aligned_output_dir', help='path to an output directory of ogs aligned aa')
     parser.add_argument('ogs_induced_dna_aligned_output_dir', help='path to an output directory of ogs induced aligned dna (codon alignment)')
-    parser.add_argument('--delimiter', help='orthologs table delimiter', default=consts.CSV_DELIMITER)
+    parser.add_argument('--only_output_ogs_aa', action='store_true')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('--error_file_path', help='path to error file')
@@ -160,7 +162,7 @@ if __name__ == '__main__':
     try:
         extract_orfs(logger, args.all_orfs_path, args.all_proteins_path, args.orthogroups_file_path, args.start_og_number,
                      args.end_og_number, args.ogs_dna_output_dir, args.ogs_aa_output_dir,
-                     args.ogs_aa_aligned_output_dir, args.ogs_induced_dna_aligned_output_dir, args.delimiter)
+                     args.ogs_aa_aligned_output_dir, args.ogs_induced_dna_aligned_output_dir, args.only_output_ogs_aa)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:
