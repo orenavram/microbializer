@@ -22,7 +22,7 @@ from auxiliaries import consts
 
 def create_pseudo_genome_from_ogs(logger, times_logger, base_step_number, final_substep_number, error_file_path, output_dir,
                            tmp_dir, done_files_dir, final_orthogroups_file_path, subset_proteins_fasta_path,
-                           max_parallel_jobs):
+                           max_parallel_jobs, genomes_batch_id):
     step_number = f'{base_step_number}_{final_substep_number + 1}'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orthogroups_fasta'
@@ -81,14 +81,15 @@ def create_pseudo_genome_from_ogs(logger, times_logger, base_step_number, final_
             og_path = os.path.join(orthologs_aa_dir_path, filename)
             # read only the first sequence from each og
             first_record = SeqIO.parse(og_path, 'fasta').__next__()
+            first_record.id = f'pseudo_genome_{genomes_batch_id}:{first_record.id}'
             records.append(first_record)
             record_to_og[first_record.id] = og_name
 
-        pseudo_genome_fasta_path = os.path.join(pseudo_genome_dir_path, 'pseudo_genome.faa')
+        pseudo_genome_fasta_path = os.path.join(pseudo_genome_dir_path, f'pseudo_genome_{genomes_batch_id}.faa')
         SeqIO.write(records, pseudo_genome_fasta_path, 'fasta')
         logger.info(f'Wrote {len(records)} records to {pseudo_genome_fasta_path} (only 1 gene from each og)')
 
-        pseudo_genome_index_path = os.path.join(pseudo_genome_dir_path, 'pseudo_genome_index.csv')
+        pseudo_genome_index_path = os.path.join(pseudo_genome_dir_path, f'pseudo_genome_index_{genomes_batch_id}.csv')
         record_to_og_df = pd.DataFrame(record_to_og.items(), columns=['representative_gene', 'OG'])
         record_to_og_df.to_csv(pseudo_genome_index_path, index=False)
         logger.info(f'Wrote pseudo genome index to {pseudo_genome_index_path}')
@@ -101,7 +102,7 @@ def create_pseudo_genome_from_ogs(logger, times_logger, base_step_number, final_
 def infer_orthogroups_on_genomes_batch(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
             done_files_dir, translated_orfs_dir, genomes_names_path,
             queue_name, account_name, node_name, identity_cutoff, coverage_cutoff,
-            e_value_cutoff, max_parallel_jobs, run_optimized_mmseqs, use_parquet,
+            e_value_cutoff, max_parallel_jobs, genomes_batch_id, run_optimized_mmseqs, use_parquet,
             use_linux_to_parse_big_files, mmseqs_use_dbs, verbose, add_orphan_genes_to_ogs):
 
     with open(genomes_names_path, 'r') as genomes_names_fp:
@@ -131,7 +132,7 @@ def infer_orthogroups_on_genomes_batch(logger, times_logger, base_step_number, e
 
     create_pseudo_genome_from_ogs(logger, times_logger, base_step_number, final_substep_number, error_file_path, output_dir,
                            tmp_dir, done_files_dir, final_orthogroups_file_path, subset_proteins_fasta_path,
-                           max_parallel_jobs)
+                           max_parallel_jobs, genomes_batch_id)
 
 
 if __name__ == '__main__':
@@ -152,6 +153,7 @@ if __name__ == '__main__':
     parser.add_argument('coverage_cutoff', help='', type=float)
     parser.add_argument('e_value_cutoff', help='', type=float)
     parser.add_argument('max_parallel_jobs', help='', type=int)
+    parser.add_argument('genomes_batch_id', help='', type=int)
     parser.add_argument('--run_optimized_mmseqs', help='', action='store_true')
     parser.add_argument('--use_parquet', action='store_true')
     parser.add_argument('--use_linux_to_parse_big_files', action='store_true')
@@ -172,7 +174,7 @@ if __name__ == '__main__':
             logger, times_logger, args.step_number, args.error_file_path, args.output_dir, args.tmp_dir,
             args.done_files_dir, args.translated_orfs_dir, args.genomes_names_path,
             args.queue_name, args.account_name, args.node_name, args.identity_cutoff, args.coverage_cutoff,
-            args.e_value_cutoff, args.max_parallel_jobs, args.run_optimized_mmseqs, args.use_parquet,
+            args.e_value_cutoff, args.max_parallel_jobs, args.genomes_batch_id, args.run_optimized_mmseqs, args.use_parquet,
             args.use_linux_to_parse_big_files, args.mmseqs_use_dbs, args.verbose, args.add_orphan_genes_to_ogs)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')

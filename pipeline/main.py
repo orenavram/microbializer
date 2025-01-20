@@ -503,13 +503,13 @@ def step_5_approximate_orthogroups_inference(args, logger, times_logger, error_f
         intervals = define_intervals(0, len(genomes_names) - 1, number_of_batches)
 
         all_cmds_params = []
-        for i, (start_index, end_index) in enumerate(intervals):
-            logger.info(f'Infer orthogroups for subset {i} of proteomes: {start_index} - {end_index}')
+        for batch_id, (start_index, end_index) in enumerate(intervals):
+            logger.info(f'Infer orthogroups for subset {batch_id} of proteomes: {start_index} - {end_index}')
             subset_genome_names = genomes_names[start_index:end_index + 1]
 
-            subset_output_dir = os.path.join(inference_dir_path, f'subset_{i}')
-            subset_tmp_dir = os.path.join(inference_tmp_dir, f'subset_{i}')
-            subset_done_dir = os.path.join(done_dir_path, f'subset_{i}')
+            subset_output_dir = os.path.join(inference_dir_path, f'subset_{batch_id}')
+            subset_tmp_dir = os.path.join(inference_tmp_dir, f'subset_{batch_id}')
+            subset_done_dir = os.path.join(done_dir_path, f'subset_{batch_id}')
             os.makedirs(subset_output_dir, exist_ok=True)
             os.makedirs(subset_tmp_dir, exist_ok=True)
             os.makedirs(subset_done_dir, exist_ok=True)
@@ -522,7 +522,7 @@ def step_5_approximate_orthogroups_inference(args, logger, times_logger, error_f
             params = [step_number, subset_output_dir, subset_tmp_dir, subset_done_dir, translated_orfs_dir,
                       subset_genomes_names_path, args.queue_name,
                       args.account_name, args.node_name, args.identity_cutoff, args.coverage_cutoff,
-                      args.e_value_cutoff, max(1, consts.MAX_PARALLEL_JOBS // len(intervals))]
+                      args.e_value_cutoff, max(1, consts.MAX_PARALLEL_JOBS // len(intervals)), batch_id]
 
             if args.run_optimized_mmseqs:
                 params.append('--run_optimized_mmseqs')
@@ -579,12 +579,12 @@ def step_5_approximate_orthogroups_inference(args, logger, times_logger, error_f
                 continue
 
             batch_orthogroups_file_path = os.path.join(batch_dir_path, '05_11_orthogroups_final', 'orthogroups.csv')
-            pseudo_genome_index_path = os.path.join(batch_dir_path, '05_13_pseudo_genome', 'pseudo_genome_index.csv')
-            pseudo_genome_file_path = os.path.join(batch_dir_path, '05_13_pseudo_genome', 'pseudo_genome.faa')
+            pseudo_genome_index_path = os.path.join(batch_dir_path, '05_13_pseudo_genome', f'pseudo_genome_index_{batch_id}.csv')
+            pseudo_genome_file_path = os.path.join(batch_dir_path, '05_13_pseudo_genome', f'pseudo_genome_{batch_id}.faa')
 
             shutil.copy(batch_orthogroups_file_path, os.path.join(sub_orthogroups_dir_path, f'orthogroups_{batch_id}.csv'))
-            shutil.copy(pseudo_genome_index_path, os.path.join(sub_orthogroups_dir_path, f'pseudo_genome_index_{batch_id}.csv'))
-            shutil.copy(pseudo_genome_file_path, os.path.join(pseudo_genomes_dir_path, f'pseudo_genome_{batch_id}.faa'))
+            shutil.copy(pseudo_genome_index_path, sub_orthogroups_dir_path)
+            shutil.copy(pseudo_genome_file_path, pseudo_genomes_dir_path)
             pseudo_genomes_names.append(f'pseudo_genome_{batch_id}')
 
         cmd = f"cat {os.path.join(pseudo_genomes_dir_path, '*')} > {all_pseudo_genomes_path}"
@@ -597,6 +597,7 @@ def step_5_approximate_orthogroups_inference(args, logger, times_logger, error_f
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
 
     pseudo_orthogroups_dir_path, _, final_substep_number = infer_orthogroups(
         logger, times_logger, '06', error_file_path, output_dir, tmp_dir, done_files_dir, pseudo_genomes_dir_path,
