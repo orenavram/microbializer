@@ -16,7 +16,7 @@ from Bio import SeqIO
 from . import consts
 
 
-def aggregate_mmseqs_scores(orthologs_scores_statistics_dir, paralogs_scores_statistics_dir, output_file):
+def aggregate_mmseqs_scores(orthologs_scores_statistics_dir, paralogs_scores_statistics_dir, output_file, skip_paralogs):
     scores_means_per_strains_pair = {}
     scores_total_sum = 0
     scores_total_records = 0
@@ -30,15 +30,16 @@ def aggregate_mmseqs_scores(orthologs_scores_statistics_dir, paralogs_scores_sta
         scores_total_sum += strains_statistics['sum']
         scores_total_records += strains_statistics['number of records']
 
-    for scores_statistics_file in os.listdir(paralogs_scores_statistics_dir):
-        if not scores_statistics_file.endswith('.stats'):
-            continue
-        strains_names = os.path.splitext(scores_statistics_file)[0]
-        with open(os.path.join(paralogs_scores_statistics_dir, scores_statistics_file)) as fp:
-            strains_statistics = json.load(fp)
-        scores_means_per_strains_pair[strains_names] = strains_statistics['mean']
-        scores_total_sum += strains_statistics['sum']
-        scores_total_records += strains_statistics['number of records']
+    if not skip_paralogs:
+        for scores_statistics_file in os.listdir(paralogs_scores_statistics_dir):
+            if not scores_statistics_file.endswith('.stats'):
+                continue
+            strains_names = os.path.splitext(scores_statistics_file)[0]
+            with open(os.path.join(paralogs_scores_statistics_dir, scores_statistics_file)) as fp:
+                strains_statistics = json.load(fp)
+            scores_means_per_strains_pair[strains_names] = strains_statistics['mean']
+            scores_total_sum += strains_statistics['sum']
+            scores_total_records += strains_statistics['number of records']
 
     scores_total_mean = scores_total_sum / scores_total_records
     scores_normalize_coefficients = {strains_names: strains_scores_mean / scores_total_mean

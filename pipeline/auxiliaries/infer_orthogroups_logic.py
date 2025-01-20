@@ -17,21 +17,22 @@ def infer_orthogroups(logger, times_logger, base_step_number, error_file_path, o
                       translated_orfs_dir, all_proteins_path, strains_names_path, queue_name,
                       account_name, node_name, identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs,
                       run_optimized_mmseqs, use_parquet, use_linux_to_parse_big_files, mmseqs_use_dbs, verbose,
-                      add_orphan_genes_to_ogs):
+                      add_orphan_genes_to_ogs, skip_paralogs=False):
 
     orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir = \
         run_mmseqs_and_extract_hits(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
                                     done_files_dir, translated_orfs_dir, all_proteins_path, strains_names_path,
                                     queue_name, account_name, node_name, identity_cutoff, coverage_cutoff, e_value_cutoff,
                                     max_parallel_jobs, run_optimized_mmseqs, use_parquet,
-                                    use_linux_to_parse_big_files, mmseqs_use_dbs, verbose)
+                                    use_linux_to_parse_big_files, mmseqs_use_dbs, verbose, skip_paralogs)
 
     final_orthogroups_dir_path, orphan_genes_dir, final_substep_number = \
         cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, output_dir, tmp_dir,
                                            done_files_dir, orthologs_output_dir, orthologs_scores_statistics_dir,
                                            paralogs_output_dir, paralogs_scores_statistics_dir,
                                            max_parallel_jobs, base_step_number, 4, account_name, queue_name, node_name,
-                                           use_parquet, strains_names_path, translated_orfs_dir, add_orphan_genes_to_ogs)
+                                           use_parquet, strains_names_path, translated_orfs_dir, add_orphan_genes_to_ogs,
+                                           skip_paralogs)
 
     return final_orthogroups_dir_path, orphan_genes_dir, final_substep_number
 
@@ -39,7 +40,8 @@ def infer_orthogroups(logger, times_logger, base_step_number, error_file_path, o
 def run_mmseqs_and_extract_hits(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,
                                 translated_orfs_dir, all_proteins_path, strains_names_path, queue_name,
                                 account_name, node_name, identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs,
-                                run_optimized_mmseqs, use_parquet, use_linux_to_parse_big_files, mmseqs_use_dbs, verbose):
+                                run_optimized_mmseqs, use_parquet, use_linux_to_parse_big_files, mmseqs_use_dbs, verbose,
+                                skip_paralogs):
     with open(strains_names_path) as f:
         strains_names = f.read().rstrip().split('\n')
 
@@ -62,7 +64,8 @@ def run_mmseqs_and_extract_hits(logger, times_logger, base_step_number, error_fi
             orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir = \
                 run_non_unified_mmseqs_with_dbs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
                                        done_files_dir, translated_orfs_dir, strains_names, queue_name, account_name, node_name,
-                                       identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs, use_parquet)
+                                       identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs, use_parquet,
+                                                skip_paralogs)
         else:
             orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir =\
                 run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
@@ -76,7 +79,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
                                        orthologs_output_dir, orthologs_scores_statistics_dir, paralogs_output_dir,
                                        paralogs_scores_statistics_dir, max_parallel_jobs, base_step_number,
                                        start_substep_number, account_name, queue_name, node_name, use_parquet,
-                                       strains_names_path, translated_orfs_dir, add_orphan_genes_to_ogs):
+                                       strains_names_path, translated_orfs_dir, add_orphan_genes_to_ogs, skip_paralogs):
     with open(strains_names_path) as f:
         strains_names = f.read().rstrip().split('\n')
 
@@ -89,7 +92,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         scores_statistics_file = os.path.join(normalized_hits_output_dir, 'scores_stats.json')
-        scores_normalize_coefficients = aggregate_mmseqs_scores(orthologs_scores_statistics_dir, paralogs_scores_statistics_dir, scores_statistics_file)
+        scores_normalize_coefficients = aggregate_mmseqs_scores(orthologs_scores_statistics_dir, paralogs_scores_statistics_dir, scores_statistics_file, skip_paralogs)
 
         job_index_to_hits_files_and_coefficients = defaultdict(list)
 
@@ -101,13 +104,14 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
             job_index_to_hits_files_and_coefficients[job_index].append((os.path.join(orthologs_output_dir, hits_file),
                                                                         scores_normalize_coefficients[strains_pair]))
 
-        for i, hits_file in enumerate(os.listdir(paralogs_output_dir)):
-            if not hits_file.endswith('m8_filtered'):
-                continue
-            job_index = i % max_parallel_jobs
-            strains_pair = os.path.splitext(hits_file)[0]
-            job_index_to_hits_files_and_coefficients[job_index].append((os.path.join(paralogs_output_dir, hits_file),
-                                                                        scores_normalize_coefficients[strains_pair]))
+        if not skip_paralogs:
+            for i, hits_file in enumerate(os.listdir(paralogs_output_dir)):
+                if not hits_file.endswith('m8_filtered'):
+                    continue
+                job_index = i % max_parallel_jobs
+                strains_pair = os.path.splitext(hits_file)[0]
+                job_index_to_hits_files_and_coefficients[job_index].append((os.path.join(paralogs_output_dir, hits_file),
+                                                                            scores_normalize_coefficients[strains_pair]))
 
         all_cmds_params = []
         jobs_inputs_dir = os.path.join(normalized_hits_tmp_dir, 'jobs_inputs')
@@ -389,7 +393,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
         logger.info('Constructing final orthologs table...')
 
         if add_orphan_genes_to_ogs:
-            params = [orthogroups_file_path, final_orthogroups_file_path, f'--orphan_genes_dir {orphan_genes_dir}']
+            params = [orthogroups_file_path, final_orthogroups_file_path, f'--orphan_genes_dir {orphan_genes_internal_dir}']
 
             submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path, queue_name, account_name,
                               job_name='add_orphans_to_orthogroups', node_name=node_name)
@@ -840,7 +844,7 @@ def run_non_unified_mmseqs(logger, times_logger, base_step_number, error_file_pa
 
 def run_non_unified_mmseqs_with_dbs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,
                            translated_orfs_dir, strains_names, queue_name, account_name, node_name, identity_cutoff,
-                           coverage_cutoff, e_value_cutoff, n_jobs_per_step, use_parquet):
+                           coverage_cutoff, e_value_cutoff, n_jobs_per_step, use_parquet, skip_paralogs):
     number_of_genomes = len(strains_names)
     if number_of_genomes <= 100:
         sensitivity_parameter = consts.MMSEQS_HIGH_SENSITIVITY_PARAMETER
@@ -952,6 +956,9 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, base_step_number, erro
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+    if skip_paralogs:
+        return orthologs_output_dir, None, orthologs_scores_statistics_dir, None
 
     # 3. mmseqs2_paralogs.py
     step_number = f'{base_step_number}_3'

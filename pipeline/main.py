@@ -604,7 +604,9 @@ def step_5_approximate_orthogroups_inference(args, logger, times_logger, error_f
         all_pseudo_genomes_path, pseudo_genomes_strains_names_path, args.queue_name, args.account_name, args.node_name, args.identity_cutoff,
         args.coverage_cutoff, args.e_value_cutoff, consts.MAX_PARALLEL_JOBS, args.run_optimized_mmseqs,
         args.use_parquet, args.use_linux_to_parse_big_files, args.mmseqs_use_dbs, args.verbose,
-        True)
+        True, skip_paralogs=True)
+
+    pseudo_orthogroups_file_path = os.path.join(pseudo_orthogroups_dir_path, 'orthogroups.csv')
 
 
 def step_7_orthologs_table_variations(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
