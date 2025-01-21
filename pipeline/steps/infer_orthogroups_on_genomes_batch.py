@@ -23,6 +23,8 @@ from auxiliaries import consts
 def create_pseudo_genome_from_ogs(logger, times_logger, base_step_number, final_substep_number, error_file_path, output_dir,
                            tmp_dir, done_files_dir, final_orthogroups_file_path, subset_proteins_fasta_path,
                            max_parallel_jobs, genomes_batch_id):
+    final_orthogroups_df = pd.read_csv(final_orthogroups_file_path)
+
     step_number = f'{base_step_number}_{final_substep_number + 1}'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orthogroups_fasta'
@@ -35,9 +37,8 @@ def create_pseudo_genome_from_ogs(logger, times_logger, base_step_number, final_
         os.makedirs(orthologs_aa_dir_path, exist_ok=True)
 
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-        with open(final_orthogroups_file_path, 'r') as fp:
-            number_of_ogs = sum(1 for _ in fp) - 1
 
+        number_of_ogs = len(final_orthogroups_df.index)
         ogs_intervals = define_intervals(0, number_of_ogs - 1, max_parallel_jobs)
         for og_number_start, og_number_end in ogs_intervals:
             single_cmd_params = [None,
@@ -89,10 +90,12 @@ def create_pseudo_genome_from_ogs(logger, times_logger, base_step_number, final_
         SeqIO.write(records, pseudo_genome_fasta_path, 'fasta')
         logger.info(f'Wrote {len(records)} records to {pseudo_genome_fasta_path} (only 1 gene from each og)')
 
-        pseudo_genome_index_path = os.path.join(pseudo_genome_dir_path, f'pseudo_genome_index_{genomes_batch_id}.csv')
-        record_to_og_df = pd.DataFrame(record_to_og.items(), columns=['representative_gene', 'OG'])
-        record_to_og_df.to_csv(pseudo_genome_index_path, index=False)
-        logger.info(f'Wrote pseudo genome index to {pseudo_genome_index_path}')
+        record_to_og_df = pd.DataFrame(record_to_og.items(), columns=['representative_gene', 'OG_name'])
+        orthogroups_with_representative_df = final_orthogroups_df.merge(record_to_og_df, on='OG_name')
+
+        orthogroups_with_representative_path = os.path.join(pseudo_genome_dir_path, f'orthogroups_with_representative_{genomes_batch_id}.csv')
+        orthogroups_with_representative_df.to_csv(orthogroups_with_representative_path, index=False)
+        logger.info(f'Wrote orthogroups with representative to {orthogroups_with_representative_path}')
 
         write_to_file(logger, done_file_path, '.')
     else:

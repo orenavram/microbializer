@@ -515,9 +515,8 @@ def step_5_approximate_orthogroups_inference(args, logger, times_logger, error_f
             os.makedirs(subset_done_dir, exist_ok=True)
 
             subset_genomes_names_path = os.path.join(subset_output_dir, f'genomes_names.txt')
-            if not os.path.exists(subset_genomes_names_path):
-                with open(subset_genomes_names_path, 'w') as subset_genomes_names_fp:
-                    subset_genomes_names_fp.write('\n'.join(subset_genome_names))
+            with open(subset_genomes_names_path, 'w') as subset_genomes_names_fp:
+                subset_genomes_names_fp.write('\n'.join(subset_genome_names))
 
             params = [step_number, subset_output_dir, subset_tmp_dir, subset_done_dir, translated_orfs_dir,
                       subset_genomes_names_path, args.queue_name,
@@ -578,12 +577,10 @@ def step_5_approximate_orthogroups_inference(args, logger, times_logger, error_f
             if not os.path.isdir(batch_dir_path):
                 continue
 
-            batch_orthogroups_file_path = os.path.join(batch_dir_path, '05_11_orthogroups_final', 'orthogroups.csv')
-            pseudo_genome_index_path = os.path.join(batch_dir_path, '05_13_pseudo_genome', f'pseudo_genome_index_{batch_id}.csv')
+            orthogroups_with_representative_path = os.path.join(batch_dir_path, '05_13_pseudo_genome', f'orthogroups_with_representative_{batch_id}.csv')
             pseudo_genome_file_path = os.path.join(batch_dir_path, '05_13_pseudo_genome', f'pseudo_genome_{batch_id}.faa')
 
-            shutil.copy(batch_orthogroups_file_path, os.path.join(sub_orthogroups_dir_path, f'orthogroups_{batch_id}.csv'))
-            shutil.copy(pseudo_genome_index_path, sub_orthogroups_dir_path)
+            shutil.copy(orthogroups_with_representative_path, sub_orthogroups_dir_path)
             shutil.copy(pseudo_genome_file_path, pseudo_genomes_dir_path)
             pseudo_genomes_names.append(f'pseudo_genome_{batch_id}')
 
@@ -607,6 +604,53 @@ def step_5_approximate_orthogroups_inference(args, logger, times_logger, error_f
         True, skip_paralogs=True)
 
     pseudo_orthogroups_file_path = os.path.join(pseudo_orthogroups_dir_path, 'orthogroups.csv')
+
+
+    # construct_final_orthogroups
+    step_number = f'06_{final_substep_number + 1}'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_merged_suborthogroups'
+    merged_orthogroups_dir_path, merged_orthogroups_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    merged_orthogroups_file_path = os.path.join(merged_orthogroups_dir_path, 'orthogroups.csv')
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        logger.info('Merge sub-orthogroups...')
+
+        pseudo_orthogroups_df = pd.read_csv(pseudo_orthogroups_file_path)
+
+        for sub_orthogroups_file_name in os.listdir(sub_orthogroups_dir_path):
+            batch_id = os.path.splitext(sub_orthogroups_file_name)[0].split('_')[-1]
+
+            sub_orthogroups_file_path = os.path.join(sub_orthogroups_dir_path, sub_orthogroups_file_name)
+            sub_orthogroups_df = pd.read_csv(sub_orthogroups_file_path)
+            sub_orthogroups_df.drop(columns=['OG_name'], inplace=True)
+
+            # Fill rows of pseudo_orthogroups_df where pseudo_genome_{batch_id} contains only 1 gene
+            pseudo_orthogroups_df = pseudo_orthogroups_df.merge(
+                sub_orthogroups_df, how='left', left_on=f'pseudo_genome_{batch_id}', right_on='representative_gene')
+
+            # Fill rows of pseudo_orthogroups_df where pseudo_genome_{batch_id} contains multiple genes
+            pseudo_orthogroups_with_paralogs_in_pseudo_genome = pseudo_orthogroups_df[
+                pseudo_orthogroups_df[f'pseudo_genome_{batch_id}'].str.contains(';', na=False)]
+            for i, row in pseudo_orthogroups_with_paralogs_in_pseudo_genome.iterrows():
+                pseudo_genes = row[f'pseudo_genome_{batch_id}'].split(';')
+                row_sub_orthogroups = pd.concat([sub_orthogroups_df.loc[pseudo_gene] for pseudo_gene in pseudo_genes])
+                strain_to_genes = dict(row_sub_orthogroups.apply(lambda row: ';'.join(sorted(row.dropna().astype(str))), axis=1))
+                for strain, genes in strain_to_genes.items():
+                    pseudo_orthogroups_df.at[i, strain] = genes if genes else np.nan
+
+            pseudo_orthogroups_df.drop(columns=[f'pseudo_genome_{batch_id}'], inplace=True)
+
+        pseudo_orthogroups_df = pseudo_orthogroups_df.sort_values(
+            by=list(pseudo_orthogroups_df.columns[1:])).reset_index(drop=True)
+        pseudo_orthogroups_df['OG_name'] = [f'OG_{i}' for i in range(len(pseudo_orthogroups_df.index))]
+        pseudo_orthogroups_df.to_csv(merged_orthogroups_file_path, index=False)
+
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+    
+    # TODO: Extract orphan genes
 
 
 def step_7_orthologs_table_variations(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
