@@ -18,7 +18,7 @@ from auxiliaries.file_writer import write_to_file
 from auxiliaries.input_verifications import prepare_and_verify_input_data
 from auxiliaries.pipeline_auxiliaries import (wait_for_results, prepare_directories, fail, submit_mini_batch,
                                               submit_batch, add_results_to_final_dir, remove_path, str_to_bool,
-                                              send_email_in_pipeline_end)
+                                              send_email_in_pipeline_end, submit_clean_folders_job)
 from auxiliaries import consts
 from flask import flask_interface_consts
 from auxiliaries.logic_auxiliaries import (plot_genomes_histogram, update_progressbar, define_intervals, combine_orphan_genes_stats)
@@ -86,6 +86,7 @@ def get_arguments():
     parser.add_argument('--use_linux_to_parse_big_files', action='store_true')
     parser.add_argument('--mmseqs_use_dbs', action='store_true')
     parser.add_argument('--do_not_copy_outputs_to_final_results_dir', action='store_true')
+    parser.add_argument('--clean_intermediate_outputs', action='store_true')
     parser.add_argument('--num_of_genomes_in_batch', type=int, default=50)
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
 
@@ -189,6 +190,8 @@ def validate_arguments(args):
         args.use_linux_to_parse_big_files = str_to_bool(args.use_linux_to_parse_big_files)
     if type(args.do_not_copy_outputs_to_final_results_dir) == str:
         args.do_not_copy_outputs_to_final_results_dir = str_to_bool(args.do_not_copy_outputs_to_final_results_dir)
+    if type(args.clean_intermediate_outputs) == str:
+        args.clean_intermediate_outputs = str_to_bool(args.clean_intermediate_outputs)
 
     if args.outgroup == "No outgroup":
         args.outgroup = None
@@ -1222,7 +1225,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         logger.info("Step 3 completed.")
         return
 
-    if number_of_genomes <= args.num_of_genomes_in_batch:
+    if number_of_genomes <= args.num_of_genomes_in_batch * 2:
         final_orthogroups_file_path = step_5_full_orthogroups_inference(
             args, logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir, final_output_dir,
             translated_orfs_dir, all_proteins_fasta_path, genomes_names_path)
@@ -1333,12 +1336,10 @@ def main(args):
             logger.info(f'Zipped results folder to {final_output_dir}.zip')
 
         # remove intermediate results
-        if consts.ENV == 'lsweb' and not consts.KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR:
-            logger.info('Cleaning up intermediate results...')
-            remove_path(logger, steps_results_dir)
-            remove_path(logger, data_path)
-            logger.info('Intermediate results cleaned up')
+        if args.clean_intermediate_outputs:
+            submit_clean_folders_job(args, logger, tmp_dir, [steps_results_dir])
 
+        write_to_file(logger, os.path.join(done_files_dir, 'pipeline_finished_successfully.txt'), '.')
         update_progressbar(progressbar_file_path, 'Finalize results')
         state = State.Finished
     except Exception as e:

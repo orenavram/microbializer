@@ -395,3 +395,22 @@ def none_or_str(value):
     if value == 'None':
         return None
     return value
+
+
+def submit_clean_folders_job(args, logger, tmp_dir, folders_to_clean):
+    logger.info('Cleaning up intermediate results...')
+
+    clean_folders_tmp_dir = os.path.join(tmp_dir, 'clean_folders')
+    os.makedirs(clean_folders_tmp_dir, exist_ok=True)
+
+    clean_folders_error_file_path = os.path.join(clean_folders_tmp_dir, 'error.txt')
+    clean_folders_file_path = os.path.join(clean_folders_tmp_dir, 'folders.txt')
+    with open(clean_folders_file_path, 'w') as fp:
+        fp.write('\n'.join(folders_to_clean))
+
+    params = [clean_folders_file_path]
+
+    script_path = os.path.join(consts.SRC_DIR, 'steps', 'clean_folders.py')
+    submit_mini_batch(logger, script_path, [params], clean_folders_tmp_dir, clean_folders_error_file_path,
+                      args.queue_name, args.account_name, job_name='clean_folders',
+                      node_name=args.node_name)

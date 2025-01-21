@@ -12,7 +12,6 @@ ENV = 'yair_test'
 # ENV = 'lsweb'
 # ENV = 'c-001'
 
-KEEP_OUTPUTS_IN_INTERMEDIATE_RESULTS_DIR = True
 
 if ENV == 'yair_test':
     PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer'
