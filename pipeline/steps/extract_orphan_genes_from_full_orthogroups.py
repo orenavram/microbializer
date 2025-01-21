@@ -28,44 +28,41 @@ def extract_gene_names_from_fasta(proteins_file_path):
     return gene_names
 
 
-def extract_orphan_proteins(logger, proteins_file_path, orthogroups_df, output_dir):
-    strain_name = os.path.splitext(os.path.basename(proteins_file_path))[0]
+def extract_orphan_proteins(logger, strain_name, orphan_orthogroups, output_dir):
+    orphan_orthogroups_of_strain = orphan_orthogroups[strain_name].dropna()
 
-    # Orphan ortogroups - orthogroups that contain genes from only one strain
-    orphan_orthogroups = orthogroups_df[orthogroups_df.count(axis=1) == 1]
-    orphan_orthogroups_of_strain = list(orphan_orthogroups[strain_name].dropna())
-    genes_in_orphan_orthogroups_of_strain = flatten([orthogroup.split(';') for orthogroup in orphan_orthogroups_of_strain])
+    orphan_orthogroups_with_paralogs = orphan_orthogroups_of_strain[orphan_orthogroups_of_strain.str.contains(';')]
+    genes_in_orphan_orthogroups_with_paralogs = flatten(
+        [orthogroup.split(';') for orthogroup in orphan_orthogroups_with_paralogs])
 
-    # Orphan genes (not in any orthogroup)
-    orthogroups_strain_column = orthogroups_df[strain_name].dropna()
-    genes_in_orthogroups = flatten([value.split(';') for value in orthogroups_strain_column])
-    all_strain_genes = set(extract_gene_names_from_fasta(proteins_file_path))
-    orphans = list(all_strain_genes.difference(genes_in_orthogroups))
+    orphan_genes = orphan_orthogroups_of_strain[~orphan_orthogroups_of_strain.str.contains(';')]
 
     orphans_path = os.path.join(output_dir, f'{strain_name}_orphans.txt')
     with open(orphans_path, 'w') as orphans_path_fp:
-        orphans_path_fp.write('\n'.join(orphan_orthogroups_of_strain + orphans))
+        orphans_path_fp.write('\n'.join(list(orphan_orthogroups_of_strain) + list(orphan_genes)))
     logger.info(f'Orphan genes of {strain_name} were written to {orphans_path}')
 
     orphans_count_path = os.path.join(output_dir, f'{strain_name}_orphans_stats.csv')
     orphans_stats = {
         'Orphan orthogroups count': len(orphan_orthogroups_of_strain),
-        'Orphan single genes count': len(orphans),
-        'Total orphans count': len(genes_in_orphan_orthogroups_of_strain) + len(orphans)
+        'Orphan single genes count': len(orphan_genes),
+        'Total orphans count': len(genes_in_orphan_orthogroups_with_paralogs) + len(orphan_genes)
     }
     orphans_count_df = pd.DataFrame(orphans_stats, index=[strain_name])
     orphans_count_df.to_csv(orphans_count_path)
     logger.info(f'Orphan genes statistics of {strain_name} were written to {orphans_count_path}')
 
 
-def extract_orphan_proteins_from_all_files(logger, job_input_path, orthogroups_file, output_dir):
+def extract_orphan_proteins_of_all_strains(logger, job_input_path, orthogroups_file, output_dir):
+    # Here we start from orthogroups_df that already contains orthogroups for all orphan genes.
     orthogroups_df = pd.read_csv(orthogroups_file)
     orthogroups_df.drop(columns=['OG_name'], inplace=True)
+    orphan_orthogroups = orthogroups_df[orthogroups_df.count(axis=1) == 1]
 
     with open(job_input_path, 'r') as f:
         for line in f:
-            proteins_file_path = line.strip()
-            extract_orphan_proteins(logger, proteins_file_path, orthogroups_df, output_dir)
+            strain_name = line.strip()
+            extract_orphan_proteins(logger, strain_name, orphan_orthogroups, output_dir)
 
 
 def main():
@@ -86,7 +83,7 @@ def main():
 
     logger.info(script_run_message)
     try:
-        extract_orphan_proteins_from_all_files(logger, args.job_input_path, args.orthogroups_file, args.output_dir)
+        extract_orphan_proteins_of_all_strains(logger, args.job_input_path, args.orthogroups_file, args.output_dir)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:

@@ -7,9 +7,9 @@ import itertools
 import shutil
 
 from . import consts
-from .pipeline_auxiliaries import wait_for_results, prepare_directories, fail, submit_mini_batch, submit_batch, execute
+from .pipeline_auxiliaries import wait_for_results, prepare_directories, submit_mini_batch, submit_batch
 from .logic_auxiliaries import aggregate_mmseqs_scores, define_intervals, add_score_column_to_mmseqs_output, \
-    get_directory_size_in_gb, plot_genomes_histogram
+    get_directory_size_in_gb, combine_orphan_genes_stats
 from .file_writer import write_to_file
 
 
@@ -362,20 +362,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
         wait_for_results(logger, times_logger, step_name, orphans_tmp_dir,
                          num_of_batches, error_file_path)
 
-        all_stat_dfs = []
-        for file_name in os.listdir(orphan_genes_internal_dir):
-            if 'orphans_stats.csv' not in file_name:
-                continue
-            df = pd.read_csv(os.path.join(orphan_genes_internal_dir, file_name), index_col=0)
-            all_stat_dfs.append(df)
-
-        combined_df = pd.concat(all_stat_dfs)
-        combined_df.to_csv(os.path.join(orphan_genes_dir, 'orphans_genes_stats.csv'))
-
-        number_of_orphans_per_file = combined_df['Total orphans count'].to_dict()
-        plot_genomes_histogram(number_of_orphans_per_file, orphan_genes_dir, 'orphan_genes_count', 'Orphan genes count',
-                               'Orphan genes count per Genome')
-
+        combine_orphan_genes_stats(orphan_genes_internal_dir, orphan_genes_dir)
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')

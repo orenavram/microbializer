@@ -21,7 +21,7 @@ from auxiliaries.pipeline_auxiliaries import (wait_for_results, prepare_director
                                               send_email_in_pipeline_end)
 from auxiliaries import consts
 from flask import flask_interface_consts
-from auxiliaries.logic_auxiliaries import (plot_genomes_histogram, update_progressbar, define_intervals)
+from auxiliaries.logic_auxiliaries import (plot_genomes_histogram, update_progressbar, define_intervals, combine_orphan_genes_stats)
 from auxiliaries.infer_orthogroups_logic import infer_orthogroups
 from flask.SharedConsts import USER_FILE_NAME_ZIP, USER_FILE_NAME_TAR, State
 
@@ -484,7 +484,7 @@ def step_5_full_orthogroups_inference(args, logger, times_logger, error_file_pat
     return os.path.join(final_orthogroups_dir_path, 'orthogroups.csv')
 
 
-def step_5_approximate_orthogroups_inference(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
+def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                                              done_files_dir, final_output_dir, translated_orfs_dir,
                                              genomes_names_path):
     with open(genomes_names_path, 'r') as genomes_names_fp:
@@ -553,6 +553,9 @@ def step_5_approximate_orthogroups_inference(args, logger, times_logger, error_f
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
+    if args.step_to_complete == '5':
+        logger.info("Step 5 completed.")
+        return
 
     # 06_0.	aggregate_sub_orthogroups
     step_number = '06_0'
@@ -595,7 +598,7 @@ def step_5_approximate_orthogroups_inference(args, logger, times_logger, error_f
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-
+    # 06. infer pseudo orthogroups
     pseudo_orthogroups_dir_path, _, final_substep_number = infer_orthogroups(
         logger, times_logger, '06', error_file_path, output_dir, tmp_dir, done_files_dir, pseudo_genomes_dir_path,
         all_pseudo_genomes_path, pseudo_genomes_strains_names_path, args.queue_name, args.account_name, args.node_name, args.identity_cutoff,
@@ -606,7 +609,7 @@ def step_5_approximate_orthogroups_inference(args, logger, times_logger, error_f
     pseudo_orthogroups_file_path = os.path.join(pseudo_orthogroups_dir_path, 'orthogroups.csv')
 
 
-    # construct_final_orthogroups
+    # 06_12. merged_suborthogroups
     step_number = f'06_{final_substep_number + 1}'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_merged_suborthogroups'
@@ -645,12 +648,92 @@ def step_5_approximate_orthogroups_inference(args, logger, times_logger, error_f
             by=list(pseudo_orthogroups_df.columns[1:])).reset_index(drop=True)
         pseudo_orthogroups_df['OG_name'] = [f'OG_{i}' for i in range(len(pseudo_orthogroups_df.index))]
         pseudo_orthogroups_df.to_csv(merged_orthogroups_file_path, index=False)
+        logger.info(f'Merged sub-orthogroups file saved to {merged_orthogroups_file_path}')
 
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
-    
-    # TODO: Extract orphan genes
+
+
+    # 06.13 extract_orphan_genes_from_full_orthogroups.py
+    step_number = f'06_{final_substep_number + 2}'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_orphan_genes_from_orthogroups'
+    script_path = os.path.join(consts.SRC_DIR, 'steps/extract_orphan_genes_from_full_orthogroups.py')
+    orphan_genes_dir, orphans_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    orphan_genes_internal_dir = os.path.join(orphan_genes_dir, 'orphans_lists_per_genome')
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        logger.info('Extracting orphan genes...')
+        os.makedirs(orphan_genes_internal_dir, exist_ok=True)
+
+        job_index_to_genome_names = defaultdict(list)
+
+        for i, genome_name in enumerate(genomes_names):
+            job_index = i % consts.MAX_PARALLEL_JOBS
+            job_index_to_genome_names[job_index].append(genome_name)
+
+        jobs_inputs_dir = os.path.join(orphans_tmp_dir, 'job_inputs')
+        os.makedirs(jobs_inputs_dir, exist_ok=True)
+
+        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
+        for job_index, job_genome_names in job_index_to_genome_names.items():
+            job_input_path = os.path.join(jobs_inputs_dir, f'{job_index}.txt')
+            with open(job_input_path, 'w') as f:
+                f.write('\n'.join(job_genome_names))
+
+            single_cmd_params = [job_input_path, merged_orthogroups_file_path, orphan_genes_internal_dir]
+            all_cmds_params.append(single_cmd_params)
+
+        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, orphans_tmp_dir, error_file_path,
+                                                   num_of_cmds_per_job=1,
+                                                   job_name_suffix='extract_orphans_from_orthogroups',
+                                                   queue_name=args.queue_name,
+                                                   account_name=args.account_name,
+                                                   node_name=args.node_name)
+
+        wait_for_results(logger, times_logger, step_name, orphans_tmp_dir,
+                         num_of_batches, error_file_path)
+
+        combine_orphan_genes_stats(orphan_genes_internal_dir, orphan_genes_dir)
+
+        if not args.do_not_copy_outputs_to_final_results_dir:
+            add_results_to_final_dir(logger, orphan_genes_dir, final_output_dir)
+
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+
+    # 06.14 final_orthogroups_table
+    step_number = f'06_{final_substep_number + 3}'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_final_orthogroups'
+    final_orthogroups_dir, final_orthogroups_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    final_orthogroups_file_path = os.path.join(final_orthogroups_dir, 'orthogroups.csv')
+    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
+    if not os.path.exists(done_file_path):
+        if args.add_orphan_genes_to_ogs:
+            shutil.copy(merged_orthogroups_file_path, final_orthogroups_file_path)
+            logger.info(f'add_orphan_genes_to_ogs is True. Copied {merged_orthogroups_file_path} to '
+                        f'{final_orthogroups_file_path} since it already contains orphans.')
+        else:
+            orthogroups_df = pd.read_csv(merged_orthogroups_file_path)
+            orthogroups_df.drop(columns=['OG_name'], inplace=True)
+            orthogroups_df = orthogroups_df[~((orthogroups_df.count(axis=1) == 1) &
+                                              (orthogroups_df.apply(lambda row: row.dropna().iloc[0].__contains__(';'), axis=1)))]
+            orthogroups_df.to_csv(final_orthogroups_file_path, index=False)
+            logger.info(f'add_orphan_genes_to_ogs is False. Removed single orphan genes from {merged_orthogroups_file_path} '
+                        f'and saved to {final_orthogroups_file_path}')
+
+        if not args.do_not_copy_outputs_to_final_results_dir:
+            add_results_to_final_dir(logger, final_orthogroups_dir, final_output_dir)
+
+        write_to_file(logger, done_file_path, '.')
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+    return final_orthogroups_file_path
 
 
 def step_7_orthologs_table_variations(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
@@ -1141,17 +1224,21 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         final_orthogroups_file_path = step_5_full_orthogroups_inference(
             args, logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir, final_output_dir,
             translated_orfs_dir, all_proteins_fasta_path, genomes_names_path)
+
+        if args.step_to_complete == '5':
+            logger.info("Step 5 completed.")
+            return
     else:
-        final_orthogroups_file_path = step_5_approximate_orthogroups_inference(
+        final_orthogroups_file_path = step_5_6_approximate_orthogroups_inference(
             args, logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir, final_output_dir,
             translated_orfs_dir, genomes_names_path)
 
+        if args.step_to_complete == '6':
+            logger.info("Step 5 completed.")
+            return
+
     update_progressbar(progressbar_file_path, 'Infer orthogroups')
     update_progressbar(progressbar_file_path, 'Find orphan genes')
-
-    if args.step_to_complete == '5':
-        logger.info("Step 5 completed.")
-        return
 
     step_7_orthologs_table_variations(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
                                       final_output_dir, done_files_dir, final_orthogroups_file_path)

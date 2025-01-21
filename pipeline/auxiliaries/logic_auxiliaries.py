@@ -177,3 +177,19 @@ def fna_to_faa(logger, nucleotide_path, protein_path):
             SeqIO.write(translated_record, out_handle, "fasta")
 
     logger.info(f'Translated fatsa file {nucleotide_path}. Output was written successfully to: {protein_path}')
+
+
+def combine_orphan_genes_stats(orphan_genes_dir, output_dir):
+    all_stat_dfs = []
+    for file_name in os.listdir(orphan_genes_dir):
+        if 'orphans_stats.csv' not in file_name:
+            continue
+        df = pd.read_csv(os.path.join(orphan_genes_dir, file_name), index_col=0)
+        all_stat_dfs.append(df)
+
+    combined_df = pd.concat(all_stat_dfs)
+    combined_df.to_csv(os.path.join(output_dir, 'orphans_genes_stats.csv'))
+
+    number_of_orphans_per_file = combined_df['Total orphans count'].to_dict()
+    plot_genomes_histogram(number_of_orphans_per_file, output_dir, 'orphan_genes_count', 'Orphan genes count',
+                           'Orphan genes count per Genome')
