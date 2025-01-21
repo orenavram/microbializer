@@ -2,9 +2,9 @@ import os
 import pandas as pd
 from sklearn import metrics
 
-BASE_PATH = r"C:\repos\microbializer\tests\pipeline_optimization_experiments\73_ecoli_optimization_summary_c_001"
-OG_TABLE_ORIGINAL = os.path.join(BASE_PATH, "outputs_preCluster_no_optimizedMmseqs_no_useParquet_no", "orthogroups.csv")
-OG_TABLE_S4 = os.path.join(BASE_PATH, "outputs_preCluster_no_optimizedMmseqs_no_useParquet_no_useMmseqsDbs_yes_s4", "orthogroups.csv")
+BASE_PATH = r"C:\repos\microbializer\tests\pipeline_optimization_experiments\10_genomes_c_001"
+OG_TABLE_ORIGINAL = os.path.join(BASE_PATH, "orthogroups_full.csv")
+OG_TABLE_APPROXIMATION = os.path.join(BASE_PATH, "orthogroups_panx_approximation.csv")
 
 
 def compare_clusterings(true_labels, pred_labels, output_path):
@@ -55,15 +55,15 @@ def convert_og_table_to_labels(og_table_path):
 
 def main():
     original_labels, original_genes = convert_og_table_to_labels(OG_TABLE_ORIGINAL)
-    s4_labels, s4_genes = convert_og_table_to_labels(OG_TABLE_S4)
+    approximation_labels, approximation_genes = convert_og_table_to_labels(OG_TABLE_APPROXIMATION)
 
-    if len(original_labels) != len(s4_labels):
-        genes_difference = set(original_genes).difference(set(s4_genes))
-        genes_difference.add(set(s4_genes).difference(set(original_genes)))
-        print(f"Genes in original but not in s4 or vice versa: {genes_difference}")
+    if len(original_labels) != len(approximation_labels):
+        genes_difference = set(original_genes).difference(set(approximation_genes))
+        genes_difference.add(set(approximation_genes).difference(set(original_genes)))
+        print(f"Genes in original but not in approximation or vice versa: {genes_difference}")
         return
 
-    compare_clusterings(original_labels, s4_labels, os.path.join(BASE_PATH, "comparison_scores.csv"))
+    compare_clusterings(original_labels, approximation_labels, os.path.join(BASE_PATH, "comparison_scores.csv"))
 
 
 if __name__ == '__main__':
