@@ -598,6 +598,7 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
+
     # 06. infer pseudo orthogroups
     pseudo_orthogroups_dir_path, _, final_substep_number = infer_orthogroups(
         logger, times_logger, '06', error_file_path, output_dir, tmp_dir, done_files_dir, pseudo_genomes_dir_path,
@@ -627,6 +628,7 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
             sub_orthogroups_file_path = os.path.join(sub_orthogroups_dir_path, sub_orthogroups_file_name)
             sub_orthogroups_df = pd.read_csv(sub_orthogroups_file_path)
             sub_orthogroups_df.drop(columns=['OG_name'], inplace=True)
+            sub_orthogroups_df.set_index('representative_gene', inplace=True)
 
             # Fill rows of pseudo_orthogroups_df where pseudo_genome_{batch_id} contains only 1 gene
             pseudo_orthogroups_df = pseudo_orthogroups_df.merge(
@@ -637,7 +639,7 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
                 pseudo_orthogroups_df[f'pseudo_genome_{batch_id}'].str.contains(';', na=False)]
             for i, row in pseudo_orthogroups_with_paralogs_in_pseudo_genome.iterrows():
                 pseudo_genes = row[f'pseudo_genome_{batch_id}'].split(';')
-                row_sub_orthogroups = pd.concat([sub_orthogroups_df.loc[pseudo_gene] for pseudo_gene in pseudo_genes])
+                row_sub_orthogroups = pd.concat([sub_orthogroups_df.loc[pseudo_gene] for pseudo_gene in pseudo_genes], axis=1)
                 strain_to_genes = dict(row_sub_orthogroups.apply(lambda row: ';'.join(sorted(row.dropna().astype(str))), axis=1))
                 for strain, genes in strain_to_genes.items():
                     pseudo_orthogroups_df.at[i, strain] = genes if genes else np.nan
@@ -658,7 +660,7 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
     # 06.13 extract_orphan_genes_from_full_orthogroups.py
     step_number = f'06_{final_substep_number + 2}'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_orphan_genes_from_orthogroups'
+    step_name = f'{step_number}_orphan_genes'
     script_path = os.path.join(consts.SRC_DIR, 'steps/extract_orphan_genes_from_full_orthogroups.py')
     orphan_genes_dir, orphans_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     orphan_genes_internal_dir = os.path.join(orphan_genes_dir, 'orphans_lists_per_genome')
@@ -708,7 +710,7 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
     # 06.14 final_orthogroups_table
     step_number = f'06_{final_substep_number + 3}'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_final_orthogroups'
+    step_name = f'{step_number}_orthogroups_final'
     final_orthogroups_dir, final_orthogroups_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     final_orthogroups_file_path = os.path.join(final_orthogroups_dir, 'orthogroups.csv')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
