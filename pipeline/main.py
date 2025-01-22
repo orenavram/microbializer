@@ -83,8 +83,6 @@ def get_arguments():
                         action='store_true')
     parser.add_argument('--use_parquet', help='When True, use parquet files when possible instead of csv',
                         action='store_true')
-    parser.add_argument('--use_linux_to_parse_big_files', action='store_true')
-    parser.add_argument('--mmseqs_use_dbs', action='store_true')
     parser.add_argument('--do_not_copy_outputs_to_final_results_dir', action='store_true')
     parser.add_argument('--clean_intermediate_outputs', action='store_true')
     parser.add_argument('--num_of_genomes_in_batch', type=int, default=50)
@@ -182,12 +180,8 @@ def validate_arguments(args):
         args.add_orphan_genes_to_ogs = str_to_bool(args.add_orphan_genes_to_ogs)
     if type(args.use_parquet) == str:
         args.use_parquet = str_to_bool(args.use_parquet)
-    if type(args.mmseqs_use_dbs) == str:
-        args.mmseqs_use_dbs = str_to_bool(args.mmseqs_use_dbs)
     if type(args.run_optimized_mmseqs) == str:
         args.run_optimized_mmseqs = str_to_bool(args.run_optimized_mmseqs)
-    if type(args.use_linux_to_parse_big_files) == str:
-        args.use_linux_to_parse_big_files = str_to_bool(args.use_linux_to_parse_big_files)
     if type(args.do_not_copy_outputs_to_final_results_dir) == str:
         args.do_not_copy_outputs_to_final_results_dir = str_to_bool(args.do_not_copy_outputs_to_final_results_dir)
     if type(args.clean_intermediate_outputs) == str:
@@ -475,7 +469,7 @@ def step_5_full_orthogroups_inference(args, logger, times_logger, error_file_pat
         logger, times_logger, '05', error_file_path, output_dir, tmp_dir, done_files_dir, translated_orfs_dir,
         all_proteins_path, strains_names_path, args.queue_name, args.account_name, args.node_name, args.identity_cutoff,
         args.coverage_cutoff, args.e_value_cutoff, consts.MAX_PARALLEL_JOBS, args.run_optimized_mmseqs,
-        args.use_parquet, args.use_linux_to_parse_big_files, args.mmseqs_use_dbs, args.verbose,
+        args.use_parquet, args.verbose,
         args.add_orphan_genes_to_ogs)
 
     if not args.do_not_copy_outputs_to_final_results_dir:
@@ -532,10 +526,6 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
                 params.append('--use_parquet')
             if args.verbose:
                 params.append('--verbose')
-            if args.use_linux_to_parse_big_files:
-                params.append('--use_linux_to_parse_big_files')
-            if args.mmseqs_use_dbs:
-                params.append('--mmseqs_use_dbs')
 
             params.append('--add_orphan_genes_to_ogs')  # Always add orphan genes to OGs in this step
             all_cmds_params.append(params)
@@ -607,7 +597,7 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
         logger, times_logger, '06', error_file_path, output_dir, tmp_dir, done_files_dir, pseudo_genomes_dir_path,
         all_pseudo_genomes_path, pseudo_genomes_strains_names_path, args.queue_name, args.account_name, args.node_name, args.identity_cutoff,
         args.coverage_cutoff, args.e_value_cutoff, consts.MAX_PARALLEL_JOBS, args.run_optimized_mmseqs,
-        args.use_parquet, args.use_linux_to_parse_big_files, args.mmseqs_use_dbs, args.verbose,
+        args.use_parquet, args.verbose,
         True, skip_paralogs=True)
 
     pseudo_orthogroups_file_path = os.path.join(pseudo_orthogroups_dir_path, 'orthogroups.csv')
