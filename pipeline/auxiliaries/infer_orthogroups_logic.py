@@ -17,7 +17,7 @@ from .file_writer import write_to_file
 
 def infer_orthogroups(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,
                       translated_orfs_dir, all_proteins_path, strains_names_path, queue_name,
-                      account_name, node_name, identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs,
+                      account_name, node_name, identity_cutoff, coverage_cutoff, e_value_cutoff, sensitivity, max_parallel_jobs,
                       run_optimized_mmseqs, use_parquet, verbose,
                       add_orphan_genes_to_ogs, skip_paralogs=False):
 
@@ -26,7 +26,7 @@ def infer_orthogroups(logger, times_logger, base_step_number, error_file_path, o
                                     done_files_dir, translated_orfs_dir, all_proteins_path, strains_names_path,
                                     queue_name, account_name, node_name, identity_cutoff, coverage_cutoff, e_value_cutoff,
                                     max_parallel_jobs, run_optimized_mmseqs, use_parquet,
-                                    verbose, skip_paralogs)
+                                    verbose, skip_paralogs, sensitivity)
 
     final_orthogroups_dir_path, orphan_genes_dir, final_substep_number = \
         cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, output_dir, tmp_dir,
@@ -43,7 +43,7 @@ def run_mmseqs_and_extract_hits(logger, times_logger, base_step_number, error_fi
                                 translated_orfs_dir, all_proteins_path, strains_names_path, queue_name,
                                 account_name, node_name, identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs,
                                 run_optimized_mmseqs, use_parquet, verbose,
-                                skip_paralogs):
+                                skip_paralogs, sensitivity):
     with open(strains_names_path) as f:
         strains_names = f.read().rstrip().split('\n')
 
@@ -52,13 +52,13 @@ def run_mmseqs_and_extract_hits(logger, times_logger, base_step_number, error_fi
             run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
                                done_files_dir, all_proteins_path, strains_names, queue_name, account_name, node_name,
                                identity_cutoff, coverage_cutoff,  e_value_cutoff, max_parallel_jobs, use_parquet,
-                               verbose, skip_paralogs)
+                               verbose, skip_paralogs, sensitivity)
     else:
         orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir = \
             run_non_unified_mmseqs_with_dbs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
                                    done_files_dir, translated_orfs_dir, strains_names, queue_name, account_name, node_name,
                                    identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs, use_parquet,
-                                   skip_paralogs)
+                                   skip_paralogs, sensitivity)
 
     return orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir
 
@@ -401,7 +401,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
 
 def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,
                        all_proteins_path, strains_names, queue_name, account_name, node_name, identity_cutoff, coverage_cutoff,
-                       e_value_cutoff, max_parallel_jobs, use_parquet, verbose, skip_paralogs):
+                       e_value_cutoff, max_parallel_jobs, use_parquet, verbose, skip_paralogs, sensitivity):
     # 1.	mmseqs2_all_vs_all.py
     step_number = f'{base_step_number}_1'
     logger.info(f'Step {step_number}: {"_" * 100}')
@@ -418,6 +418,7 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
                   f'--identity_cutoff {identity_cutoff / 100}',
                   f'--coverage_cutoff {coverage_cutoff / 100}',
                   f'--e_value_cutoff {e_value_cutoff}',
+                  f'--sensitivity {sensitivity}',
                   f'--number_of_genomes {len(strains_names)}',
                   f'--cpus {consts.MMSEQS_BIG_DATASET_NUM_OF_CORES}']
 
@@ -565,13 +566,7 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
 
 def run_non_unified_mmseqs_with_dbs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,
                            translated_orfs_dir, strains_names, queue_name, account_name, node_name, identity_cutoff,
-                           coverage_cutoff, e_value_cutoff, n_jobs_per_step, use_parquet, skip_paralogs):
-    number_of_genomes = len(strains_names)
-    if number_of_genomes <= 100:
-        sensitivity_parameter = consts.MMSEQS_HIGH_SENSITIVITY_PARAMETER
-    else:
-        sensitivity_parameter = consts.MMSEQS_LOW_SENSITIVITY_PARAMETER
-
+                           coverage_cutoff, e_value_cutoff, n_jobs_per_step, use_parquet, skip_paralogs, sensitivity):
     # 1. mmseqs2_create_db
     step_number = f'{base_step_number}_1'
     logger.info(f'Step {step_number}: {"_" * 100}')
@@ -656,7 +651,7 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, base_step_number, erro
                                      f'--identity_cutoff {identity_cutoff / 100}',
                                      f'--coverage_cutoff {coverage_cutoff / 100}',
                                      f'--e_value_cutoff {e_value_cutoff}',
-                                     f'--sensitivity {sensitivity_parameter}',
+                                     f'--sensitivity {sensitivity}',
                                      ]
                 if use_parquet:
                     single_cmd_params.append('--use_parquet')
@@ -723,7 +718,7 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, base_step_number, erro
                                  f'--identity_cutoff {identity_cutoff / 100}',
                                  f'--coverage_cutoff {coverage_cutoff / 100}',
                                  f'--e_value_cutoff {e_value_cutoff}',
-                                 f'--sensitivity {sensitivity_parameter}',
+                                 f'--sensitivity {sensitivity}',
                                  ]
             if use_parquet:
                 single_cmd_params.append('--use_parquet')

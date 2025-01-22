@@ -157,7 +157,7 @@ if __name__ == '__main__':
     parser.add_argument('--identity_cutoff', type=float)
     parser.add_argument('--coverage_cutoff', type=float)
     parser.add_argument('--e_value_cutoff', type=float)
-    parser.add_argument('--sensitivity', type=float, default=consts.MMSEQS_HIGH_SENSITIVITY_PARAMETER)
+    parser.add_argument('--sensitivity', type=float)
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--use_parquet', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')

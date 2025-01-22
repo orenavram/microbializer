@@ -48,6 +48,7 @@ def get_arguments():
     parser.add_argument('--e_value_cutoff', default=0.01,
                         help='maxmimum permitted e-value (0 <= e_value_cutoff <= 1; higher values will be filtered'
                              ' out).')
+    parser.add_argument('--sensitivity', default=5.7)
     parser.add_argument('--core_minimal_percentage', default=100.0,
                         help='the minimum required percent of gene members that is needed to be considered a core gene.'
                              ' For example: (1) 100 means that for a gene to be considered core, all strains should '
@@ -481,7 +482,7 @@ def step_5_full_orthogroups_inference(args, logger, times_logger, error_file_pat
     final_orthogroups_dir_path, orphan_genes_dir, _ = infer_orthogroups(
         logger, times_logger, '05', error_file_path, output_dir, tmp_dir, done_files_dir, translated_orfs_dir,
         all_proteins_path, strains_names_path, args.queue_name, args.account_name, args.node_name, args.identity_cutoff,
-        args.coverage_cutoff, args.e_value_cutoff, consts.MAX_PARALLEL_JOBS, args.run_optimized_mmseqs,
+        args.coverage_cutoff, args.e_value_cutoff, args.sensitivity, consts.MAX_PARALLEL_JOBS, args.run_optimized_mmseqs,
         args.use_parquet, args.verbose,
         args.add_orphan_genes_to_ogs)
 
@@ -530,7 +531,7 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
             params = [step_number, subset_output_dir, subset_tmp_dir, subset_done_dir, translated_orfs_dir,
                       subset_genomes_names_path, args.queue_name,
                       args.account_name, args.node_name, args.identity_cutoff, args.coverage_cutoff,
-                      args.e_value_cutoff, max(1, consts.MAX_PARALLEL_JOBS // len(intervals)), batch_id]
+                      args.e_value_cutoff, args.sensitivity, max(1, consts.MAX_PARALLEL_JOBS // len(intervals)), batch_id]
 
             if args.run_optimized_mmseqs:
                 params.append('--run_optimized_mmseqs')
@@ -611,9 +612,8 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
     pseudo_orthogroups_dir_path, _, final_substep_number = infer_orthogroups(
         logger, times_logger, '06', error_file_path, output_dir, tmp_dir, done_files_dir, pseudo_genomes_dir_path,
         all_pseudo_genomes_path, pseudo_genomes_strains_names_path, args.queue_name, args.account_name, args.node_name, args.identity_cutoff,
-        args.coverage_cutoff, args.e_value_cutoff, consts.MAX_PARALLEL_JOBS, args.run_optimized_mmseqs,
-        args.use_parquet, args.verbose,
-        True, skip_paralogs=True)
+        args.coverage_cutoff, args.e_value_cutoff, args.sensitivity, consts.MAX_PARALLEL_JOBS, args.run_optimized_mmseqs,
+        args.use_parquet, args.verbose, True, skip_paralogs=True)
 
     pseudo_orthogroups_file_path = os.path.join(pseudo_orthogroups_dir_path, 'orthogroups.csv')
 
