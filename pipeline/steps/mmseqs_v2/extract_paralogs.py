@@ -81,11 +81,13 @@ def extract_paralogs_of_genome(logger, m8_df, genome_name, max_scores_parts_dir,
         lambda x: tuple(sorted((x['query'], x['target']))), axis=1
     )
     m8_df = m8_df.drop_duplicates(subset='pair')
+    m8_df = m8_df[['query', 'target', 'score']]
+    m8_df.sort_values(by='query', inplace=True).reset_index(drop=True, inplace=True)
 
     if use_parquet:
-        m8_df[['query', 'target', 'score']].to_parquet(output_paralogs_filtered_path, index=False)
+        m8_df.to_parquet(output_paralogs_filtered_path, index=False)
     else:
-        m8_df[['query', 'target', 'score']].to_csv(output_paralogs_filtered_path, index=False)
+        m8_df.to_csv(output_paralogs_filtered_path, index=False)
     logger.info(f"{output_paralogs_filtered_path} was created successfully.")
 
     scores_statistics = {'mean': statistics.mean(m8_df['score']), 'sum': sum(m8_df['score']),

@@ -103,7 +103,7 @@ BLAST_OUTPUT_HEADER = ['query', 'subject', 'identity_percent', 'alignment_length
                         'query_start', 'query_end', 'subject_start', 'subject_end', 'evalue', 'bit_score']
 MMSEQS_OUTPUT_FORMAT = 'query,target,bits'
 MMSEQS_OUTPUT_HEADER = MMSEQS_OUTPUT_FORMAT.split(',')
-MMSEQS_OUTPUT_COLUMNS_TYPES = {'query': str, 'target': str, 'bits': np.float16}
+MMSEQS_OUTPUT_COLUMNS_TYPES = {'query': str, 'target': str, 'bits': int}
 HMMSEARCH_OUTPUT_HEADER = ['target_name', 'target_accession', 'query_name', 'query_accession', 'full_e_value',
                            'full_score', 'full_bias', 'domain_e_Value', 'domain_score', 'domain_bias', 'exp', 'reg',
                            'clu', 'ov', 'env', 'dom', 'rep', 'inc', 'description_of_target']

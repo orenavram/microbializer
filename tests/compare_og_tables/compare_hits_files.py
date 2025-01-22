@@ -1,9 +1,7 @@
 
-PATH_1 = r"C:\temp\use_dbs\concatenated_all_hits.txt"
-PATH_2 = r"C:\temp\original\concatenated_all_hits.txt"
 
-PATH_1 = r"C:\temp\use_dbs\Sflexneri_5_8401_vs_Ecoli_O104_H4_2009EL_2050.m8"
-PATH_2 = r"C:\temp\original\Sflexneri_5_8401_vs_Ecoli_O104_H4_2009EL_2050.m8"
+PATH_1 = r"C:\Users\TalPNB22\Downloads\original_100\GCF_041463645.1_vs_GCF_041463755.1.m8"
+PATH_2 = r"C:\Users\TalPNB22\Downloads\one_mmseqs_100\GCF_041463645.1_vs_GCF_041463755.1.m8"
 
 
 def get_pairs(path):

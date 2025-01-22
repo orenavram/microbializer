@@ -68,9 +68,6 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
                                        paralogs_scores_statistics_dir, max_parallel_jobs, base_step_number,
                                        start_substep_number, account_name, queue_name, node_name, use_parquet,
                                        strains_names_path, translated_orfs_dir, add_orphan_genes_to_ogs, skip_paralogs):
-    with open(strains_names_path) as f:
-        strains_names = f.read().rstrip().split('\n')
-
     # normalize_scores
     step_number = f'{base_step_number}_{start_substep_number}'
     script_path = os.path.join(consts.SRC_DIR, 'steps/normalize_hits_scores.py')

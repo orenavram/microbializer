@@ -64,6 +64,7 @@ def extract_rbh_hits_of_pair(logger, m8_df, genome1, genome2, rbh_hits_dir, scor
     # Step 6: Select only relevant columns for final output
     rbh_pairs = unique_rbh[['query_x', 'target_x', 'average_score']]
     rbh_pairs.columns = ['query', 'target', 'score']
+    rbh_pairs.sort_values(by='query', inplace=True).reset_index(drop=True, inplace=True)
 
     if use_parquet:
         rbh_pairs.to_parquet(output_rbh_path, index=False)
