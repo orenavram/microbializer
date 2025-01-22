@@ -4,7 +4,7 @@ import os
 import shutil
 import sys
 from collections import defaultdict
-from time import time
+import time
 import traceback
 import json
 import subprocess
@@ -351,6 +351,7 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Concatenating orfs counts and gc contents...')
+        start_time = time.time()
 
         gc_content = {}
         orf_count = {}
@@ -364,6 +365,9 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
 
         plot_genomes_histogram(orf_count, orfs_plots_path, 'orfs_counts', 'ORFs count', 'ORFs Count per genome')
         plot_genomes_histogram(gc_content, orfs_plots_path, 'orfs_gc_content', 'GC Content (of ORFs)', 'GC Content per genome')
+
+        step_time = timedelta(seconds=int(time.time() - start_time))
+        times_logger.info(f'Step {step_name} took {step_time}.')
 
         if not args.do_not_copy_outputs_to_final_results_dir:
             add_results_to_final_dir(logger, orfs_plots_path, final_output_dir)
@@ -381,6 +385,7 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Concatenating ORFs sequences...')
+        start_time = time.time()
 
         cmd = f"cat {os.path.join(orfs_sequences_dir, '*')} > {all_orfs_fasta_path}"
         logger.info(f'Calling: {cmd}')
@@ -389,6 +394,9 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
         cmd = f"cat {os.path.join(orfs_translated_dir, '*')} > {all_proteins_fasta_path}"
         logger.info(f'Calling: {cmd}')
         subprocess.run(cmd, shell=True)
+
+        step_time = timedelta(seconds=int(time.time() - start_time))
+        times_logger.info(f'Step {step_name} took {step_time}.')
 
         write_to_file(logger, done_file_path, '.')
     else:
@@ -444,6 +452,8 @@ def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_pa
                          num_of_batches, error_file_path)
 
         # Aggregate results of step
+        start_time = time.time()
+
         genomes_completeness_scores = {}
         for genome_name in os.listdir(genomes_output_dir_path):
             genome_score_path = os.path.join(genomes_output_dir_path, genome_name, 'result.txt')
@@ -455,6 +465,9 @@ def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_pa
 
         # comment the next line if you don't wish to delete hmmer results
         shutil.rmtree(genomes_output_dir_path)
+
+        aggregation_time = timedelta(seconds=int(time.time() - start_time))
+        times_logger.info(f'Step {step_name} post-processing took {aggregation_time}.')
 
         if not args.do_not_copy_outputs_to_final_results_dir:
             add_results_to_final_dir(logger, genome_completeness_dir_path, final_output_dir)
@@ -501,7 +514,6 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
 
         all_cmds_params = []
         for batch_id, (start_index, end_index) in enumerate(intervals):
-            logger.info(f'Infer orthogroups for subset {batch_id} of proteomes: {start_index} - {end_index}')
             subset_genome_names = genomes_names[start_index:end_index + 1]
 
             subset_output_dir = os.path.join(inference_dir_path, f'subset_{batch_id}')
@@ -562,6 +574,7 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Collection psuedo genomes and sub-orthogroups...')
+        start_time = time.time()
 
         os.makedirs(pseudo_genomes_dir_path, exist_ok=True)
         os.makedirs(sub_orthogroups_dir_path, exist_ok=True)
@@ -587,6 +600,8 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
         with open(pseudo_genomes_strains_names_path, 'w') as pseudo_genomes_strains_names_fp:
             pseudo_genomes_strains_names_fp.write('\n'.join(pseudo_genomes_names))
 
+        step_time = timedelta(seconds=int(time.time() - start_time))
+        times_logger.info(f'Step {step_name} took {step_time}.')
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -612,6 +627,7 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Merge sub-orthogroups...')
+        start_time = time.time()
 
         pseudo_orthogroups_df = pd.read_csv(pseudo_orthogroups_file_path)
 
@@ -645,6 +661,8 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
         pseudo_orthogroups_df.to_csv(merged_orthogroups_file_path, index=False)
         logger.info(f'Merged sub-orthogroups file saved to {merged_orthogroups_file_path}')
 
+        step_time = timedelta(seconds=int(time.time() - start_time))
+        times_logger.info(f'Step {step_name} took {step_time}.')
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -690,7 +708,10 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
         wait_for_results(logger, times_logger, step_name, orphans_tmp_dir,
                          num_of_batches, error_file_path)
 
+        start_time = time.time()
         combine_orphan_genes_stats(orphan_genes_internal_dir, orphan_genes_dir)
+        step_post_processing_time = timedelta(seconds=int(time.time() - start_time))
+        times_logger.info(f'Step {step_name} post-processing took {step_post_processing_time}.')
 
         if not args.do_not_copy_outputs_to_final_results_dir:
             add_results_to_final_dir(logger, orphan_genes_dir, final_output_dir)
@@ -708,6 +729,8 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
     final_orthogroups_file_path = os.path.join(final_orthogroups_dir, 'orthogroups.csv')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
+        start_time = time.time()
+
         if args.add_orphan_genes_to_ogs:
             shutil.copy(merged_orthogroups_file_path, final_orthogroups_file_path)
             logger.info(f'add_orphan_genes_to_ogs is True. Copied {merged_orthogroups_file_path} to '
@@ -720,6 +743,9 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
             orthogroups_df.to_csv(final_orthogroups_file_path, index=False)
             logger.info(f'add_orphan_genes_to_ogs is False. Removed single orphan genes from {merged_orthogroups_file_path} '
                         f'and saved to {final_orthogroups_file_path}')
+
+        step_time = timedelta(seconds=int(time.time() - start_time))
+        times_logger.info(f'Step {step_name} took {step_time}.')
 
         if not args.do_not_copy_outputs_to_final_results_dir:
             add_results_to_final_dir(logger, final_orthogroups_dir, final_output_dir)
@@ -768,6 +794,7 @@ def step_7_orthologs_table_variations(args, logger, times_logger, error_file_pat
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Collecting sizes...')
+        start_time = time.time()
 
         final_orthologs_table_df = pd.read_csv(final_orthogroups_file_path, index_col='OG_name')
         group_sizes = final_orthologs_table_df.apply(lambda row: row.count(), axis=1)
@@ -783,6 +810,9 @@ def step_7_orthologs_table_variations(args, logger, times_logger, error_file_pat
         plt.tight_layout()
         plt.savefig(os.path.join(group_sizes_path, 'groups_sizes.png'), dpi=600)
         plt.clf()
+
+        step_time = timedelta(seconds=int(time.time() - start_time))
+        times_logger.info(f'Step {step_name} took {step_time}.')
 
         if not args.do_not_copy_outputs_to_final_results_dir:
             add_results_to_final_dir(logger, group_sizes_path, final_output_dir)
@@ -969,20 +999,23 @@ def step_10_genome_numeric_representation(args, logger, times_logger, error_file
     script_path = os.path.join(consts.SRC_DIR, 'steps/genome_numeric_representation.py')
     numeric_representation_output_dir, numeric_representation_tmp_dir = prepare_directories(logger, output_dir,
                                                                                             tmp_dir, numeric_step_name)
-    core_genome_numeric_representation_file_path = os.path.join(numeric_representation_output_dir,
-                                                                'core_genome_numeric_representation.txt')
     numeric_done_file_path = os.path.join(done_files_dir, f'{numeric_step_name}.txt')
     if not os.path.exists(numeric_done_file_path):
-        params = [final_orthologs_table_file_path,
-                  orfs_dir,
-                  core_genome_numeric_representation_file_path,
-                  numeric_representation_tmp_dir
-                  ]
-        submit_mini_batch(logger, script_path, [params], numeric_representation_tmp_dir, error_file_path,
-                          args.queue_name, args.account_name, job_name='numeric_representation', node_name=args.node_name)
+        core_genome_numeric_representation_file_path = os.path.join(numeric_representation_output_dir,
+                                                                    'core_genome_numeric_representation.txt')
+        if args.core_minimal_percentage == 100:
+            params = [final_orthologs_table_file_path,
+                      orfs_dir,
+                      core_genome_numeric_representation_file_path,
+                      numeric_representation_tmp_dir
+                      ]
+            submit_mini_batch(logger, script_path, [params], numeric_representation_tmp_dir, error_file_path,
+                              args.queue_name, args.account_name, job_name='numeric_representation', node_name=args.node_name)
 
-        wait_for_results(logger, times_logger, numeric_step_name, numeric_representation_tmp_dir,
-                         num_of_expected_results=1, error_file_path=error_file_path)
+            wait_for_results(logger, times_logger, numeric_step_name, numeric_representation_tmp_dir,
+                             num_of_expected_results=1, error_file_path=error_file_path)
+        else:
+            open(core_genome_numeric_representation_file_path, 'w').close()
 
         if not args.do_not_copy_outputs_to_final_results_dir:
             add_results_to_final_dir(logger, numeric_representation_output_dir, final_output_dir)
@@ -1026,7 +1059,6 @@ def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, t
     script_path = os.path.join(consts.SRC_DIR, 'steps/reconstruct_species_phylogeny.py')
     phylogeny_path, phylogeny_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, phylogeny_step_name)
     phylogeny_done_file_path = os.path.join(done_files_dir, f'{phylogeny_step_name}.txt')
-    start_time = time()
     if not os.path.exists(phylogeny_done_file_path):
         output_tree_path = os.path.join(phylogeny_path, 'final_species_tree.newick')
         if number_of_genomes < 3 or core_proteome_length == 0:
@@ -1064,8 +1096,7 @@ def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, t
 
             # wait for the phylogenetic tree here
             wait_for_results(logger, times_logger, phylogeny_step_name, phylogeny_tmp_dir,
-                             num_of_expected_results=1, error_file_path=error_file_path,
-                             start=start_time)
+                             num_of_expected_results=1, error_file_path=error_file_path)
 
         if not args.do_not_copy_outputs_to_final_results_dir:
             add_results_to_final_dir(logger, phylogeny_path, final_output_dir)
@@ -1159,6 +1190,8 @@ def step_12_orthogroups_annotations(args, logger, times_logger, error_file_path,
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Adding annotations to orthogroups...')
+        start_time = time.time()
+
         final_orthologs_df = pd.read_csv(final_orthologs_table_file_path)
 
         if os.path.exists(kegg_table_path):
@@ -1172,6 +1205,9 @@ def step_12_orthogroups_annotations(args, logger, times_logger, error_file_path,
         final_orthologs_table_annotated_path = os.path.join(output_dir_path, 'orthogroups_annotated.csv')
         final_orthologs_df.to_csv(final_orthologs_table_annotated_path, index=False)
         logger.info(f'Final orthologs table with annotations saved to {final_orthologs_table_annotated_path}')
+
+        step_time = timedelta(seconds=int(time.time() - start_time))
+        times_logger.info(f'Step {step_name} took {step_time}.')
 
         if not args.do_not_copy_outputs_to_final_results_dir:
             add_results_to_final_dir(logger, final_orthologs_table_annotated_path, final_output_dir)
@@ -1265,10 +1301,9 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         logger.info("Step 9 completed.")
         return
 
-    if args.core_minimal_percentage == 100:
-        step_10_genome_numeric_representation(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
-                                              final_output_dir, done_files_dir, orfs_dir, final_orthogroups_file_path)
-        update_progressbar(progressbar_file_path, 'Calculate genomes numeric representation')
+    step_10_genome_numeric_representation(args, logger, times_logger, error_file_path, output_dir, tmp_dir,
+                                          final_output_dir, done_files_dir, orfs_dir, final_orthogroups_file_path)
+    update_progressbar(progressbar_file_path, 'Calculate genomes numeric representation')
 
     if args.step_to_complete == '10':
         logger.info("Step 10 completed.")
@@ -1296,7 +1331,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
 
 
 def main(args):
-    start_time = time()
+    start_time = time.time()
 
     (logger, times_logger, meta_output_dir, error_file_path, progressbar_file_path, run_number, output_dir, tmp_dir,
      done_files_dir, steps_results_dir, data_path, final_output_dir_name, final_output_dir) = \
@@ -1338,7 +1373,7 @@ def main(args):
                 traceback.print_exc(file=f)
         state = State.Crashed
 
-    total_time = timedelta(seconds=int(time() - start_time))
+    total_time = timedelta(seconds=int(time.time() - start_time))
     times_logger.info(f'Total pipeline time: {total_time}. Done')
 
     if consts.ENV == 'lsweb' and flask_interface_consts.SEND_EMAIL_WHEN_JOB_FINISHED_FROM_PIPELINE:

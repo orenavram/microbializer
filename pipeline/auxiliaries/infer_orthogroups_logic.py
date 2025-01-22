@@ -5,6 +5,8 @@ import dask.dataframe as dd
 import pandas as pd
 import itertools
 import shutil
+import time
+from datetime import timedelta
 
 from . import consts
 from .pipeline_auxiliaries import wait_for_results, prepare_directories, submit_mini_batch, submit_batch
@@ -77,6 +79,9 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
     normalized_hits_output_dir, normalized_hits_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
+        logger.info('Start normalizing hits scores...')
+        start_time = time.time()
+
         scores_statistics_file = os.path.join(normalized_hits_output_dir, 'scores_stats.json')
         scores_normalize_coefficients = aggregate_mmseqs_scores(orthologs_scores_statistics_dir, paralogs_scores_statistics_dir, scores_statistics_file, skip_paralogs)
 
@@ -112,6 +117,9 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
             if use_parquet:
                 single_cmd_params.append('--use_parquet')
             all_cmds_params.append(single_cmd_params)
+
+        step_pre_processing_time = timedelta(seconds=int(time.time() - start_time))
+        times_logger.info(f'Step {step_name} pre-processing took {step_pre_processing_time}.')
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, normalized_hits_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=1,
@@ -166,6 +174,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
 
         logger.info('Preparing jobs inputs for prepare_og_for_mcl...')
+        start_time = time.time()
 
         job_index_to_ogs = {i: [] for i in range(max_parallel_jobs)}
         job_index_to_genes_count = {i: 0 for i in range(max_parallel_jobs)}
@@ -192,6 +201,8 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
             all_cmds_params.append(single_cmd_params)
 
         logger.info('Done preparing jobs inputs for prepare_og_for_mcl.')
+        step_pre_processing_time = timedelta(seconds=int(time.time() - start_time))
+        times_logger.info(f'Step {step_name} pre-processing time took {step_pre_processing_time}.')
 
         num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, mcl_inputs_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=1,
@@ -348,7 +359,11 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
         wait_for_results(logger, times_logger, step_name, orphans_tmp_dir,
                          num_of_batches, error_file_path)
 
+        start_time = time.time()
         combine_orphan_genes_stats(orphan_genes_internal_dir, orphan_genes_dir)
+        step_post_processing_time = timedelta(seconds=int(time.time() - start_time))
+        times_logger.info(f'Step {step_name} post-processing took {step_post_processing_time}.')
+
         write_to_file(logger, done_file_path, '.')
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -412,6 +427,8 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, 1, error_file_path)
 
+        start_time = time.time()
+
         logger.info(f"Starting to read {m8_raw_output_path} and create a processed version of it...")
         m8_df = dd.read_csv(m8_raw_output_path, sep='\t', names=consts.MMSEQS_OUTPUT_HEADER, dtype=consts.MMSEQS_OUTPUT_COLUMNS_TYPES)
         m8_df = m8_df[m8_df['query'] != m8_df['target']]
@@ -421,6 +438,9 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
         m8_df = m8_df[['query', 'query_genome', 'target', 'target_genome', 'score']]
         m8_df.to_parquet(m8_output_path)  # Here I always use parquet since it's a huge file
         logger.info(f"{m8_output_path} was created successfully.")
+
+        step_post_processing_time = timedelta(seconds=int(time.time() - start_time))
+        times_logger.info(f'Step {step_name} post-processing took {step_post_processing_time}.')
 
         write_to_file(logger, done_file_path, '.')
     else:
