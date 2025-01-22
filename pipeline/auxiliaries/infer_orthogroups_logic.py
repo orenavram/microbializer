@@ -50,13 +50,13 @@ def run_mmseqs_and_extract_hits(logger, times_logger, base_step_number, error_fi
             run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
                                done_files_dir, all_proteins_path, strains_names, queue_name, account_name, node_name,
                                identity_cutoff, coverage_cutoff,  e_value_cutoff, max_parallel_jobs, use_parquet,
-                               verbose)
+                               verbose, skip_paralogs)
     else:
         orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir = \
             run_non_unified_mmseqs_with_dbs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
                                    done_files_dir, translated_orfs_dir, strains_names, queue_name, account_name, node_name,
                                    identity_cutoff, coverage_cutoff, e_value_cutoff, max_parallel_jobs, use_parquet,
-                                            skip_paralogs)
+                                   skip_paralogs)
 
     return orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir
 
@@ -386,7 +386,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
 
 def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,
                        all_proteins_path, strains_names, queue_name, account_name, node_name, identity_cutoff, coverage_cutoff,
-                       e_value_cutoff, n_jobs_per_step, use_parquet, verbose):
+                       e_value_cutoff, max_parallel_jobs, use_parquet, verbose, skip_paralogs):
     # 1.	mmseqs2_all_vs_all.py
     step_number = f'{base_step_number}_1'
     logger.info(f'Step {step_number}: {"_" * 100}')
@@ -412,7 +412,7 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, 1, error_file_path)
 
-        logger.info(f"Starting to read {m8_raw_output_path} and create a reduced version of it...")
+        logger.info(f"Starting to read {m8_raw_output_path} and create a processed version of it...")
         m8_df = dd.read_csv(m8_raw_output_path, sep='\t', names=consts.MMSEQS_OUTPUT_HEADER, dtype=consts.MMSEQS_OUTPUT_COLUMNS_TYPES)
         m8_df = m8_df[m8_df['query'] != m8_df['target']]
         add_score_column_to_mmseqs_output(m8_df)
@@ -446,7 +446,7 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
             os.makedirs(rbh_inputs_dir, exist_ok=True)
             job_index_to_pairs = defaultdict(list)
             for i, (genome1, genome2) in enumerate(itertools.combinations(strains_names, 2)):
-                job_index = i % n_jobs_per_step
+                job_index = i % max_parallel_jobs
                 job_index_to_pairs[job_index].append((genome1, genome2))
 
             for job_index, pairs in job_index_to_pairs.items():
@@ -483,6 +483,9 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
+    if skip_paralogs:
+        return orthologs_output_dir, None, orthologs_scores_statistics_dir, None
+
     # 3. extract_paralogs.py
     step_number = f'{base_step_number}_3'
     logger.info(f'Step {step_number}: {"_" * 100}')
@@ -501,7 +504,7 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
         os.makedirs(paralogs_inputs_dir, exist_ok=True)
         job_index_to_genome = defaultdict(list)
         for i, genome in enumerate(strains_names):
-            job_index = i % n_jobs_per_step
+            job_index = i % max_parallel_jobs
             job_index_to_genome[job_index].append(genome)
 
         for job_index, genomes in job_index_to_genome.items():

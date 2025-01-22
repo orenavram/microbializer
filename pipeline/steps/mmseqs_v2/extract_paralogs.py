@@ -26,23 +26,41 @@ def extract_paralogs_of_genome(logger, m8_df, genome_name, max_scores_parts_dir,
 
     # Unify all max_rbh_scores files of the genome to one file
     max_scores_files = [f for f in os.listdir(max_scores_parts_dir) if f.split('_max_scores_with_')[0] == genome_name]
-    max_scores_dfs = []
-    for max_scores_file in max_scores_files:
-        max_scores_path = os.path.join(max_scores_parts_dir, max_scores_file)
-        max_scores_df = pd.read_csv(max_scores_path, index_col='gene')
-        max_scores_dfs.append(max_scores_df)
+    if max_scores_files:
+        max_scores_dfs = []
+        for max_scores_file in max_scores_files:
+            max_scores_path = os.path.join(max_scores_parts_dir, max_scores_file)
 
-    max_scores_combined_df = pd.concat(max_scores_dfs)
-    max_score_per_gene = max_scores_combined_df.groupby('gene')['max_rbh_score'].max()
-    max_score_per_gene.to_csv(genome_max_rbh_scores_path)
+            if use_parquet:
+                max_scores_df = pd.read_parquet(max_scores_path)
+            else:
+                max_scores_df = pd.read_csv(max_scores_path)
+
+            max_scores_dfs.append(max_scores_df)
+
+        max_scores_combined_df = pd.concat(max_scores_dfs)
+        max_score_per_gene = max_scores_combined_df.groupby('gene')['max_rbh_score'].max().reset_index()
+
+        if use_parquet:
+            max_score_per_gene.to_parquet(genome_max_rbh_scores_path, index=False)
+        else:
+            max_score_per_gene.to_csv(genome_max_rbh_scores_path, index=False)
+        logger.info(f"{genome_max_rbh_scores_path} was created successfully.")
+
+        max_score_per_gene.set_index('gene', inplace=True)
+        max_score_per_gene = max_score_per_gene['max_rbh_score']
+    else:
+        logger.info(f"No max_rbh_scores files were found for {genome_name}.")
+        max_score_per_gene = {}
 
     # Filter m8_df to include only potential paralogs
     m8_df = m8_df[(m8_df['query_genome'] == genome_name) & (m8_df['target_genome'] == genome_name)]
     output_paralogs_raw_path = os.path.join(temp_dir, f'{genome_name}_vs_{genome_name}.m8')
-
-    if verbose:
+    if use_parquet:
+        m8_df.to_parquet(output_paralogs_raw_path, index=False)
+    else:
         m8_df.to_csv(output_paralogs_raw_path, index=False)
-        logger.info(f"{output_paralogs_raw_path} was created successfully.")
+    logger.info(f"{output_paralogs_raw_path} was created successfully.")
 
     # Keep only hits that have score higher than the max score of both query and target.
     # If only one of the genes was identified as rbh to a gene in another genome (and thus the other one doesn't
@@ -75,12 +93,13 @@ def extract_paralogs_of_genome(logger, m8_df, genome_name, max_scores_parts_dir,
     with open(score_stats_file, 'w') as fp:
         json.dump(scores_statistics, fp)
 
+    logger.info(f"{score_stats_file} was created successfully.")
+
 
 def extract_paralogs(logger, m8_path, genomes_input_path, max_scores_parts_dir, paralogs_dir,
                      max_rbh_scores_unified_dir, scores_statistics_dir, use_parquet, verbose):
     with open(genomes_input_path, 'r') as f:
-        genomes = f.readlines()
-        genomes = [genome.strip() for genome in genomes]
+        genomes = [genome.strip() for genome in f]
 
     temp_dir = os.path.join(paralogs_dir, 'tmp')
     os.makedirs(temp_dir, exist_ok=True)

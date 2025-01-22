@@ -76,12 +76,22 @@ def extract_rbh_hits_of_pair(logger, m8_df, genome1, genome2, rbh_hits_dir, scor
                          'number of records': len(rbh_pairs['score'])}
     with open(output_statistics_path, 'w') as fp:
         json.dump(scores_statistics, fp)
+    logger.info(f"{output_statistics_path} was created successfully.")
 
     # Step 8: Calculate max rbh score for each gene
-    genome1_max_scores = rbh_pairs.groupby(['query']).max(numeric_only=True)['score']
-    genome2_max_scores = rbh_pairs.groupby(['target']).max(numeric_only=True)['score']
-    genome1_max_scores.to_csv(output_genome1_max_scores, index_label='gene', header=['max_rbh_score'])
-    genome2_max_scores.to_csv(output_genome2_max_scores, index_label='gene', header=['max_rbh_score'])
+    genome1_max_scores = rbh_pairs.groupby(['query']).max(numeric_only=True)['score'].reset_index()
+    genome1_max_scores.rename(columns={'query': 'gene', 'score': 'max_rbh_score'}, inplace=True)
+    genome2_max_scores = rbh_pairs.groupby(['target']).max(numeric_only=True)['score'].reset_index()
+    genome2_max_scores.rename(columns={'target': 'gene', 'score': 'max_rbh_score'}, inplace=True)
+
+    if use_parquet:
+        genome1_max_scores.to_parquet(output_genome1_max_scores, index=False)
+        genome2_max_scores.to_parquet(output_genome2_max_scores, index=False)
+    else:
+        genome1_max_scores.to_csv(output_genome1_max_scores, index=False)
+        genome2_max_scores.to_csv(output_genome2_max_scores, index=False)
+
+    logger.info(f"{output_genome1_max_scores} and {output_genome2_max_scores} were created successfully.")
 
 
 def extract_rbh_hits(logger, m8_path, rbh_input_path, rbh_hits_dir, scores_statistics_dir, max_rbh_score_per_gene_dir,
