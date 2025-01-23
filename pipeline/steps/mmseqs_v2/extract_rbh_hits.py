@@ -31,6 +31,8 @@ def extract_rbh_hits_of_pair(logger, m8_df, genome1, genome2, rbh_hits_dir, scor
     genome2_to_1_df = m8_df[(m8_df['query_genome'] == genome2) & (m8_df['target_genome'] == genome1)]
 
     if verbose:
+        genome1_to_2_df = genome1_to_2_df.sort_values(by='query').reset_index(drop=True)
+        genome2_to_1_df = genome2_to_1_df.sort_values(by='query').reset_index(drop=True)
         genome1_to_2_df.to_csv(os.path.join(temp_dir, f'{genome1}_to_{genome2}.m8'), index=False)
         genome2_to_1_df.to_csv(os.path.join(temp_dir, f'{genome2}_to_{genome1}.m8'), index=False)
 
@@ -64,7 +66,7 @@ def extract_rbh_hits_of_pair(logger, m8_df, genome1, genome2, rbh_hits_dir, scor
     # Step 6: Select only relevant columns for final output
     rbh_pairs = unique_rbh[['query_x', 'target_x', 'average_score']]
     rbh_pairs.columns = ['query', 'target', 'score']
-    rbh_pairs.sort_values(by='query', inplace=True).reset_index(drop=True, inplace=True)
+    rbh_pairs = rbh_pairs.sort_values(by='query').reset_index(drop=True)
 
     if use_parquet:
         rbh_pairs.to_parquet(output_rbh_path, index=False)
