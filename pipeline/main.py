@@ -87,6 +87,7 @@ def get_arguments():
     parser.add_argument('--do_not_copy_outputs_to_final_results_dir', action='store_true')
     parser.add_argument('--clean_intermediate_outputs', action='store_true')
     parser.add_argument('--num_of_genomes_in_batch', type=int, default=50)
+    parser.add_argument('--always_run_full_orthogroups_inferece', action='store_true')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
 
     args = parser.parse_args()
@@ -187,6 +188,8 @@ def validate_arguments(args):
         args.do_not_copy_outputs_to_final_results_dir = str_to_bool(args.do_not_copy_outputs_to_final_results_dir)
     if type(args.clean_intermediate_outputs) == str:
         args.clean_intermediate_outputs = str_to_bool(args.clean_intermediate_outputs)
+    if type(args.always_run_full_orthogroups_inferece) == str:
+        args.always_run_full_orthogroups_inferece = str_to_bool(args.always_run_full_orthogroups_inferece)
 
     if args.outgroup == "No outgroup":
         args.outgroup = None
@@ -1251,7 +1254,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         logger.info("Step 3 completed.")
         return
 
-    if number_of_genomes <= args.num_of_genomes_in_batch * 2:
+    if number_of_genomes <= args.num_of_genomes_in_batch * 2 or args.always_run_full_orthogroups_inferece:
         final_orthogroups_file_path = step_5_full_orthogroups_inference(
             args, logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir, final_output_dir,
             translated_orfs_dir, all_proteins_fasta_path, genomes_names_path)
