@@ -71,9 +71,9 @@ def get_arguments():
     # choices=['pupkoweb', 'pupkowebr', 'pupkolab', 'pupkolabr', 'pupkotmp', 'pupkotmpr', 'itaym', 'lilach',
     # 'bioseq', 'bental', 'oren.q', 'bioseq20.q'])
     parser.add_argument('-q', '--queue_name', help='The queue to which the job(s) will be submitted to',
-                        default=consts.DEFAULT_SLURM_PARTITION)
+                        default=consts.SLURM_PARTITION)
     parser.add_argument('--account_name', help='The slurm account to submit jobs to',
-                        default=consts.DEFAULT_SLURM_ACCOUNT)
+                        default=consts.SLURM_ACCOUNT)
     parser.add_argument('--node_name', help='The node name to submit jobs to', default=None)
     parser.add_argument('--step_to_complete', help='The final step to execute', default=None,
                         choices=[*PIPELINE_STEPS, None])

@@ -31,15 +31,21 @@ SRC_DIR = os.path.join(PROJECT_ROOT_DIR, 'pipeline')
 if ENV == 'yair_test' or ENV == 'yair_prod':
     CONDA_INSTALLATION_DIR = r'/groups/pupko/yairshimony/miniconda3'
     CONDA_ENVIRONMENT_DIR = r'/groups/pupko/yairshimony/miniconda3/envs/microbializer'
+    SLURM_ACCOUNT = 'pupko-users'
+    SLURM_PARTITION = 'pupko'
 elif ENV == 'lsweb':
     CONDA_INSTALLATION_DIR = r'/lsweb/pupko/microbializer/miniconda3'
     CONDA_ENVIRONMENT_DIR = r'/lsweb/pupko/microbializer/miniconda3/envs/microbializer'
+    SLURM_ACCOUNT = 'pupkoweb-users'
+    SLURM_PARTITION = 'pupkoweb'
 elif ENV == 'wsl':
     CONDA_INSTALLATION_DIR = r'/home/yair/miniconda3'
     CONDA_ENVIRONMENT_DIR = r'/home/yair/miniconda3/envs/microbializer'
 elif ENV == 'c-001':
     CONDA_INSTALLATION_DIR = r'/home/ai_center/ai_users/yairshimony/miniconda'
     CONDA_ENVIRONMENT_DIR = r'/home/ai_center/ai_users/yairshimony/miniconda/envs/microbializer'
+    SLURM_ACCOUNT = 'gpu-research'
+    SLURM_PARTITION = 'cpu-killable'
 else:
     raise ValueError(f'Unknown environment: {ENV}')
 
@@ -75,11 +81,6 @@ ANI_REQUIRED_MEMORY_GB = '64'
 INFER_ORTHOGROUPS_JOB_TIME_LIMIT_HOURS = 120
 MMSEQS_JOB_TIME_LIMIT_HOURS = 96
 PHYLOGENY_JOB_TIME_LIMIT_HOURS = 96
-
-
-# Slurm consts
-DEFAULT_SLURM_ACCOUNT = 'pupko-users'
-DEFAULT_SLURM_PARTITION = 'pupko'
 
 HEGS_ECOLI_FILE_PATH = os.path.join(SRC_DIR, 'data', 'HEG_ecoli.txt')
 BACTERIA_CORE_GENES_HMM_PROFILES_PATH = os.path.join(SRC_DIR, 'data', 'busco_hmms')

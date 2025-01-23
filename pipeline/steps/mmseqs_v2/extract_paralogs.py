@@ -55,7 +55,8 @@ def extract_paralogs_of_genome(logger, m8_df, genome_name, max_scores_parts_dir,
 
     # Filter m8_df to include only potential paralogs
     m8_df = m8_df[(m8_df['query_genome'] == genome_name) & (m8_df['target_genome'] == genome_name)]
-    m8_df = m8_df.sort_values(by='query').reset_index(drop=True)
+    m8_df = m8_df[['query', 'target', 'score']]
+    m8_df = m8_df.sort_values(by=['query', 'target']).reset_index(drop=True)
     output_paralogs_raw_path = os.path.join(temp_dir, f'{genome_name}_vs_{genome_name}.m8')
     if use_parquet:
         m8_df.to_parquet(output_paralogs_raw_path, index=False)
@@ -83,7 +84,7 @@ def extract_paralogs_of_genome(logger, m8_df, genome_name, max_scores_parts_dir,
     )
     m8_df = m8_df.drop_duplicates(subset='pair')
     m8_df = m8_df[['query', 'target', 'score']]
-    m8_df = m8_df.sort_values(by='query').reset_index(drop=True)
+    m8_df = m8_df.sort_values(by=['query', 'target']).reset_index(drop=True)
 
     if use_parquet:
         m8_df.to_parquet(output_paralogs_filtered_path, index=False)

@@ -86,9 +86,9 @@ def search_paralogs(logger, genome_name, dbs_dir, max_scores_parts_dir, paralogs
     m8_df = m8_df[m8_df['query'] != m8_df['target']]
     add_score_column_to_mmseqs_output(m8_df)
     m8_df = m8_df[['query', 'target', 'score']]
-    m8_df = m8_df.sort_values(by='query').reset_index(drop=True)
+    m8_df = m8_df.sort_values(by=['query', 'target']).reset_index(drop=True)
 
-    outputs_paralogs_processed = os.path.join(paralogs_dir, f'{genome_name}_vs_{genome_name}.m8')
+    outputs_paralogs_processed = os.path.join(temp_dir, f'{genome_name}_vs_{genome_name}.m8')
     if use_parquet:
         m8_df.to_parquet(outputs_paralogs_processed, index=False)
     else:
@@ -118,7 +118,7 @@ def search_paralogs(logger, genome_name, dbs_dir, max_scores_parts_dir, paralogs
     )
     m8_df = m8_df.drop_duplicates(subset='pair')
     m8_df = m8_df[['query', 'target', 'score']]
-    m8_df = m8_df.sort_values(by='query').reset_index(drop=True)
+    m8_df = m8_df.sort_values(by=['query', 'target']).reset_index(drop=True)
 
     if use_parquet:
         m8_df.to_parquet(output_paralogs_filtered_path, index=False)
