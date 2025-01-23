@@ -419,29 +419,11 @@ def submit_clean_folders_job(args, logger, tmp_dir, folders_to_clean):
 
 def submit_clean_old_user_results_job(args, logger):
     logger.info('Cleaning up old user results...')
+
     tmp_dir = os.path.join(consts.CLEAN_JOBS_LOGS_DIR, datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))
+    clean_old_jobs_error_file_path = os.path.join(tmp_dir, 'error.txt')
+    script_path = os.path.join(consts.SRC_DIR, 'steps', 'clean_old_jobs.py')
 
-    folders_to_remove = []
-
-    for job_dir_name in os.listdir(consts.USER_RESULTS_DIR):
-        job_dir_path = os.path.join(consts.USER_RESULTS_DIR, job_dir_name)
-        if not os.path.isdir(job_dir_path):
-            continue
-
-        seconds_since_last_modification = time() - os.stat(job_dir_path).st_mtime
-        days_since_last_modification = floor(seconds_since_last_modification / 60 / 60 / 24)
-
-        if days_since_last_modification > SharedConsts.TIME_TO_KEEP_PROCSES_IDS_FOLDERS:
-            folders_to_remove.append(job_dir_path)
-
-    clean_folders_error_file_path = os.path.join(tmp_dir, 'error.txt')
-    clean_folders_file_path = os.path.join(tmp_dir, 'folders.txt')
-    with open(clean_folders_file_path, 'w') as fp:
-        fp.write('\n'.join(folders_to_remove))
-
-    params = [clean_folders_file_path]
-
-    script_path = os.path.join(consts.SRC_DIR, 'steps', 'clean_folders.py')
-    submit_mini_batch(logger, script_path, [params], tmp_dir, clean_folders_error_file_path,
-                      args.queue_name, args.account_name, job_name='clean_folders',
+    submit_mini_batch(logger, script_path, [], tmp_dir, clean_old_jobs_error_file_path,
+                      args.queue_name, args.account_name, job_name='clean_old_jobs',
                       node_name=args.node_name)
