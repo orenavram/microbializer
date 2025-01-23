@@ -53,7 +53,7 @@ def create_pseudo_genome_from_ogs(logger, times_logger, base_step_number, final_
                                  '--only_output_ogs_aa']
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                    error_file_path,
                                                    num_of_cmds_per_job=1,
                                                    job_name_suffix='orfs_extraction',

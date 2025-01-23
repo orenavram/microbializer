@@ -270,7 +270,7 @@ def step_1_fix_input_files(args, logger, times_logger, error_file_path, output_d
 
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
+        num_of_batches = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=1,
                                                    job_name_suffix='drop_plasmids',
                                                    queue_name=args.queue_name,
@@ -331,7 +331,7 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
                                  args.inputs_fasta_type]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, orfs_tmp_dir, error_file_path,
+        num_of_batches = submit_batch(logger, script_path, all_cmds_params, orfs_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=1,
                                                    job_name_suffix='search_orfs',
                                                    queue_name=args.queue_name,
@@ -444,7 +444,7 @@ def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_pa
                 single_cmd_params = [job_input_path, genomes_output_dir_path]
                 all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, genome_completeness_tmp_dir,
+        num_of_batches = submit_batch(logger, script_path, all_cmds_params, genome_completeness_tmp_dir,
                                                    error_file_path,
                                                    num_of_cmds_per_job=1,
                                                    job_name_suffix='genomes_completeness',
@@ -546,7 +546,7 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
             params.append('--add_orphan_genes_to_ogs')  # Always add orphan genes to OGs in this step
             all_cmds_params.append(params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, inference_tmp_dir,
+        num_of_batches = submit_batch(logger, script_path, all_cmds_params, inference_tmp_dir,
                                                    error_file_path,
                                                    num_of_cmds_per_job=1,
                                                    job_name_suffix='infer_orthogroups',
@@ -701,7 +701,7 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
             single_cmd_params = [job_input_path, merged_orthogroups_file_path, orphan_genes_internal_dir]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, orphans_tmp_dir, error_file_path,
+        num_of_batches = submit_batch(logger, script_path, all_cmds_params, orphans_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=1,
                                                    job_name_suffix='extract_orphans_from_orthogroups',
                                                    queue_name=args.queue_name,
@@ -867,7 +867,7 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
                                  orthogroups_induced_dna_msa_dir_path]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                    error_file_path,
                                                    num_of_cmds_per_job=1,
                                                    job_name_suffix='orfs_extraction',

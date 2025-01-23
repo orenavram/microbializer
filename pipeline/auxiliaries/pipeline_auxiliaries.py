@@ -288,7 +288,6 @@ def submit_batch(logger, script_path, batch_parameters_list, logs_dir, error_fil
     :return: number of batches submitted (in case waiting for the results) and an example command to debug on the shell
     """
     num_of_mini_batches = 0
-    example_cmd_from_last_mini_batch = 'NO COMMANDS WERE FETCHED'
 
     job_name_suffix = job_name_suffix.replace(' ', '_')  # job name cannot contain spaces!
 
@@ -303,7 +302,7 @@ def submit_batch(logger, script_path, batch_parameters_list, logs_dir, error_fil
         num_of_mini_batches += 1
         sleep(0.1)
 
-    return num_of_mini_batches, example_cmd_from_last_mini_batch
+    return num_of_mini_batches
 
 
 def wait_for_output_folder(logger, output_folder, max_waiting_time=300):
@@ -423,7 +422,8 @@ def submit_clean_old_user_results_job(args, logger):
     tmp_dir = os.path.join(consts.CLEAN_JOBS_LOGS_DIR, datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))
     clean_old_jobs_error_file_path = os.path.join(tmp_dir, 'error.txt')
     script_path = os.path.join(consts.SRC_DIR, 'steps', 'clean_old_jobs.py')
+    params = []
 
-    submit_mini_batch(logger, script_path, [], tmp_dir, clean_old_jobs_error_file_path,
+    submit_mini_batch(logger, script_path, [params], tmp_dir, clean_old_jobs_error_file_path,
                       args.queue_name, args.account_name, job_name='clean_old_jobs',
                       node_name=args.node_name)

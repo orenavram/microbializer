@@ -118,7 +118,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
         step_pre_processing_time = timedelta(seconds=int(time.time() - start_time))
         times_logger.info(f'Step {step_name} pre-processing took {step_pre_processing_time}.')
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, normalized_hits_tmp_dir, error_file_path,
+        num_of_batches = submit_batch(logger, script_path, all_cmds_params, normalized_hits_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=1,
                                                    job_name_suffix='hits_normalize',
                                                    queue_name=queue_name,
@@ -201,7 +201,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
         step_pre_processing_time = timedelta(seconds=int(time.time() - start_time))
         times_logger.info(f'Step {step_name} pre-processing time took {step_pre_processing_time}.')
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, mcl_inputs_tmp_dir, error_file_path,
+        num_of_batches = submit_batch(logger, script_path, all_cmds_params, mcl_inputs_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=1,
                                                    # *times* the number of clusters_to_prepare_per_job above. 50 in total per batch!
                                                    job_name_suffix='mcl_preparation',
@@ -235,7 +235,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
             single_cmd_params = [mcl_inputs_dir, og_number_start, og_number_end, mcl_outputs_dir]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, mcl_tmp_dir, error_file_path,
+        num_of_batches = submit_batch(logger, script_path, all_cmds_params, mcl_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=1,
                                                    job_name_suffix='mcl_execution',
                                                    queue_name=queue_name,
@@ -269,7 +269,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
             single_cmd_params = [mcl_outputs_dir, og_number_start, og_number_end, verified_clusters_output_dir]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, verified_clusters_tmp_dir, error_file_path,
+        num_of_batches = submit_batch(logger, script_path, all_cmds_params, verified_clusters_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=1,
                                                    job_name_suffix='clusters_verification',
                                                    queue_name=queue_name,
@@ -346,7 +346,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
             single_cmd_params = [job_input_path, orthogroups_file_path, orphan_genes_internal_dir]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, orphans_tmp_dir, error_file_path,
+        num_of_batches = submit_batch(logger, script_path, all_cmds_params, orphans_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=1,
                                                    job_name_suffix='extract_orphans',
                                                    queue_name=queue_name,
@@ -484,7 +484,7 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
                     params.append('--verbose')
                 all_cmds_params.append(params)
 
-            num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+            num_of_batches = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                        error_file_path,
                                                        num_of_cmds_per_job=1, # = max(1, len(all_cmds_params) // n_jobs_per_step),
                                                        job_name_suffix='rbh_analysis',
@@ -542,7 +542,7 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
                 single_cmd_params.append('--verbose')
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
+        num_of_batches = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                                    error_file_path,
                                                    num_of_cmds_per_job=1, # = max(1, len(all_cmds_params) // n_jobs_per_step),
                                                    job_name_suffix='paralogs_analysis',
@@ -592,7 +592,7 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, base_step_number, erro
             single_cmd_params = [job_input_path, translated_orfs_dir, mmseqs_dbs_output_dir]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, mmseqs_dbs_tmp_dir,
+        num_of_batches = submit_batch(logger, script_path, all_cmds_params, mmseqs_dbs_tmp_dir,
                                                    error_file_path,
                                                    num_of_cmds_per_job=1,
                                                    job_name_suffix='mmseqs_dbs',
@@ -654,7 +654,7 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, base_step_number, erro
                     single_cmd_params.append('--use_parquet')
                 all_cmds_params.append(single_cmd_params)
 
-            num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, orthologs_tmp_dir,
+            num_of_batches = submit_batch(logger, script_path, all_cmds_params, orthologs_tmp_dir,
                                                        error_file_path,
                                                        num_of_cmds_per_job=1,
                                                        job_name_suffix='rbh_analysis',
@@ -721,7 +721,7 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, base_step_number, erro
                 single_cmd_params.append('--use_parquet')
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches, example_cmd = submit_batch(logger, script_path, all_cmds_params, paralogs_tmp_dir,
+        num_of_batches = submit_batch(logger, script_path, all_cmds_params, paralogs_tmp_dir,
                                                    error_file_path,
                                                    num_of_cmds_per_job=1,
                                                    job_name_suffix='paralogs_analysis',
