@@ -19,6 +19,8 @@ elif ENV == 'yair_prod':
     PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer_prod'
 elif ENV == 'lsweb':
     PROJECT_ROOT_DIR = '/lsweb/pupko/microbializer'
+    USER_RESULTS_DIR = os.path.join(PROJECT_ROOT_DIR, 'user_results')
+    CLEAN_JOBS_LOGS_DIR = os.path.join(PROJECT_ROOT_DIR, 'clean_jobs_logs')
 elif ENV == 'wsl':
     PROJECT_ROOT_DIR = '/home/yair/microbializer'
 elif ENV == 'c-001':

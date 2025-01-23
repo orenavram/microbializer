@@ -18,7 +18,7 @@ from auxiliaries.file_writer import write_to_file
 from auxiliaries.input_verifications import prepare_and_verify_input_data
 from auxiliaries.pipeline_auxiliaries import (wait_for_results, prepare_directories, fail, submit_mini_batch,
                                               submit_batch, add_results_to_final_dir, remove_path, str_to_bool,
-                                              send_email_in_pipeline_end, submit_clean_folders_job)
+                                              send_email_in_pipeline_end, submit_clean_folders_job, submit_clean_old_user_results_job)
 from auxiliaries import consts
 from flask import flask_interface_consts
 from auxiliaries.logic_auxiliaries import (plot_genomes_histogram, update_progressbar, define_intervals, combine_orphan_genes_stats)
@@ -1381,6 +1381,9 @@ def main(args):
 
     if consts.ENV == 'lsweb' and flask_interface_consts.SEND_EMAIL_WHEN_JOB_FINISHED_FROM_PIPELINE:
         send_email_in_pipeline_end(logger, run_number, args.email, args.job_name, state)
+
+    if consts.ENV == 'lsweb' and flask_interface_consts.CLEAN_OLD_JOBS_DIRECTORIES_FROM_PIPELINE:
+        submit_clean_old_user_results_job(args, logger)
 
 
 if __name__ == '__main__':
