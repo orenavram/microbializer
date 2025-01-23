@@ -2,9 +2,9 @@ import os
 import pandas as pd
 from sklearn import metrics
 
-BASE_PATH = r"C:\repos\microbializer\tests\pipeline_optimization_experiments\10_genomes_c_001"
-OG_TABLE_ORIGINAL = os.path.join(BASE_PATH, "orthogroups_full.csv")
-OG_TABLE_APPROXIMATION = os.path.join(BASE_PATH, "orthogroups_panx_approximation.csv")
+BASE_PATH = r"C:\repos\microbializer\tests\pipeline_optimization_experiments\100_genomes_c_001"
+OG_TABLE_ORIGINAL = os.path.join(BASE_PATH, "orthogroups_original.csv")
+OG_TABLE_APPROXIMATION = os.path.join(BASE_PATH, "orthogroups_one_mmseqs.csv")
 
 
 def compare_clusterings(true_labels, pred_labels, output_path):
