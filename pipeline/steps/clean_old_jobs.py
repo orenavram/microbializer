@@ -24,7 +24,7 @@ def clean_old_jobs(logger):
         seconds_since_last_modification = time.time() - os.stat(job_dir_path).st_mtime
         days_since_last_modification = floor(seconds_since_last_modification / 60 / 60 / 24)
 
-        if days_since_last_modification > SharedConsts.TIME_TO_KEEP_PROCSES_IDS_FOLDERS:
+        if days_since_last_modification > SharedConsts.TIME_TO_KEEP_PROCSES_IDS_FOLDERS + 1:  # Take confidence interval of 1 day
             logger.info(f'Removing old job dir: {job_dir_path}, since it was done {days_since_last_modification} days ago')
             remove_path(logger, job_dir_path)
 

@@ -417,9 +417,27 @@ def submit_clean_folders_job(args, logger, tmp_dir, folders_to_clean):
 
 
 def submit_clean_old_user_results_job(args, logger):
-    logger.info('Cleaning up old user results...')
+    logger.info('Checking if a clean old jobs job is needed...')
 
-    tmp_dir = os.path.join(consts.CLEAN_JOBS_LOGS_DIR, datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))
+    logs_sub_dirs = [d for d in os.listdir(consts.CLEAN_JOBS_LOGS_DIR) if os.path.isdir(os.path.join(consts.CLEAN_JOBS_LOGS_DIR, d))]
+    datetime_format = "%Y_%m_%d_%H_%M_%S"
+    parsed_datetimes = []
+    for subdir in logs_sub_dirs:
+        try:
+            parsed_datetimes.append(datetime.strptime(subdir, datetime_format))
+        except ValueError:
+            # Skip directories that don't match the datetime format
+            pass
+
+    now = datetime.now()
+    if parsed_datetimes:
+        most_recent = max(parsed_datetimes)
+        if now - most_recent < timedelta(days=1):
+            logger.info('No need to run a clean old user results job since the last run was less than a day ago.')
+            return
+
+    logger.info('Submitting a job to clean old user results...')
+    tmp_dir = os.path.join(consts.CLEAN_JOBS_LOGS_DIR, now.strftime(datetime_format))
     clean_old_jobs_error_file_path = os.path.join(tmp_dir, 'error.txt')
     script_path = os.path.join(consts.SRC_DIR, 'steps', 'clean_old_jobs.py')
     params = []
