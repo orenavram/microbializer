@@ -87,6 +87,7 @@ def get_arguments():
     parser.add_argument('--do_not_copy_outputs_to_final_results_dir', action='store_true')
     parser.add_argument('--clean_intermediate_outputs', action='store_true')
     parser.add_argument('--num_of_genomes_in_batch', type=int, default=50)
+    parser.add_argument('--pseudo_genome_mode', type=str, choices=['first_gene', 'consensus_gene'], default='first_gene')
     parser.add_argument('--always_run_full_orthogroups_inferece', action='store_true')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
 
@@ -534,7 +535,8 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
             params = [step_number, subset_output_dir, subset_tmp_dir, subset_done_dir, translated_orfs_dir,
                       subset_genomes_names_path, args.queue_name,
                       args.account_name, args.node_name, args.identity_cutoff, args.coverage_cutoff,
-                      args.e_value_cutoff, args.sensitivity, max(1, consts.MAX_PARALLEL_JOBS // len(intervals)), batch_id]
+                      args.e_value_cutoff, args.sensitivity, max(1, consts.MAX_PARALLEL_JOBS // len(intervals)),
+                      batch_id, args.pseudo_genome_mode]
 
             if args.run_optimized_mmseqs:
                 params.append('--run_optimized_mmseqs')
@@ -590,8 +592,8 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
             if not os.path.isdir(batch_dir_path):
                 continue
 
-            orthogroups_with_representative_path = os.path.join(batch_dir_path, '05_13_pseudo_genome', f'orthogroups_with_representative_{batch_id}.csv')
-            pseudo_genome_file_path = os.path.join(batch_dir_path, '05_13_pseudo_genome', f'pseudo_genome_{batch_id}.faa')
+            orthogroups_with_representative_path = os.path.join(batch_dir_path, '05_14_pseudo_genome', f'orthogroups_with_representative_{batch_id}.csv')
+            pseudo_genome_file_path = os.path.join(batch_dir_path, '05_14_pseudo_genome', f'pseudo_genome_{batch_id}.faa')
 
             shutil.copy(orthogroups_with_representative_path, sub_orthogroups_dir_path)
             shutil.copy(pseudo_genome_file_path, pseudo_genomes_dir_path)
@@ -742,7 +744,7 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
             orthogroups_df = pd.read_csv(merged_orthogroups_file_path)
             orthogroups_df.drop(columns=['OG_name'], inplace=True)
             orthogroups_df = orthogroups_df[~((orthogroups_df.count(axis=1) == 1) &
-                                              (orthogroups_df.apply(lambda row: row.dropna().iloc[0].__contains__(';'), axis=1)))]
+                                              ~(orthogroups_df.apply(lambda row: row.dropna().iloc[0].__contains__(';'), axis=1)))]
             orthogroups_df.to_csv(final_orthogroups_file_path, index=False)
             logger.info(f'add_orphan_genes_to_ogs is False. Removed single orphan genes from {merged_orthogroups_file_path} '
                         f'and saved to {final_orthogroups_file_path}')

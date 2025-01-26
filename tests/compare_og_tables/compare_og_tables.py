@@ -2,9 +2,9 @@ import os
 import pandas as pd
 from sklearn import metrics
 
-BASE_PATH = r"C:\repos\microbializer\tests\pipeline_optimization_experiments\100_genomes_c_001"
-OG_TABLE_ORIGINAL = os.path.join(BASE_PATH, "orthogroups_original.csv")
-OG_TABLE_APPROXIMATION = os.path.join(BASE_PATH, "orthogroups_one_mmseqs.csv")
+BASE_PATH = r"C:\repos\microbializer\tests\panx_optimizations\salmonella_300_c_001"
+OG_TABLE_ORIGINAL = os.path.join(BASE_PATH, "original", "orthogroups.csv")
+OG_TABLE_APPROXIMATION = os.path.join(BASE_PATH, "pseudo_genomes", "orthogroups.csv")
 
 
 def compare_clusterings(true_labels, pred_labels, output_path):
@@ -63,7 +63,7 @@ def main():
         print(f"Genes in original but not in approximation or vice versa: {genes_difference}")
         return
 
-    compare_clusterings(original_labels, approximation_labels, os.path.join(BASE_PATH, "comparison_scores.csv"))
+    compare_clusterings(original_labels, approximation_labels, os.path.join(BASE_PATH, "comparison_scores_original_vs_pseudo_genomes.csv"))
 
 
 if __name__ == '__main__':

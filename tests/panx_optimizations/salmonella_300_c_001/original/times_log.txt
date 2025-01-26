@@ -1,0 +1,20 @@
+2025-01-23 22:36:51,869 INFO pipeline_auxiliaries.py:85 Step 02_1_orfs took 0:01:20. There were 50 jobs and cumulatively they took 0:50:43 wallclock time (times 1 cpus used per job = 0:50:43 wallclock time). 
+2025-01-23 22:36:53,592 INFO main.py:374 Step 02_2_orfs_plots took 0:00:01.
+2025-01-23 22:37:23,282 INFO main.py:403 Step 02_3_concat_orfs took 0:00:29.
+2025-01-23 22:39:41,787 INFO pipeline_auxiliaries.py:85 Step 05_1_mmseqs_dbs took 0:02:10. There were 50 jobs and cumulatively they took 1:31:11 wallclock time (times 1 cpus used per job = 1:31:11 wallclock time). 
+2025-01-24 10:20:11,301 INFO pipeline_auxiliaries.py:85 Step 05_2_mmseqs_rbh took 11:40:20. There were 50 jobs and cumulatively they took 23 days, 8:58:41 wallclock time (times 1 cpus used per job = 23 days, 8:58:41 wallclock time). 
+2025-01-24 10:24:19,271 INFO pipeline_auxiliaries.py:85 Step 05_3_mmseqs_paralogs took 0:04:00. There were 50 jobs and cumulatively they took 2:49:46 wallclock time (times 1 cpus used per job = 2:49:46 wallclock time). 
+2025-01-24 10:25:16,819 INFO infer_orthogroups_logic.py:119 Step 05_4_normalize_scores pre-processing took 0:00:57.
+2025-01-24 10:30:17,120 INFO pipeline_auxiliaries.py:85 Step 05_4_normalize_scores took 0:04:50. There were 50 jobs and cumulatively they took 3:45:51 wallclock time (times 1 cpus used per job = 3:45:51 wallclock time). 
+2025-01-24 10:43:58,257 INFO pipeline_auxiliaries.py:85 Step 05_5_putative_table took 0:13:40. There were 1 jobs and cumulatively they took 0:13:21 wallclock time (times 1 cpus used per job = 0:13:21 wallclock time). 
+2025-01-24 10:43:58,936 INFO infer_orthogroups_logic.py:202 Step 05_6_mcl_input_files pre-processing time took 0:00:00.
+2025-01-24 10:48:59,177 INFO pipeline_auxiliaries.py:85 Step 05_6_mcl_input_files took 0:04:52. There were 50 jobs and cumulatively they took 3:32:46 wallclock time (times 1 cpus used per job = 3:32:46 wallclock time). 
+2025-01-24 10:52:59,105 INFO pipeline_auxiliaries.py:85 Step 05_7_mcl_analysis took 0:03:50. There were 50 jobs and cumulatively they took 1:13:31 wallclock time (times 1 cpus used per job = 1:13:31 wallclock time). 
+2025-01-24 10:53:26,566 INFO pipeline_auxiliaries.py:85 Step 05_8_verified_clusters took 0:00:20. There were 50 jobs and cumulatively they took 0:07:12 wallclock time (times 1 cpus used per job = 0:07:12 wallclock time). 
+2025-01-24 10:53:46,826 INFO pipeline_auxiliaries.py:85 Step 05_9_verified_table took 0:00:20. There were 1 jobs and cumulatively they took 0:00:09 wallclock time (times 1 cpus used per job = 0:00:09 wallclock time). 
+2025-01-24 10:54:14,458 INFO pipeline_auxiliaries.py:85 Step 05_10_orphan_genes took 0:00:20. There were 50 jobs and cumulatively they took 0:04:57 wallclock time (times 1 cpus used per job = 0:04:57 wallclock time). 
+2025-01-24 10:54:15,683 INFO infer_orthogroups_logic.py:362 Step 05_10_orphan_genes post-processing took 0:00:01.
+2025-01-24 10:54:35,777 INFO pipeline_auxiliaries.py:85 Step 05_11_orthogroups_final took 0:00:20. There were 1 jobs and cumulatively they took 0:00:08 wallclock time (times 1 cpus used per job = 0:00:08 wallclock time). 
+2025-01-24 10:55:25,898 INFO pipeline_auxiliaries.py:85 Step 07_1_orthogroups_variations took 0:00:50. There were 1 jobs and cumulatively they took 0:00:34 wallclock time (times 1 cpus used per job = 0:00:34 wallclock time). 
+2025-01-24 10:55:28,283 INFO main.py:818 Step 07_2_orthogroups_sizes took 0:00:02.
+2025-01-24 10:55:28,330 INFO main.py:1380 Total pipeline time: 12:21:47. Done

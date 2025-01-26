@@ -95,13 +95,11 @@ def induce_msa(logger, og_members, gene_name_to_dna_sequence_dict, aa_msa_path, 
 
 
 def extract_orfs(logger, all_orfs_path, all_proteins_path, orthogroups_file_path, start_og_number, end_og_number,
-                 ogs_dna_output_dir, ogs_aa_output_dir, ogs_aa_aligned_output_dir, ogs_induced_dna_aligned_output_dir,
-                 only_output_ogs_aa):
-    if not only_output_ogs_aa:
-        gene_to_sequence_dict = {}
-        for seq_record in SeqIO.parse(all_orfs_path, 'fasta'):
-            gene_to_sequence_dict[seq_record.id] = seq_record.seq
-        logger.info(f'Loaded all ({len(gene_to_sequence_dict)}) gene sequences into memory')
+                 ogs_dna_output_dir, ogs_aa_output_dir, ogs_aa_aligned_output_dir, ogs_induced_dna_aligned_output_dir):
+    gene_to_sequence_dict = {}
+    for seq_record in SeqIO.parse(all_orfs_path, 'fasta'):
+        gene_to_sequence_dict[seq_record.id] = seq_record.seq
+    logger.info(f'Loaded all ({len(gene_to_sequence_dict)}) gene sequences into memory')
 
     protein_to_sequence_dict = {}
     for seq_record in SeqIO.parse(all_proteins_path, 'fasta'):
@@ -121,16 +119,19 @@ def extract_orfs(logger, all_orfs_path, all_proteins_path, orthogroups_file_path
 
             logger.info(f'Extracting sequences for {og_name} ({len(og_members)} members)...')
 
-            og_aa_path = os.path.join(ogs_aa_output_dir, f'{og_name}.faa')
-            write_og_aa_sequences_file(og_name, og_members, protein_to_sequence_dict, og_aa_path)
-
-            if not only_output_ogs_aa:
+            if ogs_dna_output_dir:
                 og_dna_path = os.path.join(ogs_dna_output_dir, f'{og_name}.fna')
                 write_og_dna_sequences_file(og_name, og_members, gene_to_sequence_dict, og_dna_path)
 
+            if ogs_aa_output_dir:
+                og_aa_path = os.path.join(ogs_aa_output_dir, f'{og_name}.faa')
+                write_og_aa_sequences_file(og_name, og_members, protein_to_sequence_dict, og_aa_path)
+
+            if ogs_aa_aligned_output_dir:
                 og_aligned_aa_path = os.path.join(ogs_aa_aligned_output_dir, f'{og_name}.faa')
                 reconstruct_msa(logger, og_aa_path, og_aligned_aa_path)
 
+            if ogs_induced_dna_aligned_output_dir:
                 og_induced_dna_aligned_path = os.path.join(ogs_induced_dna_aligned_output_dir, f'{og_name}.fna')
                 induce_msa(logger, og_members, gene_to_sequence_dict, og_aligned_aa_path, og_induced_dna_aligned_path)
 
@@ -149,7 +150,6 @@ if __name__ == '__main__':
     parser.add_argument('ogs_aa_output_dir', help='path to an output directory of ogs aa')
     parser.add_argument('ogs_aa_aligned_output_dir', help='path to an output directory of ogs aligned aa')
     parser.add_argument('ogs_induced_dna_aligned_output_dir', help='path to an output directory of ogs induced aligned dna (codon alignment)')
-    parser.add_argument('--only_output_ogs_aa', action='store_true')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('--error_file_path', help='path to error file')
