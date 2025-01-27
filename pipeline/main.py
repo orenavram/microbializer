@@ -88,7 +88,7 @@ def get_arguments():
     parser.add_argument('--clean_intermediate_outputs', action='store_true')
     parser.add_argument('--num_of_genomes_in_batch', type=int, default=50)
     parser.add_argument('--pseudo_genome_mode', type=str, choices=['first_gene', 'consensus_gene'], default='first_gene')
-    parser.add_argument('--always_run_full_orthogroups_inferece', action='store_true')
+    parser.add_argument('--always_run_full_orthogroups_inference', action='store_true')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
 
     args = parser.parse_args()
@@ -189,8 +189,8 @@ def validate_arguments(args):
         args.do_not_copy_outputs_to_final_results_dir = str_to_bool(args.do_not_copy_outputs_to_final_results_dir)
     if type(args.clean_intermediate_outputs) == str:
         args.clean_intermediate_outputs = str_to_bool(args.clean_intermediate_outputs)
-    if type(args.always_run_full_orthogroups_inferece) == str:
-        args.always_run_full_orthogroups_inferece = str_to_bool(args.always_run_full_orthogroups_inferece)
+    if type(args.always_run_full_orthogroups_inference) == str:
+        args.always_run_full_orthogroups_inference = str_to_bool(args.always_run_full_orthogroups_inference)
 
     if args.outgroup == "No outgroup":
         args.outgroup = None
@@ -676,7 +676,7 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
     # 06.13 extract_orphan_genes_from_full_orthogroups.py
     step_number = f'06_{final_substep_number + 2}'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_orphan_genes'
+    step_name = f'{step_number}_orphan_genes_from_orthogroups'
     script_path = os.path.join(consts.SRC_DIR, 'steps/extract_orphan_genes_from_full_orthogroups.py')
     orphan_genes_dir, orphans_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     orphan_genes_internal_dir = os.path.join(orphan_genes_dir, 'orphans_lists_per_genome')
@@ -1256,7 +1256,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         logger.info("Step 3 completed.")
         return
 
-    if number_of_genomes <= args.num_of_genomes_in_batch * 2 or args.always_run_full_orthogroups_inferece:
+    if number_of_genomes <= args.num_of_genomes_in_batch * 2 or args.always_run_full_orthogroups_inference:
         final_orthogroups_file_path = step_5_full_orthogroups_inference(
             args, logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir, final_output_dir,
             translated_orfs_dir, all_proteins_fasta_path, genomes_names_path)

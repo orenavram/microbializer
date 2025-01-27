@@ -39,12 +39,12 @@ def extract_orphan_proteins(logger, strain_name, orphan_orthogroups, output_dir)
 
     orphans_path = os.path.join(output_dir, f'{strain_name}_orphans.txt')
     with open(orphans_path, 'w') as orphans_path_fp:
-        orphans_path_fp.write('\n'.join(list(orphan_orthogroups_of_strain) + list(orphan_genes)))
+        orphans_path_fp.write('\n'.join(list(orphan_orthogroups_with_paralogs) + list(orphan_genes)))
     logger.info(f'Orphan genes of {strain_name} were written to {orphans_path}')
 
     orphans_count_path = os.path.join(output_dir, f'{strain_name}_orphans_stats.csv')
     orphans_stats = {
-        'Orphan orthogroups count': len(orphan_orthogroups_of_strain),
+        'Orphan orthogroups count': len(orphan_orthogroups_with_paralogs),
         'Orphan single genes count': len(orphan_genes),
         'Total orphans count': len(genes_in_orphan_orthogroups_with_paralogs) + len(orphan_genes)
     }
@@ -70,7 +70,7 @@ def main():
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('job_input_path', help='path to a file that contains the orfs path to extract orphan gene')
+    parser.add_argument('job_input_path', help='path to a file that contains the strain names to extract orphan genes')
     parser.add_argument('orthogroups_file', help='path to the the orthologs table')
     parser.add_argument('output_dir', help='path to which the orphan proteins will be written')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')

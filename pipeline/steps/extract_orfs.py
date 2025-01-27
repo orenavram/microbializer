@@ -13,7 +13,7 @@ from Bio.Seq import Seq
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger
+from auxiliaries.pipeline_auxiliaries import get_job_logger, none_or_str
 from auxiliaries.logic_auxiliaries import flatten
 from auxiliaries import consts
 
@@ -96,15 +96,17 @@ def induce_msa(logger, og_members, gene_name_to_dna_sequence_dict, aa_msa_path, 
 
 def extract_orfs(logger, all_orfs_path, all_proteins_path, orthogroups_file_path, start_og_number, end_og_number,
                  ogs_dna_output_dir, ogs_aa_output_dir, ogs_aa_aligned_output_dir, ogs_induced_dna_aligned_output_dir):
-    gene_to_sequence_dict = {}
-    for seq_record in SeqIO.parse(all_orfs_path, 'fasta'):
-        gene_to_sequence_dict[seq_record.id] = seq_record.seq
-    logger.info(f'Loaded all ({len(gene_to_sequence_dict)}) gene sequences into memory')
+    if all_orfs_path:
+        gene_to_sequence_dict = {}
+        for seq_record in SeqIO.parse(all_orfs_path, 'fasta'):
+            gene_to_sequence_dict[seq_record.id] = seq_record.seq
+        logger.info(f'Loaded all ({len(gene_to_sequence_dict)}) gene sequences into memory')
 
-    protein_to_sequence_dict = {}
-    for seq_record in SeqIO.parse(all_proteins_path, 'fasta'):
-        protein_to_sequence_dict[seq_record.id] = seq_record.seq
-    logger.info(f'Loaded all ({len(protein_to_sequence_dict)}) protein sequences into memory')
+    if all_proteins_path:
+        protein_to_sequence_dict = {}
+        for seq_record in SeqIO.parse(all_proteins_path, 'fasta'):
+            protein_to_sequence_dict[seq_record.id] = seq_record.seq
+        logger.info(f'Loaded all ({len(protein_to_sequence_dict)}) protein sequences into memory')
 
     with open(orthogroups_file_path) as f:
         header_line = f.readline()  # Skip the header line
@@ -141,15 +143,15 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('all_orfs_path', help='path to a file of all ORFs of all genomes')
-    parser.add_argument('all_proteins_path', help='path to a file of all proteins of all genomes')
+    parser.add_argument('all_orfs_path', type=none_or_str, help='path to a file of all ORFs of all genomes')
+    parser.add_argument('all_proteins_path', type=none_or_str, help='path to a file of all proteins of all genomes')
     parser.add_argument('orthogroups_file_path', help='path of the orthogroups file')
     parser.add_argument('start_og_number', type=int, help='OG number to start from')
     parser.add_argument('end_og_number', type=int, help='OG number to end at. Inclusive.')
-    parser.add_argument('ogs_dna_output_dir', help='path to an output directory of ogs dna')
-    parser.add_argument('ogs_aa_output_dir', help='path to an output directory of ogs aa')
-    parser.add_argument('ogs_aa_aligned_output_dir', help='path to an output directory of ogs aligned aa')
-    parser.add_argument('ogs_induced_dna_aligned_output_dir', help='path to an output directory of ogs induced aligned dna (codon alignment)')
+    parser.add_argument('ogs_dna_output_dir', type=none_or_str, help='path to an output directory of ogs dna')
+    parser.add_argument('ogs_aa_output_dir', type=none_or_str, help='path to an output directory of ogs aa')
+    parser.add_argument('ogs_aa_aligned_output_dir', type=none_or_str, help='path to an output directory of ogs aligned aa')
+    parser.add_argument('ogs_induced_dna_aligned_output_dir', type=none_or_str, help='path to an output directory of ogs induced aligned dna (codon alignment)')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     parser.add_argument('--error_file_path', help='path to error file')
@@ -162,7 +164,7 @@ if __name__ == '__main__':
     try:
         extract_orfs(logger, args.all_orfs_path, args.all_proteins_path, args.orthogroups_file_path, args.start_og_number,
                      args.end_og_number, args.ogs_dna_output_dir, args.ogs_aa_output_dir,
-                     args.ogs_aa_aligned_output_dir, args.ogs_induced_dna_aligned_output_dir, args.only_output_ogs_aa)
+                     args.ogs_aa_aligned_output_dir, args.ogs_induced_dna_aligned_output_dir)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:
