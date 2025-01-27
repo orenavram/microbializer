@@ -1381,7 +1381,8 @@ def main(args):
     total_time = timedelta(seconds=int(time.time() - start_time))
     times_logger.info(f'Total pipeline time: {total_time}. Done')
 
-    if consts.ENV == 'lsweb' and flask_interface_consts.SEND_EMAIL_WHEN_JOB_FINISHED_FROM_PIPELINE:
+    if consts.ENV == 'lsweb' and flask_interface_consts.SEND_EMAIL_WHEN_JOB_FINISHED_FROM_PIPELINE and \
+            args.step_to_complete is None and not args.only_calc_ogs and not args.do_not_copy_outputs_to_final_results_dir:
         send_email_in_pipeline_end(logger, run_number, args.email, args.job_name, state)
 
     if consts.ENV == 'lsweb' and flask_interface_consts.CLEAN_OLD_JOBS_DIRECTORIES_FROM_PIPELINE:
