@@ -8,6 +8,7 @@ import sys
 import traceback
 from Bio import AlignIO
 from Bio import SeqIO
+from collections import Counter
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -17,36 +18,62 @@ from auxiliaries.pipeline_auxiliaries import get_job_logger
 
 def calc_consensus(logger, og_path, output_dir):
     og_name = os.path.splitext(os.path.basename(og_path))[0]
-
-    og_tmp_dir = os.path.join(output_dir, f'{og_name}_tmp')
-    os.makedirs(og_tmp_dir, exist_ok=True)
-
-    msa_stockholm_path = os.path.join(og_tmp_dir, f"{og_name}.sto")
-    AlignIO.convert(og_path, "fasta", msa_stockholm_path, "stockholm")
-
-    msa_db_path = os.path.join(og_tmp_dir, f"{og_name}_msaDb")
-    profile_db_path = os.path.join(og_tmp_dir, f"{og_name}_profileDB")
-    consensus_db_path = os.path.join(og_tmp_dir, f"{og_name}_consensusDb")
-    consensus_faa_raw_path = os.path.join(og_tmp_dir, f"{og_name}_consensus.faa")
-
-    cmds = [f"mmseqs convertmsa {msa_stockholm_path} {msa_db_path}",
-            f"mmseqs msa2profile {msa_db_path} {profile_db_path} --match-mode 1",
-            f"mmseqs profile2consensus {profile_db_path} {consensus_db_path}",
-            f"mmseqs result2flat {consensus_db_path} {consensus_db_path} {consensus_db_path} {consensus_faa_raw_path}"]
-
-    for cmd in cmds:
-        logger.info(f'Calling: {cmd}')
-        subprocess.run(cmd, shell=True, check=True)
-
-    record = SeqIO.parse(consensus_faa_raw_path, 'fasta').__next__()
-    record.id = f"{og_name}_consensus"
-
     consensus_faa_path = os.path.join(output_dir, f"{og_name}.faa")
-    SeqIO.write(record, consensus_faa_path, 'fasta')
+
+    if os.path.exists(consensus_faa_path):
+        return
+
+    # Read sequences into a list
+    sequences = [str(record.seq) for record in SeqIO.parse(og_path, "fasta")]
+    number_of_sequences = len(sequences)
+    alignment_length = len(sequences[0])  # All sequences should be the same length
+
+    consensus = []
+    for i in range(alignment_length):
+        column = [seq[i] for seq in sequences]  # Extract the column (all bases at position i)
+
+        counts = Counter(column)
+        consensus_base, consensus_count = counts.most_common(1)[0]
+
+        # Handle gaps (`-`)
+        if consensus_base == '-':
+            if consensus_count / number_of_sequences > 0.5:
+                continue  # Skip column
+            else:
+                consensus_base = counts.most_common(2)[1][0]  # Find the most common base that is not a gap
+
+        consensus.append(consensus_base)
+
+    with open(consensus_faa_path, "w") as f:
+        f.write(f">{og_name}_consensus\n{''.join(consensus)}\n")
+
+    # og_tmp_dir = os.path.join(output_dir, f'{og_name}_tmp')
+    # os.makedirs(og_tmp_dir, exist_ok=True)
+    #
+    # msa_stockholm_path = os.path.join(og_tmp_dir, f"{og_name}.sto")
+    # AlignIO.convert(og_path, "fasta", msa_stockholm_path, "stockholm")
+    #
+    # msa_db_path = os.path.join(og_tmp_dir, f"{og_name}_msaDb")
+    # profile_db_path = os.path.join(og_tmp_dir, f"{og_name}_profileDB")
+    # consensus_db_path = os.path.join(og_tmp_dir, f"{og_name}_consensusDb")
+    # consensus_faa_raw_path = os.path.join(og_tmp_dir, f"{og_name}_consensus.faa")
+    #
+    # cmds = [f"mmseqs convertmsa {msa_stockholm_path} {msa_db_path} -v 1",
+    #         f"mmseqs msa2profile {msa_db_path} {profile_db_path} --match-mode 1 -v 1",
+    #         f"mmseqs profile2consensus {profile_db_path} {consensus_db_path} -v 1",
+    #         f"mmseqs result2flat {consensus_db_path} {consensus_db_path} {consensus_db_path} {consensus_faa_raw_path} -v 1"]
+    #
+    # for cmd in cmds:
+    #     logger.info(f'Calling: {cmd}')
+    #     subprocess.run(cmd, shell=True, check=True)
+    #
+    # record = SeqIO.parse(consensus_faa_raw_path, 'fasta').__next__()
+    # record.id = f"{og_name}_consensus"
+    #
+    # SeqIO.write(record, consensus_faa_path, 'fasta')
+    # shutil.rmtree(og_tmp_dir, ignore_errors=True)
 
     logger.info(f'Consensus calculation finished. Output written to {consensus_faa_path}')
-
-    shutil.rmtree(og_tmp_dir)
 
 
 def calc_consensus_from_all_ogs(logger, job_input_path, output_dir):

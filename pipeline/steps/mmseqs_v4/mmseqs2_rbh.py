@@ -95,7 +95,7 @@ def search_rbh(logger, genome1, genome2, dbs_dir, rbh_hits_dir, scores_statistic
     logger.info(f"{output_genome1_max_scores} and {output_genome2_max_scores} were created successfully.")
 
     # Delete intermediate files
-    shutil.rmtree(tmp_dir)
+    shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
 def search_rbhs_in_all_pairs(logger, job_input_path, dbs_dir, rbh_hits_dir, scores_statistics_dir,

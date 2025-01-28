@@ -469,7 +469,7 @@ def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_pa
                                'Genome BUSCO completeness score', 'Genome BUSCO completeness score per genome')
 
         # comment the next line if you don't wish to delete hmmer results
-        shutil.rmtree(genomes_output_dir_path)
+        shutil.rmtree(genomes_output_dir_path, ignore_errors=True)
 
         aggregation_time = timedelta(seconds=int(time.time() - start_time))
         times_logger.info(f'Step {step_name} post-processing took {aggregation_time}.')
@@ -1256,7 +1256,7 @@ def run_main_pipeline(args, logger, times_logger, error_file_path, progressbar_f
         logger.info("Step 3 completed.")
         return
 
-    if number_of_genomes <= args.num_of_genomes_in_batch * 2 or args.always_run_full_orthogroups_inference:
+    if number_of_genomes < args.num_of_genomes_in_batch * 2 or args.always_run_full_orthogroups_inference:
         final_orthogroups_file_path = step_5_full_orthogroups_inference(
             args, logger, times_logger, error_file_path, output_dir, tmp_dir, done_files_dir, final_output_dir,
             translated_orfs_dir, all_proteins_fasta_path, genomes_names_path)

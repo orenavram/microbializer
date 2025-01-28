@@ -120,6 +120,9 @@ def create_pseudo_genome_from_ogs(logger, times_logger, base_step_number, final_
 
         if pseudo_genome_mode == 'first_gene':
             for filename in os.listdir(orthologs_aa_dir_path):
+                if not filename.endswith('.faa'):
+                    continue
+
                 og_name = filename.split('.')[0]
                 og_path = os.path.join(orthologs_aa_dir_path, filename)
 
@@ -132,6 +135,9 @@ def create_pseudo_genome_from_ogs(logger, times_logger, base_step_number, final_
 
         elif pseudo_genome_mode == 'consensus_gene':
             for filename in os.listdir(ogs_consensus_dir_path):
+                if not filename.endswith('.faa'):
+                    continue
+
                 og_name = filename.split('.')[0]
                 og_path = os.path.join(ogs_consensus_dir_path, filename)
 

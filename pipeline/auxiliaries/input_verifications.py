@@ -144,7 +144,7 @@ def unpack_data(logger, data_path, meta_output_dir, error_file_path):
             if file == '__MACOSX':
                 # happens too many times to mac users so i decided to assist in this case
                 logger.info('Removing __MACOSX file...')
-                shutil.rmtree(os.path.join(data_path, file))
+                shutil.rmtree(os.path.join(data_path, file), ignore_errors=True)
             else:
                 fail(logger, f'Please make sure to upload one archived folder containing (only) FASTA files '
                      f'("{file}" is a folder).', error_file_path)
