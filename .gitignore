@@ -5,3 +5,7 @@ benchmark_data
 pipeline/data/kegg/prokaryote_database.*
 tests/kegg_prepare/raw_data/profiles
 pipeline/flask/api_secrets.py
+/tests/panx_optimizations/salmonella_300_c_001/pseudo_genomes_consensus/orthogroups.csv
+/tests/panx_optimizations/benchmark_1060_c_001/original/orthogroups.csv
+/tests/panx_optimizations/benchmark_1060_c_001/pseudo_genomes/orthogroups.csv
+/tests/panx_optimizations/benchmark_1060_c_001/pseudo_genomes_consensus/orthogroups.csv
