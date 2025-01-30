@@ -418,6 +418,7 @@ def submit_clean_folders_job(args, logger, tmp_dir, folders_to_clean):
 
 def submit_clean_old_user_results_job(args, logger):
     logger.info('Checking if a clean old jobs job is needed...')
+    os.makedirs(consts.CLEAN_JOBS_LOGS_DIR, exist_ok=True)
 
     logs_sub_dirs = [d for d in os.listdir(consts.CLEAN_JOBS_LOGS_DIR) if os.path.isdir(os.path.join(consts.CLEAN_JOBS_LOGS_DIR, d))]
     datetime_format = "%Y_%m_%d_%H_%M_%S"
@@ -438,6 +439,7 @@ def submit_clean_old_user_results_job(args, logger):
 
     logger.info('Submitting a job to clean old user results...')
     tmp_dir = os.path.join(consts.CLEAN_JOBS_LOGS_DIR, now.strftime(datetime_format))
+    os.makedirs(tmp_dir, exist_ok=True)
     clean_old_jobs_error_file_path = os.path.join(tmp_dir, 'error.txt')
     script_path = os.path.join(consts.SRC_DIR, 'steps', 'clean_old_jobs.py')
     params = []
