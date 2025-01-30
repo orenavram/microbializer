@@ -25,17 +25,17 @@ def filter_out_plasmids(logger, input_genome_path, output_genome_path, drop_plas
     new_records = []
     for record in SeqIO.parse(input_genome_path, 'fasta'):
         if drop_plasmids and ('plasmid' in record.id.lower() or 'plasmid' in record.description.lower()):
-            logger.info(f'Dropping plasmid sequence {record.id}')
+            logger.info(f'Dropped plasmid sequence {record.id}')
         else:
             new_records.append(record)
 
         if fix_frames:
             if 'frame=2' in record.description:
                 record.seq = record.seq[1:]
-                logger.info(f'Fixing frame of {record.id} (frame=2)')
+                logger.info(f'Fixed frame of {record.id} (frame=2)')
             elif 'frame=3' in record.description:
                 record.seq = record.seq[2:]
-                logger.info(f'Fixing frame of {record.id} (frame=3)')
+                logger.info(f'Fixed frame of {record.id} (frame=3)')
 
     if not new_records:
         logger.info(f'No records left for {input_genome_path} (probably contained only plasmids)')
