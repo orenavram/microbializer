@@ -4,7 +4,7 @@ from sklearn import metrics
 
 BASE_PATH = r"C:\repos\microbializer\tests\panx_optimizations\benchmark_1060_c_001"
 OG_TABLE_ORIGINAL = os.path.join(BASE_PATH, "original", "orthogroups.csv")
-OG_TABLE_APPROXIMATION = os.path.join(BASE_PATH, "pseudo_genomes_consensus", "orthogroups.csv")
+OG_TABLE_APPROXIMATION = os.path.join(BASE_PATH, "pseudo_genomes", "orthogroups.csv")
 
 
 def compare_clusterings(true_labels, pred_labels, output_path):
@@ -12,7 +12,7 @@ def compare_clusterings(true_labels, pred_labels, output_path):
     adjusted_rand_score = metrics.adjusted_rand_score(true_labels, pred_labels)
 
     # https://scikit-learn.org/stable/modules/clustering.html#mutual-information-based-scores
-    adjusted_mutual_info_score = metrics.adjusted_mutual_info_score(true_labels, pred_labels)
+    # adjusted_mutual_info_score = metrics.adjusted_mutual_info_score(true_labels, pred_labels)  # Gives MemoryError on large datasets
 
     # https://scikit-learn.org/stable/modules/clustering.html#homogeneity-completeness-and-v-measure
     homogeneity, completeness, v_measure = metrics.homogeneity_completeness_v_measure(true_labels, pred_labels)
@@ -22,7 +22,7 @@ def compare_clusterings(true_labels, pred_labels, output_path):
 
     scores = {
         'adjusted_rand_score': adjusted_rand_score,
-        'adjusted_mutual_info_score': adjusted_mutual_info_score,
+        # 'adjusted_mutual_info_score': adjusted_mutual_info_score,
         'homogeneity': homogeneity,
         'completeness': completeness,
         'v_measure': v_measure,
@@ -63,7 +63,7 @@ def main():
         print(f"Genes in original but not in approximation or vice versa: {genes_difference}")
         return
 
-    compare_clusterings(original_labels, approximation_labels, os.path.join(BASE_PATH, "comparison_scores_original_vs_pseudo_genomes_consensus.csv"))
+    compare_clusterings(original_labels, approximation_labels, os.path.join(BASE_PATH, "comparison_scores_original_vs_pseudo_genomes.csv"))
 
 
 if __name__ == '__main__':
