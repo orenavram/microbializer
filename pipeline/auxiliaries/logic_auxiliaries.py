@@ -193,3 +193,38 @@ def combine_orphan_genes_stats(orphan_genes_dir, output_dir):
     number_of_orphans_per_file = combined_df['Total orphans count'].to_dict()
     plot_genomes_histogram(number_of_orphans_per_file, output_dir, 'orphan_genes_count', 'Orphan genes count',
                            'Orphan genes count per Genome')
+
+
+def split_ogs_to_jobs_inputs_files_by_og_sizes(orthogroups_df, step_tmp_dir, max_parallel_jobs):
+    orthogroups_df['strains_count'] = orthogroups_df.notna().sum(axis=1) - 1
+    orthogroups_df['paralogs_count'] = orthogroups_df.apply(lambda row:
+                                                            sum(genes.count(';') for genes in row[1:-1] if pd.notna(genes)),
+                                                            axis=1)
+    orthogroups_df['genes_count'] = orthogroups_df['strains_count'] + orthogroups_df['paralogs_count']
+    ogs_genes_count_df = orthogroups_df[['OG_name', 'genes_count']]
+    ogs_genes_count_df.sort_values(by='genes_count', ascending=False, inplace=True)
+
+    job_index_to_ogs = {i: [] for i in range(max_parallel_jobs)}
+    job_index_to_genes_count = {i: 0 for i in range(max_parallel_jobs)}
+
+    for _, row in ogs_genes_count_df.iterrows():
+        # Find the job with the smallest current genes count
+        job_index_with_min_genes_count = min(job_index_to_genes_count, key=job_index_to_genes_count.get)
+        # Assign the current OG to this job
+        job_index_to_ogs[job_index_with_min_genes_count].append(row["OG_name"])
+        # Update the job's genes count
+        job_index_to_genes_count[job_index_with_min_genes_count] += row["genes_count"]
+
+    job_inputs_dir = os.path.join(step_tmp_dir, 'jobs_inputs')
+    os.makedirs(job_inputs_dir, exist_ok=True)
+    job_paths = []
+    for job_index, ogs in job_index_to_ogs.items():
+        job_path = os.path.join(job_inputs_dir, f'{job_index}.txt')
+        with open(job_path, 'w') as f:
+            f.write('\n'.join(map(str, ogs)))
+        job_paths.append(job_path)
+
+    # Remove the columns that were added
+    orthogroups_df.drop(columns=['strains_count', 'paralogs_count', 'genes_count'], inplace=True)
+
+    return job_paths

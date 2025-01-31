@@ -3,6 +3,7 @@ import logging
 import os
 import shutil
 import sys
+import math
 from collections import defaultdict
 import time
 import traceback
@@ -21,7 +22,8 @@ from auxiliaries.pipeline_auxiliaries import (wait_for_results, prepare_director
                                               send_email_in_pipeline_end, submit_clean_folders_job, submit_clean_old_user_results_job)
 from auxiliaries import consts
 from flask import flask_interface_consts
-from auxiliaries.logic_auxiliaries import (plot_genomes_histogram, update_progressbar, define_intervals, combine_orphan_genes_stats)
+from auxiliaries.logic_auxiliaries import (plot_genomes_histogram, update_progressbar, define_intervals,
+                                           combine_orphan_genes_stats, split_ogs_to_jobs_inputs_files_by_og_sizes)
 from auxiliaries.infer_orthogroups_logic import infer_orthogroups
 from flask.SharedConsts import USER_FILE_NAME_ZIP, USER_FILE_NAME_TAR, State
 
@@ -518,8 +520,8 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
         intervals = define_intervals(0, len(genomes_names) - 1, number_of_batches)
 
         all_cmds_params = []
-        for batch_id, (start_index, end_index) in enumerate(intervals):
-            subset_genome_names = genomes_names[start_index:end_index + 1]
+        for batch_id, (start_index, end_index_inclusive) in enumerate(intervals):
+            subset_genome_names = genomes_names[start_index:end_index_inclusive + 1]
 
             subset_output_dir = os.path.join(inference_dir_path, f'subset_{batch_id}')
             subset_tmp_dir = os.path.join(inference_tmp_dir, f'subset_{batch_id}')
@@ -592,8 +594,8 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
             if not os.path.isdir(batch_dir_path):
                 continue
 
-            orthogroups_with_representative_path = os.path.join(batch_dir_path, '05_14_pseudo_genome', f'orthogroups_with_representative_{batch_id}.csv')
-            pseudo_genome_file_path = os.path.join(batch_dir_path, '05_14_pseudo_genome', f'pseudo_genome_{batch_id}.faa')
+            orthogroups_with_representative_path = os.path.join(batch_dir_path, '05_13_pseudo_genome', f'orthogroups_with_representative_{batch_id}.csv')
+            pseudo_genome_file_path = os.path.join(batch_dir_path, '05_13_pseudo_genome', f'pseudo_genome_{batch_id}.faa')
 
             shutil.copy(orthogroups_with_representative_path, sub_orthogroups_dir_path)
             shutil.copy(pseudo_genome_file_path, pseudo_genomes_dir_path)
@@ -741,11 +743,10 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
             logger.info(f'add_orphan_genes_to_ogs is True. Copied {merged_orthogroups_file_path} to '
                         f'{final_orthogroups_file_path} since it already contains orphans.')
         else:
-            orthogroups_df = pd.read_csv(merged_orthogroups_file_path)
-            orthogroups_df.drop(columns=['OG_name'], inplace=True)
+            orthogroups_df = pd.read_csv(merged_orthogroups_file_path, index_col='OG_name')
             orthogroups_df = orthogroups_df[~((orthogroups_df.count(axis=1) == 1) &
                                               ~(orthogroups_df.apply(lambda row: row.dropna().iloc[0].__contains__(';'), axis=1)))]
-            orthogroups_df.to_csv(final_orthogroups_file_path, index=False)
+            orthogroups_df.to_csv(final_orthogroups_file_path)
             logger.info(f'add_orphan_genes_to_ogs is False. Removed single orphan genes from {merged_orthogroups_file_path} '
                         f'and saved to {final_orthogroups_file_path}')
 
@@ -781,7 +782,7 @@ def step_7_orthologs_table_variations(args, logger, times_logger, error_file_pat
             params += ['--qfo_benchmark']
 
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path, args.queue_name, args.account_name,
-                          job_name='orthologs_table_variations', node_name=args.node_name)
+                          job_name='orthologs_table_variations', node_name=args.node_name, memory=consts.ORTHOXML_REQUIRED_MEMORY_GB)
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path)
 
@@ -846,36 +847,37 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Extracting orthologs groups sequences according to final orthologs table...')
+        start_time = time.time()
 
         os.makedirs(orthogroups_dna_dir_path, exist_ok=True)
         os.makedirs(orthologs_aa_dir_path, exist_ok=True)
         os.makedirs(orthogroups_aa_msa_dir_path, exist_ok=True)
         os.makedirs(orthogroups_induced_dna_msa_dir_path, exist_ok=True)
 
+        orthogroups_df = pd.read_csv(final_orthologs_table_file_path)
+        job_paths = split_ogs_to_jobs_inputs_files_by_og_sizes(orthogroups_df, pipeline_step_tmp_dir, consts.MAX_PARALLEL_JOBS)
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-        with open(final_orthologs_table_file_path, 'r') as fp:
-            number_of_ogs = sum(1 for _ in fp) - 1
-
-        ogs_intervals = define_intervals(0, number_of_ogs - 1, consts.MAX_PARALLEL_JOBS)
-        for og_number_start, og_number_end in ogs_intervals:
+        for job_path in job_paths:
             single_cmd_params = [all_orfs_fasta_path,
                                  all_proteins_fasta_path,
                                  final_orthologs_table_file_path,
-                                 og_number_start,
-                                 og_number_end,
+                                 job_path,
                                  orthogroups_dna_dir_path,
                                  orthologs_aa_dir_path,
                                  orthogroups_aa_msa_dir_path,
                                  orthogroups_induced_dna_msa_dir_path]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                   error_file_path,
-                                                   num_of_cmds_per_job=1,
-                                                   job_name_suffix='orfs_extraction',
-                                                   queue_name=args.queue_name,
-                                                   account_name=args.account_name,
-                                                   node_name=args.node_name)
+        orfs_size_gb = (os.path.getsize(all_orfs_fasta_path) + os.path.getsize(all_proteins_fasta_path)) / 1024 ** 3
+        memory = max(int(consts.DEFAULT_MEMORY_PER_JOB_GB), math.ceil(orfs_size_gb * 2))
+
+        step_pre_processing_time = timedelta(seconds=int(time.time() - start_time))
+        times_logger.info(f'Step {step_name} pre-processing time took {step_pre_processing_time}.')
+
+        num_of_batches = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir, error_file_path,
+                                      num_of_cmds_per_job=1, job_name_suffix='orfs_extraction',
+                                      queue_name=args.queue_name, account_name=args.account_name,
+                                      node_name=args.node_name, memory=str(memory))
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, num_of_batches, error_file_path)
 

@@ -16,7 +16,7 @@ sys.path.append(os.path.dirname(SCRIPT_DIR))
 from auxiliaries.pipeline_auxiliaries import get_job_logger, get_job_times_logger, none_or_str, prepare_directories, \
     submit_batch, wait_for_results, add_results_to_final_dir
 from auxiliaries.file_writer import write_to_file
-from auxiliaries.logic_auxiliaries import define_intervals
+from auxiliaries.logic_auxiliaries import split_ogs_to_jobs_inputs_files_by_og_sizes
 from auxiliaries.infer_orthogroups_logic import infer_orthogroups
 from auxiliaries import consts
 
@@ -25,7 +25,6 @@ def create_pseudo_genome_from_ogs(logger, times_logger, base_step_number, final_
                            tmp_dir, done_files_dir, final_orthogroups_file_path, subset_proteins_fasta_path,
                            max_parallel_jobs, genomes_batch_id, pseudo_genome_mode):
     final_orthogroups_df = pd.read_csv(final_orthogroups_file_path)
-    number_of_ogs = len(final_orthogroups_df.index)
 
     step_number = f'{base_step_number}_{final_substep_number + 1}'
     logger.info(f'Step {step_number}: {"_" * 100}')
@@ -40,15 +39,13 @@ def create_pseudo_genome_from_ogs(logger, times_logger, base_step_number, final_
         os.makedirs(orthologs_aa_dir_path, exist_ok=True)
         os.makedirs(orthologs_aa_aligned_dir_path, exist_ok=True)
 
-        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-
-        ogs_intervals = define_intervals(0, number_of_ogs - 1, max_parallel_jobs)
-        for og_number_start, og_number_end in ogs_intervals:
+        job_paths = split_ogs_to_jobs_inputs_files_by_og_sizes(final_orthogroups_df, pipeline_step_tmp_dir, max_parallel_jobs)
+        all_cmds_params = []
+        for job_path in job_paths:
             single_cmd_params = [None,
                                  subset_proteins_fasta_path,
                                  final_orthogroups_file_path,
-                                 og_number_start,
-                                 og_number_end,
+                                 job_path,
                                  None,
                                  orthologs_aa_dir_path,
                                  orthologs_aa_aligned_dir_path if pseudo_genome_mode == 'consensus_gene' else None,

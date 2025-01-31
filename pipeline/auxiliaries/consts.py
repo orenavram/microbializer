@@ -79,6 +79,7 @@ KEGG_REQUIRED_MEMORY_GB = '64'
 CODON_BIAS_NUM_OF_CORES = 20 if USE_JOB_MANAGER else 1
 ANI_NUM_OF_CORES = 20 if USE_JOB_MANAGER else 1
 ANI_REQUIRED_MEMORY_GB = '64'
+ORTHOXML_REQUIRED_MEMORY_GB = '16'
 
 INFER_ORTHOGROUPS_JOB_TIME_LIMIT_HOURS = 120
 MMSEQS_JOB_TIME_LIMIT_HOURS = 96
@@ -123,7 +124,7 @@ OUTPUTS_DIRECTORIES_MAP = {
     '03_genomes_completeness': '03_genomes_completeness',
     '05_10_orphan_genes': '04_orphan_genes',    # full_orthogroups_inference
     '05_11_orthogroups_final': '05a_orthogroups',   # full_orthogroups_inference
-    '06_13_orphan_genes': '04_orphan_genes',    # approximate_orthogroups_inference
+    '06_13_orphan_genes_from_orthogroups': '04_orphan_genes',    # approximate_orthogroups_inference
     '06_14_orthogroups_final': '05a_orthogroups',    # approximate_orthogroups_inference
     '07_1_orthogroups_variations': '05a_orthogroups',
     '07_2_orthogroups_sizes': '05b_orthogroups_sizes',

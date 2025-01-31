@@ -129,7 +129,9 @@ def build_orthoxml_and_tsv_output(logger, all_clusters_df, output_dir, qfo_bench
                 og_list.append(paralog_group_list)
 
         groups_xml.add_orthologGroup(og_xml)
-        ortholog_groups.append(og_list)
+
+        if consts.OUTPUT_TSV_OF_ORTHOLOGS_PAIRS:
+            ortholog_groups.append(og_list)
 
     # export orthoXML document to output_file
     orthoxml_output_file_path = os.path.join(output_dir, 'orthogroups.orthoxml')

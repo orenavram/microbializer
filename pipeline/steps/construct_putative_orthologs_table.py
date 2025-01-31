@@ -132,21 +132,6 @@ def construct_table(logger, normalized_hits_dir, putative_orthologs_path, delimi
     orthogroups_df.to_csv(putative_orthologs_path, index=False)
     logger.info(f'Wrote sorted putative orthogroups table to {putative_orthologs_path}')
 
-    output_dir = os.path.dirname(putative_orthologs_path)
-    num_of_putative_sets_path = os.path.join(output_dir, 'num_of_putative_sets.txt')
-    with open(num_of_putative_sets_path, 'w') as f:
-        f.write(f'{len(orthogroups_df)}\n')
-    logger.info(f'Wrote number of putative orthogroups to {num_of_putative_sets_path}')
-
-    orthogroups_df['strains_count'] = orthogroups_df.notna().sum(axis=1) - 1
-    orthogroups_df['paralogs_count'] = orthogroups_df.apply(lambda row:
-                                                            sum(genes.count(';') for genes in row[1:-1] if pd.notna(genes)),
-                                                            axis=1)
-    orthogroups_df['genes_count'] = orthogroups_df['strains_count'] + orthogroups_df['paralogs_count']
-    ogs_genes_count_path = os.path.join(output_dir, 'num_of_genes_in_putative_sets.csv')
-    orthogroups_df[['OG_name', 'genes_count']].to_csv(ogs_genes_count_path, index=False)
-    logger.info(f'Wrote number of genes in putative orthogroups to {ogs_genes_count_path}')
-
 
 if __name__ == '__main__':
     script_run_message = f'Starting command is: {" ".join(argv)}'

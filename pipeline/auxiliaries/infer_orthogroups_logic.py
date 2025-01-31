@@ -11,7 +11,7 @@ from datetime import timedelta
 from . import consts
 from .pipeline_auxiliaries import wait_for_results, prepare_directories, submit_mini_batch, submit_batch
 from .logic_auxiliaries import aggregate_mmseqs_scores, define_intervals, add_score_column_to_mmseqs_output, \
-    get_directory_size_in_gb, combine_orphan_genes_stats
+    get_directory_size_in_gb, combine_orphan_genes_stats, split_ogs_to_jobs_inputs_files_by_og_sizes
 from .file_writer import write_to_file
 
 
@@ -141,7 +141,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
     step_name = f'{step_number}_putative_table'
     script_path = os.path.join(consts.SRC_DIR, 'steps/construct_putative_orthologs_table.py')
     putative_orthologs_table_output_dir, putative_orthologs_table_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    putative_orthologs_table_path = os.path.join(putative_orthologs_table_output_dir, 'putative_orthologs_table.txt')
+    putative_orthologs_table_path = os.path.join(putative_orthologs_table_output_dir, 'putative_orthologs_table.csv')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Constructing putative orthologs table...')
@@ -156,9 +156,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    with open(os.path.join(os.path.split(putative_orthologs_table_path)[0], 'num_of_putative_sets.txt')) as f:
-        num_of_putative_sets = int(f.read())
-
+    putative_orthologs_table_df = pd.read_csv(putative_orthologs_table_path)
 
     # prepare_og_for_mcl.py
     step_number = f'{base_step_number}_{start_substep_number + 2}'
@@ -168,32 +166,12 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
     mcl_inputs_dir, mcl_inputs_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
-        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-
         logger.info('Preparing jobs inputs for prepare_og_for_mcl...')
         start_time = time.time()
 
-        job_index_to_ogs = {i: [] for i in range(max_parallel_jobs)}
-        job_index_to_genes_count = {i: 0 for i in range(max_parallel_jobs)}
-
-        # Split the putative OGs between jobs in a way that each job will have a similar number of genes
-        ogs_genes_count = pd.read_csv(os.path.join(putative_orthologs_table_output_dir, 'num_of_genes_in_putative_sets.csv'))
-        ogs_genes_count.sort_values(by='genes_count', ascending=False, inplace=True)
-        for _, row in ogs_genes_count.iterrows():
-            # Find the job with the smallest current genes count
-            job_index_with_min_genes_count = min(job_index_to_genes_count, key=job_index_to_genes_count.get)
-            # Assign the current OG to this job
-            job_index_to_ogs[job_index_with_min_genes_count].append(row["OG_name"])
-            # Update the job's genes count
-            job_index_to_genes_count[job_index_with_min_genes_count] += row["genes_count"]
-
-        job_inputs_dir = os.path.join(mcl_inputs_tmp_dir, 'jobs_inputs')
-        os.makedirs(job_inputs_dir, exist_ok=True)
-        for job_index, ogs in job_index_to_ogs.items():
-            job_path = os.path.join(job_inputs_dir, f'{job_index}.txt')
-            with open(job_path, 'w') as f:
-                f.write('\n'.join(map(str, ogs)))
-
+        job_paths = split_ogs_to_jobs_inputs_files_by_og_sizes(putative_orthologs_table_df, mcl_inputs_tmp_dir, max_parallel_jobs)
+        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
+        for job_path in job_paths:
             single_cmd_params = [normalized_hits_output_dir, putative_orthologs_table_path, job_path, mcl_inputs_dir]
             all_cmds_params.append(single_cmd_params)
 
@@ -223,17 +201,27 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_mcl_analysis'
     script_path = os.path.join(consts.SRC_DIR, 'steps/run_mcl.py')
-    mcl_outputs_dir, mcl_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    mcl_step_outputs_dir, mcl_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
+    mcl_outputs_dir = os.path.join(mcl_step_outputs_dir, 'mcl_outputs')
+    verified_clusters_output_dir = os.path.join(mcl_step_outputs_dir, 'verified_clusters')
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         logger.info('Executing MCL...')
-        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
+        start_time = time.time()
 
-        ogs_intervals = define_intervals(0, num_of_putative_sets - 1, max_parallel_jobs)
+        os.makedirs(mcl_outputs_dir, exist_ok=True)
+        os.makedirs(verified_clusters_output_dir, exist_ok=True)
 
-        for og_number_start, og_number_end in ogs_intervals:
-            single_cmd_params = [mcl_inputs_dir, og_number_start, og_number_end, mcl_outputs_dir]
+        job_paths = split_ogs_to_jobs_inputs_files_by_og_sizes(putative_orthologs_table_df, mcl_tmp_dir,
+                                                               max_parallel_jobs)
+        all_cmds_params = []
+        for job_path in job_paths:
+            single_cmd_params = [mcl_inputs_dir, job_path, mcl_outputs_dir, verified_clusters_output_dir]
             all_cmds_params.append(single_cmd_params)
+
+        logger.info('Done preparing jobs inputs for mcl_analysis.')
+        step_pre_processing_time = timedelta(seconds=int(time.time() - start_time))
+        times_logger.info(f'Step {step_name} pre-processing time took {step_pre_processing_time}.')
 
         num_of_batches = submit_batch(logger, script_path, all_cmds_params, mcl_tmp_dir, error_file_path,
                                                    num_of_cmds_per_job=1,
@@ -249,47 +237,10 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
 
-    # verify_cluster.py
-    # Input: (1) mcl analysis file (2) a path to which the file will be moved if relevant (3) optional: maximum number of clusters allowed [default=1]
-    # Output: filter irrelevant clusters by moving the relevant to an output directory
-    # Can be parallelized on cluster
-    step_number = f'{base_step_number}_{start_substep_number + 4}'
-    logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_verified_clusters'
-    script_path = os.path.join(consts.SRC_DIR, 'steps/verify_cluster.py')
-    verified_clusters_output_dir, verified_clusters_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-    if not os.path.exists(done_file_path):
-        logger.info('Verifying clusters...')
-        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-
-        ogs_intervals = define_intervals(0, num_of_putative_sets - 1, max_parallel_jobs)
-
-        for og_number_start, og_number_end in ogs_intervals:
-            single_cmd_params = [mcl_outputs_dir, og_number_start, og_number_end, verified_clusters_output_dir]
-            all_cmds_params.append(single_cmd_params)
-
-        num_of_batches = submit_batch(logger, script_path, all_cmds_params, verified_clusters_tmp_dir, error_file_path,
-                                                   num_of_cmds_per_job=1,
-                                                   job_name_suffix='clusters_verification',
-                                                   queue_name=queue_name,
-                                                   account_name=account_name,
-                                                   node_name=node_name)
-
-        wait_for_results(logger, times_logger, step_name, verified_clusters_tmp_dir, num_of_batches, error_file_path)
-
-        logger.info(f'A total of {mcl_inputs_dir} clusters were analyzed. '
-                    f'{len(os.listdir(verified_clusters_output_dir))} clusters were produced.')
-
-        write_to_file(logger, done_file_path, '.')
-    else:
-        logger.info(f'done file {done_file_path} already exists. Skipping step...')
-
-
     # construct_verified_orthologs_table.py
     # Input: (1) a path for directory with all the verified OGs (2) an output path to a final OGs table.
     # Output: aggregates all the well-clustered OGs to the final table.
-    step_number = f'{base_step_number}_{start_substep_number + 5}'
+    step_number = f'{base_step_number}_{start_substep_number + 4}'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_verified_table'
     script_path = os.path.join(consts.SRC_DIR, 'steps/construct_verified_orthologs_table.py')
@@ -316,7 +267,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
 
 
     # extract_orphan_genes.py
-    step_number = f'{base_step_number}_{start_substep_number + 6}'
+    step_number = f'{base_step_number}_{start_substep_number + 5}'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orphan_genes'
     script_path = os.path.join(consts.SRC_DIR, 'steps/extract_orphan_genes.py')
@@ -367,7 +318,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
 
 
     # orthogroups_final
-    step_number = f'{base_step_number}_{start_substep_number + 7}'
+    step_number = f'{base_step_number}_{start_substep_number + 6}'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orthogroups_final'
     script_path = os.path.join(consts.SRC_DIR, 'steps/add_orphans_to_orthogroups.py')
@@ -393,7 +344,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    return final_orthogroups_dir_path, orphan_genes_dir, start_substep_number + 7
+    return final_orthogroups_dir_path, orphan_genes_dir, start_substep_number + 6
 
 
 def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,

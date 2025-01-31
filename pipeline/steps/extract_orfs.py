@@ -7,8 +7,7 @@ from Bio import SeqIO
 import traceback
 import shutil
 import subprocess
-from Bio.SeqRecord import SeqRecord
-from Bio.Seq import Seq
+import pandas as pd
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -94,8 +93,11 @@ def induce_msa(logger, og_members, gene_name_to_dna_sequence_dict, aa_msa_path, 
     logger.info(f'Induced OG aa alignment to dna alignment. Output was written to {output_path}')
 
 
-def extract_orfs(logger, all_orfs_path, all_proteins_path, orthogroups_file_path, start_og_number, end_og_number,
+def extract_orfs(logger, all_orfs_path, all_proteins_path, orthogroups_file_path, job_input_path,
                  ogs_dna_output_dir, ogs_aa_output_dir, ogs_aa_aligned_output_dir, ogs_induced_dna_aligned_output_dir):
+    with open(job_input_path, 'r') as f:
+        ogs_numbers = [line.strip() for line in f]
+
     if all_orfs_path:
         gene_to_sequence_dict = {}
         for seq_record in SeqIO.parse(all_orfs_path, 'fasta'):
@@ -108,38 +110,36 @@ def extract_orfs(logger, all_orfs_path, all_proteins_path, orthogroups_file_path
             protein_to_sequence_dict[seq_record.id] = seq_record.seq
         logger.info(f'Loaded all ({len(protein_to_sequence_dict)}) protein sequences into memory')
 
-    with open(orthogroups_file_path) as f:
-        header_line = f.readline()  # Skip the header line
-        for i, line in enumerate(f):
-            if i < start_og_number or i > end_og_number:
-                continue
-            line_tokens = line.strip().split(consts.CSV_DELIMITER)
-            og_name = line_tokens[0]
-            og_members = flatten([strain_genes.split(';') for strain_genes in line_tokens[1:] if strain_genes])
-            if not og_members:
-                raise ValueError(f'Failed to extract any sequence for {og_name}.')
+    orthogroups_df = pd.read_csv(orthogroups_file_path)
+    orthogroups_df = orthogroups_df[orthogroups_df['OG_name'].isin(ogs_numbers)]
 
-            logger.info(f'Extracting sequences for {og_name} ({len(og_members)} members)...')
+    for i, row in orthogroups_df.iterrows():
+        og_name = row['OG_name']
+        og_members = flatten([strain_genes.split(';') for strain_genes in row[1:].dropna()])
+        if not og_members:
+            raise ValueError(f'Failed to extract any sequence for {og_name}.')
 
-            if ogs_dna_output_dir:
-                og_dna_path = os.path.join(ogs_dna_output_dir, f'{og_name}.fna')
-                if not os.path.exists(og_dna_path):
-                    write_og_dna_sequences_file(og_name, og_members, gene_to_sequence_dict, og_dna_path)
+        logger.info(f'Extracting sequences for {og_name} ({len(og_members)} members)...')
 
-            if ogs_aa_output_dir:
-                og_aa_path = os.path.join(ogs_aa_output_dir, f'{og_name}.faa')
-                if not os.path.exists(og_aa_path):
-                    write_og_aa_sequences_file(og_name, og_members, protein_to_sequence_dict, og_aa_path)
+        if ogs_dna_output_dir:
+            og_dna_path = os.path.join(ogs_dna_output_dir, f'{og_name}.fna')
+            if not os.path.exists(og_dna_path):
+                write_og_dna_sequences_file(og_name, og_members, gene_to_sequence_dict, og_dna_path)
 
-            if ogs_aa_aligned_output_dir:
-                og_aligned_aa_path = os.path.join(ogs_aa_aligned_output_dir, f'{og_name}.faa')
-                if not os.path.exists(og_aligned_aa_path):
-                    reconstruct_msa(logger, og_aa_path, og_aligned_aa_path)
+        if ogs_aa_output_dir:
+            og_aa_path = os.path.join(ogs_aa_output_dir, f'{og_name}.faa')
+            if not os.path.exists(og_aa_path):
+                write_og_aa_sequences_file(og_name, og_members, protein_to_sequence_dict, og_aa_path)
 
-            if ogs_induced_dna_aligned_output_dir:
-                og_induced_dna_aligned_path = os.path.join(ogs_induced_dna_aligned_output_dir, f'{og_name}.fna')
-                if not os.path.exists(og_induced_dna_aligned_path):
-                    induce_msa(logger, og_members, gene_to_sequence_dict, og_aligned_aa_path, og_induced_dna_aligned_path)
+        if ogs_aa_aligned_output_dir:
+            og_aligned_aa_path = os.path.join(ogs_aa_aligned_output_dir, f'{og_name}.faa')
+            if not os.path.exists(og_aligned_aa_path):
+                reconstruct_msa(logger, og_aa_path, og_aligned_aa_path)
+
+        if ogs_induced_dna_aligned_output_dir:
+            og_induced_dna_aligned_path = os.path.join(ogs_induced_dna_aligned_output_dir, f'{og_name}.fna')
+            if not os.path.exists(og_induced_dna_aligned_path):
+                induce_msa(logger, og_members, gene_to_sequence_dict, og_aligned_aa_path, og_induced_dna_aligned_path)
 
 
 if __name__ == '__main__':
@@ -150,8 +150,7 @@ if __name__ == '__main__':
     parser.add_argument('all_orfs_path', type=none_or_str, help='path to a file of all ORFs of all genomes')
     parser.add_argument('all_proteins_path', type=none_or_str, help='path to a file of all proteins of all genomes')
     parser.add_argument('orthogroups_file_path', help='path of the orthogroups file')
-    parser.add_argument('start_og_number', type=int, help='OG number to start from')
-    parser.add_argument('end_og_number', type=int, help='OG number to end at. Inclusive.')
+    parser.add_argument('job_input_path', help='')
     parser.add_argument('ogs_dna_output_dir', type=none_or_str, help='path to an output directory of ogs dna')
     parser.add_argument('ogs_aa_output_dir', type=none_or_str, help='path to an output directory of ogs aa')
     parser.add_argument('ogs_aa_aligned_output_dir', type=none_or_str, help='path to an output directory of ogs aligned aa')
@@ -166,8 +165,8 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        extract_orfs(logger, args.all_orfs_path, args.all_proteins_path, args.orthogroups_file_path, args.start_og_number,
-                     args.end_og_number, args.ogs_dna_output_dir, args.ogs_aa_output_dir,
+        extract_orfs(logger, args.all_orfs_path, args.all_proteins_path, args.orthogroups_file_path,
+                     args.job_input_path, args.ogs_dna_output_dir, args.ogs_aa_output_dir,
                      args.ogs_aa_aligned_output_dir, args.ogs_induced_dna_aligned_output_dir)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')

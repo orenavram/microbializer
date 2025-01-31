@@ -42,7 +42,6 @@ def load_all_ogs_hits(normalized_hits_dir, strain_to_gene_to_og):
 
 
 def prepare_ogs_for_mcl(logger, normalized_hits_dir, putative_ogs_path, job_input_path, output_path):
-    putative_ogs_df = pd.read_csv(putative_ogs_path, index_col=0)
     with open(job_input_path, 'r') as f:
         ogs_numbers = [line.strip() for line in f]
 
@@ -53,6 +52,7 @@ def prepare_ogs_for_mcl(logger, normalized_hits_dir, putative_ogs_path, job_inpu
         return
 
     logger.info(f'Aggregating all genes from the specified {len(ogs_numbers)} putative OGs...')
+    putative_ogs_df = pd.read_csv(putative_ogs_path, index_col=0)
     strain_to_gene_to_og = {}
     number_of_genes = 0
     for strain in putative_ogs_df.columns:

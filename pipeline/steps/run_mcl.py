@@ -5,6 +5,7 @@ import subprocess
 import os
 import sys
 import traceback
+import shutil
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -23,11 +24,41 @@ def mcl(logger, input_file, output_file, cpus):
     logger.info(f'MCL finished. Output written to {output_file}')
 
 
-def run_mcl_on_all_putative_ogs(logger, mcl_input_dir, start_og_number, end_og_number, output_dir, cpus):
-    for og_number in range(start_og_number, end_og_number + 1):
-        input_path = os.path.join(mcl_input_dir, f'OG_{og_number}.mcl_input')
-        output_path = os.path.join(output_dir, f'OG_{og_number}.mcl_output')
-        mcl(logger, input_path, output_path, cpus)
+def verify(logger, og_name, input_file, output_dir):
+    with open(input_file, 'r') as f:
+        lines = [line.rstrip() for line in f if line]
+
+    if len(lines) == 0:
+        raise ValueError(f'{input_file} is empty! There\'s a bug in the previous step!')
+    elif len(lines) == 1:
+        output_file_path = os.path.join(output_dir, og_name + ".verified_cluster")
+        if os.path.exists(output_file_path):
+            return
+        shutil.copyfile(input_file, output_file_path)
+        logger.info(f'Only one cluster in {input_file}. Copied it to {output_file_path}')
+    else:  # 1 < len(lines)
+        og_subset_id = 0
+        for line in lines:
+            if len(line.split('\t')) == 1:
+                continue  # Skip lines with 1 protein (orphan genes)
+            verified_cluster_path = os.path.join(output_dir, f"{og_name}_{og_subset_id}.split_cluster")
+            if not os.path.exists(verified_cluster_path):
+                with open(verified_cluster_path, 'w') as verified_cluster_file:
+                    verified_cluster_file.write(line)
+            og_subset_id += 1
+        logger.info(f'{input_file} was split into {og_subset_id} clusters in {output_dir}')
+
+
+def run_mcl_on_all_putative_ogs(logger, mcl_input_dir, job_input_path, mcl_output_dir,
+                                verified_clusters_dir, cpus):
+    with open(job_input_path, 'r') as f:
+        ogs_names = [line.strip() for line in f]
+
+    for og_name in ogs_names:
+        input_mcl_path = os.path.join(mcl_input_dir, f'{og_name}.mcl_input')
+        output_mcl_path = os.path.join(mcl_output_dir, f'{og_name}.mcl_output')
+        mcl(logger, input_mcl_path, output_mcl_path, cpus)
+        verify(logger, og_name, output_mcl_path, verified_clusters_dir)
 
 
 if __name__ == '__main__':
@@ -36,9 +67,9 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('mcl_input_dir', help='path to dir of mcl input files')
-    parser.add_argument('start_og_number', type=int, help='OG number to start from')
-    parser.add_argument('end_og_number', type=int, help='OG number to end at. Inclusive.')
-    parser.add_argument('output_dir', help='path to dir the MCL analysis will be written')
+    parser.add_argument('job_input_path', help='')
+    parser.add_argument('mcl_output_dir', help='path to dir the MCL analysis will be written')
+    parser.add_argument('verified_clusters_dir', help='dir path to which verified clusters are written')
     parser.add_argument('--cpus', type=int, default=1, help='Number of CPUs to use')
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
@@ -50,7 +81,8 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        run_mcl_on_all_putative_ogs(logger, args.mcl_input_dir, args.start_og_number, args.end_og_number, args.output_dir, args.cpus)
+        run_mcl_on_all_putative_ogs(logger, args.mcl_input_dir, args.job_input_path,
+                                    args.mcl_output_dir, args.verified_clusters_dir, args.cpus)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:
