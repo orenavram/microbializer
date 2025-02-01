@@ -10,7 +10,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from . import consts
-from .pipeline_auxiliaries import execute, remove_path, fail
+from .pipeline_auxiliaries import remove_path, fail
 from flask import flask_interface_consts
 
 

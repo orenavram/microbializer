@@ -43,6 +43,8 @@ elif ENV == 'lsweb':
 elif ENV == 'wsl':
     CONDA_INSTALLATION_DIR = r'/home/yair/miniconda3'
     CONDA_ENVIRONMENT_DIR = r'/home/yair/miniconda3/envs/microbializer'
+    SLURM_ACCOUNT = None
+    SLURM_PARTITION = None
 elif ENV == 'c-001':
     CONDA_INSTALLATION_DIR = r'/home/ai_center/ai_users/yairshimony/miniconda'
     CONDA_ENVIRONMENT_DIR = r'/home/ai_center/ai_users/yairshimony/miniconda/envs/microbializer'

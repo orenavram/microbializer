@@ -10,6 +10,7 @@ import shutil
 from multiprocessing import Pool
 import re
 import traceback
+from datetime import timedelta
 
 import numpy as np
 from Bio import SeqIO
@@ -158,7 +159,8 @@ def visualize_Ws_with_PCA(W_vectors, output_dir, logger):
     point_labels_df.to_csv(point_labels_path, index=False)
     logger.info(f'Point labels and coordinates were saved to {point_labels_path}')
 
-    logger.info("Time for PCA:", time.time() - start_time)
+    pca_time = timedelta(seconds=int(time.time() - start_time))
+    logger.info(f"Time for PCA: {pca_time}")
 
 
 def calculate_cai(OG_dir, OG_index, genomes_codon_indexes, cais_output_dir):
