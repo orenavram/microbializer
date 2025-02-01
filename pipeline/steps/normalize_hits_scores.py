@@ -42,7 +42,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('job_input_file', help='path to a file that contains the paths of the files to normalize and the normalization coefficients')
     parser.add_argument('output_dir', help='path to output dir')
-    parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--use_parquet', action='store_true')
     add_default_step_args(parser)
     args = parser.parse_args()

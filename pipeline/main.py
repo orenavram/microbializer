@@ -91,6 +91,7 @@ def get_arguments():
     parser.add_argument('--num_of_genomes_in_batch', type=int, default=50)
     parser.add_argument('--pseudo_genome_mode', type=str, choices=['first_gene', 'consensus_gene'], default='first_gene')
     parser.add_argument('--always_run_full_orthogroups_inference', action='store_true')
+    parser.add_argument('--max_parallel_jobs', help='', type=int, default=consts.MAX_PARALLEL_JOBS)
     parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
 
     args = parser.parse_args()
@@ -251,7 +252,7 @@ def step_1_fix_input_files(args, logger, times_logger, error_file_path, output_d
         job_index_to_fasta_file_names = defaultdict(list)
 
         for i, fasta_file_name in enumerate(os.listdir(data_path)):
-            job_index = i % consts.MAX_PARALLEL_JOBS
+            job_index = i % args.max_parallel_jobs
             job_index_to_fasta_file_names[job_index].append(fasta_file_name)
 
         jobs_inputs_dir = os.path.join(pipeline_step_tmp_dir, 'job_inputs')
@@ -317,7 +318,7 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
         job_index_to_fasta_file_names = defaultdict(list)
 
         for i, fasta_file_name in enumerate(os.listdir(data_path)):
-            job_index = i % consts.MAX_PARALLEL_JOBS
+            job_index = i % args.max_parallel_jobs
             job_index_to_fasta_file_names[job_index].append(fasta_file_name)
 
         jobs_inputs_dir = os.path.join(orfs_tmp_dir, 'job_inputs')
@@ -429,7 +430,7 @@ def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_pa
         job_index_to_fasta_file_names = defaultdict(list)
 
         for i, fasta_file_name in enumerate(os.listdir(translated_orfs_dir_path)):
-            job_index = i % consts.MAX_PARALLEL_JOBS
+            job_index = i % args.max_parallel_jobs
             job_index_to_fasta_file_names[job_index].append(fasta_file_name)
 
         jobs_inputs_dir = os.path.join(genome_completeness_tmp_dir, 'job_inputs')
@@ -488,7 +489,7 @@ def step_5_full_orthogroups_inference(args, logger, times_logger, error_file_pat
     final_orthogroups_dir_path, orphan_genes_dir, _ = infer_orthogroups(
         logger, times_logger, '05', error_file_path, output_dir, tmp_dir, done_files_dir, translated_orfs_dir,
         all_proteins_path, strains_names_path, args.queue_name, args.account_name, args.node_name, args.identity_cutoff,
-        args.coverage_cutoff, args.e_value_cutoff, args.sensitivity, consts.MAX_PARALLEL_JOBS, args.run_optimized_mmseqs,
+        args.coverage_cutoff, args.e_value_cutoff, args.sensitivity, args.max_parallel_jobs, args.run_optimized_mmseqs,
         args.use_parquet, args.verbose,
         args.add_orphan_genes_to_ogs)
 
@@ -517,10 +518,10 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
     done_dir_path = os.path.join(done_files_dir, step_name)
     if not os.path.exists(done_file_path):
         number_of_batches = len(genomes_names) // args.num_of_genomes_in_batch
-        intervals = define_intervals(0, len(genomes_names) - 1, number_of_batches)
+        genomes_batches = define_intervals(0, len(genomes_names) - 1, number_of_batches)
 
         all_cmds_params = []
-        for batch_id, (start_index, end_index_inclusive) in enumerate(intervals):
+        for batch_id, (start_index, end_index_inclusive) in enumerate(genomes_batches):
             subset_genome_names = genomes_names[start_index:end_index_inclusive + 1]
 
             subset_output_dir = os.path.join(inference_dir_path, f'subset_{batch_id}')
@@ -537,7 +538,7 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
             params = [step_number, subset_output_dir, subset_tmp_dir, subset_done_dir, translated_orfs_dir,
                       subset_genomes_names_path, args.queue_name,
                       args.account_name, args.node_name, args.identity_cutoff, args.coverage_cutoff,
-                      args.e_value_cutoff, args.sensitivity, max(1, consts.MAX_PARALLEL_JOBS // len(intervals)),
+                      args.e_value_cutoff, args.sensitivity, max(1, args.max_parallel_jobs // len(genomes_batches)),
                       batch_id, args.pseudo_genome_mode]
 
             if args.run_optimized_mmseqs:
@@ -619,7 +620,7 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
     pseudo_orthogroups_dir_path, _, final_substep_number = infer_orthogroups(
         logger, times_logger, '06', error_file_path, output_dir, tmp_dir, done_files_dir, pseudo_genomes_dir_path,
         all_pseudo_genomes_path, pseudo_genomes_strains_names_path, args.queue_name, args.account_name, args.node_name, args.identity_cutoff,
-        args.coverage_cutoff, args.e_value_cutoff, args.sensitivity, consts.MAX_PARALLEL_JOBS, args.run_optimized_mmseqs,
+        args.coverage_cutoff, args.e_value_cutoff, args.sensitivity, args.max_parallel_jobs, args.run_optimized_mmseqs,
         args.use_parquet, args.verbose, True, skip_paralogs=True)
 
     pseudo_orthogroups_file_path = os.path.join(pseudo_orthogroups_dir_path, 'orthogroups.csv')
@@ -690,7 +691,7 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
         job_index_to_genome_names = defaultdict(list)
 
         for i, genome_name in enumerate(genomes_names):
-            job_index = i % consts.MAX_PARALLEL_JOBS
+            job_index = i % args.max_parallel_jobs
             job_index_to_genome_names[job_index].append(genome_name)
 
         jobs_inputs_dir = os.path.join(orphans_tmp_dir, 'job_inputs')
@@ -855,7 +856,7 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
         os.makedirs(orthogroups_induced_dna_msa_dir_path, exist_ok=True)
 
         orthogroups_df = pd.read_csv(final_orthologs_table_file_path)
-        job_paths = split_ogs_to_jobs_inputs_files_by_og_sizes(orthogroups_df, pipeline_step_tmp_dir, consts.MAX_PARALLEL_JOBS)
+        job_paths = split_ogs_to_jobs_inputs_files_by_og_sizes(orthogroups_df, pipeline_step_tmp_dir, args.max_parallel_jobs)
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
         for job_path in job_paths:
             single_cmd_params = [all_orfs_fasta_path,
@@ -1051,10 +1052,11 @@ def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, t
         with open(genomes_list_path, 'w') as genomes_list_file:
             genomes_list_file.write('\n'.join(genomes_paths))
 
-        single_cmd_params = [genomes_list_path, ani_output_dir, f'--cpus {consts.ANI_NUM_OF_CORES}']
+        cpus = min(consts.ANI_NUM_OF_CORES, args.max_parallel_jobs)
+        single_cmd_params = [genomes_list_path, ani_output_dir, f'--cpus {cpus}']
 
         submit_mini_batch(logger, script_path, [single_cmd_params], ani_tmp_dir, error_file_path, args.queue_name, args.account_name,
-                          'ANI', num_of_cpus=consts.ANI_NUM_OF_CORES, memory=consts.ANI_REQUIRED_MEMORY_GB, node_name=args.node_name)
+                          'ANI', num_of_cpus=cpus, memory=consts.ANI_REQUIRED_MEMORY_GB, node_name=args.node_name)
 
     else:
         logger.info(f'done file {ani_done_file_path} already exists. Skipping step...')
@@ -1074,10 +1076,11 @@ def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, t
         else:
             logger.info('Reconstructing species phylogeny...')
 
+            cpus = min(consts.PHYLOGENY_NUM_OF_CORES, args.max_parallel_jobs)
             params = [aligned_core_proteome_file_path,
                       output_tree_path,
                       phylogeny_tmp_dir,
-                      f'--cpu {consts.PHYLOGENY_NUM_OF_CORES}',
+                      f'--cpu {cpus}',
                       f'--bootstrap {"yes" if args.bootstrap else "no"}']
             if args.outgroup:
                 with open(genomes_names_path, 'r') as genomes_names_fp:
@@ -1095,7 +1098,7 @@ def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, t
 
             submit_mini_batch(logger, script_path, [params], phylogeny_tmp_dir, error_file_path,
                               args.queue_name, args.account_name, 'tree_reconstruction',
-                              num_of_cpus=consts.PHYLOGENY_NUM_OF_CORES,
+                              num_of_cpus=cpus,
                               memory=consts.PHYLOGENY_REQUIRED_MEMORY_GB,
                               command_to_run_before_script=f'export QT_QPA_PLATFORM=offscreen\nexport XDG_RUNTIME_DIR={xdg_runtime_dir}', # Needed to avoid an error in drawing the tree. Taken from: https://github.com/NVlabs/instant-ngp/discussions/300
                               node_name=args.node_name,
@@ -1136,16 +1139,18 @@ def step_12_orthogroups_annotations(args, logger, times_logger, error_file_path,
     codon_bias_done_file_path = os.path.join(done_files_dir, f'{codon_bias_step_name}.txt')
     if not os.path.exists(codon_bias_done_file_path):
         logger.info('Analyzing codon bias...')
+
+        cpus = min(consts.CODON_BIAS_NUM_OF_CORES, args.max_parallel_jobs)
         params = [
             orfs_dir,
             orthologs_dna_sequences_dir_path,
             codon_bias_output_dir_path,
             cai_table_path,
             codon_bias_tmp_dir,
-            consts.CODON_BIAS_NUM_OF_CORES
+            cpus
         ]
         submit_mini_batch(logger, script_path, [params], codon_bias_tmp_dir, error_file_path, args.queue_name, args.account_name, 'codon_bias',
-                          num_of_cpus=consts.CODON_BIAS_NUM_OF_CORES, node_name=args.node_name)
+                          num_of_cpus=cpus, node_name=args.node_name)
 
     else:
         logger.info(f'done file {codon_bias_done_file_path} already exists. Skipping step...')
@@ -1161,16 +1166,18 @@ def step_12_orthogroups_annotations(args, logger, times_logger, error_file_path,
     kegg_done_file_path = os.path.join(done_files_dir, f'{kegg_step_name}.txt')
     if not os.path.exists(kegg_done_file_path):
         logger.info('Annotation with KEGG Orthology...')
+
+        cpus = min(consts.KEGG_NUM_OF_CORES, args.max_parallel_jobs)
         params = [
             orthologs_aa_sequences_dir_path,
             final_orthologs_table_file_path,
             kegg_output_dir_path,
             kegg_table_path,
-            consts.KEGG_NUM_OF_CORES,
+            cpus,
             '--optimize'
         ]
         submit_mini_batch(logger, script_path, [params], kegg_tmp_dir, error_file_path, args.queue_name, args.account_name,
-                          'kegg', num_of_cpus=consts.KEGG_NUM_OF_CORES, memory=consts.KEGG_REQUIRED_MEMORY_GB, node_name=args.node_name)
+                          'kegg', num_of_cpus=cpus, memory=consts.KEGG_REQUIRED_MEMORY_GB, node_name=args.node_name)
 
     else:
         logger.info(f'done file {kegg_done_file_path} already exists. Skipping step...')

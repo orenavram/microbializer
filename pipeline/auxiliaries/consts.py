@@ -2,6 +2,7 @@
 # this file should be saved as part of the pipeline and the cgi should import it rather than copy it twice! #
 #############################################################################################################
 
+import os
 import os.path
 from enum import Enum
 import numpy as np
@@ -54,7 +55,7 @@ else:
     raise ValueError(f'Unknown environment: {ENV}')
 
 USE_JOB_MANAGER = False if ENV == 'wsl' else True
-MAX_PARALLEL_JOBS = 50
+MAX_PARALLEL_JOBS = 50 if USE_JOB_MANAGER else os.cpu_count()
 
 
 # General Job submission consts
@@ -72,14 +73,14 @@ JOB_WALL_TIME_KEY ='RunTime='
 JOB_CPUS_KEY = 'NumCPUs='
 
 DEFAULT_MEMORY_PER_JOB_GB = '4'
-MMSEQS_BIG_DATASET_NUM_OF_CORES = 20 if USE_JOB_MANAGER else 1
+MMSEQS_BIG_DATASET_NUM_OF_CORES = 20
 MMSEQS_BIG_DATASET_REQUIRED_MEMORY_GB = '64'
-PHYLOGENY_NUM_OF_CORES = 20 if USE_JOB_MANAGER else 1
+PHYLOGENY_NUM_OF_CORES = 20
 PHYLOGENY_REQUIRED_MEMORY_GB = '64'
-KEGG_NUM_OF_CORES = 20 if USE_JOB_MANAGER else 1
+KEGG_NUM_OF_CORES = 20
 KEGG_REQUIRED_MEMORY_GB = '64'
-CODON_BIAS_NUM_OF_CORES = 20 if USE_JOB_MANAGER else 1
-ANI_NUM_OF_CORES = 20 if USE_JOB_MANAGER else 1
+CODON_BIAS_NUM_OF_CORES = 20
+ANI_NUM_OF_CORES = 20
 ANI_REQUIRED_MEMORY_GB = '64'
 ORTHOXML_REQUIRED_MEMORY_GB = '16'
 

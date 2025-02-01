@@ -359,6 +359,8 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
     done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
     if not os.path.exists(done_file_path):
         m8_raw_output_path = os.path.join(all_vs_all_output_dir, 'all_vs_all_raw.m8')
+
+        cpus = min(consts.MMSEQS_BIG_DATASET_NUM_OF_CORES, max_parallel_jobs)
         params = [all_proteins_path,
                   all_vs_all_output_dir,
                   m8_raw_output_path,
@@ -367,10 +369,10 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
                   f'--e_value_cutoff {e_value_cutoff}',
                   f'--sensitivity {sensitivity}',
                   f'--number_of_genomes {len(strains_names)}',
-                  f'--cpus {consts.MMSEQS_BIG_DATASET_NUM_OF_CORES}']
+                  f'--cpus {cpus}']
 
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path, queue_name,
-                          account_name, 'mmseqs', num_of_cpus=consts.MMSEQS_BIG_DATASET_NUM_OF_CORES,
+                          account_name, 'mmseqs', num_of_cpus=cpus,
                           memory=consts.MMSEQS_BIG_DATASET_REQUIRED_MEMORY_GB, time_in_hours=consts.MMSEQS_JOB_TIME_LIMIT_HOURS, node_name=node_name)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, 1, error_file_path)
