@@ -1,16 +1,15 @@
 import sys
 from sys import argv
 import argparse
-import logging
 import os
 import time
 import json
 import subprocess
 import shutil
-from multiprocessing import Pool
 import re
 import traceback
 from datetime import timedelta
+from concurrent.futures import ThreadPoolExecutor, as_completed, ProcessPoolExecutor
 
 import numpy as np
 from Bio import SeqIO
@@ -118,7 +117,7 @@ def visualize_Ws_with_PCA(W_vectors, output_dir, logger):
         n_clusters = 4
     else:
         n_clusters = 3
-    kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+    kmeans = KMeans(n_clusters=n_clusters, n_init='auto', random_state=42)
     cluster_labels = kmeans.fit_predict(W_vectors.values)
 
     # Perform PCA dimensionality reduction
@@ -205,12 +204,18 @@ def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, cpu
     logger.info("Finding HEGs in ORFs files and calculating W vectors...")
     hegs_output_dir = os.path.join(tmp_dir, 'HEGs')
     os.makedirs(hegs_output_dir, exist_ok=True)
-    with Pool(processes=cpus) as pool:
-        params = [(os.path.join(ORF_dir, orf_file), hegs_output_dir, logger) for orf_file in os.listdir(ORF_dir)]
-        genomes_codon_indexes = pool.starmap(get_W, params)
 
-    genomes_codon_indexes = dict(genomes_codon_indexes)
-    genomes_W_vectors_df = pd.DataFrame.from_dict(genomes_codon_indexes, orient='index')
+    genome_name_to_codon_index = {}
+    with ProcessPoolExecutor(max_workers=cpus) as executor:
+        futures = []
+        for orf_file in os.listdir(ORF_dir):
+            futures.append(executor.submit(get_W, os.path.join(ORF_dir, orf_file), hegs_output_dir, logger))
+
+        for future in as_completed(futures):
+            genome_name, genome_codon_index = future.result()
+            genome_name_to_codon_index[genome_name] = genome_codon_index
+
+    genomes_W_vectors_df = pd.DataFrame.from_dict(genome_name_to_codon_index, orient='index')
     genomes_W_vectors_path = os.path.join(output_dir, 'W_vectors.csv')
     genomes_W_vectors_df.to_csv(genomes_W_vectors_path, index_label='Genome')
     logger.info(f"W vectors were calculated successfully and written to {genomes_W_vectors_path}")
@@ -223,11 +228,18 @@ def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, cpu
     logger.info("Calculating CAI for each OG...")
     cais_output_dir = os.path.join(tmp_dir, 'OGs_CAIs')
     os.makedirs(cais_output_dir, exist_ok=True)
-    with Pool(processes=cpus) as pool:
-        params = [(OG_dir, OG_index, genomes_codon_indexes, cais_output_dir) for OG_index in range(len(os.listdir(OG_dir)))]
-        ogs_cai_info = pool.starmap(calculate_cai, params)
 
-    ogs_cai_info_df = pd.DataFrame.from_dict(dict(ogs_cai_info), orient='index')
+    og_name_to_cai_info = {}
+    with ProcessPoolExecutor(max_workers=cpus) as executor:
+        futures = []
+        for OG_index in range(len(os.listdir(OG_dir))):
+            futures.append(executor.submit(calculate_cai, OG_dir, OG_index, genome_name_to_codon_index, cais_output_dir))
+
+        for future in as_completed(futures):
+            og_name, cai_info = future.result()
+            og_name_to_cai_info[og_name] = cai_info
+
+    ogs_cai_info_df = pd.DataFrame.from_dict(og_name_to_cai_info, orient='index')
     ogs_cai_info_df.sort_values("CAI_mean", ascending=False, inplace=True)
     ogs_cai_info_df.to_csv(cai_table_path, index_label='OG_name')
     logger.info(f"CAI values for all OGs were calculated successfully and written to {cai_table_path}")
