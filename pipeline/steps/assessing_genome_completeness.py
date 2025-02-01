@@ -17,7 +17,7 @@ CORE_GENES_COUNT = float(len(os.listdir(consts.BACTERIA_CORE_GENES_HMM_PROFILES_
 HMMER_EVAULE_CUTOFF = 10 ** (-2)
 
 
-def compute_genome_completeness(genomic_translated_f, out_dir, logger):
+def compute_genome_completeness(logger, genomic_translated_f, out_dir):
     """
     input:
         genomic_translated_f - protein fasta file of one genome
@@ -25,14 +25,11 @@ def compute_genome_completeness(genomic_translated_f, out_dir, logger):
     function specification:
         run hmmserach of all the hmm_profiles vs the genomic protein fasta, and based on the results gives the genome completeness score (in percentage of different profiles found in the genome).
     """
-    if not os.path.exists(out_dir):
-        os.makedirs(out_dir)
-
     score = 0
     for profile in os.listdir(consts.BACTERIA_CORE_GENES_HMM_PROFILES_PATH):
         profile_path = os.path.join(consts.BACTERIA_CORE_GENES_HMM_PROFILES_PATH, profile)
         hmmsearch_out_file_path = os.path.join(out_dir, f'{profile.split(".")[0]}.txt')
-        cmd = f'hmmsearch -E 0.1 --pfamtblout {hmmsearch_out_file_path} {profile_path} {genomic_translated_f}'
+        cmd = f'hmmsearch --noali -o /dev/null -E 0.1 --pfamtblout {hmmsearch_out_file_path} {profile_path} {genomic_translated_f}'
         logger.info(f'Running command: {cmd}')
         subprocess.run(cmd, shell=True, check=True)
 
@@ -49,7 +46,7 @@ def compute_genome_completeness(genomic_translated_f, out_dir, logger):
     return (score / CORE_GENES_COUNT) * 100
 
 
-def main(job_input_path, output_dir, logger):
+def main(logger, job_input_path, output_dir):
     """
     the main function that computes the genome completeness of the proteome and saves the results to the output dir.
     """
@@ -58,7 +55,7 @@ def main(job_input_path, output_dir, logger):
             proteome_path = line.strip()
             strain_name = os.path.splitext(os.path.basename(proteome_path))[0]
             strain_out_dir = os.path.join(output_dir, strain_name)
-            completeness_score = compute_genome_completeness(proteome_path, strain_out_dir, logger)
+            completeness_score = compute_genome_completeness(logger, proteome_path, strain_out_dir)
             proteome_score_path = os.path.join(strain_out_dir, 'result.txt')
             with open(proteome_score_path, 'w') as fp:
                 fp.write(str(completeness_score))
@@ -79,7 +76,7 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        main(args.job_input_path, args.output_dir, logger)
+        main(logger, args.job_input_path, args.output_dir)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:

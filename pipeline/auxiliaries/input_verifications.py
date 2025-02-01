@@ -11,6 +11,7 @@ sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from . import consts
 from .pipeline_auxiliaries import remove_path, fail
+from .configuration import Config
 from flask import flask_interface_consts
 
 
@@ -23,9 +24,9 @@ def has_illegal_chars(s):
     return any(char in ILLEGAL_CHARS for char in record_id)
 
 
-def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path, data_path, genomes_names_path):
+def prepare_and_verify_input_data(logger, config: Config):
     # extract zip and detect data folder
-    primary_data_path = unpack_data(logger, args.contigs_dir, meta_output_dir, error_file_path)
+    primary_data_path = unpack_data(logger, config.raw_data_path, config.run_dir, config.error_file_path)
 
     for system_file in os.listdir(primary_data_path):
         if system_file.startswith(('.', '_')):
@@ -34,82 +35,81 @@ def prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path
             remove_path(logger, system_file_path)
 
     # copies input contigs_dir because we edit the files and want to keep the input directory as is
-    shutil.copytree(primary_data_path, data_path, dirs_exist_ok=True)
-    logger.info(f'Copied {primary_data_path} to {data_path}')
+    shutil.copytree(primary_data_path, config.data_path, dirs_exist_ok=True)
+    logger.info(f'Copied {primary_data_path} to {config.data_path}')
 
     # have to be AFTER system files removal (in the weird case a file name starts with a space)
     filename_prefixes = set()
-    for file_name in os.listdir(data_path):
+    for file_name in os.listdir(config.data_path):
         new_file_name = fix_illegal_chars_in_file_name(logger, file_name)
         if file_name != new_file_name:
             # illegal character in file name were found
-            move_file(logger, data_path, file_name, new_file_name, error_file_path)
-            if args.outgroup == os.path.splitext(file_name)[0]:
+            move_file(logger, config.data_path, file_name, new_file_name, config.error_file_path)
+            if config.outgroup == os.path.splitext(file_name)[0]:
                 new_outgroup = os.path.splitext(new_file_name)[0]
                 logger.info(f'Following the change of input genome name {file_name} to {new_file_name}, '
-                            f'outgroup argument was changed from {args.outgroup} to {new_outgroup}')
-                args.outgroup = new_outgroup
+                            f'outgroup argument was changed from {config.outgroup} to {new_outgroup}')
+                config.outgroup = new_outgroup
 
         filename_prefix, filename_ext = os.path.splitext(file_name)
         if filename_prefix in filename_prefixes:
             error_msg = f'Two (or more) of the uploaded geonmes contain the same name (prefix), ' \
                         f'e.g., {filename_prefix}. Please make sure each file name is unique.'
-            fail(logger, error_msg, error_file_path)
+            fail(logger, error_msg, config.error_file_path)
         filename_prefixes.add(filename_prefix)
 
-    number_of_genomes = len(os.listdir(data_path))
+    number_of_genomes = len(os.listdir(config.data_path))
     logger.info(f'Number of genomes to analyze is {number_of_genomes}')
-    logger.info(f'data_path contains the following {number_of_genomes} files: {os.listdir(data_path)}')
+    logger.info(f'data_path contains the following {number_of_genomes} files: {os.listdir(config.data_path)}')
 
     # check MINimal number of genomes
-    min_number_of_genomes_to_analyze = 2
-    if number_of_genomes < min_number_of_genomes_to_analyze and not args.bypass_number_of_genomes_limit:
+    if number_of_genomes < consts.MIN_NUMBER_OF_GENOMES_TO_ANALYZE and not config.bypass_number_of_genomes_limit:
         error_msg = f'The dataset contains too few genomes ({flask_interface_consts.WEBSERVER_NAME} does comparative analysis and ' \
                     f'thus needs at least 2 genomes).'
-        fail(logger, error_msg, error_file_path)
+        fail(logger, error_msg, config.error_file_path)
 
     # check MAXimal number of genomes
-    if number_of_genomes > consts.MAX_NUMBER_OF_GENOMES_TO_ANALYZE and not args.bypass_number_of_genomes_limit:
+    if number_of_genomes > consts.MAX_NUMBER_OF_GENOMES_TO_ANALYZE and not config.bypass_number_of_genomes_limit:
         error_msg = f'The dataset contains too many genomes. {flask_interface_consts.WEBSERVER_NAME} allows analyzing up to ' \
                     f'{consts.MAX_NUMBER_OF_GENOMES_TO_ANALYZE} genomes due to the high resource consumption. However, ' \
                     f'upon request, we might be able to analyze larger datasets. Please contact us ' \
                     f'directly and we will try to do that for you.'
-        fail(logger, error_msg, error_file_path)
+        fail(logger, error_msg, config.error_file_path)
 
     # must be only after the spaces removal from the species names!!
-    verification_error = verify_fasta_format(logger, data_path)
+    verification_error = verify_fasta_format(logger, config.data_path)
     if verification_error:
-        remove_path(logger, data_path)
-        fail(logger, verification_error, error_file_path)
+        remove_path(logger, config.data_path)
+        fail(logger, verification_error, config.error_file_path)
 
-    genomes_names = [os.path.splitext(genome_name)[0] for genome_name in sorted(os.listdir(data_path))]
+    genomes_names = [os.path.splitext(genome_name)[0] for genome_name in sorted(os.listdir(config.data_path))]
 
-    with open(genomes_names_path, 'w') as genomes_name_fp:
+    with open(config.genomes_names_path, 'w') as genomes_name_fp:
         genomes_name_fp.write('\n'.join(genomes_names))
 
 
-def unpack_data(logger, data_path, meta_output_dir, error_file_path):
-    if not os.path.isdir(data_path):
-        unzipped_data_path = os.path.join(meta_output_dir, 'data')
+def unpack_data(logger, raw_data_path, run_dir, error_file_path):
+    if not os.path.isdir(raw_data_path):
+        unzipped_data_path = os.path.join(run_dir, 'data')
         try:
-            if tarfile.is_tarfile(data_path):
+            if tarfile.is_tarfile(raw_data_path):
                 logger.info('UnTARing')
-                with tarfile.open(data_path, 'r:gz') as f:
+                with tarfile.open(raw_data_path, 'r:gz') as f:
                     f.extractall(path=unzipped_data_path)  # unzip tar folder to parent dir
                 logger.info('Succeeded!')
                 # data_path = data_path.split('.tar')[0] # e.g., /groups/pupko/orenavr2/microbializer/example_data.tar.gz
                 # logger.info(f'Updated data_path is:\n{data_path}')
-            elif data_path.endswith('.gz'):  # gunzip gz file
-                cmd = f'gunzip -f "{data_path}"'
+            elif raw_data_path.endswith('.gz'):  # gunzip gz file
+                cmd = f'gunzip -f "{raw_data_path}"'
                 logger.info(f'Calling: {cmd}')
                 subprocess.run(cmd, shell=True, check=True)
-                unzipped_data_path = data_path[:-3]  # trim the ".gz"
+                unzipped_data_path = raw_data_path[:-3]  # trim the ".gz"
             else:
                 logger.info('UnZIPing')
-                shutil.unpack_archive(data_path, extract_dir=unzipped_data_path)  # unzip tar folder to parent dir
+                shutil.unpack_archive(raw_data_path, extract_dir=unzipped_data_path)  # unzip tar folder to parent dir
         except Exception as e:
             logger.info(e)
-            remove_path(logger, data_path)
+            remove_path(logger, raw_data_path)
             fail(logger, f'{flask_interface_consts.WEBSERVER_NAME} failed to decompress your data. Please make sure all your FASTA files names '
                  f'do contain only dashes, dots, and alphanumeric characters (a-z, A-Z, 0-9). Other characters such as '
                  f'parenthesis, pipes, slashes, are not allowed. Please also make sure your archived file format is legal (either a '
@@ -118,7 +118,7 @@ def unpack_data(logger, data_path, meta_output_dir, error_file_path):
         logger.info('Succeeded!')
 
         if not os.path.exists(unzipped_data_path):
-            fail(logger, f'Failed to unzip {os.path.split(data_path)[-1]} (maybe it is empty?)', error_file_path)
+            fail(logger, f'Failed to unzip {os.path.split(raw_data_path)[-1]} (maybe it is empty?)', error_file_path)
 
         if not os.path.isdir(unzipped_data_path):
             fail(logger, 'Archived file content is not a folder', error_file_path)
@@ -131,30 +131,30 @@ def unpack_data(logger, data_path, meta_output_dir, error_file_path):
                 fail(logger, f'No input files were found in the archived folder.',
                      error_file_path)
         else:
-            data_path = unzipped_data_path
+            raw_data_path = unzipped_data_path
 
-    logger.info(f'Updated data_path is: {data_path}')
-    for file in os.listdir(data_path):
-        file_path = os.path.join(data_path, file)
+    logger.info(f'Updated data_path is: {raw_data_path}')
+    for file in os.listdir(raw_data_path):
+        file_path = os.path.join(raw_data_path, file)
         if file_path.endswith('gz'):  # gunzip gz files in $data_path if any
             cmd = f'gunzip -f "{file_path}"'
             logger.info(f'Calling: {cmd}')
             subprocess.run(cmd, shell=True, check=True)
 
-    for file in os.listdir(data_path):
-        if not os.path.isdir(os.path.join(data_path, file)):
+    for file in os.listdir(raw_data_path):
+        if not os.path.isdir(os.path.join(raw_data_path, file)):
             # make sure each fasta has writing permissions for downstream editing
-            os.chmod(os.path.join(data_path, file), 0o644)  # -rw-r--r--
+            os.chmod(os.path.join(raw_data_path, file), 0o644)  # -rw-r--r--
         else:
             if file == '__MACOSX':
                 # happens too many times to mac users so i decided to assist in this case
                 logger.info('Removing __MACOSX file...')
-                shutil.rmtree(os.path.join(data_path, file), ignore_errors=True)
+                shutil.rmtree(os.path.join(raw_data_path, file), ignore_errors=True)
             else:
                 fail(logger, f'Please make sure to upload one archived folder containing (only) FASTA files '
                      f'("{file}" is a folder).', error_file_path)
 
-    return data_path
+    return raw_data_path
 
 
 def fix_illegal_chars_in_file_name(logger, file_name, illegal_chars='\\|( )&:;,\xa0'):

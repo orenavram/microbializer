@@ -3,7 +3,6 @@ import sys
 from sys import argv
 import argparse
 import traceback
-import logging
 import shutil
 import subprocess
 from Bio import SeqIO
@@ -14,31 +13,34 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger, get_job_times_logger, none_or_str, prepare_directories, \
-    submit_batch, wait_for_results, add_results_to_final_dir, add_default_step_args, write_done_file
+    submit_batch, wait_for_results, add_results_to_final_dir, add_default_step_args, write_done_file, str_to_bool
 from auxiliaries.logic_auxiliaries import split_ogs_to_jobs_inputs_files_by_og_sizes
 from auxiliaries.infer_orthogroups_logic import infer_orthogroups
+from auxiliaries.configurations import Config, InferOrthogroupsConfig
 from auxiliaries import consts
 
 
-def create_pseudo_genome_from_ogs(logger, times_logger, base_step_number, final_substep_number, error_file_path, output_dir,
-                           tmp_dir, done_files_dir, final_orthogroups_file_path, subset_proteins_fasta_path,
-                           max_parallel_jobs, genomes_batch_id, pseudo_genome_mode):
+def create_pseudo_genome_from_ogs(
+        logger, times_logger, config, base_step_number, previous_substep_number, final_orthogroups_file_path,
+        subset_proteins_fasta_path, genomes_batch_id):
     final_orthogroups_df = pd.read_csv(final_orthogroups_file_path)
 
-    step_number = f'{base_step_number}_{final_substep_number + 1}'
+    step_number = f'{base_step_number}_{previous_substep_number + 1}'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orthogroups_fasta'
-    script_path = os.path.join(consts.SRC_DIR, 'steps/extract_orfs.py')
-    orthogroups_fasta_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    orthologs_aa_dir_path = os.path.join(orthogroups_fasta_dir_path, 'orthogroups_aa')
-    orthologs_aa_aligned_dir_path = os.path.join(orthogroups_fasta_dir_path, 'orthogroups_aa_aligned')
-    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-    if not os.path.exists(done_file_path):
+    script_path = consts.SRC_DIR / 'steps' / 'extract_orfs.py'
+    orthogroups_fasta_dir_path, pipeline_step_tmp_dir = prepare_directories(
+        logger, config.steps_results_dir, config.tmp_dir, step_name)
+    orthologs_aa_dir_path = orthogroups_fasta_dir_path / 'orthogroups_aa'
+    orthologs_aa_aligned_dir_path = orthogroups_fasta_dir_path / 'orthogroups_aa_aligned'
+    done_file_path = config.done_files_dir / f'{step_name}.txt'
+    if not done_file_path.exists():
         logger.info('Extracting orthologs groups sequences according to final orthologs table...')
         os.makedirs(orthologs_aa_dir_path, exist_ok=True)
         os.makedirs(orthologs_aa_aligned_dir_path, exist_ok=True)
 
-        job_paths = split_ogs_to_jobs_inputs_files_by_og_sizes(final_orthogroups_df, pipeline_step_tmp_dir, max_parallel_jobs)
+        job_paths = split_ogs_to_jobs_inputs_files_by_og_sizes(
+            final_orthogroups_df, pipeline_step_tmp_dir, config.max_parallel_jobs)
         all_cmds_params = []
         for job_path in job_paths:
             single_cmd_params = [None,
@@ -47,80 +49,70 @@ def create_pseudo_genome_from_ogs(logger, times_logger, base_step_number, final_
                                  job_path,
                                  None,
                                  orthologs_aa_dir_path,
-                                 orthologs_aa_aligned_dir_path if pseudo_genome_mode == 'consensus_gene' else None,
+                                 orthologs_aa_aligned_dir_path if config.pseudo_genome_mode == 'consensus_gene' else None,
                                  None]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches = submit_batch(logger, script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                                   error_file_path,
-                                                   num_of_cmds_per_job=1,
-                                                   job_name_suffix='orfs_extraction',
-                                                   queue_name=args.queue_name,
-                                                   account_name=args.account_name,
-                                                   node_name=args.node_name)
+        num_of_batches = submit_batch(logger, config, script_path, all_cmds_params, pipeline_step_tmp_dir,
+                                      'orfs_extraction')
 
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, num_of_batches, error_file_path)
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, num_of_batches, config.error_file_path)
         write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    if pseudo_genome_mode == 'consensus_gene':
-        step_number = f'{base_step_number}_{final_substep_number + 2}'
+    if config.pseudo_genome_mode == 'consensus_gene':
+        step_number = f'{base_step_number}_{previous_substep_number + 2}'
         logger.info(f'Step {step_number}: {"_" * 100}')
         step_name = f'{step_number}_ogs_consensus'
-        script_path = os.path.join(consts.SRC_DIR, 'steps/calculate_consensus_from_msa.py')
-        ogs_consensus_dir_path, ogs_consensus_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-        done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-        if not os.path.exists(done_file_path):
+        script_path = consts.SRC_DIR / 'steps' / 'calculate_consensus_from_msa.py'
+        ogs_consensus_dir_path, ogs_consensus_tmp_dir = prepare_directories(
+            logger, config.steps_results_dir, config.tmp_dir, step_name)
+        done_file_path = config.done_files_dir / f'{step_name}.txt'
+        if not done_file_path.exists():
             logger.info('Calculating consensus sequences for all aligned OGs...')
 
-            job_input_files = os.path.join(ogs_consensus_tmp_dir, 'job_input_files')
+            job_input_files = ogs_consensus_tmp_dir / 'job_input_files'
             os.makedirs(job_input_files, exist_ok=True)
 
             job_index_to_ogs_paths = defaultdict(list)
-            for i, og_aligned_file_name in enumerate(os.listdir(orthologs_aa_aligned_dir_path)):
-                og_aligned_path = os.path.join(orthologs_aa_aligned_dir_path, og_aligned_file_name)
-                job_index = i % max_parallel_jobs
-                job_index_to_ogs_paths[job_index].append(og_aligned_path)
+            for i, og_aligned_file_path in enumerate(orthologs_aa_aligned_dir_path.iterdir()):
+                job_index = i % config.max_parallel_jobs
+                job_index_to_ogs_paths[job_index].append(og_aligned_file_path)
 
             all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
             for job_index, ogs_paths in job_index_to_ogs_paths.items():
-                job_input_path = os.path.join(job_input_files, f'job_input_{job_index}.txt')
+                job_input_path = job_input_files / f'job_input_{job_index}.txt'
                 with open(job_input_path, 'w') as f:
                     f.write('\n'.join(ogs_paths))
 
                 single_cmd_params = [job_input_path, ogs_consensus_dir_path]
                 all_cmds_params.append(single_cmd_params)
 
-            num_of_batches = submit_batch(logger, script_path, all_cmds_params, ogs_consensus_tmp_dir, error_file_path,
-                                          num_of_cmds_per_job=1, job_name_suffix='ogs_consensus',
-                                          queue_name=args.queue_name, account_name=args.account_name,
-                                          node_name=args.node_name)
+            num_of_batches = submit_batch(logger, config, script_path, all_cmds_params, ogs_consensus_tmp_dir,
+                                          'ogs_consensus')
 
-            wait_for_results(logger, times_logger, step_name, ogs_consensus_tmp_dir, num_of_batches, error_file_path)
+            wait_for_results(logger, times_logger, step_name, ogs_consensus_tmp_dir, num_of_batches, config.error_file_path)
             write_done_file(logger, done_file_path)
         else:
             logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
 
-    step_number = f'{base_step_number}_{final_substep_number + 3}'
+    step_number = f'{base_step_number}_{previous_substep_number + 3}'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_pseudo_genome'
-    pseudo_genome_dir_path, pseudo_genome_tmp_dir = prepare_directories(logger, output_dir, tmp_dir, step_name)
-    done_file_path = os.path.join(done_files_dir, f'{step_name}.txt')
-    if not os.path.exists(done_file_path):
+    pseudo_genome_dir_path, pseudo_genome_tmp_dir = prepare_directories(
+        logger, config.steps_results_dir, config.tmp_dir, step_name)
+    done_file_path = config.done_files_dir / f'{step_name}.txt'
+    if not done_file_path.exists():
         logger.info('Creating pseudo genome for batch...')
 
         records = []
         record_to_og = {}
 
-        if pseudo_genome_mode == 'first_gene':
-            for filename in os.listdir(orthologs_aa_dir_path):
-                if not filename.endswith('.faa'):
-                    continue
-
-                og_name = filename.split('.')[0]
-                og_path = os.path.join(orthologs_aa_dir_path, filename)
+        if config.pseudo_genome_mode == 'first_gene':
+            for og_path in orthologs_aa_dir_path.glob('*.faa'):
+                og_name = og_path.stem
 
                 # read only the first sequence from each og
                 first_record = SeqIO.parse(og_path, 'fasta').__next__()
@@ -129,13 +121,9 @@ def create_pseudo_genome_from_ogs(logger, times_logger, base_step_number, final_
                 records.append(first_record)
                 record_to_og[first_record.id] = og_name
 
-        elif pseudo_genome_mode == 'consensus_gene':
-            for filename in os.listdir(ogs_consensus_dir_path):
-                if not filename.endswith('.faa'):
-                    continue
-
-                og_name = filename.split('.')[0]
-                og_path = os.path.join(ogs_consensus_dir_path, filename)
+        elif config.pseudo_genome_mode == 'consensus_gene':
+            for og_path in ogs_consensus_dir_path.glob('*.faa'):
+                og_name = og_path.stem
 
                 record = SeqIO.parse(og_path, 'fasta').__next__()
                 record.id = f'pseudo_genome_{genomes_batch_id}:{og_name}_consensus'
@@ -143,14 +131,15 @@ def create_pseudo_genome_from_ogs(logger, times_logger, base_step_number, final_
                 records.append(record)
                 record_to_og[record.id] = og_name
 
-        pseudo_genome_fasta_path = os.path.join(pseudo_genome_dir_path, f'pseudo_genome_{genomes_batch_id}.faa')
+        pseudo_genome_fasta_path = pseudo_genome_dir_path / f'pseudo_genome_{genomes_batch_id}.faa'
         SeqIO.write(records, pseudo_genome_fasta_path, 'fasta')
-        logger.info(f'Wrote {len(records)} records to {pseudo_genome_fasta_path} (pseudo genome type is "{pseudo_genome_mode}")')
+        logger.info(f'Wrote {len(records)} records to {pseudo_genome_fasta_path} (pseudo genome type is '
+                    f'"{config.pseudo_genome_mode}")')
 
         record_to_og_df = pd.DataFrame(record_to_og.items(), columns=['representative_gene', 'OG_name'])
         orthogroups_with_representative_df = final_orthogroups_df.merge(record_to_og_df, on='OG_name')
 
-        orthogroups_with_representative_path = os.path.join(pseudo_genome_dir_path, f'orthogroups_with_representative_{genomes_batch_id}.csv')
+        orthogroups_with_representative_path = pseudo_genome_dir_path / f'orthogroups_with_representative_{genomes_batch_id}.csv'
         orthogroups_with_representative_df.to_csv(orthogroups_with_representative_path, index=False)
         logger.info(f'Wrote orthogroups with representative to {orthogroups_with_representative_path}')
 
@@ -159,40 +148,40 @@ def create_pseudo_genome_from_ogs(logger, times_logger, base_step_number, final_
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
 
-def infer_orthogroups_on_genomes_batch(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
-            done_files_dir, translated_orfs_dir, genomes_names_path,
-            queue_name, account_name, node_name, identity_cutoff, coverage_cutoff,
-            e_value_cutoff, sensitivity, max_parallel_jobs, genomes_batch_id, pseudo_genome_mode, run_optimized_mmseqs, use_parquet,
-            verbose, add_orphan_genes_to_ogs):
+def infer_orthogroups_on_genomes_batch(
+        logger, times_logger, config, step_number, translated_orfs_dir, genomes_batch_id):
 
-    with open(genomes_names_path, 'r') as genomes_names_fp:
+    with open(config.genomes_names_path, 'r') as genomes_names_fp:
         genomes_names = genomes_names_fp.read().split('\n')
 
-    subset_proteomes_dir = os.path.join(output_dir, 'proteomes')
+    subset_proteomes_dir = os.path.join(config.output_dir, 'proteomes')
     if not os.path.exists(subset_proteomes_dir):
         os.makedirs(subset_proteomes_dir, exist_ok=True)
         for genome_name in genomes_names:
             shutil.copy(os.path.join(translated_orfs_dir, f'{genome_name}.faa'),
                         os.path.join(subset_proteomes_dir, f'{genome_name}.faa'))
 
-    subset_proteins_fasta_path = os.path.join(output_dir, 'all_proteomes.faa')
+    subset_proteins_fasta_path = os.path.join(config.output_dir, 'all_proteomes.faa')
     if not os.path.exists(subset_proteins_fasta_path):
         cmd = f"cat {os.path.join(subset_proteomes_dir, '*')} > {subset_proteins_fasta_path}"
         logger.info(f'Calling: {cmd}')
         subprocess.run(cmd, shell=True, check=True)
 
+    infer_orthogroups_config = InferOrthogroupsConfig(
+        genomes_names_path=config.genomes_names_path,
+        translated_orfs_dir=subset_proteomes_dir, all_proteins_path=subset_proteins_fasta_path,
+        add_orphan_genes_to_ogs=config.add_orphan_genes_to_ogs, skip_paralogs=False,
+        steps_results_dir=config.steps_results_dir, tmp_dir=config.tmp_dir, done_files_dir=config.done_files_dir,
+        max_parallel_jobs=config.max_parallel_jobs)
+
     final_orthogroups_dir_path, orphan_genes_dir, final_substep_number = infer_orthogroups(
-        logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir,
-            done_files_dir, subset_proteomes_dir, subset_proteins_fasta_path, genomes_names_path,
-            queue_name, account_name, node_name, identity_cutoff, coverage_cutoff,
-            e_value_cutoff, sensitivity, max_parallel_jobs, run_optimized_mmseqs, use_parquet,
-            verbose, add_orphan_genes_to_ogs)
+        logger, times_logger, config, infer_orthogroups_config, step_number)
 
     final_orthogroups_file_path = os.path.join(final_orthogroups_dir_path, 'orthogroups.csv')
 
-    create_pseudo_genome_from_ogs(logger, times_logger, base_step_number, final_substep_number, error_file_path, output_dir,
-                           tmp_dir, done_files_dir, final_orthogroups_file_path, subset_proteins_fasta_path,
-                           max_parallel_jobs, genomes_batch_id, pseudo_genome_mode)
+    create_pseudo_genome_from_ogs(
+        logger, times_logger, config, step_number, final_substep_number, final_orthogroups_file_path,
+        subset_proteins_fasta_path, genomes_batch_id)
 
 
 if __name__ == '__main__':
@@ -214,6 +203,7 @@ if __name__ == '__main__':
     parser.add_argument('e_value_cutoff', help='', type=float)
     parser.add_argument('sensitivity', type=float)
     parser.add_argument('max_parallel_jobs', help='', type=int)
+    parser.add_argument('use_job_manager', help='', type=str_to_bool)
     parser.add_argument('genomes_batch_id', help='', type=int)
     parser.add_argument('pseudo_genome_mode', help='', type=str)
     parser.add_argument('--run_optimized_mmseqs', help='', action='store_true')
@@ -227,13 +217,26 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
+        config = Config(
+            genomes_names_path=args.genomes_names_path,
+
+            steps_results_dir=args.output_dir, tmp_dir=args.tmp_dir, done_files_dir=args.done_files_dir,
+            error_file_path=args.error_file_path,
+
+            queue_name=args.queue_name, account_name=args.account_name, node_name=args.node_name,
+            max_parallel_jobs=args.max_parallel_jobs, use_job_manager=args.use_job_manager,
+
+            identity_cutoff=args.identity_cutoff, coverage_cutoff=args.coverage_cutoff,
+            e_value_cutoff=args.e_value_cutoff, sensitivity=args.sensitivity,
+
+            add_orphan_genes_to_ogs=args.add_orphan_genes_to_ogs, pseudo_genome_mode=args.pseudo_genome_mode,
+            run_optimized_mmseqs=args.run_optimized_mmseqs,
+
+            use_parquet=args.use_parquet, verbose=args.verbose
+        )
+
         infer_orthogroups_on_genomes_batch(
-            logger, times_logger, args.step_number, args.error_file_path, args.output_dir, args.tmp_dir,
-            args.done_files_dir, args.translated_orfs_dir, args.genomes_names_path,
-            args.queue_name, args.account_name, args.node_name, args.identity_cutoff, args.coverage_cutoff,
-            args.e_value_cutoff, args.sensitivity, args.max_parallel_jobs, args.genomes_batch_id,
-            args.pseudo_genome_mode, args.run_optimized_mmseqs, args.use_parquet, args.verbose,
-            args.add_orphan_genes_to_ogs)
+            logger, times_logger, config, args.step_number, args.translated_orfs_dir, args.genomes_batch_id)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:

@@ -2,10 +2,9 @@
 # this file should be saved as part of the pipeline and the cgi should import it rather than copy it twice! #
 #############################################################################################################
 
-import os
 import os.path
 from enum import Enum
-import numpy as np
+from pathlib import Path
 
 # ENV = 'wsl'
 ENV = 'yair_test'
@@ -13,49 +12,48 @@ ENV = 'yair_test'
 # ENV = 'lsweb'
 # ENV = 'c-001'
 
-
 if ENV == 'yair_test':
-    PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer'
+    PROJECT_ROOT_DIR = Path('/groups/pupko/yairshimony/microbializer')
 elif ENV == 'yair_prod':
-    PROJECT_ROOT_DIR = '/groups/pupko/yairshimony/microbializer_prod'
+    PROJECT_ROOT_DIR = Path('/groups/pupko/yairshimony/microbializer_prod')
 elif ENV == 'lsweb':
-    PROJECT_ROOT_DIR = '/lsweb/pupko/microbializer'
-    USER_RESULTS_DIR = os.path.join(PROJECT_ROOT_DIR, 'user_results')
-    CLEAN_JOBS_LOGS_DIR = os.path.join(PROJECT_ROOT_DIR, 'clean_jobs_logs')
+    PROJECT_ROOT_DIR = Path('/lsweb/pupko/microbializer')
+    USER_RESULTS_DIR = PROJECT_ROOT_DIR / 'user_results'
+    CLEAN_JOBS_LOGS_DIR = PROJECT_ROOT_DIR / 'clean_jobs_logs'
 elif ENV == 'wsl':
-    PROJECT_ROOT_DIR = '/home/yair/microbializer'
+    PROJECT_ROOT_DIR = Path('/home/yair/microbializer')
 elif ENV == 'c-001':
-    PROJECT_ROOT_DIR = '/home/ai_center/ai_users/yairshimony/microbializer/'
+    PROJECT_ROOT_DIR = Path('/home/ai_center/ai_users/yairshimony/microbializer/')
 else:
     raise ValueError(f'Unknown environment: {ENV}')
 
-SRC_DIR = os.path.join(PROJECT_ROOT_DIR, 'pipeline')
+SRC_DIR = PROJECT_ROOT_DIR / 'pipeline'
 
 if ENV == 'yair_test' or ENV == 'yair_prod':
-    CONDA_INSTALLATION_DIR = r'/groups/pupko/yairshimony/miniconda3'
-    CONDA_ENVIRONMENT_DIR = r'/groups/pupko/yairshimony/miniconda3/envs/microbializer'
+    CONDA_INSTALLATION_DIR = Path('/groups/pupko/yairshimony/miniconda3')
+    CONDA_ENVIRONMENT_DIR = Path('/groups/pupko/yairshimony/miniconda3/envs/microbializer')
     SLURM_ACCOUNT = 'pupko-users'
     SLURM_PARTITION = 'pupko'
 elif ENV == 'lsweb':
-    CONDA_INSTALLATION_DIR = r'/lsweb/pupko/microbializer/miniconda3'
-    CONDA_ENVIRONMENT_DIR = r'/lsweb/pupko/microbializer/miniconda3/envs/microbializer'
+    CONDA_INSTALLATION_DIR = Path('/lsweb/pupko/microbializer/miniconda3')
+    CONDA_ENVIRONMENT_DIR = Path('/lsweb/pupko/microbializer/miniconda3/envs/microbializer')
     SLURM_ACCOUNT = 'pupkoweb-users'
     SLURM_PARTITION = 'pupkoweb'
 elif ENV == 'wsl':
-    CONDA_INSTALLATION_DIR = r'/home/yair/miniconda3'
-    CONDA_ENVIRONMENT_DIR = r'/home/yair/miniconda3/envs/microbializer'
+    CONDA_INSTALLATION_DIR = Path('/home/yair/miniconda3')
+    CONDA_ENVIRONMENT_DIR = Path('/home/yair/miniconda3/envs/microbializer')
     SLURM_ACCOUNT = None
     SLURM_PARTITION = None
 elif ENV == 'c-001':
-    CONDA_INSTALLATION_DIR = r'/home/ai_center/ai_users/yairshimony/miniconda'
-    CONDA_ENVIRONMENT_DIR = r'/home/ai_center/ai_users/yairshimony/miniconda/envs/microbializer'
+    CONDA_INSTALLATION_DIR = Path('/home/ai_center/ai_users/yairshimony/miniconda')
+    CONDA_ENVIRONMENT_DIR = Path('/home/ai_center/ai_users/yairshimony/miniconda/envs/microbializer')
     SLURM_ACCOUNT = 'gpu-research'
     SLURM_PARTITION = 'cpu-killable'
 else:
     raise ValueError(f'Unknown environment: {ENV}')
 
 USE_JOB_MANAGER = False if ENV == 'wsl' else True
-MAX_PARALLEL_JOBS = 50 if USE_JOB_MANAGER else os.cpu_count()
+MAX_PARALLEL_JOBS = 50
 
 
 # General Job submission consts
@@ -79,7 +77,7 @@ PHYLOGENY_NUM_OF_CORES = 20
 PHYLOGENY_REQUIRED_MEMORY_GB = '64'
 KEGG_NUM_OF_CORES = 20
 KEGG_REQUIRED_MEMORY_GB = '64'
-CODON_BIAS_NUM_OF_CORES = 20 if USE_JOB_MANAGER else 1
+CODON_BIAS_NUM_OF_CORES = 20
 ANI_NUM_OF_CORES = 20
 ANI_REQUIRED_MEMORY_GB = '64'
 ORTHOXML_REQUIRED_MEMORY_GB = '16'
@@ -88,15 +86,24 @@ INFER_ORTHOGROUPS_JOB_TIME_LIMIT_HOURS = 120
 MMSEQS_JOB_TIME_LIMIT_HOURS = 96
 PHYLOGENY_JOB_TIME_LIMIT_HOURS = 96
 
-HEGS_ECOLI_FILE_PATH = os.path.join(SRC_DIR, 'data', 'HEG_ecoli.txt')
-BACTERIA_CORE_GENES_HMM_PROFILES_PATH = os.path.join(SRC_DIR, 'data', 'busco_hmms')
-KEGG_DATABASE_PATH = os.path.join(SRC_DIR, 'data', 'kegg', 'prokaryote_database.hmm')
-KEGG_KO_LIST_PATH = os.path.join(SRC_DIR, 'data', 'kegg', 'ko_list')
+HEGS_ECOLI_FILE_PATH = SRC_DIR / 'data' / 'HEG_ecoli.txt'
+BACTERIA_CORE_GENES_HMM_PROFILES_PATH = SRC_DIR / 'data' / 'busco_hmms'
+KEGG_DATABASE_PATH = SRC_DIR / 'data' / 'kegg' / 'prokaryote_database.hmm'
+KEGG_KO_LIST_PATH = SRC_DIR / 'data' / 'kegg' / 'ko_list'
+
+MIN_NUMBER_OF_GENOMES_TO_ANALYZE = 2
 MAX_NUMBER_OF_GENOMES_TO_ANALYZE = 1060
+
 NUMBER_OF_IQTREE_BOOTSTRAP_ITERATIONS = 1000
 NUMBER_OF_RAXML_BOOTSTRAP_ITERATIONS = 100
 MAX_NUMBER_OF_CORE_OGS_FOR_PHYLOGENY = 1000
 OUTPUT_TSV_OF_ORTHOLOGS_PAIRS = False
+
+DEFAULT_IDENTITY_CUTOFF = 40
+DEFAULT_COVERAGE_CUTOFF = 70
+DEFAULT_EVALUE_CUTOFF = 0.01
+DEFAULT_MMSEQS_SENSITIVITY = 5.7
+DEFAULT_CORE_MINIMAL_PERCENTAGE = 100
 
 
 class SimilarityScore(Enum):

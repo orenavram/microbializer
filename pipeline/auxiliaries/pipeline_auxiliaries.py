@@ -8,9 +8,7 @@ from datetime import timedelta, datetime
 import pandas as pd
 import stat
 import sys
-import random
-import string
-from math import floor
+import argparse
 
 from . import consts
 from .email_sender import send_email
@@ -187,11 +185,11 @@ def get_recursive_step_cummulative_times(path):
 
 
 def prepare_directories(logger, outputs_dir_prefix, tmp_dir_prefix, dir_name):
-    outputs_dir = os.path.join(outputs_dir_prefix, dir_name)
+    outputs_dir = outputs_dir_prefix / dir_name
     logger.info(f'Creating {outputs_dir}')
     os.makedirs(outputs_dir, exist_ok=True)
 
-    tmp_dir = os.path.join(tmp_dir_prefix, dir_name)
+    tmp_dir = tmp_dir_prefix / dir_name
     logger.info(f'Creating {tmp_dir}')
     os.makedirs(tmp_dir, exist_ok=True)
 
@@ -205,9 +203,9 @@ def fail(logger, error_msg, error_file_path):
     raise ValueError(error_msg)
 
 
-def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir, error_file_path, queue_name,
-                      account_name, job_name, verbose=False, num_of_cpus=1, memory=consts.DEFAULT_MEMORY_PER_JOB_GB, time_in_hours=None,
-                      done_file_is_needed=True, command_to_run_before_script=None, node_name=None):
+def submit_mini_batch(logger, config, script_path, mini_batch_parameters_list, logs_dir, job_name, num_of_cpus=1,
+                      memory=consts.DEFAULT_MEMORY_PER_JOB_GB, time_in_hours=None, command_to_run_before_script=None,
+                      alternative_error_file=None):
     """
     :param script_path:
     :param mini_batch_parameters_list: a list of lists. each sublist corresponds to a single command and contain its parameters
@@ -221,7 +219,7 @@ def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir,
 
     shell_cmds_as_str = ''
 
-    if consts.USE_JOB_MANAGER:
+    if config.use_job_manager:
         # shell_cmds_as_str += f'source ~/.bashrc{new_line_delimiter}'
         conda_sh_path = os.path.join(consts.CONDA_INSTALLATION_DIR, 'etc/profile.d/conda.sh')
         shell_cmds_as_str += f'source {conda_sh_path}\n'
@@ -232,32 +230,32 @@ def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir,
     if command_to_run_before_script:
         shell_cmds_as_str += f'{command_to_run_before_script}\n'
 
+    error_file_path = alternative_error_file if alternative_error_file else config.error_file_path
     example_shell_cmd = ''
     for params in mini_batch_parameters_list:
         shell_cmds_as_str += ' '.join(
             ['python', script_path, *[str(param) for param in params],
-            '-v' if verbose else '', f'--logs_dir {logs_dir}', f'--error_file_path {error_file_path}',
+            '-v' if config.verbose else '', f'--logs_dir {logs_dir}', f'--error_file_path {error_file_path}',
              f'--job_name {job_name}']) + '\n'
 
         if not example_shell_cmd:
             example_shell_cmd = shell_cmds_as_str
 
-    if done_file_is_needed:
-        # GENERATE DONE FILE
-        shell_cmds_as_str += f'touch {os.path.join(logs_dir, job_name + ".done")}\n'
+    # GENERATE DONE FILE
+    shell_cmds_as_str += f'touch {os.path.join(logs_dir, job_name + ".done")}\n'
 
     # WRITING CMDS FILE
     cmds_path = os.path.join(logs_dir, f'{job_name}.sh')
     with open(cmds_path, 'w') as f:
         f.write(shell_cmds_as_str)
 
-    if consts.USE_JOB_MANAGER:
+    if config.use_job_manager:
         # Add execution permissions to cmds_path
         current_permissions = os.stat(cmds_path).st_mode
         os.chmod(cmds_path, current_permissions | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
-        submit_cmds_from_file_to_q(logger, job_name, cmds_path, logs_dir, queue_name, str(num_of_cpus), account_name,
-                                   memory, time_in_hours, node_name)
+        submit_cmds_from_file_to_q(logger, job_name, cmds_path, logs_dir, config.queue_name, str(num_of_cpus), config.account_name,
+                                   memory, time_in_hours, config.node_name)
     else:
         # fetch directly on shell
         for shell_cmd in shell_cmds_as_str.split('\n'):
@@ -267,9 +265,8 @@ def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir,
     return example_shell_cmd
 
 
-def submit_batch(logger, script_path, batch_parameters_list, logs_dir, error_file_path, job_name_suffix,
-                 queue_name, account_name, num_of_cmds_per_job=1, num_of_cpus=1,
-                 memory=consts.DEFAULT_MEMORY_PER_JOB_GB, time_in_hours=None, node_name=None):
+def submit_batch(logger, config, script_path, batch_parameters_list, logs_dir, job_name_suffix,
+                 num_of_cmds_per_job=1, num_of_cpus=1, memory=consts.DEFAULT_MEMORY_PER_JOB_GB, time_in_hours=None):
     """
     :param script_path:
     :param batch_parameters_list: a list of lists. each sublist corresponds to a single command and contain its parameters
@@ -287,10 +284,9 @@ def submit_batch(logger, script_path, batch_parameters_list, logs_dir, error_fil
     for i in range(0, len(batch_parameters_list), num_of_cmds_per_job):
         mini_batch_parameters_list = batch_parameters_list[i: i + num_of_cmds_per_job]
         mini_batch_job_name = f'{num_of_mini_batches}_{job_name_suffix}'
-        example_cmd_from_last_mini_batch = submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir,
-                                                             error_file_path, queue_name, account_name, mini_batch_job_name,
-                                                             verbose=False, num_of_cpus=num_of_cpus,
-                                                             memory=memory, time_in_hours=time_in_hours, node_name=node_name)
+        example_cmd_from_last_mini_batch = submit_mini_batch(
+            logger, config, script_path, mini_batch_parameters_list, logs_dir, mini_batch_job_name,
+            num_of_cpus=num_of_cpus, memory=memory, time_in_hours=time_in_hours)
         logger.info(f'Example command from batch {mini_batch_job_name}:\n{example_cmd_from_last_mini_batch}')
         num_of_mini_batches += 1
         sleep(0.1)
@@ -326,15 +322,14 @@ def send_email_in_pipeline_end(logger, process_id, email_address, job_name, stat
                    SharedConsts.EMAIL_CONSTS.CONTENT_PROCESS_CRASHED.format(process_id=process_id), email_addresses)
 
 
-def add_results_to_final_dir(logger, source, final_output_dir):
-    source_dir_name = os.path.split(source)[1]
-    dest = os.path.join(final_output_dir, consts.OUTPUTS_DIRECTORIES_MAP[source_dir_name])
+def add_results_to_final_dir(logger, source_dir_path, final_output_dir):
+    dest = final_output_dir / consts.OUTPUTS_DIRECTORIES_MAP[source_dir_path.name]
 
     try:
-        logger.info(f'Copying {source} TO {dest}')
-        shutil.copytree(source, dest, dirs_exist_ok=True)
+        logger.info(f'Copying {source_dir_path} TO {dest}')
+        shutil.copytree(source_dir_path, dest, dirs_exist_ok=True)
     except Exception:
-        logger.exception(f'Failed to copy {source} to {dest}')
+        logger.exception(f'Failed to copy {source_dir_path} to {dest}')
         raise
 
     return dest
@@ -378,8 +373,15 @@ def get_job_times_logger(log_file_dir, job_name, verbose):
     return logger
 
 
-def str_to_bool(s):
-    return s.lower() in ['true', '1', 't', 'y', 'yes']
+def str_to_bool(value):
+    if isinstance(value, bool):
+        return value
+    if value.lower() in ("yes", "true", "t", "1"):
+        return True
+    elif value.lower() in ("no", "false", "f", "0"):
+        return False
+    else:
+        raise argparse.ArgumentTypeError("Boolean value expected.")
 
 
 def none_or_str(value):
@@ -388,38 +390,37 @@ def none_or_str(value):
     return value
 
 
-def submit_clean_folders_job(args, logger, tmp_dir, folders_to_clean):
+def submit_clean_folders_job(logger, config):
     logger.info('Cleaning up intermediate results...')
 
-    clean_folders_tmp_dir = os.path.join(tmp_dir, 'clean_folders')
+    clean_folders_tmp_dir = config.tmp_dir / 'clean_folders'
     os.makedirs(clean_folders_tmp_dir, exist_ok=True)
 
-    clean_folders_error_file_path = os.path.join(clean_folders_tmp_dir, 'error.txt')
-    clean_folders_file_path = os.path.join(clean_folders_tmp_dir, 'folders.txt')
+    clean_folders_error_file_path = clean_folders_tmp_dir / 'error.txt'
+    clean_folders_file_path = clean_folders_tmp_dir / 'folders.txt'
     with open(clean_folders_file_path, 'w') as fp:
-        fp.write('\n'.join(folders_to_clean))
+        fp.write('\n'.join([config.steps_results_dir]))
 
     params = [clean_folders_file_path]
 
-    script_path = os.path.join(consts.SRC_DIR, 'steps', 'clean_folders.py')
-    submit_mini_batch(logger, script_path, [params], clean_folders_tmp_dir, clean_folders_error_file_path,
-                      args.queue_name, args.account_name, 'clean_folders',
-                      node_name=args.node_name)
+    script_path = consts.SRC_DIR / 'steps' / 'clean_folders.py'
+    submit_mini_batch(logger, config, script_path, [params], clean_folders_tmp_dir,
+                      'clean_folders', alternative_error_file=clean_folders_error_file_path)
 
 
-def submit_clean_old_user_results_job(args, logger):
+def submit_clean_old_user_results_job(logger, config):
     logger.info('Checking if a clean old jobs job is needed...')
     os.makedirs(consts.CLEAN_JOBS_LOGS_DIR, exist_ok=True)
 
-    logs_sub_dirs = [d for d in os.listdir(consts.CLEAN_JOBS_LOGS_DIR) if os.path.isdir(os.path.join(consts.CLEAN_JOBS_LOGS_DIR, d))]
     datetime_format = "%Y_%m_%d_%H_%M_%S"
     parsed_datetimes = []
-    for subdir in logs_sub_dirs:
-        try:
-            parsed_datetimes.append(datetime.strptime(subdir, datetime_format))
-        except ValueError:
-            # Skip directories that don't match the datetime format
-            pass
+    for subdir in consts.CLEAN_JOBS_LOGS_DIR.iterdir():
+        if subdir.is_dir():
+            try:
+                parsed_datetimes.append(datetime.strptime(subdir.name, datetime_format))
+            except ValueError:
+                # Skip directories that don't match the datetime format
+                pass
 
     now = datetime.now()
     if parsed_datetimes:
@@ -429,15 +430,14 @@ def submit_clean_old_user_results_job(args, logger):
             return
 
     logger.info('Submitting a job to clean old user results...')
-    tmp_dir = os.path.join(consts.CLEAN_JOBS_LOGS_DIR, now.strftime(datetime_format))
+    tmp_dir = consts.CLEAN_JOBS_LOGS_DIR / now.strftime(datetime_format)
     os.makedirs(tmp_dir, exist_ok=True)
-    clean_old_jobs_error_file_path = os.path.join(tmp_dir, 'error.txt')
-    script_path = os.path.join(consts.SRC_DIR, 'steps', 'clean_old_jobs.py')
+    clean_old_jobs_error_file_path = tmp_dir / 'error.txt'
+    script_path = consts.SRC_DIR / 'steps' / 'clean_old_jobs.py'
     params = []
 
-    submit_mini_batch(logger, script_path, [params], tmp_dir, clean_old_jobs_error_file_path,
-                      args.queue_name, args.account_name, 'clean_old_jobs',
-                      node_name=args.node_name)
+    submit_mini_batch(logger, config, script_path, [params], tmp_dir, 'clean_old_jobs',
+                      alternative_error_file=clean_old_jobs_error_file_path)
 
 
 def add_default_step_args(args_parser):
