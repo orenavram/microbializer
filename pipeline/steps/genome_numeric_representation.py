@@ -14,7 +14,7 @@ import traceback
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger
+from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args
 from auxiliaries import consts
 
 
@@ -180,13 +180,10 @@ if __name__ == '__main__':
     parser.add_argument('ORFs_dir_path', help='A path to a ORF directory')
     parser.add_argument('output_path', help='A path to which the numeric core genomes will be written')
     parser.add_argument('tmp_dir', help='A path to tmp dir')
-    parser.add_argument('-v', '--verbose', action='store_true', help='Increase output verbosity')
-    parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
-    parser.add_argument('--error_file_path', help='path to error file')
+    add_default_step_args(parser)
     args = parser.parse_args()
 
-    level = logging.DEBUG if args.verbose else logging.INFO
-    logger = get_job_logger(args.logs_dir, level)
+    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
 
     logger.info(script_run_message)
 

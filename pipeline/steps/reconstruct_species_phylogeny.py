@@ -12,7 +12,7 @@ import traceback
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger
+from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args
 from auxiliaries import consts
 
 
@@ -147,13 +147,10 @@ if __name__ == '__main__':
                         help='whether or not to apply bootstrap procedure over the reconstructed species tree.')
     parser.add_argument('--cpu', choices=[str(i) for i in range(1, 29)], default='1',
                         help='How many CPUs will be used? (for running in parallel mode). For further details see:\nhttps://support.nesi.org.nz/hc/en-gb/articles/115001854444-RAxML#parallel-versions')
-    parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
-    parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
-    parser.add_argument('--error_file_path', help='path to error file')
+    add_default_step_args(parser)
     args = parser.parse_args()
 
-    level = logging.DEBUG if args.verbose else logging.INFO
-    logger = get_job_logger(args.logs_dir, level)
+    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
 
     logger.info(script_run_message)
     try:

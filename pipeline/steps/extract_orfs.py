@@ -12,7 +12,7 @@ import pandas as pd
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger, none_or_str
+from auxiliaries.pipeline_auxiliaries import get_job_logger, none_or_str, add_default_step_args
 from auxiliaries.logic_auxiliaries import flatten
 from auxiliaries import consts
 
@@ -155,14 +155,10 @@ if __name__ == '__main__':
     parser.add_argument('ogs_aa_output_dir', type=none_or_str, help='path to an output directory of ogs aa')
     parser.add_argument('ogs_aa_aligned_output_dir', type=none_or_str, help='path to an output directory of ogs aligned aa')
     parser.add_argument('ogs_induced_dna_aligned_output_dir', type=none_or_str, help='path to an output directory of ogs induced aligned dna (codon alignment)')
-    parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
-    parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
-    parser.add_argument('--error_file_path', help='path to error file')
+    add_default_step_args(parser)
     args = parser.parse_args()
 
-    level = logging.DEBUG if args.verbose else logging.INFO
-    logger = get_job_logger(args.logs_dir, level)
-
+    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
     logger.info(script_run_message)
     try:
         extract_orfs(logger, args.all_orfs_path, args.all_proteins_path, args.orthogroups_file_path,

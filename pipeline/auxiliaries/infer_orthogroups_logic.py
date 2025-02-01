@@ -9,10 +9,9 @@ import time
 from datetime import timedelta
 
 from . import consts
-from .pipeline_auxiliaries import wait_for_results, prepare_directories, submit_mini_batch, submit_batch
+from .pipeline_auxiliaries import wait_for_results, prepare_directories, submit_mini_batch, submit_batch, write_done_file
 from .logic_auxiliaries import aggregate_mmseqs_scores, define_intervals, add_score_column_to_mmseqs_output, \
     get_directory_size_in_gb, combine_orphan_genes_stats, split_ogs_to_jobs_inputs_files_by_og_sizes
-from .file_writer import write_to_file
 
 
 def infer_orthogroups(logger, times_logger, base_step_number, error_file_path, output_dir, tmp_dir, done_files_dir,
@@ -127,7 +126,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
 
         wait_for_results(logger, times_logger, step_name, normalized_hits_tmp_dir, num_of_batches, error_file_path)
 
-        write_to_file(logger, done_file_path, '.')
+        write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
@@ -148,11 +147,11 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
         params = [normalized_hits_output_dir,
                   putative_orthologs_table_path]
         submit_mini_batch(logger, script_path, [params], putative_orthologs_table_tmp_dir, error_file_path,
-                          queue_name, account_name, job_name=os.path.split(script_path)[-1], node_name=node_name)
+                          queue_name, account_name, os.path.split(script_path)[-1], node_name=node_name)
         wait_for_results(logger, times_logger, step_name, putative_orthologs_table_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path)
 
-        write_to_file(logger, done_file_path, '.')
+        write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
@@ -188,7 +187,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
                                                    node_name=node_name)
 
         wait_for_results(logger, times_logger, step_name, mcl_inputs_tmp_dir, num_of_batches, error_file_path)
-        write_to_file(logger, done_file_path, '.')
+        write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
@@ -232,7 +231,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
 
         wait_for_results(logger, times_logger, step_name, mcl_tmp_dir,
                          num_of_batches, error_file_path)
-        write_to_file(logger, done_file_path, '.')
+        write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
@@ -254,14 +253,14 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
                   orthogroups_file_path]
 
         submit_mini_batch(logger, script_path, [params], verified_orthologs_table_tmp_dir, error_file_path,
-                          queue_name, account_name, job_name='verified_ortholog_groups', node_name=node_name)
+                          queue_name, account_name, 'verified_ortholog_groups', node_name=node_name)
         wait_for_results(logger, times_logger, step_name, verified_orthologs_table_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path,
                          error_message='No ortholog groups were detected in your dataset. Please try to lower '
                                        'the similarity parameters (see Advanced Options in the submission page) '
                                        'and re-submit your job.')
 
-        write_to_file(logger, done_file_path, '.')
+        write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
@@ -312,7 +311,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
         step_post_processing_time = timedelta(seconds=int(time.time() - start_time))
         times_logger.info(f'Step {step_name} post-processing took {step_post_processing_time}.')
 
-        write_to_file(logger, done_file_path, '.')
+        write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
@@ -332,7 +331,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
             params = [orthogroups_file_path, final_orthogroups_file_path, f'--orphan_genes_dir {orphan_genes_internal_dir}']
 
             submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path, queue_name, account_name,
-                              job_name='add_orphans_to_orthogroups', node_name=node_name)
+                              'add_orphans_to_orthogroups', node_name=node_name)
             wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                              num_of_expected_results=1, error_file_path=error_file_path)
         else:
@@ -340,7 +339,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, error_file_path, ou
             logger.info(f'add_orphan_genes_to_ogs is False. Skipping adding orphans to orthogroups. Copied '
                         f'{orthogroups_file_path} to {final_orthogroups_file_path}.')
 
-        write_to_file(logger, done_file_path, '.')
+        write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
@@ -371,7 +370,7 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
                   f'--cpus {consts.MMSEQS_BIG_DATASET_NUM_OF_CORES}']
 
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path, queue_name,
-                          account_name, job_name='mmseqs', num_of_cpus=consts.MMSEQS_BIG_DATASET_NUM_OF_CORES,
+                          account_name, 'mmseqs', num_of_cpus=consts.MMSEQS_BIG_DATASET_NUM_OF_CORES,
                           memory=consts.MMSEQS_BIG_DATASET_REQUIRED_MEMORY_GB, time_in_hours=consts.MMSEQS_JOB_TIME_LIMIT_HOURS, node_name=node_name)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, 1, error_file_path)
@@ -391,7 +390,7 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
         step_post_processing_time = timedelta(seconds=int(time.time() - start_time))
         times_logger.info(f'Step {step_name} post-processing took {step_post_processing_time}.')
 
-        write_to_file(logger, done_file_path, '.')
+        write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
@@ -448,7 +447,7 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
             wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                              num_of_batches, error_file_path)
 
-        write_to_file(logger, done_file_path, '.')
+        write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
@@ -505,7 +504,7 @@ def run_unified_mmseqs(logger, times_logger, base_step_number, error_file_path, 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)
 
-        write_to_file(logger, done_file_path, '.')
+        write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
@@ -554,7 +553,7 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, base_step_number, erro
         wait_for_results(logger, times_logger, step_name, mmseqs_dbs_tmp_dir,
                          num_of_batches, error_file_path)
 
-        write_to_file(logger, done_file_path, '.')
+        write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
@@ -617,7 +616,7 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, base_step_number, erro
             wait_for_results(logger, times_logger, step_name, orthologs_tmp_dir,
                              num_of_batches, error_file_path)
 
-        write_to_file(logger, done_file_path, '.')
+        write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
@@ -683,7 +682,7 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, base_step_number, erro
         wait_for_results(logger, times_logger, step_name, paralogs_tmp_dir,
                          num_of_batches, error_file_path)
 
-        write_to_file(logger, done_file_path, '.')
+        write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 

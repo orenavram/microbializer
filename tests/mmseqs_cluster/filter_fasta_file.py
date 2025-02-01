@@ -8,7 +8,7 @@ import traceback
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger
+from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args
 
 
 def filter_fasta_file(logger, genes_to_keep_path, input_fasta_path, output_fasta_path):

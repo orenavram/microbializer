@@ -9,7 +9,7 @@ from Bio import SeqIO
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger
+from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args
 
 
 def filter_out_plasmids(logger, input_genome_path, output_genome_path, drop_plasmids, fix_frames):
@@ -62,13 +62,10 @@ if __name__ == '__main__':
     parser.add_argument('output_dir', help='path to output dir')
     parser.add_argument('--drop_plasmids', action='store_true', help='Drop plasmids from the genome file')
     parser.add_argument('--fix_frames', action='store_true', help='Fix frames of the genome file')
-    parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
-    parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
-    parser.add_argument('--error_file_path', help='path to error file')
+    add_default_step_args(parser)
     args = parser.parse_args()
 
-    level = logging.DEBUG if args.verbose else logging.INFO
-    logger = get_job_logger(args.logs_dir, level)
+    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
 
     logger.info(script_run_message)
     try:

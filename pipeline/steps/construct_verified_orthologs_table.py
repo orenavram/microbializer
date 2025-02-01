@@ -10,7 +10,7 @@ import traceback
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger
+from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args
 from auxiliaries.logic_auxiliaries import get_strain_name
 
 
@@ -65,13 +65,10 @@ if __name__ == '__main__':
     parser.add_argument('putative_orthologs_path', help='path to a file with the putative orthologs sets')
     parser.add_argument('verified_clusters_path', help='path to a directory with the verified clusters')
     parser.add_argument('finalized_table_path', help='path to an output file in which the final table will be written')
-    parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
-    parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
-    parser.add_argument('--error_file_path', help='path to error file')
+    add_default_step_args(parser)
     args = parser.parse_args()
 
-    level = logging.DEBUG if args.verbose else logging.INFO
-    logger = get_job_logger(args.logs_dir, level)
+    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
 
     logger.info(script_run_message)
     try:

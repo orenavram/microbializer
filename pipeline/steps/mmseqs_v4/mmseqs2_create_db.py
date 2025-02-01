@@ -9,7 +9,7 @@ import traceback
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
 
-from auxiliaries.pipeline_auxiliaries import fail, get_job_logger
+from auxiliaries.pipeline_auxiliaries import fail, get_job_logger, add_default_step_args
 
 
 def create_db(logger, genome_name, proteomes_dir, output_dir):
@@ -48,13 +48,10 @@ if __name__ == '__main__':
     parser.add_argument('job_input_path', help='path to a file that contains the genome names to create dbs for')
     parser.add_argument('proteomes_dir', help='path to dir of proteomes')
     parser.add_argument('output_dir', help='path to which the results will be written')
-    parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
-    parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
-    parser.add_argument('--error_file_path', help='path to error file')
+    add_default_step_args(parser)
     args = parser.parse_args()
 
-    level = logging.DEBUG if args.verbose else logging.INFO
-    logger = get_job_logger(args.logs_dir, level)
+    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
 
     logger.info(script_run_message)
     try:

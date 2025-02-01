@@ -14,8 +14,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger, get_job_times_logger, none_or_str, prepare_directories, \
-    submit_batch, wait_for_results, add_results_to_final_dir
-from auxiliaries.file_writer import write_to_file
+    submit_batch, wait_for_results, add_results_to_final_dir, add_default_step_args, write_done_file
 from auxiliaries.logic_auxiliaries import split_ogs_to_jobs_inputs_files_by_og_sizes
 from auxiliaries.infer_orthogroups_logic import infer_orthogroups
 from auxiliaries import consts
@@ -61,7 +60,7 @@ def create_pseudo_genome_from_ogs(logger, times_logger, base_step_number, final_
                                                    node_name=args.node_name)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, num_of_batches, error_file_path)
-        write_to_file(logger, done_file_path, '.')
+        write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
@@ -99,7 +98,7 @@ def create_pseudo_genome_from_ogs(logger, times_logger, base_step_number, final_
                                           node_name=args.node_name)
 
             wait_for_results(logger, times_logger, step_name, ogs_consensus_tmp_dir, num_of_batches, error_file_path)
-            write_to_file(logger, done_file_path, '.')
+            write_done_file(logger, done_file_path)
         else:
             logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
@@ -155,7 +154,7 @@ def create_pseudo_genome_from_ogs(logger, times_logger, base_step_number, final_
         orthogroups_with_representative_df.to_csv(orthogroups_with_representative_path, index=False)
         logger.info(f'Wrote orthogroups with representative to {orthogroups_with_representative_path}')
 
-        write_to_file(logger, done_file_path, '.')
+        write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
@@ -220,14 +219,11 @@ if __name__ == '__main__':
     parser.add_argument('--run_optimized_mmseqs', help='', action='store_true')
     parser.add_argument('--use_parquet', action='store_true')
     parser.add_argument('--add_orphan_genes_to_ogs', action='store_true')
-    parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
-    parser.add_argument('--error_file_path', help='path to error file')
-    parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
+    add_default_step_args(parser)
     args = parser.parse_args()
 
-    level = logging.DEBUG if args.verbose else logging.INFO
-    logger = get_job_logger(args.logs_dir, level)
-    times_logger = get_job_times_logger(args.logs_dir)
+    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
+    times_logger = get_job_times_logger(args.logs_dir, args.job_name, args.verbose)
 
     logger.info(script_run_message)
     try:

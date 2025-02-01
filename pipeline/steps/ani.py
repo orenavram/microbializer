@@ -21,10 +21,10 @@ from seaborn.matrix import ClusterGrid
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger
+from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args
 
 
-def run_ani(logger, all_genomes_reference_path, output_path,  cpus):
+def run_ani(logger, all_genomes_reference_path, output_path, cpus):
     tmp_results = Path(all_genomes_reference_path).parent
     raw_output_path = os.path.join(tmp_results, 'all_vs_all_raw_output.tsv')
 
@@ -145,13 +145,10 @@ if __name__ == '__main__':
     parser.add_argument('all_genomes_reference_path', help='path to a file with a list of all genomes paths')
     parser.add_argument('output_path', help='path to the output directory')
     parser.add_argument('--cpus', type=int, default=1, help='Number of CPUs to use')
-    parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
-    parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
-    parser.add_argument('--error_file_path', help='path to error file')
+    add_default_step_args(parser)
     args = parser.parse_args()
 
-    level = logging.DEBUG if args.verbose else logging.INFO
-    logger = get_job_logger(args.logs_dir, level)
+    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
 
     logger.info(script_run_message)
     try:

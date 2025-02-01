@@ -13,7 +13,7 @@ import numpy as np
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
 
-from auxiliaries.pipeline_auxiliaries import fail, get_job_logger
+from auxiliaries.pipeline_auxiliaries import fail, get_job_logger, add_default_step_args
 
 
 def extract_rbh_hits_of_pair(logger, m8_df, genome1, genome2, rbh_hits_dir, scores_statistics_dir,
@@ -124,14 +124,11 @@ if __name__ == '__main__':
     parser.add_argument('rbh_hits_dir', help='')
     parser.add_argument('scores_statistics_dir', help='')
     parser.add_argument('max_rbh_score_per_gene_dir', help='')
-    parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
     parser.add_argument('--use_parquet', action='store_true')
-    parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
-    parser.add_argument('--error_file_path', help='path to error file')
+    add_default_step_args(parser)
     args = parser.parse_args()
 
-    level = logging.DEBUG if args.verbose else logging.INFO
-    logger = get_job_logger(args.logs_dir, level)
+    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
 
     logger.info(script_run_message)
     try:

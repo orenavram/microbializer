@@ -10,7 +10,7 @@ import shutil
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger
+from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args
 
 
 def mcl(logger, input_file, output_file, cpus):
@@ -71,13 +71,10 @@ if __name__ == '__main__':
     parser.add_argument('mcl_output_dir', help='path to dir the MCL analysis will be written')
     parser.add_argument('verified_clusters_dir', help='dir path to which verified clusters are written')
     parser.add_argument('--cpus', type=int, default=1, help='Number of CPUs to use')
-    parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
-    parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
-    parser.add_argument('--error_file_path', help='path to error file')
+    add_default_step_args(parser)
     args = parser.parse_args()
 
-    level = logging.DEBUG if args.verbose else logging.INFO
-    logger = get_job_logger(args.logs_dir, level)
+    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
 
     logger.info(script_run_message)
     try:

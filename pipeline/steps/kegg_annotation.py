@@ -10,7 +10,7 @@ import traceback
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger
+from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args
 from auxiliaries import consts
 
 
@@ -118,11 +118,10 @@ if __name__ == '__main__':
     parser.add_argument('output_og_table_path', help='path to the output og table with kegg annotations')
     parser.add_argument('cpus', help='number of cpus to use')
     parser.add_argument('--optimize', help='whether to use only 1 gene from each og or all genes', action='store_true')
-    parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
-    parser.add_argument('--error_file_path', help='path to error file')
+    add_default_step_args(parser)
     args = parser.parse_args()
 
-    logger = get_job_logger(args.logs_dir)
+    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
 
     logger.info(script_run_message)
     try:

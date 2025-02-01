@@ -206,7 +206,7 @@ def fail(logger, error_msg, error_file_path):
 
 
 def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir, error_file_path, queue_name,
-                      account_name, job_name='', verbose=False, num_of_cpus=1, memory=consts.DEFAULT_MEMORY_PER_JOB_GB, time_in_hours=None,
+                      account_name, job_name, verbose=False, num_of_cpus=1, memory=consts.DEFAULT_MEMORY_PER_JOB_GB, time_in_hours=None,
                       done_file_is_needed=True, command_to_run_before_script=None, node_name=None):
     """
     :param script_path:
@@ -228,25 +228,23 @@ def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir,
         shell_cmds_as_str += f'conda activate {consts.CONDA_ENVIRONMENT_DIR}\n'
         shell_cmds_as_str += f'export PATH=$CONDA_PREFIX/bin:$PATH\n'
 
-    example_shell_cmd = ' '.join(['python', script_path, *[str(param) for param in mini_batch_parameters_list[0]]] + (
-        ['-v'] if verbose else []))
-
     # PREPARING RELEVANT COMMANDS
     if command_to_run_before_script:
         shell_cmds_as_str += f'{command_to_run_before_script}\n'
 
+    example_shell_cmd = ''
     for params in mini_batch_parameters_list:
         shell_cmds_as_str += ' '.join(
             ['python', script_path, *[str(param) for param in params],
-            '-v' if verbose else '', f'--logs_dir {logs_dir}', f'--error_file_path {error_file_path}']) + '\n'
+            '-v' if verbose else '', f'--logs_dir {logs_dir}', f'--error_file_path {error_file_path}',
+             f'--job_name {job_name}']) + '\n'
 
-    if not job_name:
-        job_name = time()
+        if not example_shell_cmd:
+            example_shell_cmd = shell_cmds_as_str
 
     if done_file_is_needed:
         # GENERATE DONE FILE
-        params = [os.path.join(logs_dir, job_name + '.done'), '', f'--logs_dir {logs_dir}']  # write an empty string (like "touch" command)
-        shell_cmds_as_str += ' '.join(['python', os.path.join(consts.SRC_DIR, 'auxiliaries/file_writer.py'), *params]) + '\n'
+        shell_cmds_as_str += f'touch {os.path.join(logs_dir, job_name + ".done")}\n'
 
     # WRITING CMDS FILE
     cmds_path = os.path.join(logs_dir, f'{job_name}.sh')
@@ -354,30 +352,28 @@ def remove_path(logger, path_to_remove):
         pass
 
 
-def get_job_logger(log_file_dir, level=logging.INFO):
-    job_name = os.environ.get(consts.JOB_NAME_ENVIRONMENT_VARIABLE, ''.join(random.choice(string.ascii_letters) for _ in range(5)))
-    job_id = os.environ.get(consts.JOB_ID_ENVIRONMENT_VARIABLE, ''.join(random.choice(string.digits) for _ in range(5)))
+def get_job_logger(log_file_dir, job_name, verbose):
+    job_id = os.environ.get(consts.JOB_ID_ENVIRONMENT_VARIABLE, '')
 
     logger = logging.getLogger('main')
     file_handler = logging.FileHandler(os.path.join(log_file_dir, f'{job_name}_{job_id}_log.txt'), mode='a')
     formatter = logging.Formatter(consts.LOG_MESSAGE_FORMAT)
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
-    logger.setLevel(level)
+    logger.setLevel(logging.DEBUG if verbose else logging.INFO)
 
     return logger
 
 
-def get_job_times_logger(log_file_dir, level=logging.INFO):
-    job_name = os.environ.get(consts.JOB_NAME_ENVIRONMENT_VARIABLE, ''.join(random.choice(string.ascii_letters) for _ in range(5)))
-    job_id = os.environ.get(consts.JOB_ID_ENVIRONMENT_VARIABLE, ''.join(random.choice(string.digits) for _ in range(5)))
+def get_job_times_logger(log_file_dir, job_name, verbose):
+    job_id = os.environ.get(consts.JOB_ID_ENVIRONMENT_VARIABLE, '')
 
     logger = logging.getLogger('times')
     file_handler = logging.FileHandler(os.path.join(log_file_dir, f'{job_name}_{job_id}_times_log.txt'), mode='a')
     formatter = logging.Formatter(consts.LOG_MESSAGE_FORMAT)
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
-    logger.setLevel(level)
+    logger.setLevel(logging.DEBUG if verbose else logging.INFO)
 
     return logger
 
@@ -407,7 +403,7 @@ def submit_clean_folders_job(args, logger, tmp_dir, folders_to_clean):
 
     script_path = os.path.join(consts.SRC_DIR, 'steps', 'clean_folders.py')
     submit_mini_batch(logger, script_path, [params], clean_folders_tmp_dir, clean_folders_error_file_path,
-                      args.queue_name, args.account_name, job_name='clean_folders',
+                      args.queue_name, args.account_name, 'clean_folders',
                       node_name=args.node_name)
 
 
@@ -440,5 +436,18 @@ def submit_clean_old_user_results_job(args, logger):
     params = []
 
     submit_mini_batch(logger, script_path, [params], tmp_dir, clean_old_jobs_error_file_path,
-                      args.queue_name, args.account_name, job_name='clean_old_jobs',
+                      args.queue_name, args.account_name, 'clean_old_jobs',
                       node_name=args.node_name)
+
+
+def add_default_step_args(args_parser):
+    args_parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
+    args_parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
+    args_parser.add_argument('--error_file_path', help='path to error file')
+    args_parser.add_argument('--job_name', help='job name')
+
+
+def write_done_file(logger, done_file_path):
+    with open(done_file_path, 'w') as f:
+        f.write('.')
+    logger.info(f'{done_file_path} was generated.')

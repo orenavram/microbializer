@@ -15,11 +15,11 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from auxiliaries.file_writer import write_to_file
 from auxiliaries.input_verifications import prepare_and_verify_input_data
 from auxiliaries.pipeline_auxiliaries import (wait_for_results, prepare_directories, fail, submit_mini_batch,
                                               submit_batch, add_results_to_final_dir, remove_path, str_to_bool,
-                                              send_email_in_pipeline_end, submit_clean_folders_job, submit_clean_old_user_results_job)
+                                              send_email_in_pipeline_end, submit_clean_folders_job,
+                                              submit_clean_old_user_results_job, write_done_file)
 from auxiliaries import consts
 from flask import flask_interface_consts
 from auxiliaries.logic_auxiliaries import (plot_genomes_histogram, update_progressbar, define_intervals,
@@ -282,7 +282,7 @@ def step_1_fix_input_files(args, logger, times_logger, error_file_path, output_d
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_batches, error_file_path)
-        write_to_file(logger, done_file_path, '.')
+        write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
@@ -346,7 +346,7 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
         if not args.do_not_copy_outputs_to_final_results_dir:
             add_results_to_final_dir(logger, orfs_sequences_dir, final_output_dir)
             add_results_to_final_dir(logger, orfs_translated_dir, final_output_dir)
-        write_to_file(logger, done_file_path, '.')
+        write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
@@ -378,7 +378,7 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
 
         if not args.do_not_copy_outputs_to_final_results_dir:
             add_results_to_final_dir(logger, orfs_plots_path, final_output_dir)
-        write_to_file(logger, done_file_path, '.')
+        write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
@@ -405,7 +405,7 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
         step_time = timedelta(seconds=int(time.time() - start_time))
         times_logger.info(f'Step {step_name} took {step_time}.')
 
-        write_to_file(logger, done_file_path, '.')
+        write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
@@ -478,7 +478,7 @@ def step_3_analyze_genome_completeness(args, logger, times_logger, error_file_pa
 
         if not args.do_not_copy_outputs_to_final_results_dir:
             add_results_to_final_dir(logger, genome_completeness_dir_path, final_output_dir)
-        write_to_file(logger, done_file_path, '.')
+        write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
@@ -562,7 +562,7 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
         wait_for_results(logger, times_logger, step_name, inference_tmp_dir,
                          num_of_batches, error_file_path, recursive_step=True)
 
-        write_to_file(logger, done_file_path, '.')
+        write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
@@ -610,7 +610,7 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
 
         step_time = timedelta(seconds=int(time.time() - start_time))
         times_logger.info(f'Step {step_name} took {step_time}.')
-        write_to_file(logger, done_file_path, '.')
+        write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
@@ -670,7 +670,7 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
 
         step_time = timedelta(seconds=int(time.time() - start_time))
         times_logger.info(f'Step {step_name} took {step_time}.')
-        write_to_file(logger, done_file_path, '.')
+        write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
@@ -723,7 +723,7 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
         if not args.do_not_copy_outputs_to_final_results_dir:
             add_results_to_final_dir(logger, orphan_genes_dir, final_output_dir)
 
-        write_to_file(logger, done_file_path, '.')
+        write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
@@ -756,7 +756,7 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
         if not args.do_not_copy_outputs_to_final_results_dir:
             add_results_to_final_dir(logger, final_orthogroups_dir, final_output_dir)
 
-        write_to_file(logger, done_file_path, '.')
+        write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
@@ -782,13 +782,13 @@ def step_7_orthologs_table_variations(args, logger, times_logger, error_file_pat
             params += ['--qfo_benchmark']
 
         submit_mini_batch(logger, script_path, [params], pipeline_step_tmp_dir, error_file_path, args.queue_name, args.account_name,
-                          job_name='orthologs_table_variations', node_name=args.node_name, memory=consts.ORTHOXML_REQUIRED_MEMORY_GB)
+                          'orthologs_table_variations', node_name=args.node_name, memory=consts.ORTHOXML_REQUIRED_MEMORY_GB)
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path)
 
         if not args.do_not_copy_outputs_to_final_results_dir:
             add_results_to_final_dir(logger, orthogroups_variations_dir_path, final_output_dir)
-        write_to_file(logger, done_file_path, '.')
+        write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
@@ -822,7 +822,7 @@ def step_7_orthologs_table_variations(args, logger, times_logger, error_file_pat
 
         if not args.do_not_copy_outputs_to_final_results_dir:
             add_results_to_final_dir(logger, group_sizes_path, final_output_dir)
-        write_to_file(logger, done_file_path, '.')
+        write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
@@ -887,7 +887,7 @@ def step_8_build_orthologous_groups_fastas(args, logger, times_logger, error_fil
             add_results_to_final_dir(logger, orthogroups_aa_msa_dir_path, final_output_dir)
             add_results_to_final_dir(logger, orthogroups_induced_dna_msa_dir_path, final_output_dir)
 
-        write_to_file(logger, done_file_path, '.')
+        write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
@@ -916,7 +916,7 @@ def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, err
                   core_proteome_length_file_path,
                   f'--core_minimal_percentage {args.core_minimal_percentage}']  # how many members induce a core group?
         submit_mini_batch(logger, script_path, [params], aligned_core_proteome_tmp_dir, error_file_path,
-                          args.queue_name, args.account_name, job_name='core_proteome', node_name=args.node_name)
+                          args.queue_name, args.account_name, 'core_proteome', node_name=args.node_name)
 
     else:
         logger.info(f'done file {core_proteome_done_file_path} already exists. Skipping step...')
@@ -940,7 +940,7 @@ def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, err
                   core_genome_length_file_path,
                   f'--core_minimal_percentage {args.core_minimal_percentage}']  # how many members induce a core group?
         submit_mini_batch(logger, script_path, [params], aligned_core_genome_tmp_dir, error_file_path,
-                          args.queue_name, args.account_name, job_name='core_genome', node_name=args.node_name)
+                          args.queue_name, args.account_name, 'core_genome', node_name=args.node_name)
 
     else:
         logger.info(f'done file {core_genome_done_file_path} already exists. Skipping step...')
@@ -964,7 +964,7 @@ def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, err
                   f'--core_minimal_percentage {args.core_minimal_percentage}',  # how many members induce a core group?
                   f'--max_number_of_ogs {consts.MAX_NUMBER_OF_CORE_OGS_FOR_PHYLOGENY}']
         submit_mini_batch(logger, script_path, [params], aligned_core_proteome_reduced_tmp_dir, error_file_path,
-                          args.queue_name, args.account_name, job_name='core_proteome', node_name=args.node_name)
+                          args.queue_name, args.account_name, 'core_proteome', node_name=args.node_name)
 
     else:
         logger.info(f'done file {core_proteome_reduced_done_file_path} already exists. Skipping step...')
@@ -976,7 +976,7 @@ def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, err
 
         if not args.do_not_copy_outputs_to_final_results_dir:
             add_results_to_final_dir(logger, aligned_core_proteome_path, final_output_dir)
-        write_to_file(logger, core_proteome_done_file_path, '.')
+        write_done_file(logger, core_proteome_done_file_path)
 
     if not os.path.exists(core_genome_done_file_path):
         wait_for_results(logger, times_logger, core_genome_step_name, aligned_core_genome_tmp_dir,
@@ -984,12 +984,12 @@ def step_9_extract_core_genome_and_core_proteome(args, logger, times_logger, err
 
         if not args.do_not_copy_outputs_to_final_results_dir:
             add_results_to_final_dir(logger, aligned_core_genome_path, final_output_dir)
-        write_to_file(logger, core_genome_done_file_path, '.')
+        write_done_file(logger, core_genome_done_file_path)
 
     if not os.path.exists(core_proteome_reduced_done_file_path):
         wait_for_results(logger, times_logger, core_proteome_reduced_step_name, aligned_core_proteome_reduced_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path)
-        write_to_file(logger, core_proteome_reduced_done_file_path, '.')
+        write_done_file(logger, core_proteome_reduced_done_file_path)
 
     with open(core_proteome_reduced_length_file_path, 'r') as fp:
         core_proteome_reduced_length = int(fp.read().strip())
@@ -1017,7 +1017,7 @@ def step_10_genome_numeric_representation(args, logger, times_logger, error_file
                       numeric_representation_tmp_dir
                       ]
             submit_mini_batch(logger, script_path, [params], numeric_representation_tmp_dir, error_file_path,
-                              args.queue_name, args.account_name, job_name='numeric_representation', node_name=args.node_name)
+                              args.queue_name, args.account_name, 'numeric_representation', node_name=args.node_name)
 
             wait_for_results(logger, times_logger, numeric_step_name, numeric_representation_tmp_dir,
                              num_of_expected_results=1, error_file_path=error_file_path)
@@ -1026,7 +1026,7 @@ def step_10_genome_numeric_representation(args, logger, times_logger, error_file
 
         if not args.do_not_copy_outputs_to_final_results_dir:
             add_results_to_final_dir(logger, numeric_representation_output_dir, final_output_dir)
-        write_to_file(logger, numeric_done_file_path, '.')
+        write_done_file(logger, numeric_done_file_path)
     else:
         logger.info(f'done file {numeric_done_file_path} already exists. Skipping step...')
 
@@ -1054,7 +1054,7 @@ def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, t
         single_cmd_params = [genomes_list_path, ani_output_dir, f'--cpus {consts.ANI_NUM_OF_CORES}']
 
         submit_mini_batch(logger, script_path, [single_cmd_params], ani_tmp_dir, error_file_path, args.queue_name, args.account_name,
-                          job_name='ANI', num_of_cpus=consts.ANI_NUM_OF_CORES, memory=consts.ANI_REQUIRED_MEMORY_GB, node_name=args.node_name)
+                          'ANI', num_of_cpus=consts.ANI_NUM_OF_CORES, memory=consts.ANI_REQUIRED_MEMORY_GB, node_name=args.node_name)
 
     else:
         logger.info(f'done file {ani_done_file_path} already exists. Skipping step...')
@@ -1094,7 +1094,7 @@ def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, t
             os.chmod(xdg_runtime_dir, 0o700)
 
             submit_mini_batch(logger, script_path, [params], phylogeny_tmp_dir, error_file_path,
-                              args.queue_name, args.account_name, job_name='tree_reconstruction',
+                              args.queue_name, args.account_name, 'tree_reconstruction',
                               num_of_cpus=consts.PHYLOGENY_NUM_OF_CORES,
                               memory=consts.PHYLOGENY_REQUIRED_MEMORY_GB,
                               command_to_run_before_script=f'export QT_QPA_PLATFORM=offscreen\nexport XDG_RUNTIME_DIR={xdg_runtime_dir}', # Needed to avoid an error in drawing the tree. Taken from: https://github.com/NVlabs/instant-ngp/discussions/300
@@ -1107,7 +1107,7 @@ def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, t
 
         if not args.do_not_copy_outputs_to_final_results_dir:
             add_results_to_final_dir(logger, phylogeny_path, final_output_dir)
-        write_to_file(logger, phylogeny_done_file_path, '.')
+        write_done_file(logger, phylogeny_done_file_path)
     else:
         logger.info(f'done file {phylogeny_done_file_path} already exists. Skipping step...')
 
@@ -1118,7 +1118,7 @@ def step_11_phylogeny(args, logger, times_logger, error_file_path, output_dir, t
 
         if not args.do_not_copy_outputs_to_final_results_dir:
             add_results_to_final_dir(logger, ani_output_dir, final_output_dir)
-        write_to_file(logger, ani_done_file_path, '.')
+        write_done_file(logger, ani_done_file_path)
 
 
 def step_12_orthogroups_annotations(args, logger, times_logger, error_file_path, output_dir, tmp_dir, final_output_dir,
@@ -1144,7 +1144,7 @@ def step_12_orthogroups_annotations(args, logger, times_logger, error_file_path,
             codon_bias_tmp_dir,
             consts.CODON_BIAS_NUM_OF_CORES
         ]
-        submit_mini_batch(logger, script_path, [params], codon_bias_tmp_dir, error_file_path, args.queue_name, args.account_name, job_name='codon_bias',
+        submit_mini_batch(logger, script_path, [params], codon_bias_tmp_dir, error_file_path, args.queue_name, args.account_name, 'codon_bias',
                           num_of_cpus=consts.CODON_BIAS_NUM_OF_CORES, node_name=args.node_name)
 
     else:
@@ -1170,7 +1170,7 @@ def step_12_orthogroups_annotations(args, logger, times_logger, error_file_path,
             '--optimize'
         ]
         submit_mini_batch(logger, script_path, [params], kegg_tmp_dir, error_file_path, args.queue_name, args.account_name,
-                          job_name='kegg', num_of_cpus=consts.KEGG_NUM_OF_CORES, memory=consts.KEGG_REQUIRED_MEMORY_GB, node_name=args.node_name)
+                          'kegg', num_of_cpus=consts.KEGG_NUM_OF_CORES, memory=consts.KEGG_REQUIRED_MEMORY_GB, node_name=args.node_name)
 
     else:
         logger.info(f'done file {kegg_done_file_path} already exists. Skipping step...')
@@ -1182,12 +1182,12 @@ def step_12_orthogroups_annotations(args, logger, times_logger, error_file_path,
 
         if not args.do_not_copy_outputs_to_final_results_dir:
             add_results_to_final_dir(logger, codon_bias_output_dir_path, final_output_dir)
-        write_to_file(logger, codon_bias_done_file_path, '.')
+        write_done_file(logger, codon_bias_done_file_path)
 
     if not os.path.exists(kegg_done_file_path):
         wait_for_results(logger, times_logger, kegg_step_name, kegg_tmp_dir,
                          num_of_expected_results=1, error_file_path=error_file_path)
-        write_to_file(logger, kegg_done_file_path, '.')
+        write_done_file(logger, kegg_done_file_path)
 
     # 12_3.  add annotations to otrhogroups table
     step_number = '12_3'
@@ -1218,7 +1218,7 @@ def step_12_orthogroups_annotations(args, logger, times_logger, error_file_path,
 
         if not args.do_not_copy_outputs_to_final_results_dir:
             add_results_to_final_dir(logger, final_orthologs_table_annotated_path, final_output_dir)
-        write_to_file(logger, done_file_path, '.')
+        write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
@@ -1352,7 +1352,7 @@ def main(args):
         genomes_names_path = os.path.join(output_dir, 'genomes_names.txt')
         if not os.path.exists(done_file_path):
             prepare_and_verify_input_data(args, logger, meta_output_dir, error_file_path, data_path, genomes_names_path)
-            write_to_file(logger, done_file_path, '.')
+            write_done_file(logger, done_file_path)
         else:
             logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
@@ -1371,7 +1371,7 @@ def main(args):
         if args.clean_intermediate_outputs:
             submit_clean_folders_job(args, logger, tmp_dir, [steps_results_dir])
 
-        write_to_file(logger, os.path.join(done_files_dir, 'pipeline_finished_successfully.txt'), '.')
+        write_done_file(logger, os.path.join(done_files_dir, 'pipeline_finished_successfully.txt'))
         update_progressbar(progressbar_file_path, 'Finalize results')
         state = State.Finished
     except Exception as e:
