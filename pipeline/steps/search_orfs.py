@@ -24,7 +24,7 @@ def find_genes(logger, genome_path, orfs_output_file_path):
     """
     cmd = f'prodigal -q -i "{genome_path}" -d "{orfs_output_file_path}" -o /dev/null'
     logger.info(f'Starting prodigal. Executed command is: {cmd}')
-    subprocess.run(cmd, shell=True)
+    subprocess.run(cmd, shell=True, check=True)
 
     if not os.path.exists(orfs_output_file_path) or os.stat(orfs_output_file_path).st_size == 0:
         raise Exception(f'Could not extract ORFs for {genome_path}')

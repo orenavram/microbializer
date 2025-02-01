@@ -4,6 +4,7 @@ import shutil
 import tarfile
 import collections
 import sys
+import subprocess
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -99,7 +100,9 @@ def unpack_data(logger, data_path, meta_output_dir, error_file_path):
                 # data_path = data_path.split('.tar')[0] # e.g., /groups/pupko/orenavr2/microbializer/example_data.tar.gz
                 # logger.info(f'Updated data_path is:\n{data_path}')
             elif data_path.endswith('.gz'):  # gunzip gz file
-                execute(logger, f'gunzip -f "{data_path}"', process_is_string=True)
+                cmd = f'gunzip -f "{data_path}"'
+                logger.info(f'Calling: {cmd}')
+                subprocess.run(cmd, shell=True, check=True)
                 unzipped_data_path = data_path[:-3]  # trim the ".gz"
             else:
                 logger.info('UnZIPing')
@@ -134,7 +137,9 @@ def unpack_data(logger, data_path, meta_output_dir, error_file_path):
     for file in os.listdir(data_path):
         file_path = os.path.join(data_path, file)
         if file_path.endswith('gz'):  # gunzip gz files in $data_path if any
-            execute(logger, f'gunzip -f "{file_path}"', process_is_string=True)
+            cmd = f'gunzip -f "{file_path}"'
+            logger.info(f'Calling: {cmd}')
+            subprocess.run(cmd, shell=True, check=True)
 
     for file in os.listdir(data_path):
         if not os.path.isdir(os.path.join(data_path, file)):

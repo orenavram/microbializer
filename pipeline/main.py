@@ -396,11 +396,11 @@ def step_2_search_orfs(args, logger, times_logger, error_file_path,  output_dir,
 
         cmd = f"cat {os.path.join(orfs_sequences_dir, '*')} > {all_orfs_fasta_path}"
         logger.info(f'Calling: {cmd}')
-        subprocess.run(cmd, shell=True)
+        subprocess.run(cmd, shell=True, check=True)
 
         cmd = f"cat {os.path.join(orfs_translated_dir, '*')} > {all_proteins_fasta_path}"
         logger.info(f'Calling: {cmd}')
-        subprocess.run(cmd, shell=True)
+        subprocess.run(cmd, shell=True, check=True)
 
         step_time = timedelta(seconds=int(time.time() - start_time))
         times_logger.info(f'Step {step_name} took {step_time}.')
@@ -603,7 +603,7 @@ def step_5_6_approximate_orthogroups_inference(args, logger, times_logger, error
 
         cmd = f"cat {os.path.join(pseudo_genomes_dir_path, '*')} > {all_pseudo_genomes_path}"
         logger.info(f'Calling: {cmd}')
-        subprocess.run(cmd, shell=True)
+        subprocess.run(cmd, shell=True, check=True)
 
         with open(pseudo_genomes_strains_names_path, 'w') as pseudo_genomes_strains_names_fp:
             pseudo_genomes_strains_names_fp.write('\n'.join(pseudo_genomes_names))

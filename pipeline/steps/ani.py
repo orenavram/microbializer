@@ -31,7 +31,7 @@ def run_ani(logger, all_genomes_reference_path, output_path,  cpus):
     # No ANI output is reported for a genome pair if ANI value is much below 80% (https://github.com/ParBLiSS/FastANI)
     cmd = f'fastANI --ql {all_genomes_reference_path} --rl {all_genomes_reference_path} -o {raw_output_path} -t {cpus}'
     logger.info(f'Starting fastANI. Executed command is: {cmd}')
-    subprocess.run(cmd, shell=True)
+    subprocess.run(cmd, shell=True, check=True)
     logger.info(f'fastANI finished successfully. Output is saved to {raw_output_path}')
 
     df = pd.read_csv(raw_output_path, delimiter='\t',

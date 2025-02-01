@@ -37,7 +37,7 @@ def run_mmseqs(logger, all_proteins_fasta, output_dir, output_path, identity_cut
               f'--cov-mode 0 -e {e_value_cutoff} --threads {cpus} -v 1 --comp-bias-corr 0 ' \
               f'--max-seqs {number_of_genomes * 100} -s {sensitivity}'
         logger.info(f'Iteration #{i} - Calling:\n{cmd}')
-        subprocess.run(cmd, shell=True)
+        subprocess.run(cmd, shell=True, check=True)
         i += 1
         if i == 1000:
             too_many_trials(logger, 'mmseqs easy-rbh', error_file_path)

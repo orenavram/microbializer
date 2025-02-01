@@ -26,7 +26,7 @@ def create_fasta_of_unified_ogs_sequences(logger, og_aa_dir, output_fasta, optim
         SeqIO.write(records, output_fasta, 'fasta')
         logger.info(f'Wrote {len(records)} records to {output_fasta} (only 1 gene from each og)')
     else:
-        subprocess.run(f'cat {og_aa_dir}/* >> {output_fasta}', shell=True)
+        subprocess.run(f'cat {og_aa_dir}/* >> {output_fasta}', shell=True, check=True)
         logger.info(f'Wrote all records to {output_fasta}')
 
 
@@ -94,7 +94,7 @@ def kegg_annotation(logger, og_aa_dir, og_table_path, output_dir, output_og_tabl
     hmmsearch_output = os.path.join(output_dir, 'hmmsearch_output.txt')
     cmd = f'hmmsearch --noali -o /dev/null --cpu {cpus} --tblout {hmmsearch_output} {consts.KEGG_DATABASE_PATH} {unified_ogs_sequences}'
     logger.info(f'Running: {cmd}')
-    subprocess.run(cmd, shell=True)
+    subprocess.run(cmd, shell=True, check=True)
     logger.info(f'Finished running hmmsearch. Output written to {hmmsearch_output}')
 
     hmmsearch_output_df = filter_hmmsearh_output(hmmsearch_output)

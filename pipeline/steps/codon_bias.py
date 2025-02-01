@@ -57,14 +57,14 @@ def find_HEGs_in_orf_file(ORFs_file, genome_name, hegs_output_dir, logger):
     db_name = os.path.join(db_dir, genome_name + '.db')
     cmd = f'makeblastdb -in {ORFs_file} -out {db_name} -dbtype nucl'
     logger.info('Making blastdb with command: ' + cmd)
-    subprocess.run(cmd, shell=True)
+    subprocess.run(cmd, shell=True, check=True)
 
     # Query blast db with ecoli HEGs reference file
     hegs_hits_file = os.path.join(hegs_output_dir, genome_name + '_HEG_hits.tsv')
     cmd = f'tblastn -db {db_name} -query {consts.HEGS_ECOLI_FILE_PATH} -out {hegs_hits_file} -outfmt 6 ' \
           f'-max_target_seqs {MAX_HITS_TO_KEEP_FOR_EACH_REFERENCE_HEG}'
     logger.info("Finding Hits with command: " + cmd)
-    subprocess.run(cmd, shell=True)
+    subprocess.run(cmd, shell=True, check=True)
 
     shutil.rmtree(db_dir, ignore_errors=True)
 

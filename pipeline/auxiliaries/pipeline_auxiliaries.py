@@ -22,12 +22,6 @@ sys.path.append(os.path.dirname(SCRIPT_DIR))
 from flask import flask_interface_consts, SharedConsts
 
 
-def execute(logger, process, process_is_string=False):
-    process_str = process if process_is_string else ' '.join(str(token) for token in process)
-    logger.info(f'Calling (process_is_string == {process_is_string}):\n{process_str}')
-    subprocess.run(process, shell=process_is_string)
-
-
 def validate_slurm_error_logs(logger, slurm_logs_dir, error_file_path):
     for file_name in os.listdir(slurm_logs_dir):
         if not file_name.endswith('.err'):
@@ -254,12 +248,12 @@ def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir,
         params = [os.path.join(logs_dir, job_name + '.done'), '', f'--logs_dir {logs_dir}']  # write an empty string (like "touch" command)
         shell_cmds_as_str += ' '.join(['python', os.path.join(consts.SRC_DIR, 'auxiliaries/file_writer.py'), *params]) + '\n'
 
-    if consts.USE_JOB_MANAGER:
-        # WRITING CMDS FILE
-        cmds_path = os.path.join(logs_dir, f'{job_name}.sh')
-        with open(cmds_path, 'w') as f:
-            f.write(shell_cmds_as_str)
+    # WRITING CMDS FILE
+    cmds_path = os.path.join(logs_dir, f'{job_name}.sh')
+    with open(cmds_path, 'w') as f:
+        f.write(shell_cmds_as_str)
 
+    if consts.USE_JOB_MANAGER:
         # Add execution permissions to cmds_path
         current_permissions = os.stat(cmds_path).st_mode
         os.chmod(cmds_path, current_permissions | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
@@ -269,7 +263,8 @@ def submit_mini_batch(logger, script_path, mini_batch_parameters_list, logs_dir,
     else:
         # fetch directly on shell
         for shell_cmd in shell_cmds_as_str.split('\n'):
-            execute(logger, shell_cmd, process_is_string=True)
+            logger.info(f'Running command: {shell_cmd}')
+            subprocess.run(shell_cmd, shell=True, check=True)
 
     return example_shell_cmd
 

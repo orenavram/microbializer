@@ -55,7 +55,7 @@ def reconstruct_msa(logger, sequences_file_path, output_file_path):
     else:
         cmd = f'mafft --auto --amino --quiet {sequences_file_path} > {output_file_path}'
         logger.info(f'Starting MAFFT. Executed command is: {cmd}')
-        subprocess.run(cmd, shell=True)
+        subprocess.run(cmd, shell=True, check=True)
         logger.info(f'Finished MAFFT. Output was written to {output_file_path}')
 
 
