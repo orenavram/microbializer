@@ -210,6 +210,10 @@ if __name__ == '__main__':
     parser.add_argument('--run_optimized_mmseqs', help='', type=str_to_bool)
     parser.add_argument('--use_parquet', type=str_to_bool)
     parser.add_argument('--add_orphan_genes_to_ogs', type=str_to_bool)
+    parser.add_argument('--job_default_memory'),
+    parser.add_argument('--mmseqs_big_dataset_cpus', type=int),
+    parser.add_argument('--mmseqs_big_dataset_memory'),
+    parser.add_argument('--mmseqs_time_limit', type=int),
     add_default_step_args(parser)
     args = parser.parse_args()
 
@@ -226,6 +230,7 @@ if __name__ == '__main__':
 
             queue_name=args.queue_name, account_name=args.account_name, node_name=args.node_name,
             max_parallel_jobs=args.max_parallel_jobs, use_job_manager=args.use_job_manager,
+            low_memory_machine=args.low_memory_machine,
 
             identity_cutoff=args.identity_cutoff, coverage_cutoff=args.coverage_cutoff,
             e_value_cutoff=args.e_value_cutoff, sensitivity=args.sensitivity,
@@ -233,7 +238,10 @@ if __name__ == '__main__':
             add_orphan_genes_to_ogs=args.add_orphan_genes_to_ogs, pseudo_genome_mode=args.pseudo_genome_mode,
             run_optimized_mmseqs=args.run_optimized_mmseqs,
 
-            use_parquet=args.use_parquet, verbose=args.verbose
+            use_parquet=args.use_parquet, verbose=args.verbose,
+
+            job_default_memory=args.job_default_memory, mmseqs_big_dataset_cpus=args.mmseqs_big_dataset_cpus,
+            mmseqs_big_dataset_memory=args.mmseqs_big_dataset_memory, mmseqs_time_limit=args.mmseqs_time_limit
         )
 
         infer_orthogroups_on_genomes_batch(

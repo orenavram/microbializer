@@ -194,7 +194,7 @@ def fail(logger, error_msg, error_file_path):
 
 
 def submit_mini_batch(logger, config, script_path, mini_batch_parameters_list, logs_dir, job_name, num_of_cpus=1,
-                      memory=consts.DEFAULT_MEMORY_PER_JOB_GB, time_in_hours=None, command_to_run_before_script=None,
+                      memory=None, time_in_hours=None, command_to_run_before_script=None,
                       alternative_error_file=None):
     """
     :param script_path:
@@ -240,6 +240,8 @@ def submit_mini_batch(logger, config, script_path, mini_batch_parameters_list, l
         current_permissions = os.stat(cmds_path).st_mode
         os.chmod(cmds_path, current_permissions | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
+        if memory is None:
+            memory = config.job_default_memory
         submit_cmds_from_file_to_q(logger, job_name, cmds_path, logs_dir, config.queue_name, str(num_of_cpus), config.account_name,
                                    memory, time_in_hours, config.node_name)
     else:
@@ -251,7 +253,7 @@ def submit_mini_batch(logger, config, script_path, mini_batch_parameters_list, l
 
 
 def submit_batch(logger, config, script_path, batch_parameters_list, logs_dir, job_name_suffix,
-                 num_of_cmds_per_job=1, num_of_cpus=1, memory=consts.DEFAULT_MEMORY_PER_JOB_GB, time_in_hours=None):
+                 num_of_cmds_per_job=1, num_of_cpus=1, memory=None, time_in_hours=None):
     """
     :param script_path:
     :param batch_parameters_list: a list of lists. each sublist corresponds to a single command and contain its parameters
@@ -373,13 +375,15 @@ def none_or_path(value):
 def submit_clean_folders_job(logger, config):
     logger.info('Cleaning up intermediate results...')
 
+    folders_to_clean = [str(config.steps_results_dir)]
+
     clean_folders_tmp_dir = config.tmp_dir / 'clean_folders'
     os.makedirs(clean_folders_tmp_dir, exist_ok=True)
 
     clean_folders_error_file_path = clean_folders_tmp_dir / 'error.txt'
     clean_folders_file_path = clean_folders_tmp_dir / 'folders.txt'
     with open(clean_folders_file_path, 'w') as fp:
-        fp.write('\n'.join([config.steps_results_dir]))
+        fp.write('\n'.join(folders_to_clean))
 
     params = [clean_folders_file_path]
 

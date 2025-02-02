@@ -62,7 +62,7 @@ def extract_rbh_hits_of_pair(logger, m8_df, genome1, genome2, rbh_hits_dir, scor
     unique_rbh = reciprocal_best_hits.drop_duplicates(subset='pair')
 
     # Step 5: Calculate the average score for each reciprocal best hit
-    unique_rbh['average_score'] = int((unique_rbh['score_x'] + unique_rbh['score_y']) / 2)
+    unique_rbh['average_score'] = ((unique_rbh['score_x'] + unique_rbh['score_y']) / 2).astype(int)
 
     # Step 6: Select only relevant columns for final output
     rbh_pairs = unique_rbh[['query_x', 'target_x', 'average_score']]

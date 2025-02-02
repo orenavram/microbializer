@@ -325,12 +325,16 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
                       config.e_value_cutoff, config.sensitivity, max(1, config.max_parallel_jobs // len(genomes_batches)),
                       config.use_job_manager, batch_id, config.pseudo_genome_mode,
                       f'--run_optimized_mmseqs {config.run_optimized_mmseqs}', f'--use_parquet {config.use_parquet}',
-                      '--add_orphan_genes_to_ogs True']  # Always add orphan genes to OGs in this step
+                      '--add_orphan_genes_to_ogs True', # Always add orphan genes to OGs in this step
+                      f'--job_default_memory {config.job_default_memory}',
+                      f'--mmseqs_big_dataset_cpus {config.mmseqs_big_dataset_cpus}',
+                      f'--mmseqs_big_dataset_memory {config.mmseqs_big_dataset_memory}',
+                      f'--mmseqs_time_limit {config.mmseqs_time_limit}']
             all_cmds_params.append(params)
 
         num_of_batches = submit_batch(logger, config, script_path, all_cmds_params, inference_tmp_dir,
                                       'infer_orthogroups',
-                                      time_in_hours=consts.INFER_ORTHOGROUPS_JOB_TIME_LIMIT_HOURS)
+                                      time_in_hours=config.infer_orthogroups_time_limit)
 
         wait_for_results(logger, times_logger, step_name, inference_tmp_dir,
                          num_of_batches, config.error_file_path, recursive_step=True)
@@ -556,7 +560,7 @@ def step_7_orthologs_table_variations(logger, times_logger, config, final_orthog
                   f'--qfo_benchmark {config.qfo_benchmark}']
 
         submit_mini_batch(logger, config, script_path, [params], pipeline_step_tmp_dir,
-                          'orthologs_table_variations', memory=consts.ORTHOXML_REQUIRED_MEMORY_GB)
+                          'orthologs_table_variations', memory=config.orthoxml_memory)
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                          1, config.error_file_path)
 
@@ -642,7 +646,7 @@ def step_8_build_orthologous_groups_fastas(logger, times_logger, config, all_orf
             all_cmds_params.append(single_cmd_params)
 
         orfs_size_gb = (os.path.getsize(all_orfs_fasta_path) + os.path.getsize(all_proteins_fasta_path)) / 1024 ** 3
-        memory = max(int(consts.DEFAULT_MEMORY_PER_JOB_GB), math.ceil(orfs_size_gb * 2))
+        memory = max(int(config.job_default_memory), math.ceil(orfs_size_gb * 2))
 
         step_pre_processing_time = timedelta(seconds=int(time.time() - start_time))
         times_logger.info(f'Step {step_name} pre-processing time took {step_pre_processing_time}.')
@@ -731,7 +735,7 @@ def step_9_extract_core_genome_and_core_proteome(logger, times_logger, config, a
                   aligned_core_proteome_reduced_file_path,
                   core_proteome_reduced_length_file_path,
                   f'--core_minimal_percentage {config.core_minimal_percentage}',  # how many members induce a core group?
-                  f'--max_number_of_ogs {consts.MAX_NUMBER_OF_CORE_OGS_FOR_PHYLOGENY}']
+                  f'--max_number_of_ogs {config.max_number_of_core_ogs_for_phylogeny}']
         submit_mini_batch(logger, config, script_path, [params], aligned_core_proteome_reduced_tmp_dir,
                           'core_proteome')
 
@@ -817,11 +821,10 @@ def step_11_phylogeny(logger, times_logger, config, aligned_core_proteome_file_p
         with open(genomes_list_path, 'w') as genomes_list_file:
             genomes_list_file.write('\n'.join(genomes_paths))
 
-        cpus = min(consts.ANI_NUM_OF_CORES, config.max_parallel_jobs)
-        single_cmd_params = [genomes_list_path, ani_output_dir, f'--cpus {cpus}']
+        single_cmd_params = [genomes_list_path, ani_output_dir, f'--cpus {config.ani_cpus}']
 
         submit_mini_batch(logger, config, script_path, [single_cmd_params], ani_tmp_dir,
-                          'ANI', num_of_cpus=cpus, memory=consts.ANI_REQUIRED_MEMORY_GB)
+                          'ANI', num_of_cpus=config.ani_cpus, memory=config.ani_memory)
 
     else:
         logger.info(f'done file {ani_done_file_path} already exists. Skipping step...')
@@ -841,11 +844,10 @@ def step_11_phylogeny(logger, times_logger, config, aligned_core_proteome_file_p
         else:
             logger.info('Reconstructing species phylogeny...')
 
-            cpus = min(consts.PHYLOGENY_NUM_OF_CORES, config.max_parallel_jobs)
             params = [aligned_core_proteome_file_path,
                       output_tree_path,
                       phylogeny_tmp_dir,
-                      f'--cpu {cpus}',
+                      f'--cpu {config.phylogeny_cpus}',
                       f'--bootstrap {config.bootstrap}']
             if config.outgroup:
                 if config.outgroup in genomes_names:
@@ -860,10 +862,10 @@ def step_11_phylogeny(logger, times_logger, config, aligned_core_proteome_file_p
             os.chmod(xdg_runtime_dir, 0o700)
 
             submit_mini_batch(logger, config, script_path, [params], phylogeny_tmp_dir,
-                              'tree_reconstruction', num_of_cpus=cpus,
-                              memory=consts.PHYLOGENY_REQUIRED_MEMORY_GB,
+                              'tree_reconstruction', num_of_cpus=config.phylogeny_cpus,
+                              memory=config.phylogeny_memory,
                               command_to_run_before_script=f'export QT_QPA_PLATFORM=offscreen\nexport XDG_RUNTIME_DIR={xdg_runtime_dir}', # Needed to avoid an error in drawing the tree. Taken from: https://github.com/NVlabs/instant-ngp/discussions/300
-                              time_in_hours=consts.PHYLOGENY_JOB_TIME_LIMIT_HOURS)
+                              time_in_hours=config.phylogeny_time_limit)
 
             # wait for the phylogenetic tree here
             wait_for_results(logger, times_logger, phylogeny_step_name, phylogeny_tmp_dir,
@@ -900,20 +902,16 @@ def step_12_orthogroups_annotations(logger, times_logger, config, orfs_dir,
     if not codon_bias_done_file_path.exists():
         logger.info('Analyzing codon bias...')
 
-        if config.use_job_manager:
-            cpus = min(consts.CODON_BIAS_NUM_OF_CORES, config.max_parallel_jobs)
-        else:
-            cpus = 1  # When running on a single node, we might get a memory error if we use more than 1 process
         params = [
             orfs_dir,
             orthologs_dna_sequences_dir_path,
             codon_bias_output_dir_path,
             cai_table_path,
             codon_bias_tmp_dir,
-            cpus
+            config.codon_bias_cpus
         ]
         submit_mini_batch(logger, config, script_path, [params], codon_bias_tmp_dir,
-                          'codon_bias', num_of_cpus=cpus)
+                          'codon_bias', num_of_cpus=config.codon_bias_cpus)
 
     else:
         logger.info(f'done file {codon_bias_done_file_path} already exists. Skipping step...')
@@ -930,17 +928,16 @@ def step_12_orthogroups_annotations(logger, times_logger, config, orfs_dir,
     if not kegg_done_file_path.exists():
         logger.info('Annotation with KEGG Orthology...')
 
-        cpus = min(consts.KEGG_NUM_OF_CORES, config.max_parallel_jobs)
         params = [
             orthologs_aa_sequences_dir_path,
             final_orthologs_table_file_path,
             kegg_output_dir_path,
             kegg_table_path,
-            cpus,
+            config.kegg_cpus,
             '--optimize True'
         ]
         submit_mini_batch(logger, config, script_path, [params], kegg_tmp_dir,
-                          'kegg', num_of_cpus=cpus, memory=consts.KEGG_REQUIRED_MEMORY_GB)
+                          'kegg', num_of_cpus=config.kegg_cpus, memory=config.kegg_memory)
 
     else:
         logger.info(f'done file {kegg_done_file_path} already exists. Skipping step...')
@@ -1127,8 +1124,8 @@ def main():
         state = State.Finished
     except Exception as e:
         if not config.error_file_path.exists():
-            with open(config.error_file_path, 'a+') as f:
-                traceback.print_exc(file=f)
+            with open(config.error_file_path, 'w') as f:
+                f.write(traceback.format_exc())
         state = State.Crashed
 
     total_time = timedelta(seconds=int(time.time() - start_time))

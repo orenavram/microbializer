@@ -310,7 +310,7 @@ def run_unified_mmseqs(logger, times_logger, config, infer_orthogroups_config, b
     step_number = f'{base_step_number}_1'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_all_vs_all_analysis'
-    script_path = consts.SRC_DIR / 'steps' / 'mmseqs_v2 '/ 'mmseqs2_all_vs_all.py'
+    script_path = consts.SRC_DIR / 'steps' / 'mmseqs_v2' / 'mmseqs2_all_vs_all.py'
     all_vs_all_output_dir, pipeline_step_tmp_dir = prepare_directories(
         logger, infer_orthogroups_config.steps_results_dir, infer_orthogroups_config.tmp_dir, step_name)
     m8_output_path = all_vs_all_output_dir / 'all_vs_all_reduced_columns.csv'
@@ -318,7 +318,6 @@ def run_unified_mmseqs(logger, times_logger, config, infer_orthogroups_config, b
     if not done_file_path.exists():
         m8_raw_output_path = all_vs_all_output_dir / 'all_vs_all_raw.m8'
 
-        cpus = min(consts.MMSEQS_BIG_DATASET_NUM_OF_CORES, infer_orthogroups_config.max_parallel_jobs)
         params = [infer_orthogroups_config.all_proteins_path,
                   all_vs_all_output_dir,
                   m8_raw_output_path,
@@ -327,11 +326,12 @@ def run_unified_mmseqs(logger, times_logger, config, infer_orthogroups_config, b
                   f'--e_value_cutoff {config.e_value_cutoff}',
                   f'--sensitivity {config.sensitivity}',
                   f'--number_of_genomes {len(strains_names)}',
-                  f'--cpus {cpus}']
+                  f'--cpus {config.mmseqs_big_dataset_cpus}']
 
         submit_mini_batch(logger, config, script_path, [params], pipeline_step_tmp_dir,
-                          'mmseqs', num_of_cpus=cpus, memory=consts.MMSEQS_BIG_DATASET_REQUIRED_MEMORY_GB,
-                          time_in_hours=consts.MMSEQS_JOB_TIME_LIMIT_HOURS)
+                          'mmseqs', num_of_cpus=config.mmseqs_big_dataset_cpus,
+                          memory=config.mmseqs_big_dataset_memory,
+                          time_in_hours=config.mmseqs_time_limit)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, 1,
                          config.error_file_path)
@@ -357,7 +357,7 @@ def run_unified_mmseqs(logger, times_logger, config, infer_orthogroups_config, b
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
     m8_output_size_in_gb = get_directory_size_in_gb(m8_output_path)
-    m8_output_parsing_memory = str(max(int(consts.DEFAULT_MEMORY_PER_JOB_GB), math.ceil(m8_output_size_in_gb * 10)))
+    m8_output_parsing_memory = str(max(int(config.job_default_memory), math.ceil(m8_output_size_in_gb * 10)))
 
     # 2.	extract_rbh_hits.py
     step_number = f'{base_step_number}_2'
@@ -394,7 +394,7 @@ def run_unified_mmseqs(logger, times_logger, config, infer_orthogroups_config, b
 
             num_of_batches = submit_batch(logger, config, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                           'rbh_analysis', memory=m8_output_parsing_memory,
-                                          time_in_hours=consts.MMSEQS_JOB_TIME_LIMIT_HOURS)
+                                          time_in_hours=config.mmseqs_time_limit)
 
             wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
                              num_of_batches, config.error_file_path)
@@ -543,7 +543,7 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, config, infer_orthogro
                 all_cmds_params.append(single_cmd_params)
 
             num_of_batches = submit_batch(logger, config, script_path, all_cmds_params, orthologs_tmp_dir,
-                                          'rbh_analysis', time_in_hours=consts.MMSEQS_JOB_TIME_LIMIT_HOURS)
+                                          'rbh_analysis', time_in_hours=config.mmseqs_time_limit)
 
             wait_for_results(logger, times_logger, step_name, orthologs_tmp_dir,
                              num_of_batches, config.error_file_path)

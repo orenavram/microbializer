@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 import argparse
 import json
 import os
@@ -6,6 +6,8 @@ import logging
 import sys
 from pathlib import Path
 from typing import Optional
+
+import pandas as pd
 
 from . import consts
 from .pipeline_auxiliaries import str_to_bool
@@ -69,6 +71,12 @@ class InferOrthogroupsConfig:
     use_parquet: bool
     verbose: bool
 
+    # cpus, memory, time
+    job_default_memory: str
+    mmseqs_big_dataset_cpus: int
+    mmseqs_big_dataset_memory: str
+    mmseqs_time_limit: str
+
 
 @dataclass
 class Config(InferOrthogroupsConfig):
@@ -95,6 +103,7 @@ class Config(InferOrthogroupsConfig):
 
     outgroup: str
     bootstrap: bool
+    max_number_of_core_ogs_for_phylogeny: int
 
     filter_out_plasmids: bool
     num_of_genomes_in_batch: int
@@ -110,6 +119,18 @@ class Config(InferOrthogroupsConfig):
     # Clean at end
     clean_intermediate_outputs: bool
     clean_old_job_directories: bool
+
+    # cpus, memory, time
+    phylogeny_cpus: int
+    phylogeny_memory: str
+    kegg_cpus: int
+    kegg_memory: str
+    codon_bias_cpus: int
+    ani_cpus: int
+    ani_memory: str
+    orthoxml_memory: str
+    phylogeny_time_limit: str
+    infer_orthogroups_time_limit: str
 
 
 def get_configuration():
@@ -176,7 +197,7 @@ def get_configuration():
     parser.add_argument('--pseudo_genome_mode', type=str, choices=['first_gene', 'consensus_gene'],
                         default='first_gene')
     parser.add_argument('--always_run_full_orthogroups_inference', type=str_to_bool, default=False, )
-    parser.add_argument('--max_parallel_jobs', help='', type=int, default=consts.MAX_PARALLEL_JOBS)
+    parser.add_argument('--max_parallel_jobs', help='', type=int)
     parser.add_argument('--use_job_manager', type=str_to_bool, default=consts.USE_JOB_MANAGER)
     parser.add_argument('-v', '--verbose', type=str_to_bool, default=False,
                         help='Increase output verbosity')
@@ -192,7 +213,7 @@ def get_configuration():
     # Validate arguments
     validate_arguments(args)
 
-    (logger, times_logger, run_dir, error_file_path, progressbar_file_path, run_number, tmp_dir,
+    (logger, times_logger, run_dir, error_file_path, progressbar_file_path, run_number, output_dir, tmp_dir,
      done_files_dir, steps_results_dir, data_path, final_output_dir_name, final_output_dir, genomes_names_path,
      raw_data_path) = \
         prepare_pipeline_framework(args)
@@ -216,6 +237,8 @@ def get_configuration():
                     e_value_cutoff=args.e_value_cutoff, sensitivity=args.sensitivity,
                     core_minimal_percentage=args.core_minimal_percentage, inputs_fasta_type=args.inputs_fasta_type,
                     outgroup=args.outgroup, bootstrap=args.bootstrap,
+                    max_number_of_core_ogs_for_phylogeny=consts.MAX_NUMBER_OF_CORE_OGS_FOR_PHYLOGENY,
+
                     add_orphan_genes_to_ogs=args.add_orphan_genes_to_ogs,
                     filter_out_plasmids=args.filter_out_plasmids,
                     num_of_genomes_in_batch=args.num_of_genomes_in_batch, pseudo_genome_mode=args.pseudo_genome_mode,
@@ -230,14 +253,36 @@ def get_configuration():
                     verbose=args.verbose,
 
                     clean_intermediate_outputs=args.clean_intermediate_outputs,
-                    clean_old_job_directories=consts.ENV == 'lsweb' and CLEAN_OLD_JOBS_DIRECTORIES_FROM_PIPELINE)
+                    clean_old_job_directories=consts.ENV == 'lsweb' and CLEAN_OLD_JOBS_DIRECTORIES_FROM_PIPELINE,
+
+                    job_default_memory=consts.JOB_DEFAULT_MEMORY_GB,
+                    mmseqs_big_dataset_cpus=min(consts.MMSEQS_BIG_DATASET_CPUS, args.max_parallel_jobs),
+                    mmseqs_big_dataset_memory=consts.MMSEQS_BIG_DATASET_MEMORY_GB,
+                    mmseqs_time_limit=consts.MMSEQS_TIME_LIMIT,
+                    phylogeny_cpus=min(consts.PHYLOGENY_CPUS, args.max_parallel_jobs),
+                    phylogeny_memory=consts.PHYLOGENY_MEMORY_GB,
+                    phylogeny_time_limit=consts.PHYLOGENY_TIME_LIMIT,
+                    kegg_cpus=min(consts.KEGG_CPUS, args.max_parallel_jobs),
+                    kegg_memory=consts.KEGG_MEMORY_GB,
+                    codon_bias_cpus=min(consts.CODON_BIAS_CPUS, args.max_parallel_jobs),
+                    ani_cpus=min(consts.ANI_CPUS, args.max_parallel_jobs),
+                    ani_memory=consts.ANI_MEMORY_GB,
+                    orthoxml_memory=consts.ORTHOXML_MEMORY_GB,
+                    infer_orthogroups_time_limit=consts.INFER_ORTHOGROUPS_TIME_LIMIT,
+                    )
+
+    config_df = pd.DataFrame(list(asdict(config).items()), columns=['key', 'value'])
+    config_df.to_csv(output_dir / 'config.csv', index=False)
 
     return logger, times_logger, config
 
 
 def validate_arguments(args):
-    if not args.use_job_manager:
-        args.max_parallel_jobs = os.cpu_count()
+    if not args.max_parallel_jobs:
+        if args.use_job_manager:
+            args.max_parallel_jobs = consts.MAX_PARALLEL_JOBS
+        else:
+            args.max_parallel_jobs = os.cpu_count()
 
     if args.outgroup == "No outgroup":
         args.outgroup = None
@@ -325,6 +370,6 @@ def prepare_pipeline_framework(args):
 
     genomes_names_path = output_dir / 'genomes_names.txt'
 
-    return (logger, times_logger, run_dir, error_file_path, progressbar_file_path, run_number, tmp_dir,
+    return (logger, times_logger, run_dir, error_file_path, progressbar_file_path, run_number, output_dir, tmp_dir,
             done_files_dir, steps_results_dir, data_path, final_output_dir_name, final_output_dir,
             genomes_names_path, raw_data_path)
