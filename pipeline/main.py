@@ -19,7 +19,7 @@ from auxiliaries.pipeline_auxiliaries import (wait_for_results, prepare_director
                                               send_email_in_pipeline_end, submit_clean_folders_job,
                                               submit_clean_old_user_results_job, write_done_file)
 from auxiliaries import consts
-from auxiliaries.configuration import get_configuration, InferOrthogroupsConfig
+from auxiliaries.configuration import get_configuration, InferOrthogroupsLogicConfig
 from auxiliaries.logic_auxiliaries import (plot_genomes_histogram, update_progressbar, define_intervals,
                                            combine_orphan_genes_stats, split_ogs_to_jobs_inputs_files_by_og_sizes)
 from auxiliaries.infer_orthogroups_logic import infer_orthogroups
@@ -269,7 +269,7 @@ def step_3_analyze_genome_completeness(logger, times_logger, config, translated_
 
 
 def step_5_full_orthogroups_inference(logger, times_logger, config, translated_orfs_dir, all_proteins_path):
-    infer_orthogroups_config = InferOrthogroupsConfig(
+    infer_orthogroups_config = InferOrthogroupsLogicConfig(
         genomes_names_path=config.genomes_names_path, translated_orfs_dir=translated_orfs_dir,
         all_proteins_path=all_proteins_path,
         add_orphan_genes_to_ogs=config.add_orphan_genes_to_ogs, skip_paralogs=False,
@@ -389,7 +389,7 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
 
 
     # 06. infer pseudo orthogroups
-    infer_pseudo_orthogroups_config = InferOrthogroupsConfig(
+    infer_pseudo_orthogroups_config = InferOrthogroupsLogicConfig(
         genomes_names_path=pseudo_genomes_strains_names_path, translated_orfs_dir=pseudo_genomes_dir_path,
         all_proteins_path=all_pseudo_genomes_path,
         add_orphan_genes_to_ogs=True, skip_paralogs=True,
@@ -417,7 +417,7 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
         pseudo_orthogroups_df = pd.read_csv(pseudo_orthogroups_file_path)
 
         for sub_orthogroups_file_path in sub_orthogroups_dir_path.iterdir():
-            batch_id = sub_orthogroups_file_path.name.split('_')[-1]
+            batch_id = sub_orthogroups_file_path.stem.split('_')[-1]
 
             sub_orthogroups_df = pd.read_csv(sub_orthogroups_file_path)
             sub_orthogroups_df.drop(columns=['OG_name'], inplace=True)
@@ -519,6 +519,9 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
             orthogroups_df = pd.read_csv(merged_orthogroups_file_path, index_col='OG_name')
             orthogroups_df = orthogroups_df[~((orthogroups_df.count(axis=1) == 1) &
                                               ~(orthogroups_df.apply(lambda row: row.dropna().iloc[0].__contains__(';'), axis=1)))]
+            orthogroups_df.reset_index(drop=True, inplace=True)
+            orthogroups_df['OG_name'] = [f'OG_{i}' for i in range(len(orthogroups_df.index))]
+            orthogroups_df.set_index('OG_name', inplace=True)
             orthogroups_df.to_csv(final_orthogroups_file_path)
             logger.info(f'add_orphan_genes_to_ogs is False. Removed single orphan genes from {merged_orthogroups_file_path} '
                         f'and saved to {final_orthogroups_file_path}')

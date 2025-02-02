@@ -221,15 +221,11 @@ def submit_mini_batch(logger, config, script_path, mini_batch_parameters_list, l
         shell_cmds_as_str += f'{command_to_run_before_script}\n'
 
     error_file_path = alternative_error_file if alternative_error_file else config.error_file_path
-    example_shell_cmd = ''
     for params in mini_batch_parameters_list:
         shell_cmds_as_str += ' '.join(
             ['python', str(script_path), *[str(param) for param in params],
              f'-v {config.verbose}', f'--logs_dir {logs_dir}', f'--error_file_path {error_file_path}',
              f'--job_name {job_name}']) + '\n'
-
-        if not example_shell_cmd:
-            example_shell_cmd = shell_cmds_as_str
 
     # GENERATE DONE FILE
     shell_cmds_as_str += f'touch {logs_dir / (job_name + consts.JOB_DONE_FILE_SUFFIX)}\n'
@@ -253,8 +249,6 @@ def submit_mini_batch(logger, config, script_path, mini_batch_parameters_list, l
                 logger.info(f'Running command: {shell_cmd}')
                 subprocess.run(shell_cmd, shell=True, check=True)
 
-    return example_shell_cmd
-
 
 def submit_batch(logger, config, script_path, batch_parameters_list, logs_dir, job_name_suffix,
                  num_of_cmds_per_job=1, num_of_cpus=1, memory=consts.DEFAULT_MEMORY_PER_JOB_GB, time_in_hours=None):
@@ -275,10 +269,10 @@ def submit_batch(logger, config, script_path, batch_parameters_list, logs_dir, j
     for i in range(0, len(batch_parameters_list), num_of_cmds_per_job):
         mini_batch_parameters_list = batch_parameters_list[i: i + num_of_cmds_per_job]
         mini_batch_job_name = f'{num_of_mini_batches}_{job_name_suffix}'
-        example_cmd_from_last_mini_batch = submit_mini_batch(
+        submit_mini_batch(
             logger, config, script_path, mini_batch_parameters_list, logs_dir, mini_batch_job_name,
             num_of_cpus=num_of_cpus, memory=memory, time_in_hours=time_in_hours)
-        logger.info(f'Example command from batch {mini_batch_job_name}: {example_cmd_from_last_mini_batch}')
+
         num_of_mini_batches += 1
         sleep(0.1)
 

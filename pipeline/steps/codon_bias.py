@@ -174,11 +174,11 @@ def calculate_cai(OG_dir, OG_index, genomes_codon_indexes, cais_output_dir):
     clean_seq_records(OG_records)
     for record in OG_records:
         genome_name = get_strain_name(record.id)
-        cai_info[record.id] = genomes_codon_indexes[genome_name].calculate(record)
+        cai_info[record.id] = round(genomes_codon_indexes[genome_name].calculate(record), 3)
 
     cai_values = list(cai_info.values())
-    cai_info['CAI_mean'] = np.mean(cai_values)
-    cai_info['CAI_std'] = np.std(cai_values)
+    cai_info['CAI_mean'] = round(np.mean(cai_values), 3)
+    cai_info['CAI_std'] = round(np.std(cai_values), 3)
 
     with open(output_file_path, 'w') as output_file:
         json.dump(cai_info, output_file)
@@ -217,6 +217,7 @@ def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, cpu
             genome_name_to_codon_index[genome_name] = genome_codon_index
 
     genomes_W_vectors_df = pd.DataFrame.from_dict(genome_name_to_codon_index, orient='index')
+    genomes_W_vectors_df = genomes_W_vectors_df.round(3)
     genomes_W_vectors_path = os.path.join(output_dir, 'W_vectors.csv')
     genomes_W_vectors_df.to_csv(genomes_W_vectors_path, index_label='Genome')
     logger.info(f"W vectors were calculated successfully and written to {genomes_W_vectors_path}")

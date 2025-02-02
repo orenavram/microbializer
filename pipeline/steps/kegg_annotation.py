@@ -88,6 +88,10 @@ def add_kegg_annotations_to_og_table(og_table_path, hmmsearch_output_df):
 
 
 def kegg_annotation(logger, og_aa_dir, og_table_path, output_dir, output_og_table_path, cpus, optimize):
+    if output_og_table_path.exists():
+        logger.info(f'{output_og_table_path} already exists. Exiting...')
+        return
+
     unified_ogs_sequences = os.path.join(output_dir, 'unified_ogs_sequences.faa')
     create_fasta_of_unified_ogs_sequences(logger, og_aa_dir, unified_ogs_sequences, optimize)
 

@@ -22,10 +22,10 @@ PIPELINE_STEPS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', 
 
 
 @dataclass
-class InferOrthogroupsConfig:
+class InferOrthogroupsLogicConfig:
     genomes_names_path: Path
-    translated_orfs_dir: Optional[Path]
-    all_proteins_path: Optional[Path]
+    translated_orfs_dir: Path
+    all_proteins_path: Path
 
     add_orphan_genes_to_ogs: bool
     skip_paralogs: bool
@@ -38,22 +38,15 @@ class InferOrthogroupsConfig:
 
 
 @dataclass
-class Config:
-    # Directories paths and file names - will be set by the pipeline
-    run_dir: Path
-
-    raw_data_path: Path
-    data_path: Path
+class InferOrthogroupsConfig:
+    # Directories paths and file names
     genomes_names_path: Path
 
     steps_results_dir: Path
     tmp_dir: Path
     done_files_dir: Path
-    final_output_dir: Path
-    final_output_dir_name: str
 
     error_file_path: Path
-    progressbar_file_path: Path
 
     # Job submission
     queue_name: str
@@ -62,6 +55,34 @@ class Config:
     max_parallel_jobs: int
     use_job_manager: bool
 
+    # Pipeline parameters
+    identity_cutoff: float
+    coverage_cutoff: float
+    e_value_cutoff: float
+    sensitivity: float
+
+    add_orphan_genes_to_ogs: bool
+    pseudo_genome_mode: str
+    run_optimized_mmseqs: bool
+
+    # Debugging parameters
+    use_parquet: bool
+    verbose: bool
+
+
+@dataclass
+class Config(InferOrthogroupsConfig):
+    # Directories paths and file names - will be set by the pipeline
+    run_dir: Path
+
+    raw_data_path: Path
+    data_path: Path
+
+    final_output_dir: Path
+    final_output_dir_name: str
+
+    progressbar_file_path: Path
+
     # Email at job completion
     email: Optional[str]
     job_name: Optional[str]
@@ -69,22 +90,14 @@ class Config:
     send_email: bool
 
     # Pipeline parameters
-    identity_cutoff: float
-    coverage_cutoff: float
-    e_value_cutoff: float
-    sensitivity: float
-
     core_minimal_percentage: float
     inputs_fasta_type: str
 
     outgroup: str
     bootstrap: bool
 
-    add_orphan_genes_to_ogs: bool
     filter_out_plasmids: bool
     num_of_genomes_in_batch: int
-    pseudo_genome_mode: str
-    run_optimized_mmseqs: bool
 
     # Debugging parameters
     do_not_copy_outputs_to_final_results_dir: bool
@@ -92,9 +105,7 @@ class Config:
     step_to_complete: Optional[str]
     qfo_benchmark: bool
     only_calc_ogs: bool
-    use_parquet: bool
     always_run_full_orthogroups_inference: bool
-    verbose: bool
 
     # Clean at end
     clean_intermediate_outputs: bool

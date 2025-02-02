@@ -17,7 +17,7 @@ from auxiliaries.pipeline_auxiliaries import get_job_logger, get_job_times_logge
     submit_batch, wait_for_results, add_results_to_final_dir, add_default_step_args, write_done_file, str_to_bool
 from auxiliaries.logic_auxiliaries import split_ogs_to_jobs_inputs_files_by_og_sizes
 from auxiliaries.infer_orthogroups_logic import infer_orthogroups
-from auxiliaries.configurations import Config, InferOrthogroupsConfig
+from auxiliaries.configuration import InferOrthogroupsConfig, InferOrthogroupsLogicConfig
 from auxiliaries import consts
 
 
@@ -155,20 +155,20 @@ def infer_orthogroups_on_genomes_batch(
     with open(config.genomes_names_path, 'r') as genomes_names_fp:
         genomes_names = genomes_names_fp.read().split('\n')
 
-    subset_proteomes_dir = os.path.join(config.steps_results_dir, 'proteomes')
-    if not os.path.exists(subset_proteomes_dir):
+    subset_proteomes_dir = config.steps_results_dir / 'proteomes'
+    if not subset_proteomes_dir.exists():
         os.makedirs(subset_proteomes_dir, exist_ok=True)
         for genome_name in genomes_names:
-            shutil.copy(os.path.join(translated_orfs_dir, f'{genome_name}.faa'),
-                        os.path.join(subset_proteomes_dir, f'{genome_name}.faa'))
+            shutil.copy(translated_orfs_dir / f'{genome_name}.faa',
+                        subset_proteomes_dir / f'{genome_name}.faa')
 
-    subset_proteins_fasta_path = os.path.join(config.steps_results_dir, 'all_proteomes.faa')
-    if not os.path.exists(subset_proteins_fasta_path):
-        cmd = f"cat {os.path.join(subset_proteomes_dir, '*')} > {subset_proteins_fasta_path}"
+    subset_proteins_fasta_path = config.steps_results_dir / 'all_proteomes.faa'
+    if not subset_proteins_fasta_path.exists():
+        cmd = f"cat {subset_proteomes_dir / '*'} > {subset_proteins_fasta_path}"
         logger.info(f'Calling: {cmd}')
         subprocess.run(cmd, shell=True, check=True)
 
-    infer_orthogroups_config = InferOrthogroupsConfig(
+    infer_orthogroups_config = InferOrthogroupsLogicConfig(
         genomes_names_path=config.genomes_names_path,
         translated_orfs_dir=subset_proteomes_dir, all_proteins_path=subset_proteins_fasta_path,
         add_orphan_genes_to_ogs=config.add_orphan_genes_to_ogs, skip_paralogs=False,
@@ -178,7 +178,7 @@ def infer_orthogroups_on_genomes_batch(
     final_orthogroups_dir_path, orphan_genes_dir, final_substep_number = infer_orthogroups(
         logger, times_logger, config, infer_orthogroups_config, step_number)
 
-    final_orthogroups_file_path = os.path.join(final_orthogroups_dir_path, 'orthogroups.csv')
+    final_orthogroups_file_path = final_orthogroups_dir_path / 'orthogroups.csv'
 
     create_pseudo_genome_from_ogs(
         logger, times_logger, config, step_number, final_substep_number, final_orthogroups_file_path,
@@ -218,7 +218,7 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        config = Config(
+        config = InferOrthogroupsConfig(
             genomes_names_path=args.genomes_names_path,
 
             steps_results_dir=args.steps_results_dir, tmp_dir=args.tmp_dir, done_files_dir=args.done_files_dir,
