@@ -5,6 +5,7 @@ import tarfile
 import collections
 import sys
 import subprocess
+from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent))
@@ -89,7 +90,7 @@ def prepare_and_verify_input_data(logger, config: Config):
 
 
 def unpack_data(logger, raw_data_path, run_dir, error_file_path):
-    if not raw_data_path.isdir():
+    if not raw_data_path.is_dir():
         unzipped_data_path = run_dir / 'data'
         try:
             if tarfile.is_tarfile(raw_data_path):
@@ -125,7 +126,7 @@ def unpack_data(logger, raw_data_path, run_dir, error_file_path):
 
         file = [x for x in os.listdir(unzipped_data_path) if not x.startswith(('_', '.'))][0]
         logger.info(f'first file in {unzipped_data_path} is:\n{file}')
-        if (unzipped_data_path / file).isdir():
+        if (unzipped_data_path / file).is_dir():
             data_path = unzipped_data_path / file
             if not [x for x in os.listdir(data_path) if not x.startswith(('_', '.'))]:
                 fail(logger, f'No input files were found in the archived folder.',
@@ -141,7 +142,7 @@ def unpack_data(logger, raw_data_path, run_dir, error_file_path):
             subprocess.run(cmd, shell=True, check=True)
 
     for file_path in raw_data_path.iterdir():
-        if not file_path.isdir():
+        if not file_path.is_dir():
             # make sure each fasta has writing permissions for downstream editing
             os.chmod(file_path, 0o644)  # -rw-r--r--
         else:

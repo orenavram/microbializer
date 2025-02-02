@@ -21,7 +21,7 @@ def clean_old_jobs(logger):
         return
 
     for job_dir_path in consts.USER_RESULTS_DIR.iterdir():
-        if not job_dir_path.isdir():
+        if not job_dir_path.is_dir():
             continue
 
         seconds_since_last_modification = time.time() - os.stat(job_dir_path).st_mtime

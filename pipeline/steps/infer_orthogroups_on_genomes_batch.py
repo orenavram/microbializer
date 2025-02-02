@@ -155,14 +155,14 @@ def infer_orthogroups_on_genomes_batch(
     with open(config.genomes_names_path, 'r') as genomes_names_fp:
         genomes_names = genomes_names_fp.read().split('\n')
 
-    subset_proteomes_dir = os.path.join(config.output_dir, 'proteomes')
+    subset_proteomes_dir = os.path.join(config.steps_results_dir, 'proteomes')
     if not os.path.exists(subset_proteomes_dir):
         os.makedirs(subset_proteomes_dir, exist_ok=True)
         for genome_name in genomes_names:
             shutil.copy(os.path.join(translated_orfs_dir, f'{genome_name}.faa'),
                         os.path.join(subset_proteomes_dir, f'{genome_name}.faa'))
 
-    subset_proteins_fasta_path = os.path.join(config.output_dir, 'all_proteomes.faa')
+    subset_proteins_fasta_path = os.path.join(config.steps_results_dir, 'all_proteomes.faa')
     if not os.path.exists(subset_proteins_fasta_path):
         cmd = f"cat {os.path.join(subset_proteomes_dir, '*')} > {subset_proteins_fasta_path}"
         logger.info(f'Calling: {cmd}')
@@ -191,7 +191,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('step_number', help='')
-    parser.add_argument('output_dir', type=Path, help='')
+    parser.add_argument('steps_results_dir', type=Path, help='')
     parser.add_argument('tmp_dir', type=Path, help='')
     parser.add_argument('done_files_dir', type=Path, help='')
     parser.add_argument('translated_orfs_dir', type=Path, help='')
@@ -221,7 +221,7 @@ if __name__ == '__main__':
         config = Config(
             genomes_names_path=args.genomes_names_path,
 
-            steps_results_dir=args.output_dir, tmp_dir=args.tmp_dir, done_files_dir=args.done_files_dir,
+            steps_results_dir=args.steps_results_dir, tmp_dir=args.tmp_dir, done_files_dir=args.done_files_dir,
             error_file_path=args.error_file_path,
 
             queue_name=args.queue_name, account_name=args.account_name, node_name=args.node_name,

@@ -49,6 +49,7 @@ def main(logger, job_input_path, output_dir):
             proteome_path = line.strip()
             strain_name = Path(proteome_path).stem
             strain_out_dir = output_dir / strain_name
+            strain_out_dir.mkdir(exist_ok=True)
             completeness_score = compute_genome_completeness(logger, proteome_path, strain_out_dir)
             proteome_score_path = strain_out_dir / 'result.txt'
             with open(proteome_score_path, 'w') as fp:

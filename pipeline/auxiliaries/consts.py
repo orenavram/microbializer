@@ -108,6 +108,8 @@ DEFAULT_EVALUE_CUTOFF = 0.01
 DEFAULT_MMSEQS_SENSITIVITY = 5.7
 DEFAULT_CORE_MINIMAL_PERCENTAGE = 100
 
+JOB_DONE_FILE_SUFFIX = '.done'
+CHECK_JOB_DONE_INTERVAL_SECONDS = 10
 
 class SimilarityScore(Enum):
     BITS = 1
@@ -135,10 +137,10 @@ OUTPUTS_DIRECTORIES_MAP = {
     '02_2_orfs_plots': '02b_orfs_plots',
     'orfs_translated': '02c_translated_orfs',
     '03_genomes_completeness': '03_genomes_completeness',
-    '05_10_orphan_genes': '04_orphan_genes',    # full_orthogroups_inference
-    '05_11_orthogroups_final': '05a_orthogroups',   # full_orthogroups_inference
-    '06_13_orphan_genes_from_orthogroups': '04_orphan_genes',    # approximate_orthogroups_inference
-    '06_14_orthogroups_final': '05a_orthogroups',    # approximate_orthogroups_inference
+    '05_9_orphan_genes': '04_orphan_genes',    # full_orthogroups_inference
+    '05_10_orthogroups_final': '05a_orthogroups',   # full_orthogroups_inference
+    '06_12_orphan_genes_from_orthogroups': '04_orphan_genes',    # approximate_orthogroups_inference
+    '06_13_orthogroups_final': '05a_orthogroups',    # approximate_orthogroups_inference
     '07_1_orthogroups_variations': '05a_orthogroups',
     '07_2_orthogroups_sizes': '05b_orthogroups_sizes',
     'orthogroups_dna': '06a_orthogroups_dna',

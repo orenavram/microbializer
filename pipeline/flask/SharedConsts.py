@@ -1,12 +1,7 @@
 from pathlib import Path
 from enum import Enum
-import os
-import sys
 
-SCRIPT_DIR = Path(__file__).resolve().parent
-sys.path.append(SCRIPT_DIR)
-
-import flask_interface_consts
+from . import flask_interface_consts
 
 WEBSERVER_DOMAIN = 'microbializer.tau.ac.il'
 WEBSERVER_ADDRESS = f'https://{WEBSERVER_DOMAIN}'

@@ -127,8 +127,7 @@ def remove_paralogs(orthologs_table_path, genome_names, no_paralogs_path):
     orthologs_df.to_csv(no_paralogs_path, index=False)
 
 
-def get_genome_numeric_representation(logger, orthologs_table_path, ORFs_dir_path, output_path, tmp_dir,
-                                      output_delimiter=','):
+def get_genome_numeric_representation(logger, orthologs_table_path, ORFs_dir_path, output_path, tmp_dir):
     with open(orthologs_table_path) as f:
         genome_names = f.readline().rstrip().split(',')[1:]  # skip OG_name
 
@@ -166,7 +165,7 @@ def get_genome_numeric_representation(logger, orthologs_table_path, ORFs_dir_pat
 
     with open(output_path, 'w') as f:
         for genome_name, numeric_genome in genome_name_to_numeric_genome.items():
-            numeric_genome = output_delimiter.join(numeric_genome)
+            numeric_genome = ','.join(numeric_genome)
             f.write(f'>{genome_name}\n{numeric_genome}\n')
 
 
@@ -187,7 +186,7 @@ if __name__ == '__main__':
     logger.info(script_run_message)
 
     try:
-        get_genome_numeric_representation(logger, args.orthologs_table_path, args.ORFs_dir_path.rstrip('/'),
+        get_genome_numeric_representation(logger, args.orthologs_table_path, args.ORFs_dir_path,
                                           args.output_path, args.tmp_dir)
     except Exception as e:
         logger.exception(f'Error in {Path(__file__).name}')

@@ -54,7 +54,7 @@ def step_1_fix_input_files(logger, times_logger, config):
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_fix_input_files'
     script_path = consts.SRC_DIR / 'steps/drop_plasmids_and_fix_frames.py'
-    filtered_inputs_dir, pipeline_step_tmp_dir = prepare_directories(logger, config.output_dir, config.tmp_dir, step_name)
+    filtered_inputs_dir, pipeline_step_tmp_dir = prepare_directories(logger, config.steps_results_dir, config.tmp_dir, step_name)
     done_file_path = config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
         logger.info('Filtering plasmids out...')
@@ -102,7 +102,7 @@ def step_2_search_orfs(logger, times_logger, config):
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orfs'
     script_path = consts.SRC_DIR / 'steps' / 'search_orfs.py'
-    orfs_dir, orfs_tmp_dir = prepare_directories(logger, config.output_dir, config.tmp_dir, step_name)
+    orfs_dir, orfs_tmp_dir = prepare_directories(logger, config.steps_results_dir, config.tmp_dir, step_name)
     orfs_sequences_dir = orfs_dir / 'orfs_sequences'
     orfs_statistics_dir = orfs_dir / 'orfs_statistics'
     orfs_translated_dir = orfs_dir / 'orfs_translated'
@@ -149,7 +149,7 @@ def step_2_search_orfs(logger, times_logger, config):
     step_number = '02_2'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orfs_plots'
-    orfs_plots_path, pipeline_step_tmp_dir = prepare_directories(logger, config.output_dir, config.tmp_dir, step_name)
+    orfs_plots_path, pipeline_step_tmp_dir = prepare_directories(logger, config.steps_results_dir, config.tmp_dir, step_name)
     done_file_path = config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
         logger.info('Concatenating orfs counts and gc contents...')
@@ -181,7 +181,7 @@ def step_2_search_orfs(logger, times_logger, config):
     step_number = '02_3'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_concat_orfs'
-    concat_orfs_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, config.output_dir, config.tmp_dir, step_name)
+    concat_orfs_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, config.steps_results_dir, config.tmp_dir, step_name)
     all_orfs_fasta_path = concat_orfs_dir_path / 'all_orfs.fna'
     all_proteins_fasta_path = concat_orfs_dir_path / 'all_proteomes.faa'
     done_file_path = config.done_files_dir / f'{step_name}.txt'
@@ -215,7 +215,7 @@ def step_3_analyze_genome_completeness(logger, times_logger, config, translated_
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_genomes_completeness'
     script_path = consts.SRC_DIR / 'steps' / 'assessing_genome_completeness.py'
-    genome_completeness_dir_path, genome_completeness_tmp_dir = prepare_directories(logger, config.output_dir, config.tmp_dir, step_name)
+    genome_completeness_dir_path, genome_completeness_tmp_dir = prepare_directories(logger, config.steps_results_dir, config.tmp_dir, step_name)
     done_file_path = config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
         logger.info('Calculating genomes completeness...')
@@ -297,7 +297,7 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_subsets_inference'
     script_path = consts.SRC_DIR / 'steps' / 'infer_orthogroups_on_genomes_batch.py'
-    inference_dir_path, inference_tmp_dir = prepare_directories(logger, config.output_dir, config.tmp_dir, step_name)
+    inference_dir_path, inference_tmp_dir = prepare_directories(logger, config.steps_results_dir, config.tmp_dir, step_name)
     done_file_path = config.done_files_dir / f'{step_name}.txt'
     done_dir_path = config.done_files_dir / step_name
     if not done_file_path.exists():
@@ -348,7 +348,7 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_aggregate_sub_orthogroups'
     aggregate_orthogroups_dir_path, aggregate_orthogroups_tmp_dir = prepare_directories(
-        logger, config.output_dir, config.tmp_dir, step_name)
+        logger, config.steps_results_dir, config.tmp_dir, step_name)
     pseudo_genomes_strains_names_path = aggregate_orthogroups_dir_path / 'pseudo_genomes_names.txt'
     pseudo_genomes_dir_path = aggregate_orthogroups_dir_path / 'pseudo_genomes'
     all_pseudo_genomes_path = aggregate_orthogroups_dir_path / f'all_pseudo_proteomes.faa'
@@ -402,12 +402,12 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
     pseudo_orthogroups_file_path = pseudo_orthogroups_dir_path / 'orthogroups.csv'
 
 
-    # 06_12. merged_suborthogroups
+    # 06_11. merged_suborthogroups
     step_number = f'06_{final_substep_number + 1}'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_merged_suborthogroups'
     merged_orthogroups_dir_path, merged_orthogroups_tmp_dir = prepare_directories(
-        logger, config.output_dir, config.tmp_dir, step_name)
+        logger, config.steps_results_dir, config.tmp_dir, step_name)
     merged_orthogroups_file_path = merged_orthogroups_dir_path / 'orthogroups.csv'
     done_file_path = config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
@@ -452,12 +452,12 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
 
-    # 06.13 extract_orphan_genes_from_full_orthogroups.py
+    # 06.12 extract_orphan_genes_from_full_orthogroups.py
     step_number = f'06_{final_substep_number + 2}'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orphan_genes_from_orthogroups'
     script_path = consts.SRC_DIR / 'steps' / 'extract_orphan_genes_from_full_orthogroups.py'
-    orphan_genes_dir, orphans_tmp_dir = prepare_directories(logger, config.output_dir, config.tmp_dir, step_name)
+    orphan_genes_dir, orphans_tmp_dir = prepare_directories(logger, config.steps_results_dir, config.tmp_dir, step_name)
     orphan_genes_internal_dir = orphan_genes_dir / 'orphans_lists_per_genome'
     done_file_path = config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
@@ -500,12 +500,12 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
 
-    # 06.14 final_orthogroups_table
+    # 06.13 final_orthogroups_table
     step_number = f'06_{final_substep_number + 3}'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orthogroups_final'
     final_orthogroups_dir, final_orthogroups_tmp_dir = prepare_directories(
-        logger, config.output_dir, config.tmp_dir, step_name)
+        logger, config.steps_results_dir, config.tmp_dir, step_name)
     final_orthogroups_file_path = final_orthogroups_dir / 'orthogroups.csv'
     done_file_path = config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
@@ -544,7 +544,7 @@ def step_7_orthologs_table_variations(logger, times_logger, config, final_orthog
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orthogroups_variations'
     script_path = consts.SRC_DIR / 'steps' / 'orthologs_table_variations.py'
-    orthogroups_variations_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, config.output_dir, config.tmp_dir, step_name)
+    orthogroups_variations_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, config.steps_results_dir, config.tmp_dir, step_name)
     done_file_path = config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
         logger.info('Adding orthogroups variations...')
@@ -567,7 +567,7 @@ def step_7_orthologs_table_variations(logger, times_logger, config, final_orthog
     step_number = '07_2'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orthogroups_sizes'
-    group_sizes_path, pipeline_step_tmp_dir = prepare_directories(logger, config.output_dir, config.tmp_dir, step_name)
+    group_sizes_path, pipeline_step_tmp_dir = prepare_directories(logger, config.steps_results_dir, config.tmp_dir, step_name)
     done_file_path = config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
         logger.info('Collecting sizes...')
@@ -607,7 +607,7 @@ def step_8_build_orthologous_groups_fastas(logger, times_logger, config, all_orf
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orthogroups_fasta'
     script_path = consts.SRC_DIR / 'steps' / 'extract_orfs.py'
-    orthogroups_fasta_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, config.output_dir, config.tmp_dir, step_name)
+    orthogroups_fasta_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, config.steps_results_dir, config.tmp_dir, step_name)
 
     orthogroups_dna_dir_path = orthogroups_fasta_dir_path / 'orthogroups_dna'
     orthologs_aa_dir_path = orthogroups_fasta_dir_path / 'orthogroups_aa'
@@ -668,7 +668,7 @@ def step_9_extract_core_genome_and_core_proteome(logger, times_logger, config, a
     logger.info(f'Step {step_number}: {"_" * 100}')
     core_proteome_step_name = f'{step_number}_aligned_core_proteome'
     script_path = consts.SRC_DIR / 'steps' / 'extract_core_genome.py'
-    aligned_core_proteome_path, aligned_core_proteome_tmp_dir = prepare_directories(logger, config.output_dir, config.tmp_dir, core_proteome_step_name)
+    aligned_core_proteome_path, aligned_core_proteome_tmp_dir = prepare_directories(logger, config.steps_results_dir, config.tmp_dir, core_proteome_step_name)
     core_proteome_done_file_path = config.done_files_dir / f'{core_proteome_step_name}.txt'
 
     if not core_proteome_done_file_path.exists():
@@ -677,7 +677,7 @@ def step_9_extract_core_genome_and_core_proteome(logger, times_logger, config, a
         aligned_core_proteome_file_path = aligned_core_proteome_path / 'aligned_core_proteome.fas'
         core_proteome_length_file_path = aligned_core_proteome_path / 'core_length.txt'
 
-        params = [aa_alignments_path, config.strains_names_path,
+        params = [aa_alignments_path, config.genomes_names_path,
                   aligned_core_proteome_file_path,
                   core_proteome_length_file_path,
                   f'--core_minimal_percentage {config.core_minimal_percentage}']  # how many members induce a core group?
@@ -693,7 +693,7 @@ def step_9_extract_core_genome_and_core_proteome(logger, times_logger, config, a
     logger.info(f'Step {step_number}: {"_" * 100}')
     core_genome_step_name = f'{step_number}_aligned_core_genome'
     script_path = consts.SRC_DIR / 'steps' / 'extract_core_genome.py'
-    aligned_core_genome_path, aligned_core_genome_tmp_dir = prepare_directories(logger, config.output_dir, config.tmp_dir, core_genome_step_name)
+    aligned_core_genome_path, aligned_core_genome_tmp_dir = prepare_directories(logger, config.steps_results_dir, config.tmp_dir, core_genome_step_name)
     core_genome_done_file_path = config.done_files_dir / f'{core_genome_step_name}.txt'
     if not core_genome_done_file_path.exists():
         logger.info('Extracting aligned core genome...')
@@ -701,7 +701,7 @@ def step_9_extract_core_genome_and_core_proteome(logger, times_logger, config, a
         aligned_core_genome_file_path = os.path.join(aligned_core_genome_path, 'aligned_core_genome.fas')
         core_genome_length_file_path = os.path.join(aligned_core_genome_path, 'core_length.txt')
 
-        params = [dna_alignments_path, config.strains_names_path,
+        params = [dna_alignments_path, config.genomes_names_path,
                   aligned_core_genome_file_path,
                   core_genome_length_file_path,
                   f'--core_minimal_percentage {config.core_minimal_percentage}']  # how many members induce a core group?
@@ -717,14 +717,14 @@ def step_9_extract_core_genome_and_core_proteome(logger, times_logger, config, a
     logger.info(f'Step {step_number}: {"_" * 100}')
     core_proteome_reduced_step_name = f'{step_number}_aligned_core_proteome_reduced'
     script_path = consts.SRC_DIR / 'steps' / 'extract_core_genome.py'
-    aligned_core_proteome_reduced_path, aligned_core_proteome_reduced_tmp_dir = prepare_directories(logger, config.output_dir, config.tmp_dir, core_proteome_reduced_step_name)
+    aligned_core_proteome_reduced_path, aligned_core_proteome_reduced_tmp_dir = prepare_directories(logger, config.steps_results_dir, config.tmp_dir, core_proteome_reduced_step_name)
     aligned_core_proteome_reduced_file_path = aligned_core_proteome_reduced_path / 'aligned_core_proteome.fas'
     core_proteome_reduced_length_file_path = aligned_core_proteome_reduced_path / 'core_length.txt'
     core_proteome_reduced_done_file_path = config.done_files_dir / f'{core_proteome_reduced_step_name}.txt'
     if not core_proteome_reduced_done_file_path.exists():
         logger.info('Extracting aligned core proteome for phylogeny reconstruction...')
 
-        params = [aa_alignments_path, config.strains_names_path,
+        params = [aa_alignments_path, config.genomes_names_path,
                   aligned_core_proteome_reduced_file_path,
                   core_proteome_reduced_length_file_path,
                   f'--core_minimal_percentage {config.core_minimal_percentage}',  # how many members induce a core group?
@@ -769,7 +769,7 @@ def step_10_genome_numeric_representation(logger, times_logger, config, orfs_dir
     logger.info(f'Step {step_number}: {"_" * 100}')
     numeric_step_name = f'{step_number}_genome_numeric_representation'
     script_path = consts.SRC_DIR / 'steps' / 'genome_numeric_representation.py'
-    numeric_representation_output_dir, numeric_representation_tmp_dir = prepare_directories(logger, config.output_dir,
+    numeric_representation_output_dir, numeric_representation_tmp_dir = prepare_directories(logger, config.steps_results_dir,
                                                                                             config.tmp_dir, numeric_step_name)
     numeric_done_file_path = config.done_files_dir / f'{numeric_step_name}.txt'
     if not numeric_done_file_path.exists():
@@ -802,7 +802,7 @@ def step_11_phylogeny(logger, times_logger, config, aligned_core_proteome_file_p
     logger.info(f'Step {step_number}: {"_" * 100}')
     ani_step_name = f'{step_number}_ani'
     script_path = consts.SRC_DIR / 'steps' / 'ani.py'
-    ani_output_dir, ani_tmp_dir = prepare_directories(logger, config.output_dir, config.tmp_dir, ani_step_name)
+    ani_output_dir, ani_tmp_dir = prepare_directories(logger, config.steps_results_dir, config.tmp_dir, ani_step_name)
     ani_done_file_path = config.done_files_dir / f'{ani_step_name}.txt'
     if not ani_done_file_path.exists():
         logger.info('Calculating ANI values...')
@@ -828,7 +828,7 @@ def step_11_phylogeny(logger, times_logger, config, aligned_core_proteome_file_p
     logger.info(f'Step {step_number}: {"_" * 100}')
     phylogeny_step_name = f'{step_number}_species_phylogeny'
     script_path = consts.SRC_DIR / 'steps' / 'reconstruct_species_phylogeny.py'
-    phylogeny_path, phylogeny_tmp_dir = prepare_directories(logger, config.output_dir, config.tmp_dir, phylogeny_step_name)
+    phylogeny_path, phylogeny_tmp_dir = prepare_directories(logger, config.steps_results_dir, config.tmp_dir, phylogeny_step_name)
     phylogeny_done_file_path = config.done_files_dir / f'{phylogeny_step_name}.txt'
     if not phylogeny_done_file_path.exists():
         output_tree_path = phylogeny_path / 'final_species_tree.newick'
@@ -891,7 +891,7 @@ def step_12_orthogroups_annotations(logger, times_logger, config, orfs_dir,
     logger.info(f'Step {step_number}: {"_" * 100}')
     codon_bias_step_name = f'{step_number}_codon_bias'
     script_path = consts.SRC_DIR / 'steps' / 'codon_bias.py'
-    codon_bias_output_dir_path, codon_bias_tmp_dir = prepare_directories(logger, config.output_dir, config.tmp_dir, codon_bias_step_name)
+    codon_bias_output_dir_path, codon_bias_tmp_dir = prepare_directories(logger, config.steps_results_dir, config.tmp_dir, codon_bias_step_name)
     cai_table_path = codon_bias_output_dir_path / 'CAI_table.csv'
     codon_bias_done_file_path = config.done_files_dir / f'{codon_bias_step_name}.txt'
     if not codon_bias_done_file_path.exists():
@@ -921,7 +921,7 @@ def step_12_orthogroups_annotations(logger, times_logger, config, orfs_dir,
     logger.info(f'Step {step_number}: {"_" * 100}')
     kegg_step_name = f'{step_number}_kegg'
     script_path = consts.SRC_DIR / 'steps' / 'kegg_annotation.py'
-    kegg_output_dir_path, kegg_tmp_dir = prepare_directories(logger, config.output_dir, config.tmp_dir, kegg_step_name)
+    kegg_output_dir_path, kegg_tmp_dir = prepare_directories(logger, config.steps_results_dir, config.tmp_dir, kegg_step_name)
     kegg_table_path = kegg_output_dir_path / 'og_kegg.csv'
     kegg_done_file_path = config.done_files_dir / f'{kegg_step_name}.txt'
     if not kegg_done_file_path.exists():
@@ -960,7 +960,7 @@ def step_12_orthogroups_annotations(logger, times_logger, config, orfs_dir,
     step_number = '12_3'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orthogroups_annotations'
-    output_dir_path, tmp_dir = prepare_directories(logger, config.output_dir, config.tmp_dir, step_name)
+    output_dir_path, tmp_dir = prepare_directories(logger, config.steps_results_dir, config.tmp_dir, step_name)
     done_file_path = config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
         logger.info('Adding annotations to orthogroups...')
@@ -984,7 +984,7 @@ def step_12_orthogroups_annotations(logger, times_logger, config, orfs_dir,
         times_logger.info(f'Step {step_name} took {step_time}.')
 
         if not config.do_not_copy_outputs_to_final_results_dir:
-            add_results_to_final_dir(logger, final_orthologs_table_annotated_path, config.final_output_dir)
+            add_results_to_final_dir(logger, output_dir_path, config.final_output_dir)
         write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')

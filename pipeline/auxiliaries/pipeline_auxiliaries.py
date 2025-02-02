@@ -22,51 +22,44 @@ from flask import flask_interface_consts, SharedConsts
 
 
 def validate_slurm_error_logs(logger, slurm_logs_dir, error_file_path):
-    for file_name in os.listdir(slurm_logs_dir):
-        if not file_name.endswith('.err'):
+    for slurm_log_file in slurm_logs_dir.glob('*.err'):
+        if os.path.getsize(slurm_log_file) == 0:
             continue
 
-        file_path = os.path.join(slurm_logs_dir, file_name)
-        if os.path.getsize(file_path) == 0:
-            continue
-
-        with open(file_path) as f:
+        with open(slurm_log_file) as f:
             for line in f:
                 pass
             last_line = line
 
         if last_line.startswith('slurmstepd: error'):
-            fail(logger, f'file {file_path} shows a slurm error: {last_line}', error_file_path)
+            fail(logger, f'file {slurm_log_file} shows a slurm error: {last_line}', error_file_path)
 
 
-def wait_for_results(logger, times_logger, script_name, path, num_of_expected_results, error_file_path, suffix='done',
-                     time_to_wait=10, start=0, error_message=None, recursive_step=False):
-    """waits until path contains num_of_expected_results $suffix files"""
+def wait_for_results(logger, times_logger, script_name, path, num_of_expected_results, error_file_path,
+                     start=0, recursive_step=False):
+    """waits until path contains num_of_expected_results .done files"""
     if not start:
         start = time()
     logger.info(f'Waiting for {script_name}... Continues when {num_of_expected_results} results will be in: {path}')
+
     if num_of_expected_results == 0:
-        if error_message:
-            fail(logger, error_message, error_file_path)
-        raise ValueError(
-            f'\n{"#" * 100}\nNumber of expected results is {num_of_expected_results}! Something went wrong in the previous analysis steps...\n{"#" * 100}')
+        raise ValueError('Number of expected results is 0! Something went wrong in the previous analysis steps.')
+
     total_time = 0
     i = 0
     current_num_of_results = 0
     while num_of_expected_results > current_num_of_results:
         assert not error_file_path.exists()
-        try:
-            current_num_of_results = sum(1 for x in os.listdir(path) if x.endswith(suffix))
-        except:
-            logger.info(f'Could not run the following command, probably due to some system error...')
-            logger.info(f'current_num_of_results = sum(1 for x in os.listdir({path}) if x.endswith({suffix}))')
+
+        current_num_of_results = sum(1 for _ in path.glob(f'*{consts.JOB_DONE_FILE_SUFFIX}'))
         jobs_left = num_of_expected_results - current_num_of_results
-        sleep(time_to_wait)
-        total_time += time_to_wait
+        sleep(consts.CHECK_JOB_DONE_INTERVAL_SECONDS)
+        total_time += consts.CHECK_JOB_DONE_INTERVAL_SECONDS
         i += 1
         if i % 5 == 0:  # print status every 5 cycles of $time_to_wait
             logger.info(
-                f'\t{timedelta(seconds=total_time)} have passed since started waiting ({num_of_expected_results} - {current_num_of_results} = {jobs_left} more files are still missing)')
+                f'\t{timedelta(seconds=total_time)} have passed since started waiting ('
+                f'{num_of_expected_results} - {current_num_of_results} = {jobs_left} more files are still missing)')
 
     end = time()
     total_time_waited = timedelta(seconds=int(end - start))
@@ -124,7 +117,6 @@ def get_job_time_from_log_file(log_file_content, pattern_for_runtime, pattern_fo
 
 
 def get_jobs_cummulative_time(logger, path):
-    log_files = [file_path for file_path in os.listdir(path) if file_path.endswith('log.txt')]
     pattern_for_walltime = re.compile(f'{consts.JOB_WALL_TIME_KEY}(.+) TimeLimit')
     pattern_for_cpus = re.compile(f'{consts.JOB_CPUS_KEY}(.+) NumTasks')
 
@@ -132,18 +124,17 @@ def get_jobs_cummulative_time(logger, path):
     cpus_used_in_jobs = []
     log_files_without_times = []
     log_files_without_cpus = []
-    for log_file_name in log_files:
-        log_file_full_path = os.path.join(path, log_file_name)
-        with open(log_file_full_path, 'r') as log_file:
+    for log_file_path in path.glob('*log.txt'):
+        with open(log_file_path, 'r') as log_file:
             content = log_file.read()
 
             walltime, cpus_used_per_job = get_job_time_from_log_file(content, pattern_for_walltime, pattern_for_cpus)
             if walltime is None:
-                log_files_without_times.append(log_file_full_path)
+                log_files_without_times.append(log_file_path)
                 continue
             walltime_sum += walltime
             if cpus_used_per_job is None:
-                log_files_without_cpus.append(log_file_full_path)
+                log_files_without_cpus.append(log_file_path)
                 continue
             cpus_used_in_jobs.append(cpus_used_per_job)
 
@@ -159,19 +150,17 @@ def get_jobs_cummulative_time(logger, path):
 
 
 def get_recursive_step_cummulative_times(path):
-    times_log_files = [file_path for file_path in os.listdir(path) if file_path.endswith('times_log.txt')]
     pattern = re.compile(f'Step (.+) took (.+)\. .* per job = (.+) wallclock time')
 
     log_files_without_times = []
     sub_steps_cummulative_times = {}
-    for log_file_name in times_log_files:
-        log_file_full_path = os.path.join(path, log_file_name)
-        with open(log_file_full_path, 'r') as log_file:
+    for log_file_path in path.glob('*times_log.txt'):
+        with open(log_file_path, 'r') as log_file:
             content = log_file.read()
         
         regex_search_result = pattern.finditer(content)
         if regex_search_result is None:
-            log_files_without_times.append(log_file_full_path)
+            log_files_without_times.append(log_file_path)
             continue
 
         for match in regex_search_result:
@@ -222,7 +211,7 @@ def submit_mini_batch(logger, config, script_path, mini_batch_parameters_list, l
 
     if config.use_job_manager:
         # shell_cmds_as_str += f'source ~/.bashrc{new_line_delimiter}'
-        conda_sh_path = os.path.join(consts.CONDA_INSTALLATION_DIR, 'etc/profile.d/conda.sh')
+        conda_sh_path = consts.CONDA_INSTALLATION_DIR / 'etc' / 'profile.d' / 'conda.sh'
         shell_cmds_as_str += f'source {conda_sh_path}\n'
         shell_cmds_as_str += f'conda activate {consts.CONDA_ENVIRONMENT_DIR}\n'
         shell_cmds_as_str += f'export PATH=$CONDA_PREFIX/bin:$PATH\n'
@@ -235,7 +224,7 @@ def submit_mini_batch(logger, config, script_path, mini_batch_parameters_list, l
     example_shell_cmd = ''
     for params in mini_batch_parameters_list:
         shell_cmds_as_str += ' '.join(
-            ['python', script_path, *[str(param) for param in params],
+            ['python', str(script_path), *[str(param) for param in params],
              f'-v {config.verbose}', f'--logs_dir {logs_dir}', f'--error_file_path {error_file_path}',
              f'--job_name {job_name}']) + '\n'
 
@@ -243,10 +232,10 @@ def submit_mini_batch(logger, config, script_path, mini_batch_parameters_list, l
             example_shell_cmd = shell_cmds_as_str
 
     # GENERATE DONE FILE
-    shell_cmds_as_str += f'touch {os.path.join(logs_dir, job_name + ".done")}\n'
+    shell_cmds_as_str += f'touch {logs_dir / (job_name + consts.JOB_DONE_FILE_SUFFIX)}\n'
 
     # WRITING CMDS FILE
-    cmds_path = os.path.join(logs_dir, f'{job_name}.sh')
+    cmds_path = logs_dir / f'{job_name}.sh'
     with open(cmds_path, 'w') as f:
         f.write(shell_cmds_as_str)
 
@@ -260,8 +249,9 @@ def submit_mini_batch(logger, config, script_path, mini_batch_parameters_list, l
     else:
         # fetch directly on shell
         for shell_cmd in shell_cmds_as_str.split('\n'):
-            logger.info(f'Running command: {shell_cmd}')
-            subprocess.run(shell_cmd, shell=True, check=True)
+            if shell_cmd:
+                logger.info(f'Running command: {shell_cmd}')
+                subprocess.run(shell_cmd, shell=True, check=True)
 
     return example_shell_cmd
 
@@ -288,7 +278,7 @@ def submit_batch(logger, config, script_path, batch_parameters_list, logs_dir, j
         example_cmd_from_last_mini_batch = submit_mini_batch(
             logger, config, script_path, mini_batch_parameters_list, logs_dir, mini_batch_job_name,
             num_of_cpus=num_of_cpus, memory=memory, time_in_hours=time_in_hours)
-        logger.info(f'Example command from batch {mini_batch_job_name}:\n{example_cmd_from_last_mini_batch}')
+        logger.info(f'Example command from batch {mini_batch_job_name}: {example_cmd_from_last_mini_batch}')
         num_of_mini_batches += 1
         sleep(0.1)
 

@@ -25,6 +25,13 @@ from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_ar
 def run_ani(logger, genomes_list_path, output_path, cpus):
     tmp_results = genomes_list_path.parent
     raw_output_path = tmp_results / 'all_vs_all_raw_output.tsv'
+    ani_values_temp_path = tmp_results / 'ani_pairwise_values_temp.csv'
+    ani_map_path = output_path / "ani_map.png"
+    ani_values_path = output_path / 'ani_pairwise_values.csv'
+
+    if ani_map_path.exists() and ani_values_path.exists():
+        logger.info(f'ANI values and map already exist in {output_path}')
+        return
 
     # No ANI output is reported for a genome pair if ANI value is much below 80% (https://github.com/ParBLiSS/FastANI)
     cmd = f'fastANI --ql {genomes_list_path} --rl {genomes_list_path} -o {raw_output_path} -t {cpus}'
@@ -38,11 +45,10 @@ def run_ani(logger, genomes_list_path, output_path, cpus):
     df['subject'] = df['subject'].apply(lambda path: Path(path).stem)
 
     ani_values_df = df.pivot_table(index='query', columns='subject', values='ani_value')
-    ani_values_temp_path = tmp_results / 'ani_pairwise_values_temp.csv'
     ani_values_df.to_csv(ani_values_temp_path)
     logger.info(f'ANI temp values were saved to {ani_values_temp_path}')
 
-    plot_ani_clustermap(ani_values_df, output_path)
+    plot_ani_clustermap(ani_values_df, ani_map_path)
 
     if len(ani_values_df) >= 2:
         # Iterate over rows and find max value ignoring diagonal
@@ -56,14 +62,13 @@ def run_ani(logger, genomes_list_path, output_path, cpus):
         ani_values_df['max_value'] = max_values
         ani_values_df['max_column'] = max_values_columns
 
-    ani_values_path = output_path / 'ani_pairwise_values.csv'
     ani_values_df.to_csv(ani_values_path)
     logger.info(f'ANI values were saved to {ani_values_path}')
 
 
 def plot_ani_clustermap(
     ani_df: pd.DataFrame,
-    outdir: Path,
+    ani_map_path: Path,
     dendrogram_ratio: float = 0.15,
     cmap_colors: list[str] | None = None,
     cmap_gamma: float = 1.0,
@@ -129,7 +134,6 @@ def plot_ani_clustermap(
 
     # Output ANI clustermap figure
     plt.tight_layout()
-    ani_map_path = outdir / "ani_map.png"
     plt.savefig(ani_map_path, dpi=600)
     plt.close()
     logger.info(f'ANI clustermap was saved to {ani_map_path}')

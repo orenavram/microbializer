@@ -47,7 +47,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, infer_ortho
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_normalize_scores'
     normalized_hits_output_dir, normalized_hits_tmp_dir = prepare_directories(
-        logger, infer_orthogroups_config.output_dir, infer_orthogroups_config.tmp_dir, step_name)
+        logger, infer_orthogroups_config.steps_results_dir, infer_orthogroups_config.tmp_dir, step_name)
     done_file_path = infer_orthogroups_config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
         logger.info('Start normalizing hits scores...')
@@ -106,7 +106,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, infer_ortho
     step_name = f'{step_number}_putative_table'
     script_path = consts.SRC_DIR / 'steps' / 'construct_putative_orthologs_table.py'
     putative_orthologs_table_output_dir, putative_orthologs_table_tmp_dir = prepare_directories(
-        logger, infer_orthogroups_config.output_dir, infer_orthogroups_config.tmp_dir, step_name)
+        logger, infer_orthogroups_config.steps_results_dir, infer_orthogroups_config.tmp_dir, step_name)
     putative_orthologs_table_path = putative_orthologs_table_output_dir / 'putative_orthologs_table.csv'
     done_file_path = infer_orthogroups_config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
@@ -130,7 +130,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, infer_ortho
     step_name = f'{step_number}_mcl_input_files'
     script_path = consts.SRC_DIR / 'steps' / 'prepare_og_for_mcl.py'
     mcl_inputs_dir, mcl_inputs_tmp_dir = prepare_directories(
-        logger, infer_orthogroups_config.output_dir, infer_orthogroups_config.tmp_dir, step_name)
+        logger, infer_orthogroups_config.steps_results_dir, infer_orthogroups_config.tmp_dir, step_name)
     done_file_path = infer_orthogroups_config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
         logger.info('Preparing jobs inputs for prepare_og_for_mcl...')
@@ -165,7 +165,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, infer_ortho
     step_name = f'{step_number}_mcl_analysis'
     script_path = consts.SRC_DIR / 'steps' / 'run_mcl.py'
     mcl_step_outputs_dir, mcl_tmp_dir = prepare_directories(
-        logger, infer_orthogroups_config.output_dir, infer_orthogroups_config.tmp_dir, step_name)
+        logger, infer_orthogroups_config.steps_results_dir, infer_orthogroups_config.tmp_dir, step_name)
     mcl_outputs_dir = mcl_step_outputs_dir / 'mcl_outputs'
     verified_clusters_output_dir = mcl_step_outputs_dir / 'verified_clusters'
     done_file_path = infer_orthogroups_config.done_files_dir / f'{step_name}.txt'
@@ -205,7 +205,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, infer_ortho
     step_name = f'{step_number}_verified_table'
     script_path = consts.SRC_DIR / 'steps' / 'construct_verified_orthologs_table.py'
     verified_orthologs_table_dir_path, verified_orthologs_table_tmp_dir = prepare_directories(
-        logger, infer_orthogroups_config.output_dir, infer_orthogroups_config.tmp_dir, step_name)
+        logger, infer_orthogroups_config.steps_results_dir, infer_orthogroups_config.tmp_dir, step_name)
     orthogroups_file_path = verified_orthologs_table_dir_path / 'orthogroups.csv'
     done_file_path = infer_orthogroups_config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
@@ -217,10 +217,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, infer_ortho
         submit_mini_batch(logger, config, script_path, [params], verified_orthologs_table_tmp_dir,
                           'verified_ortholog_groups')
         wait_for_results(logger, times_logger, step_name, verified_orthologs_table_tmp_dir,
-                         num_of_expected_results=1, error_file_path=config.error_file_path,
-                         error_message='No ortholog groups were detected in your dataset. Please try to lower '
-                                       'the similarity parameters (see Advanced Options in the submission page) '
-                                       'and re-submit your job.')
+                         1, config.error_file_path)
 
         write_done_file(logger, done_file_path)
     else:
@@ -233,7 +230,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, infer_ortho
     step_name = f'{step_number}_orphan_genes'
     script_path = consts.SRC_DIR / 'steps' / 'extract_orphan_genes.py'
     orphan_genes_dir, orphans_tmp_dir = prepare_directories(
-        logger, infer_orthogroups_config.output_dir, infer_orthogroups_config.tmp_dir, step_name)
+        logger, infer_orthogroups_config.steps_results_dir, infer_orthogroups_config.tmp_dir, step_name)
     orphan_genes_internal_dir = orphan_genes_dir / 'orphans_lists_per_genome'
     done_file_path = infer_orthogroups_config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
@@ -280,7 +277,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, infer_ortho
     step_name = f'{step_number}_orthogroups_final'
     script_path = consts.SRC_DIR / 'steps' / 'add_orphans_to_orthogroups.py'
     final_orthogroups_dir_path, pipeline_step_tmp_dir = prepare_directories(
-        logger, infer_orthogroups_config.output_dir, infer_orthogroups_config.tmp_dir, step_name)
+        logger, infer_orthogroups_config.steps_results_dir, infer_orthogroups_config.tmp_dir, step_name)
     final_orthogroups_file_path = final_orthogroups_dir_path / 'orthogroups.csv'
     done_file_path = infer_orthogroups_config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
@@ -315,7 +312,7 @@ def run_unified_mmseqs(logger, times_logger, config, infer_orthogroups_config, b
     step_name = f'{step_number}_all_vs_all_analysis'
     script_path = consts.SRC_DIR / 'steps' / 'mmseqs_v2 '/ 'mmseqs2_all_vs_all.py'
     all_vs_all_output_dir, pipeline_step_tmp_dir = prepare_directories(
-        logger, infer_orthogroups_config.output_dir, infer_orthogroups_config.tmp_dir, step_name)
+        logger, infer_orthogroups_config.steps_results_dir, infer_orthogroups_config.tmp_dir, step_name)
     m8_output_path = all_vs_all_output_dir / 'all_vs_all_reduced_columns.csv'
     done_file_path = infer_orthogroups_config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
@@ -368,7 +365,7 @@ def run_unified_mmseqs(logger, times_logger, config, infer_orthogroups_config, b
     step_name = f'{step_number}_extract_rbh_hits'
     script_path = consts.SRC_DIR / 'steps' / 'mmseqs_v2' / 'extract_rbh_hits.py'
     orthologs_output_dir, pipeline_step_tmp_dir = prepare_directories(
-        logger, infer_orthogroups_config.output_dir, infer_orthogroups_config.tmp_dir, step_name)
+        logger, infer_orthogroups_config.steps_results_dir, infer_orthogroups_config.tmp_dir, step_name)
     orthologs_scores_statistics_dir = orthologs_output_dir / 'scores_statistics'
     os.makedirs(orthologs_scores_statistics_dir, exist_ok=True)
     max_rbh_scores_parts_output_dir = orthologs_output_dir / 'max_rbh_scores_parts'
@@ -415,7 +412,7 @@ def run_unified_mmseqs(logger, times_logger, config, infer_orthogroups_config, b
     step_name = f'{step_number}_paralogs'
     script_path = consts.SRC_DIR / 'steps' / 'mmseqs_v2' / 'extract_paralogs.py'
     paralogs_output_dir, pipeline_step_tmp_dir = prepare_directories(
-        logger, infer_orthogroups_config.output_dir, infer_orthogroups_config.tmp_dir, step_name)
+        logger, infer_orthogroups_config.steps_results_dir, infer_orthogroups_config.tmp_dir, step_name)
     paralogs_scores_statistics_dir = paralogs_output_dir / 'scores_statistics'
     os.makedirs(paralogs_scores_statistics_dir, exist_ok=True)
     max_rbh_scores_unified_dir = paralogs_output_dir / 'max_rbh_scores_unified'
@@ -465,7 +462,7 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, config, infer_orthogro
     script_path = consts.SRC_DIR / 'steps' / 'mmseqs_v4' / 'mmseqs2_create_db.py'
     step_name = f'{step_number}_mmseqs_dbs'
     mmseqs_dbs_output_dir, mmseqs_dbs_tmp_dir = prepare_directories(
-        logger, infer_orthogroups_config.output_dir, infer_orthogroups_config.tmp_dir, step_name)
+        logger, infer_orthogroups_config.steps_results_dir, infer_orthogroups_config.tmp_dir, step_name)
     done_file_path = infer_orthogroups_config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
         logger.info('Creating mmseqs dbs...')
@@ -504,7 +501,7 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, config, infer_orthogro
     step_name = f'{step_number}_mmseqs_rbh'
     script_path = consts.SRC_DIR / 'steps' / 'mmseqs_v4' / 'mmseqs2_rbh.py'
     orthologs_output_dir, orthologs_tmp_dir = prepare_directories(
-        logger, infer_orthogroups_config.output_dir, infer_orthogroups_config.tmp_dir, step_name)
+        logger, infer_orthogroups_config.steps_results_dir, infer_orthogroups_config.tmp_dir, step_name)
     orthologs_scores_statistics_dir = orthologs_output_dir / 'scores_statistics'
     os.makedirs(orthologs_scores_statistics_dir, exist_ok=True)
     max_rbh_scores_parts_output_dir = orthologs_output_dir / 'max_rbh_scores_parts'
@@ -564,7 +561,7 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, config, infer_orthogro
     step_name = f'{step_number}_mmseqs_paralogs'
     script_path = consts.SRC_DIR / 'steps' / 'mmseqs_v4' / 'mmseqs2_paralogs.py'
     paralogs_output_dir, paralogs_tmp_dir = prepare_directories(
-        logger, infer_orthogroups_config.output_dir, infer_orthogroups_config.tmp_dir, step_name)
+        logger, infer_orthogroups_config.steps_results_dir, infer_orthogroups_config.tmp_dir, step_name)
     paralogs_scores_statistics_dir = paralogs_output_dir / 'scores_statistics'
     os.makedirs(paralogs_scores_statistics_dir, exist_ok=True)
     max_rbh_scores_unified_dir = paralogs_output_dir / 'max_rbh_scores_unified'

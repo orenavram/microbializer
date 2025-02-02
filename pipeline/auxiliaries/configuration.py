@@ -46,7 +46,6 @@ class Config:
     data_path: Path
     genomes_names_path: Path
 
-    output_dir: Path
     steps_results_dir: Path
     tmp_dir: Path
     done_files_dir: Path
@@ -130,18 +129,18 @@ def get_configuration():
                              'have a member in the group.\n(2) 50 means that for a gene to be considered core, at least'
                              ' half of the strains should have a member in the group.\n(3) 0 means that every gene '
                              'should be considered as a core gene.')
-    parser.add_argument('--bootstrap', type=str_to_bool, nargs="?", default=False,
+    parser.add_argument('--bootstrap', type=str_to_bool, default=False,
                         help='whether or not to apply bootstrap procedure over the reconstructed species tree.')
     parser.add_argument('--outgroup', default=None,
                         help='The species name used to to root the phylogenetic tree, or None to leave unrooted.')
-    parser.add_argument('--filter_out_plasmids', type=str_to_bool, nargs="?", default=False,
+    parser.add_argument('--filter_out_plasmids', type=str_to_bool, default=False,
                         help='whether or not to filter out plasmids from the input files')
     parser.add_argument('--inputs_fasta_type', choices=['genomes', 'orfs'], default='genomes',
                         help='whether the input files are fastas of orfs and therefore Prodigal is skipped, '
                              'or genomes assemblies and then the first step is ORFs extraction using Prodigal')
-    parser.add_argument('--add_orphan_genes_to_ogs', type=str_to_bool, nargs="?", default=False,
+    parser.add_argument('--add_orphan_genes_to_ogs', type=str_to_bool, default=False,
                         help='whether orphan genes should be considered as OGs')
-    parser.add_argument('--qfo_benchmark', type=str_to_bool, nargs="?", default=False,
+    parser.add_argument('--qfo_benchmark', type=str_to_bool, default=False,
                         help='whether the input files are annotated genomes in the QfO benchmark format')
     # choices=['pupkoweb', 'pupkowebr', 'pupkolab', 'pupkolabr', 'pupkotmp', 'pupkotmpr', 'itaym', 'lilach',
     # 'bioseq', 'bental', 'oren.q', 'bioseq20.q'])
@@ -152,23 +151,23 @@ def get_configuration():
     parser.add_argument('--node_name', help='The node name to submit jobs to', default=None)
     parser.add_argument('--step_to_complete', help='The final step to execute', default=None,
                         choices=[*PIPELINE_STEPS, None])
-    parser.add_argument('--only_calc_ogs', type=str_to_bool, nargs="?", default=False,
+    parser.add_argument('--only_calc_ogs', type=str_to_bool, default=False,
                         help='Do only the necessary steps to calculate OGs')
-    parser.add_argument('--bypass_number_of_genomes_limit', type=str_to_bool, nargs="?", default=False,
+    parser.add_argument('--bypass_number_of_genomes_limit', type=str_to_bool, default=False,
                         help='Bypass the limit on number of genomes')
-    parser.add_argument('--run_optimized_mmseqs', type=str_to_bool, nargs="?", default=False,
+    parser.add_argument('--run_optimized_mmseqs', type=str_to_bool, default=False,
                         help='Optimize the mmseqs run')
-    parser.add_argument('--use_parquet', type=str_to_bool, nargs="?", default=False,
+    parser.add_argument('--use_parquet', type=str_to_bool, default=False,
                         help='When True, use parquet files when possible instead of csv')
-    parser.add_argument('--do_not_copy_outputs_to_final_results_dir', type=str_to_bool, nargs="?", default=False, )
-    parser.add_argument('--clean_intermediate_outputs', type=str_to_bool, nargs="?", default=False, )
+    parser.add_argument('--do_not_copy_outputs_to_final_results_dir', type=str_to_bool, default=False, )
+    parser.add_argument('--clean_intermediate_outputs', type=str_to_bool, default=False, )
     parser.add_argument('--num_of_genomes_in_batch', type=int, default=50)
     parser.add_argument('--pseudo_genome_mode', type=str, choices=['first_gene', 'consensus_gene'],
                         default='first_gene')
-    parser.add_argument('--always_run_full_orthogroups_inference', type=str_to_bool, nargs="?", default=False, )
+    parser.add_argument('--always_run_full_orthogroups_inference', type=str_to_bool, default=False, )
     parser.add_argument('--max_parallel_jobs', help='', type=int, default=consts.MAX_PARALLEL_JOBS)
-    parser.add_argument('--use_job_manager', type=str_to_bool, nargs="?", default=consts.USE_JOB_MANAGER)
-    parser.add_argument('-v', '--verbose', type=str_to_bool, nargs="?", default=False,
+    parser.add_argument('--use_job_manager', type=str_to_bool, default=consts.USE_JOB_MANAGER)
+    parser.add_argument('-v', '--verbose', type=str_to_bool, default=False,
                         help='Increase output verbosity')
 
     args = parser.parse_args()
@@ -182,14 +181,14 @@ def get_configuration():
     # Validate arguments
     validate_arguments(args)
 
-    (logger, times_logger, run_dir, error_file_path, progressbar_file_path, run_number, output_dir, tmp_dir,
+    (logger, times_logger, run_dir, error_file_path, progressbar_file_path, run_number, tmp_dir,
      done_files_dir, steps_results_dir, data_path, final_output_dir_name, final_output_dir, genomes_names_path,
      raw_data_path) = \
         prepare_pipeline_framework(args)
 
     # Create Config object
     config = Config(run_dir=run_dir, raw_data_path=raw_data_path, data_path=data_path,
-                    genomes_names_path=genomes_names_path, output_dir=output_dir,
+                    genomes_names_path=genomes_names_path,
                     steps_results_dir=steps_results_dir, tmp_dir=tmp_dir, done_files_dir=done_files_dir,
                     final_output_dir=final_output_dir, final_output_dir_name=final_output_dir_name,
                     error_file_path=error_file_path, progressbar_file_path=progressbar_file_path,
@@ -315,6 +314,6 @@ def prepare_pipeline_framework(args):
 
     genomes_names_path = output_dir / 'genomes_names.txt'
 
-    return (logger, times_logger, run_dir, error_file_path, progressbar_file_path, run_number, output_dir,
-            tmp_dir, done_files_dir, steps_results_dir, data_path, final_output_dir_name, final_output_dir,
+    return (logger, times_logger, run_dir, error_file_path, progressbar_file_path, run_number, tmp_dir,
+            done_files_dir, steps_results_dir, data_path, final_output_dir_name, final_output_dir,
             genomes_names_path, raw_data_path)

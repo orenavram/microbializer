@@ -33,7 +33,7 @@ def RAxML_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num_
     if outgroup:
         logger.info(f'The following outgroup was provided: {outgroup}')
         cmd += ' ' + f'-o {outgroup}'
-    if bootstrap == 'yes':
+    if bootstrap:
         logger.info(f'{consts.NUMBER_OF_RAXML_BOOTSTRAP_ITERATIONS} bootstrap iterations are going to be done')
         final_tree_path = os.path.join(tmp_folder, f'RAxML_bipartitions.{final_tree_name}')
         cmd += f' -f a -x {seed} -N {consts.NUMBER_OF_RAXML_BOOTSTRAP_ITERATIONS}'
@@ -67,7 +67,7 @@ def iqtree_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num
     if outgroup:
         logger.info(f'The following outgroup was provided: {outgroup}')
         cmd += ' ' + f'-o {outgroup}'
-    if bootstrap == 'yes':
+    if bootstrap:
         logger.info(f'{consts.NUMBER_OF_IQTREE_BOOTSTRAP_ITERATIONS} bootstrap iterations are going to be done')
         cmd += f' -B {consts.NUMBER_OF_IQTREE_BOOTSTRAP_ITERATIONS}'
 
@@ -99,16 +99,16 @@ def draw_tree(logger, phylogenetic_tree_path, bootstrap):
     ts.show_leaf_name = True
     ts.show_branch_length = True
 
-    if bootstrap == 'yes':
+    if bootstrap:
         ts.show_branch_support = True
 
-    tree_image_png_path = phylogenetic_tree_path.replace('.newick', '.png')
-    tree_image_svg_path = phylogenetic_tree_path.replace('.newick', '.svg')
+    tree_image_png_path = phylogenetic_tree_path.with_suffix('.png')
+    tree_image_svg_path = phylogenetic_tree_path.with_suffix('.svg')
 
     logger.info('Drawing the phylogenetic tree. The tree will be saved as PNG and SVG files in the same folder as '
                 'the tree file.')
-    tree.render(tree_image_png_path, tree_style=ts)
-    tree.render(tree_image_svg_path, tree_style=ts)
+    tree.render(str(tree_image_png_path), tree_style=ts)
+    tree.render(str(tree_image_svg_path), tree_style=ts)
     logger.info(f'The tree was saved as PNG and SVG files in the same folder as the tree file.')
 
 
@@ -117,15 +117,16 @@ def generate_phylogenetic_tree(logger, msa_path, phylogenetic_tree_path, tmp_fol
     # optionally use to decide which program to use
     # n_seq, n_loci = extract_msa_dimensions(msa_path)
 
-    if tree_search_software == 'raxml':
-        RAxML_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num_of_cpus, outgroup,
-                          bootstrap, seed)
-    elif tree_search_software == 'iqtree':
-        iqtree_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num_of_cpus, outgroup,
-                           bootstrap, seed)
-    elif tree_search_software == 'fasttree':
-        fasttree_tree_search(tmp_folder, msa_path,phylogenetic_tree_path, logger, num_of_cpus, outgroup,
-                             bootstrap, seed)
+    if not phylogenetic_tree_path.exists():  # Might already exist if the job restarted
+        if tree_search_software == 'raxml':
+            RAxML_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num_of_cpus, outgroup,
+                              bootstrap, seed)
+        elif tree_search_software == 'iqtree':
+            iqtree_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num_of_cpus, outgroup,
+                               bootstrap, seed)
+        elif tree_search_software == 'fasttree':
+            fasttree_tree_search(tmp_folder, msa_path,phylogenetic_tree_path, logger, num_of_cpus, outgroup,
+                                 bootstrap, seed)
 
     draw_tree(logger, phylogenetic_tree_path, bootstrap)
 
