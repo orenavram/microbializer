@@ -3,8 +3,8 @@ import time
 import os
 import sys
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(SCRIPT_DIR))
+SCRIPT_DIR = Path(__file__).resolve().parent
+sys.path.append(str(SCRIPT_DIR.parent))
 
 FASTA_FILE_PATH = '/groups/pupko/yairshimony/microbializer_runs/example_data/outputs7/02_ORFs/Ecoli_APEC_O1.02_ORFs'
 FASTA_FILE_PATH = r"C:\Users\yairs\OneDrive\Documents\University\Master\Microbilaizer\example datasets\example input and output\M1CR0B1AL1Z3R_example_data_outputs\02_ORFs\Ecoli_APEC_O1.02_ORFs"

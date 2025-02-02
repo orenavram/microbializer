@@ -1,19 +1,14 @@
 from sys import argv
 import argparse
-import logging
-import os
 import sys
 import pandas as pd
-import re
 import traceback
+from pathlib import Path
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(SCRIPT_DIR))
+SCRIPT_DIR = Path(__file__).resolve().parent
+sys.path.append(str(SCRIPT_DIR.parent))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args
-
-
-ORPHANS_FILENAME_GENOME_NAME_PATTERN = re.compile('(.+)_orphans.txt')
 
 
 def finalize_table(logger, orthologs_table_path, finalized_table_path, orphan_genes_dir):
@@ -22,13 +17,10 @@ def finalize_table(logger, orthologs_table_path, finalized_table_path, orphan_ge
 
     logger.info(f'Starting to aggregate orphan genes from {orphan_genes_dir}')
     orphan_genes = []
-    for filename in os.listdir(orphan_genes_dir):
-        strain_match_object = ORPHANS_FILENAME_GENOME_NAME_PATTERN.match(filename)
-        if not strain_match_object:
-            continue
-        strain = strain_match_object.group(1)
+    for orphan_genes_file_path in orphan_genes_dir.glob('*_orphans.txt'):
+        strain = str(orphan_genes_file_path.stem).replace('_orphans', '')
         logger.info(f'Aggregating orphan genes from {strain}...')
-        with open(os.path.join(orphan_genes_dir, filename)) as orphan_genes_file:
+        with open(orphan_genes_file_path) as orphan_genes_file:
             # add only single orphans and not orthogroup orphans since those already are in the orthogroups table.
             orphan_genes_to_add = [line.strip() for line in orphan_genes_file if line and ';' not in line]
 
@@ -62,8 +54,9 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        finalize_table(logger, args.orthologs_table_path, args.finalized_table_path, args.orphan_genes_dir)
+        finalize_table(logger, Path(args.orthologs_table_path), Path(args.finalized_table_path),
+                       Path(args.orphan_genes_dir))
     except Exception as e:
-        logger.exception(f'Error in {os.path.basename(__file__)}')
+        logger.exception(f'Error in {Path(__file__).name}')
         with open(args.error_file_path, 'a+') as f:
             traceback.print_exc(file=f)

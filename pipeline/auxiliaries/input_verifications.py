@@ -6,8 +6,8 @@ import collections
 import sys
 import subprocess
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(SCRIPT_DIR))
+SCRIPT_DIR = Path(__file__).resolve().parent
+sys.path.append(str(SCRIPT_DIR.parent))
 
 from . import consts
 from .pipeline_auxiliaries import remove_path, fail
@@ -89,8 +89,8 @@ def prepare_and_verify_input_data(logger, config: Config):
 
 
 def unpack_data(logger, raw_data_path, run_dir, error_file_path):
-    if not os.path.isdir(raw_data_path):
-        unzipped_data_path = os.path.join(run_dir, 'data')
+    if not raw_data_path.isdir():
+        unzipped_data_path = run_dir / 'data'
         try:
             if tarfile.is_tarfile(raw_data_path):
                 logger.info('UnTARing')
@@ -99,11 +99,11 @@ def unpack_data(logger, raw_data_path, run_dir, error_file_path):
                 logger.info('Succeeded!')
                 # data_path = data_path.split('.tar')[0] # e.g., /groups/pupko/orenavr2/microbializer/example_data.tar.gz
                 # logger.info(f'Updated data_path is:\n{data_path}')
-            elif raw_data_path.endswith('.gz'):  # gunzip gz file
+            elif raw_data_path.suffix == '.gz':  # gunzip gz file
                 cmd = f'gunzip -f "{raw_data_path}"'
                 logger.info(f'Calling: {cmd}')
                 subprocess.run(cmd, shell=True, check=True)
-                unzipped_data_path = raw_data_path[:-3]  # trim the ".gz"
+                unzipped_data_path = raw_data_path.with_suffix("")  # trim the ".gz"
             else:
                 logger.info('UnZIPing')
                 shutil.unpack_archive(raw_data_path, extract_dir=unzipped_data_path)  # unzip tar folder to parent dir
@@ -117,16 +117,16 @@ def unpack_data(logger, raw_data_path, run_dir, error_file_path):
                  error_file_path)
         logger.info('Succeeded!')
 
-        if not os.path.exists(unzipped_data_path):
-            fail(logger, f'Failed to unzip {os.path.split(raw_data_path)[-1]} (maybe it is empty?)', error_file_path)
+        if not unzipped_data_path.exists():
+            fail(logger, f'Failed to unzip {raw_data_path.name} (maybe it is empty?)', error_file_path)
 
-        if not os.path.isdir(unzipped_data_path):
+        if not unzipped_data_path.is_dir():
             fail(logger, 'Archived file content is not a folder', error_file_path)
 
         file = [x for x in os.listdir(unzipped_data_path) if not x.startswith(('_', '.'))][0]
         logger.info(f'first file in {unzipped_data_path} is:\n{file}')
-        if os.path.isdir(os.path.join(unzipped_data_path, file)):
-            data_path = os.path.join(unzipped_data_path, file)
+        if (unzipped_data_path / file).isdir():
+            data_path = unzipped_data_path / file
             if not [x for x in os.listdir(data_path) if not x.startswith(('_', '.'))]:
                 fail(logger, f'No input files were found in the archived folder.',
                      error_file_path)
@@ -134,25 +134,24 @@ def unpack_data(logger, raw_data_path, run_dir, error_file_path):
             raw_data_path = unzipped_data_path
 
     logger.info(f'Updated data_path is: {raw_data_path}')
-    for file in os.listdir(raw_data_path):
-        file_path = os.path.join(raw_data_path, file)
-        if file_path.endswith('gz'):  # gunzip gz files in $data_path if any
+    for file_path in raw_data_path.iterdir():
+        if file_path.suffix == '.gz':  # gunzip gz files in $data_path if any
             cmd = f'gunzip -f "{file_path}"'
             logger.info(f'Calling: {cmd}')
             subprocess.run(cmd, shell=True, check=True)
 
-    for file in os.listdir(raw_data_path):
-        if not os.path.isdir(os.path.join(raw_data_path, file)):
+    for file_path in raw_data_path.iterdir():
+        if not file_path.isdir():
             # make sure each fasta has writing permissions for downstream editing
-            os.chmod(os.path.join(raw_data_path, file), 0o644)  # -rw-r--r--
+            os.chmod(file_path, 0o644)  # -rw-r--r--
         else:
-            if file == '__MACOSX':
+            if file_path.name == '__MACOSX':
                 # happens too many times to mac users so i decided to assist in this case
                 logger.info('Removing __MACOSX file...')
-                shutil.rmtree(os.path.join(raw_data_path, file), ignore_errors=True)
+                shutil.rmtree(file_path, ignore_errors=True)
             else:
                 fail(logger, f'Please make sure to upload one archived folder containing (only) FASTA files '
-                     f'("{file}" is a folder).', error_file_path)
+                     f'("{file_path.name}" is a folder).', error_file_path)
 
     return raw_data_path
 

@@ -9,8 +9,8 @@ from Bio import SeqIO
 from ete3 import Tree, TreeStyle
 import traceback
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(SCRIPT_DIR))
+SCRIPT_DIR = Path(__file__).resolve().parent
+sys.path.append(str(SCRIPT_DIR.parent))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args, str_to_bool
 from auxiliaries import consts
@@ -157,6 +157,6 @@ if __name__ == '__main__':
         generate_phylogenetic_tree(logger, args.msa_path, args.phylogenetic_raw_tree_path, args.tmp_path, args.seed,
                                    args.tree_search_software, args.outgroup, args.bootstrap, args.cpu)
     except Exception as e:
-        logger.exception(f'Error in {os.path.basename(__file__)}')
+        logger.exception(f'Error in {Path(__file__).name}')
         with open(args.error_file_path, 'a+') as f:
             traceback.print_exc(file=f)

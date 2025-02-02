@@ -5,7 +5,7 @@ import pathlib
 import logging
 import platform
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
 
 from pipeline.flask.slurm_example import submit_job

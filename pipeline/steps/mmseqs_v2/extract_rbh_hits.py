@@ -10,7 +10,7 @@ import statistics
 import dask.dataframe as dd
 import numpy as np
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
 
 from auxiliaries.pipeline_auxiliaries import fail, get_job_logger, add_default_step_args, str_to_bool
@@ -135,6 +135,6 @@ if __name__ == '__main__':
         extract_rbh_hits(logger, args.m8_path, args.rbh_input_path, args.rbh_hits_dir,
                          args.scores_statistics_dir, args.max_rbh_score_per_gene_dir, args.use_parquet, args.verbose)
     except Exception as e:
-        logger.exception(f'Error in {os.path.basename(__file__)}')
+        logger.exception(f'Error in {Path(__file__).name}')
         with open(args.error_file_path, 'a+') as f:
             traceback.print_exc(file=f)

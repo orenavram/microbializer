@@ -1,7 +1,7 @@
 import sys
 import os
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
 
 from pipeline.auxiliaries.pipeline_auxiliaries import get_jobs_cummulative_time

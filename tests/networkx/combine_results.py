@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+SCRIPT_DIR = Path(__file__).resolve().parent
 
 
 def main():

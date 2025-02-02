@@ -5,10 +5,21 @@ import argparse
 import sys
 import logging
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(SCRIPT_DIR))
+SCRIPT_DIR = Path(__file__).resolve().parent
+sys.path.append(str(SCRIPT_DIR.parent))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger
+
+
+def wait_for_output_folder(logger, output_folder, max_waiting_time=300):
+    i = 0
+    while not os.path.exists(output_folder):
+        logger.info(f'Waiting to {output_folder} to be generated... (waited {i} seconds)')
+        i += 1
+        if i > max_waiting_time:
+            raise OSError(
+                f'{output_folder} was not generated after {max_waiting_time} second. Failed to continue the analysis.')
+        sleep(1)
 
 
 def get_genome_sequence(genome_path):
@@ -107,4 +118,4 @@ if __name__ == '__main__':
     try:
         extract_promoters_and_orfs(logger, args.prodigal_orfs_path, args.genome_path, args.promoters_length, args.output_path)
     except Exception as e:
-        logger.exception(f'Error in {os.path.basename(__file__)}')
+        logger.exception(f'Error in {Path(__file__).name}')

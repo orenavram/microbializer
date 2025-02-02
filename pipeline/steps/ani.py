@@ -3,9 +3,7 @@ from __future__ import annotations
 from sys import argv
 import itertools
 import argparse
-import logging
 import subprocess
-import os
 import sys
 import traceback
 from pathlib import Path
@@ -18,33 +16,33 @@ import scipy.cluster.hierarchy as hc
 from matplotlib.colors import LinearSegmentedColormap
 from seaborn.matrix import ClusterGrid
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(SCRIPT_DIR))
+SCRIPT_DIR = Path(__file__).resolve().parent
+sys.path.append(str(SCRIPT_DIR.parent))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args
 
 
-def run_ani(logger, all_genomes_reference_path, output_path, cpus):
-    tmp_results = Path(all_genomes_reference_path).parent
-    raw_output_path = os.path.join(tmp_results, 'all_vs_all_raw_output.tsv')
+def run_ani(logger, genomes_list_path, output_path, cpus):
+    tmp_results = genomes_list_path.parent
+    raw_output_path = tmp_results / 'all_vs_all_raw_output.tsv'
 
     # No ANI output is reported for a genome pair if ANI value is much below 80% (https://github.com/ParBLiSS/FastANI)
-    cmd = f'fastANI --ql {all_genomes_reference_path} --rl {all_genomes_reference_path} -o {raw_output_path} -t {cpus}'
+    cmd = f'fastANI --ql {genomes_list_path} --rl {genomes_list_path} -o {raw_output_path} -t {cpus}'
     logger.info(f'Starting fastANI. Executed command is: {cmd}')
     subprocess.run(cmd, shell=True, check=True)
     logger.info(f'fastANI finished successfully. Output is saved to {raw_output_path}')
 
     df = pd.read_csv(raw_output_path, delimiter='\t',
                      names=['query', 'subject', 'ani_value', 'orthologous_segments', 'total_segments'])
-    df['query'] = df['query'].apply(lambda path: os.path.splitext(os.path.basename(path))[0])
-    df['subject'] = df['subject'].apply(lambda path: os.path.splitext(os.path.basename(path))[0])
+    df['query'] = df['query'].apply(lambda path: Path(path).stem)
+    df['subject'] = df['subject'].apply(lambda path: Path(path).stem)
 
     ani_values_df = df.pivot_table(index='query', columns='subject', values='ani_value')
-    ani_values_temp_path = os.path.join(tmp_results, 'ani_pairwise_values_temp.csv')
+    ani_values_temp_path = tmp_results / 'ani_pairwise_values_temp.csv'
     ani_values_df.to_csv(ani_values_temp_path)
     logger.info(f'ANI temp values were saved to {ani_values_temp_path}')
 
-    plot_ani_clustermap(ani_values_df, Path(output_path))
+    plot_ani_clustermap(ani_values_df, output_path)
 
     if len(ani_values_df) >= 2:
         # Iterate over rows and find max value ignoring diagonal
@@ -58,7 +56,7 @@ def run_ani(logger, all_genomes_reference_path, output_path, cpus):
         ani_values_df['max_value'] = max_values
         ani_values_df['max_column'] = max_values_columns
 
-    ani_values_path = os.path.join(output_path, 'ani_pairwise_values.csv')
+    ani_values_path = output_path / 'ani_pairwise_values.csv'
     ani_values_df.to_csv(ani_values_path)
     logger.info(f'ANI values were saved to {ani_values_path}')
 
@@ -142,7 +140,7 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('all_genomes_reference_path', help='path to a file with a list of all genomes paths')
+    parser.add_argument('genomes_list_path', help='path to a file with a list of all genomes paths')
     parser.add_argument('output_path', help='path to the output directory')
     parser.add_argument('--cpus', type=int, default=1, help='Number of CPUs to use')
     add_default_step_args(parser)
@@ -152,8 +150,8 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        run_ani(logger, args.all_genomes_reference_path, args.output_path, args.cpus)
+        run_ani(logger, Path(args.genomes_list_path), Path(args.output_path), args.cpus)
     except Exception as e:
-        logger.exception(f'Error in {os.path.basename(__file__)}')
+        logger.exception(f'Error in {Path(__file__).name}')
         with open(args.error_file_path, 'a+') as f:
             traceback.print_exc(file=f)

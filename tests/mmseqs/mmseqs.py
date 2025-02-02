@@ -9,8 +9,8 @@ import shutil
 import pandas as pd
 from pathlib import Path
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(SCRIPT_DIR))
+SCRIPT_DIR = Path(__file__).resolve().parent
+sys.path.append(str(SCRIPT_DIR.parent))
 
 from auxiliaries import consts
 from auxiliaries.logic_auxiliaries import add_score_column_to_mmseqs_output

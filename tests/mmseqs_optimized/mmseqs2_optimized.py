@@ -13,8 +13,8 @@ import statistics
 import json
 from multiprocessing import Pool
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(SCRIPT_DIR))
+SCRIPT_DIR = Path(__file__).resolve().parent
+sys.path.append(str(SCRIPT_DIR.parent))
 
 from auxiliaries.pipeline_auxiliaries import fail, get_job_logger
 from auxiliaries.logic_auxiliaries import add_score_column_to_mmseqs_output, max_with_nan
@@ -241,6 +241,6 @@ if __name__ == '__main__':
         find_orthologs_and_paralogs(logger, args.all_proteins_fasta, args.strains_names_path, args.output_dir, args.scores_statistics_dir,
                           args.error_file_path, args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff, args.cpus)
     except Exception as e:
-        logger.exception(f'Error in {os.path.basename(__file__)}')
+        logger.exception(f'Error in {Path(__file__).name}')
         with open(args.error_file_path, 'a+') as f:
             traceback.print_exc(file=f)

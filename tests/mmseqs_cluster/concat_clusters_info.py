@@ -7,8 +7,8 @@ import subprocess
 import traceback
 import json
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(SCRIPT_DIR))
+SCRIPT_DIR = Path(__file__).resolve().parent
+sys.path.append(str(SCRIPT_DIR.parent))
 
 from auxiliaries.pipeline_auxiliaries import fail, get_job_logger
 
@@ -70,6 +70,6 @@ if __name__ == '__main__':
     try:
         concatenate_hits(logger, args.clusters_dir, args.sub_dir_name, args.hits_filename, args.output_dir)
     except Exception as e:
-        logger.exception(f'Error in {os.path.basename(__file__)}')
+        logger.exception(f'Error in {Path(__file__).name}')
         with open(args.error_file_path, 'a+') as f:
             traceback.print_exc(file=f)

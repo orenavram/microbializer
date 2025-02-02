@@ -6,8 +6,8 @@ import sys
 import logging
 import traceback
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(SCRIPT_DIR))
+SCRIPT_DIR = Path(__file__).resolve().parent
+sys.path.append(str(SCRIPT_DIR.parent))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args, str_to_bool
 
@@ -52,6 +52,6 @@ if __name__ == '__main__':
     try:
         normalize_hits_scores_of_all_files(logger, args.job_input_file, args.output_dir, args.use_parquet)
     except Exception as e:
-        logger.exception(f'Error in {os.path.basename(__file__)}')
+        logger.exception(f'Error in {Path(__file__).name}')
         with open(args.error_file_path, 'a+') as f:
             traceback.print_exc(file=f)

@@ -11,7 +11,7 @@ import traceback
 import statistics
 import json
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
 
 from auxiliaries.pipeline_auxiliaries import fail, get_job_logger, add_default_step_args, str_to_bool
@@ -137,6 +137,6 @@ if __name__ == '__main__':
                                  args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff, args.use_parquet,
                                  args.sensitivity)
     except Exception as e:
-        logger.exception(f'Error in {os.path.basename(__file__)}')
+        logger.exception(f'Error in {Path(__file__).name}')
         with open(args.error_file_path, 'a+') as f:
             traceback.print_exc(file=f)

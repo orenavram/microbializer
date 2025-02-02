@@ -10,7 +10,7 @@ from time import sleep
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed, ProcessPoolExecutor
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+SCRIPT_DIR = Path(__file__).resolve().parent
 # HITS_INPUT_DIR = "/home/ai_center/ai_users/yairshimony/microbializer_runs/73_ecoli/outputs_mcl_v2_no_concat_mmseqs_v4_use_parquet/steps_results/05_4_normalize_scores/"
 # HITS_INPUT_DIR = "/home/yair/microbializer_runs/4_genomes/outputs_mcl_v2/steps_results/05_4_normalize_scores"
 HITS_INPUT_DIR = "/home/ai_center/ai_users/yairshimony/microbializer_runs/salmonella_300/outputs_mcl_v2_mmseqs_v4_use_parquet/steps_results/05_4_normalize_scores/"

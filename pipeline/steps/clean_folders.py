@@ -1,13 +1,11 @@
 from sys import argv
 import argparse
-import logging
-import subprocess
-import os
 import sys
 import traceback
+from pathlib import Path
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(SCRIPT_DIR))
+SCRIPT_DIR = Path(__file__).resolve().parent
+sys.path.append(str(SCRIPT_DIR.parent))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger, remove_path, add_default_step_args
 
@@ -33,8 +31,8 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        clean_folders(logger, args.job_input_path)
+        clean_folders(logger, Path(args.job_input_path))
     except Exception as e:
-        logger.exception(f'Error in {os.path.basename(__file__)}')
+        logger.exception(f'Error in {Path(__file__).name}')
         with open(args.error_file_path, 'a+') as f:
             traceback.print_exc(file=f)

@@ -20,8 +20,8 @@ import pandas as pd
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(SCRIPT_DIR))
+SCRIPT_DIR = Path(__file__).resolve().parent
+sys.path.append(str(SCRIPT_DIR.parent))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args
 from auxiliaries.logic_auxiliaries import get_strain_name
@@ -268,6 +268,6 @@ if __name__ == '__main__':
     try:
         analyze_codon_bias(args.ORF_dir, args.OG_dir, args.output_dir, args.cai_table_path, args.tmp_dir, int(args.cpus), logger)
     except Exception as e:
-        logger.exception(f'Error in {os.path.basename(__file__)}')
+        logger.exception(f'Error in {Path(__file__).name}')
         with open(args.error_file_path, 'a+') as f:
             traceback.print_exc(file=f)

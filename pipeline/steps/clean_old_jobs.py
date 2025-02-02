@@ -1,14 +1,14 @@
 from sys import argv
 import argparse
-import logging
-import os
 import sys
 import traceback
+import os
 import time
 from math import floor
+from pathlib import Path
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(SCRIPT_DIR))
+SCRIPT_DIR = Path(__file__).resolve().parent
+sys.path.append(str(SCRIPT_DIR.parent))
 
 from auxiliaries import consts
 from auxiliaries.pipeline_auxiliaries import get_job_logger, remove_path, add_default_step_args
@@ -16,13 +16,12 @@ from flask import SharedConsts
 
 
 def clean_old_jobs(logger):
-    if not os.path.isdir(consts.USER_RESULTS_DIR):
+    if not consts.USER_RESULTS_DIR.exists():
         logger.info(f'{consts.USER_RESULTS_DIR} is not an existing directory.')
         return
 
-    for job_dir_name in os.listdir(consts.USER_RESULTS_DIR):
-        job_dir_path = os.path.join(consts.USER_RESULTS_DIR, job_dir_name)
-        if not os.path.isdir(job_dir_path):
+    for job_dir_path in consts.USER_RESULTS_DIR.iterdir():
+        if not job_dir_path.isdir():
             continue
 
         seconds_since_last_modification = time.time() - os.stat(job_dir_path).st_mtime
@@ -48,6 +47,6 @@ if __name__ == '__main__':
     try:
         clean_old_jobs(logger)
     except Exception as e:
-        logger.exception(f'Error in {os.path.basename(__file__)}')
+        logger.exception(f'Error in {Path(__file__).name}')
         with open(args.error_file_path, 'a+') as f:
             traceback.print_exc(file=f)

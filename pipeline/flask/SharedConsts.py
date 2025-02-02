@@ -3,7 +3,7 @@ from enum import Enum
 import os
 import sys
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(SCRIPT_DIR)
 
 import flask_interface_consts

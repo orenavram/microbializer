@@ -203,12 +203,12 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, infer_ortho
     step_number = f'{base_step_number}_{start_substep_number + 4}'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_verified_table'
-    script_path = consts.SRC_DIR / 'steps' 'construct_verified_orthologs_table.py'
+    script_path = consts.SRC_DIR / 'steps' / 'construct_verified_orthologs_table.py'
     verified_orthologs_table_dir_path, verified_orthologs_table_tmp_dir = prepare_directories(
         logger, infer_orthogroups_config.output_dir, infer_orthogroups_config.tmp_dir, step_name)
     orthogroups_file_path = verified_orthologs_table_dir_path / 'orthogroups.csv'
     done_file_path = infer_orthogroups_config.done_files_dir / f'{step_name}.txt'
-    if not os.path.exists(done_file_path):
+    if not done_file_path.exists():
         logger.info('Constructing verified orthologs table...')
         params = [putative_orthologs_table_path,
                   verified_clusters_output_dir,

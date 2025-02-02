@@ -214,10 +214,10 @@ def step_3_analyze_genome_completeness(logger, times_logger, config, translated_
     step_number = '03'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_genomes_completeness'
-    script_path = consts.SRC_DIR / 'steps/assessing_genome_completeness.py'
+    script_path = consts.SRC_DIR / 'steps' / 'assessing_genome_completeness.py'
     genome_completeness_dir_path, genome_completeness_tmp_dir = prepare_directories(logger, config.output_dir, config.tmp_dir, step_name)
     done_file_path = config.done_files_dir / f'{step_name}.txt'
-    if not os.path.exists(done_file_path):
+    if not done_file_path.exists():
         logger.info('Calculating genomes completeness...')
 
         job_index_to_fasta_files = defaultdict(list)
@@ -410,7 +410,7 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
         logger, config.output_dir, config.tmp_dir, step_name)
     merged_orthogroups_file_path = merged_orthogroups_dir_path / 'orthogroups.csv'
     done_file_path = config.done_files_dir / f'{step_name}.txt'
-    if not os.path.exists(done_file_path):
+    if not done_file_path.exists():
         logger.info('Merge sub-orthogroups...')
         start_time = time.time()
 

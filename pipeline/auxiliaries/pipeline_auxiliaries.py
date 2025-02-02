@@ -9,13 +9,14 @@ import pandas as pd
 import stat
 import sys
 import argparse
+from pathlib import Path
 
 from . import consts
 from .email_sender import send_email
 from .q_submitter_power import submit_cmds_from_file_to_q
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(SCRIPT_DIR))
+SCRIPT_DIR = Path(__file__).resolve().parent
+sys.path.append(str(SCRIPT_DIR.parent))
 
 from flask import flask_interface_consts, SharedConsts
 
@@ -53,7 +54,7 @@ def wait_for_results(logger, times_logger, script_name, path, num_of_expected_re
     i = 0
     current_num_of_results = 0
     while num_of_expected_results > current_num_of_results:
-        assert not os.path.exists(error_file_path)
+        assert not error_file_path.exists()
         try:
             current_num_of_results = sum(1 for x in os.listdir(path) if x.endswith(suffix))
         except:
@@ -94,7 +95,7 @@ def wait_for_results(logger, times_logger, script_name, path, num_of_expected_re
                           (f'Times are not complete since files {log_files_without_times} do not have times records'
                            if log_files_without_times else ''))
 
-    assert not os.path.exists(error_file_path)
+    assert not error_file_path.exists()
 
 
 def get_job_time_from_log_file(log_file_content, pattern_for_runtime, pattern_for_cpus):
@@ -294,17 +295,6 @@ def submit_batch(logger, config, script_path, batch_parameters_list, logs_dir, j
     return num_of_mini_batches
 
 
-def wait_for_output_folder(logger, output_folder, max_waiting_time=300):
-    i = 0
-    while not os.path.exists(output_folder):
-        logger.info(f'Waiting to {output_folder} to be generated... (waited {i} seconds)')
-        i += 1
-        if i > max_waiting_time:
-            raise OSError(
-                f'{output_folder} was not generated after {max_waiting_time} second. Failed to continue the analysis.')
-        sleep(1)
-
-
 def send_email_in_pipeline_end(logger, process_id, email_address, job_name, state):
     email_addresses = [flask_interface_consts.OWNER_EMAIL]
     email_addresses.extend(flask_interface_consts.ADDITIONAL_OWNER_EMAILS)
@@ -351,7 +341,7 @@ def get_job_logger(log_file_dir, job_name, verbose):
     job_id = os.environ.get(consts.JOB_ID_ENVIRONMENT_VARIABLE, '')
 
     logger = logging.getLogger('main')
-    file_handler = logging.FileHandler(os.path.join(log_file_dir, f'{job_name}_{job_id}_log.txt'), mode='a')
+    file_handler = logging.FileHandler(Path(log_file_dir) / f'{job_name}_{job_id}_log.txt', mode='a')
     formatter = logging.Formatter(consts.LOG_MESSAGE_FORMAT)
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
@@ -364,7 +354,7 @@ def get_job_times_logger(log_file_dir, job_name, verbose):
     job_id = os.environ.get(consts.JOB_ID_ENVIRONMENT_VARIABLE, '')
 
     logger = logging.getLogger('times')
-    file_handler = logging.FileHandler(os.path.join(log_file_dir, f'{job_name}_{job_id}_times_log.txt'), mode='a')
+    file_handler = logging.FileHandler(Path(log_file_dir) / f'{job_name}_{job_id}_times_log.txt', mode='a')
     formatter = logging.Formatter(consts.LOG_MESSAGE_FORMAT)
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)

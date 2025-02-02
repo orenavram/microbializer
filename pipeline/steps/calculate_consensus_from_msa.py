@@ -1,26 +1,22 @@
-import shutil
 from sys import argv
 import argparse
-import logging
-import subprocess
-import os
 import sys
 import traceback
-from Bio import AlignIO
 from Bio import SeqIO
+from pathlib import Path
 from collections import Counter
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(SCRIPT_DIR))
+SCRIPT_DIR = Path(__file__).resolve().parent
+sys.path.append(str(SCRIPT_DIR.parent))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args
 
 
 def calc_consensus(logger, og_path, output_dir):
-    og_name = os.path.splitext(os.path.basename(og_path))[0]
-    consensus_faa_path = os.path.join(output_dir, f"{og_name}.faa")
+    og_name = og_path.stem
+    consensus_faa_path = output_dir / f"{og_name}.faa"
 
-    if os.path.exists(consensus_faa_path):
+    if consensus_faa_path.exists():
         return
 
     # Read sequences into a list
@@ -98,8 +94,8 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        calc_consensus_from_all_ogs(logger, args.job_input_path, args.output_dir)
+        calc_consensus_from_all_ogs(logger, Path(args.job_input_path), Path(args.output_dir))
     except Exception as e:
-        logger.exception(f'Error in {os.path.basename(__file__)}')
+        logger.exception(f'Error in {Path(__file__).name}')
         with open(args.error_file_path, 'a+') as f:
             traceback.print_exc(file=f)

@@ -3,7 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+SCRIPT_DIR = Path(__file__).resolve().parent
 OUTPUT_DIR = os.path.join(SCRIPT_DIR, 'output')
 
 pseudo_orthogroups_file_path = os.path.join(SCRIPT_DIR, 'pseudo_orthogroups.csv')
