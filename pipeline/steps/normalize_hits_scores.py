@@ -9,7 +9,7 @@ import traceback
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args
+from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args, str_to_bool
 
 
 def normalize_hits_scores(logger, blast_result, output_path, scores_normalize_coefficient, use_parquet):
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('job_input_file', help='path to a file that contains the paths of the files to normalize and the normalization coefficients')
     parser.add_argument('output_dir', help='path to output dir')
-    parser.add_argument('--use_parquet', action='store_true')
+    parser.add_argument('--use_parquet', type=str_to_bool)
     add_default_step_args(parser)
     args = parser.parse_args()
 

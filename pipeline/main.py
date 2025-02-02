@@ -74,13 +74,8 @@ def step_1_fix_input_files(logger, times_logger, config):
             with open(job_input_path, 'w') as f:
                 f.write('\n'.join(job_fasta_files))
 
-            single_cmd_params = [job_input_path, filtered_inputs_dir]
-
-            if config.filter_out_plasmids:
-                single_cmd_params.append('--drop_plasmids')
-            if config.inputs_fasta_type == 'orfs':
-                single_cmd_params.append('--fix_frames')
-
+            single_cmd_params = [job_input_path, filtered_inputs_dir, f'--drop_plasmids {config.filter_out_plasmids}',
+                                 f'--fix_frames {config.inputs_fasta_type == "orfs"}']
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches = submit_batch(logger, config, script_path, all_cmds_params, pipeline_step_tmp_dir,
@@ -328,16 +323,9 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
                       subset_genomes_names_path, config.queue_name,
                       config.account_name, config.node_name, config.identity_cutoff, config.coverage_cutoff,
                       config.e_value_cutoff, config.sensitivity, max(1, config.max_parallel_jobs // len(genomes_batches)),
-                      config.use_job_manager, batch_id, config.pseudo_genome_mode]
-
-            if config.run_optimized_mmseqs:
-                params.append('--run_optimized_mmseqs')
-            if config.use_parquet:
-                params.append('--use_parquet')
-            if config.verbose:
-                params.append('--verbose')
-
-            params.append('--add_orphan_genes_to_ogs')  # Always add orphan genes to OGs in this step
+                      config.use_job_manager, batch_id, config.pseudo_genome_mode,
+                      f'--run_optimized_mmseqs {config.run_optimized_mmseqs}', f'--use_parquet {config.use_parquet}',
+                      '--add_orphan_genes_to_ogs True']  # Always add orphan genes to OGs in this step
             all_cmds_params.append(params)
 
         num_of_batches = submit_batch(logger, config, script_path, all_cmds_params, inference_tmp_dir,
@@ -561,9 +549,8 @@ def step_7_orthologs_table_variations(logger, times_logger, config, final_orthog
     if not done_file_path.exists():
         logger.info('Adding orthogroups variations...')
 
-        params = [final_orthogroups_file_path, orthogroups_variations_dir_path]
-        if config.qfo_benchmark:
-            params += ['--qfo_benchmark']
+        params = [final_orthogroups_file_path, orthogroups_variations_dir_path,
+                  f'--qfo_benchmark {config.qfo_benchmark}']
 
         submit_mini_batch(logger, config, script_path, [params], pipeline_step_tmp_dir,
                           'orthologs_table_variations', memory=consts.ORTHOXML_REQUIRED_MEMORY_GB)
@@ -856,7 +843,7 @@ def step_11_phylogeny(logger, times_logger, config, aligned_core_proteome_file_p
                       output_tree_path,
                       phylogeny_tmp_dir,
                       f'--cpu {cpus}',
-                      f'--bootstrap {"yes" if config.bootstrap else "no"}']
+                      f'--bootstrap {config.bootstrap}']
             if config.outgroup:
                 if config.outgroup in genomes_names:
                     params += [f'--outgroup {config.outgroup}']
@@ -947,7 +934,7 @@ def step_12_orthogroups_annotations(logger, times_logger, config, orfs_dir,
             kegg_output_dir_path,
             kegg_table_path,
             cpus,
-            '--optimize'
+            '--optimize True'
         ]
         submit_mini_batch(logger, config, script_path, [params], kegg_tmp_dir,
                           'kegg', num_of_cpus=cpus, memory=consts.KEGG_REQUIRED_MEMORY_GB)

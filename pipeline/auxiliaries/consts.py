@@ -176,7 +176,3 @@ ONLY_CALC_OGS_TABLE_STEPS_NAMES_FOR_PROGRESS_BAR = [
     'Find orphan genes',
     'Finalize results',
 ]
-
-
-# general vars
-CSV_DELIMITER = ','

@@ -206,9 +206,9 @@ if __name__ == '__main__':
     parser.add_argument('use_job_manager', help='', type=str_to_bool)
     parser.add_argument('genomes_batch_id', help='', type=int)
     parser.add_argument('pseudo_genome_mode', help='', type=str)
-    parser.add_argument('--run_optimized_mmseqs', help='', action='store_true')
-    parser.add_argument('--use_parquet', action='store_true')
-    parser.add_argument('--add_orphan_genes_to_ogs', action='store_true')
+    parser.add_argument('--run_optimized_mmseqs', help='', type=str_to_bool)
+    parser.add_argument('--use_parquet', type=str_to_bool)
+    parser.add_argument('--add_orphan_genes_to_ogs', type=str_to_bool)
     add_default_step_args(parser)
     args = parser.parse_args()
 

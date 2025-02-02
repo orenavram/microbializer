@@ -13,7 +13,7 @@ import shutil
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
 
-from auxiliaries.pipeline_auxiliaries import fail, get_job_logger, add_default_step_args
+from auxiliaries.pipeline_auxiliaries import fail, get_job_logger, add_default_step_args, str_to_bool
 from auxiliaries.logic_auxiliaries import add_score_column_to_mmseqs_output
 from auxiliaries import consts
 
@@ -161,7 +161,7 @@ if __name__ == '__main__':
     parser.add_argument('--coverage_cutoff', type=float)
     parser.add_argument('--e_value_cutoff', type=float)
     parser.add_argument('--sensitivity', type=float)
-    parser.add_argument('--use_parquet', action='store_true')
+    parser.add_argument('--use_parquet', type=str_to_bool)
     add_default_step_args(parser)
     args = parser.parse_args()
 

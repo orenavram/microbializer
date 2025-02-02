@@ -82,9 +82,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, infer_ortho
                 for hits_file, scores_normalize_coefficient in job_input_info:
                     f.write(f'{hits_file}\t{scores_normalize_coefficient}\n')
 
-            single_cmd_params = [job_input_path, normalized_hits_output_dir]
-            if config.use_parquet:
-                single_cmd_params.append('--use_parquet')
+            single_cmd_params = [job_input_path, normalized_hits_output_dir, f'--use_parquet {config.use_parquet}']
             all_cmds_params.append(single_cmd_params)
 
         step_pre_processing_time = timedelta(seconds=int(time.time() - start_time))
@@ -393,11 +391,8 @@ def run_unified_mmseqs(logger, times_logger, config, infer_orthogroups_config, b
                     f.write(pairs_text)
 
                 params = [m8_output_path, job_input_path, orthologs_output_dir,
-                          orthologs_scores_statistics_dir, max_rbh_scores_parts_output_dir]
-                if config.use_parquet:
-                    params.append('--use_parquet')
-                if config.verbose:
-                    params.append('--verbose')
+                          orthologs_scores_statistics_dir, max_rbh_scores_parts_output_dir,
+                          f'--use_parquet {config.use_parquet}']
                 all_cmds_params.append(params)
 
             num_of_batches = submit_batch(logger, config, script_path, all_cmds_params, pipeline_step_tmp_dir,
@@ -443,11 +438,8 @@ def run_unified_mmseqs(logger, times_logger, config, infer_orthogroups_config, b
                 f.write('\n'.join(genomes))
 
             single_cmd_params = [m8_output_path, job_input_path, max_rbh_scores_parts_output_dir,
-                                 paralogs_output_dir, max_rbh_scores_unified_dir, paralogs_scores_statistics_dir]
-            if config.use_parquet:
-                single_cmd_params.append('--use_parquet')
-            if config.verbose:
-                single_cmd_params.append('--verbose')
+                                 paralogs_output_dir, max_rbh_scores_unified_dir, paralogs_scores_statistics_dir,
+                                 f'--use_parquet {config.use_parquet}']
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches = submit_batch(logger, config, script_path, all_cmds_params, pipeline_step_tmp_dir,
@@ -549,9 +541,8 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, config, infer_orthogro
                                      f'--coverage_cutoff {config.coverage_cutoff / 100}',
                                      f'--e_value_cutoff {config.e_value_cutoff}',
                                      f'--sensitivity {config.sensitivity}',
+                                     f'--use_parquet {config.use_parquet}'
                                      ]
-                if config.use_parquet:
-                    single_cmd_params.append('--use_parquet')
                 all_cmds_params.append(single_cmd_params)
 
             num_of_batches = submit_batch(logger, config, script_path, all_cmds_params, orthologs_tmp_dir,
@@ -611,9 +602,8 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, config, infer_orthogro
                                  f'--coverage_cutoff {config.coverage_cutoff / 100}',
                                  f'--e_value_cutoff {config.e_value_cutoff}',
                                  f'--sensitivity {config.sensitivity}',
+                                 f'--use_parquet {config.use_parquet}'
                                  ]
-            if config.use_parquet:
-                single_cmd_params.append('--use_parquet')
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches = submit_batch(logger, config, script_path, all_cmds_params, paralogs_tmp_dir,

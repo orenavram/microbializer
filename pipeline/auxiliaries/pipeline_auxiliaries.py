@@ -235,7 +235,7 @@ def submit_mini_batch(logger, config, script_path, mini_batch_parameters_list, l
     for params in mini_batch_parameters_list:
         shell_cmds_as_str += ' '.join(
             ['python', script_path, *[str(param) for param in params],
-            '-v' if config.verbose else '', f'--logs_dir {logs_dir}', f'--error_file_path {error_file_path}',
+             f'-v {config.verbose}', f'--logs_dir {logs_dir}', f'--error_file_path {error_file_path}',
              f'--job_name {job_name}']) + '\n'
 
         if not example_shell_cmd:
@@ -441,7 +441,7 @@ def submit_clean_old_user_results_job(logger, config):
 
 
 def add_default_step_args(args_parser):
-    args_parser.add_argument('-v', '--verbose', help='Increase output verbosity', action='store_true')
+    args_parser.add_argument('-v', '--verbose', help='Increase output verbosity', type=str_to_bool)
     args_parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
     args_parser.add_argument('--error_file_path', help='path to error file')
     args_parser.add_argument('--job_name', help='job name')

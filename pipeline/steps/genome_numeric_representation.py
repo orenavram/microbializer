@@ -71,7 +71,7 @@ def remove_non_core_genes(genome_name_to_gene_name_to_location, genome_name_to_g
     with open(orthologs_table_path) as f:
         f.readline()  # skip table's header
         for line in f:
-            og = line.rstrip().split(consts.CSV_DELIMITER)[1:]  # skip OG_name
+            og = line.rstrip().split(',')[1:]  # skip OG_name
             if not all(og):  # at least one og is missing, i.e., not a core gene
                 for genome_name, gene_name in zip(genome_names, og):
                     # discard og members (across participating genomes)

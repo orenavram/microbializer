@@ -16,10 +16,9 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args
-from auxiliaries import consts
 
 
-def cluster_genes_to_connected_components(logger, normalized_hits_dir, putative_orthologs_path, delimiter):
+def cluster_genes_to_connected_components(logger, normalized_hits_dir, putative_orthologs_path):
     member_gene_to_group_name = {}
     member_gene_to_strain_name_dict = {}
     group_name_to_member_genes = {}
@@ -33,7 +32,7 @@ def cluster_genes_to_connected_components(logger, normalized_hits_dir, putative_
         hits_file_path = os.path.join(normalized_hits_dir, file)
         with open(hits_file_path) as f:
             for line in f:
-                line_tokens = line.rstrip().split(delimiter)
+                line_tokens = line.rstrip().split(',')
                 if 'score' in line:
                     # new reciprocal hits file starts
                     strain1, strain2 = line_tokens[:2]
@@ -95,7 +94,7 @@ def cluster_genes_to_connected_components(logger, normalized_hits_dir, putative_
     # strains sorted lexicographically
     sorted_strains = sorted(set(member_gene_to_strain_name_dict.values()))
 
-    header = delimiter.join(['OG_name'] + sorted_strains) + '\n'
+    header = ','.join(['OG_name'] + sorted_strains) + '\n'
     result = ''
     result += header
     # Ignore the group id in group_name_to_member_genes and set a new group id (in the original group id there are
@@ -107,7 +106,7 @@ def cluster_genes_to_connected_components(logger, normalized_hits_dir, putative_
             strain = member_gene_to_strain_name_dict[member]
             strain_to_members[strain].append(member)
         strain_to_members = {strain: ';'.join(sorted(members)) for strain, members in strain_to_members.items()}
-        group_row_str = delimiter.join([f'OG_{group_index}'] + [strain_to_members.get(strain, '') for strain in sorted_strains])
+        group_row_str = ','.join([f'OG_{group_index}'] + [strain_to_members.get(strain, '') for strain in sorted_strains])
         result += group_row_str + '\n'
 
     with open(putative_orthologs_path, 'w') as f:
@@ -116,13 +115,13 @@ def cluster_genes_to_connected_components(logger, normalized_hits_dir, putative_
     logger.info(f'Wrote putative orthogroups table to {putative_orthologs_path}')
 
 
-def construct_table(logger, normalized_hits_dir, putative_orthologs_path, delimiter):
+def construct_table(logger, normalized_hits_dir, putative_orthologs_path):
     if not os.path.exists(putative_orthologs_path):
-        cluster_genes_to_connected_components(logger, normalized_hits_dir, putative_orthologs_path, delimiter)
+        cluster_genes_to_connected_components(logger, normalized_hits_dir, putative_orthologs_path)
     else:
         logger.info(f'Putative orthogroups table already exists at {putative_orthologs_path}')
 
-    orthogroups_df = pd.read_csv(putative_orthologs_path, delimiter=delimiter)
+    orthogroups_df = pd.read_csv(putative_orthologs_path)
     if len(orthogroups_df) == 0:
         raise ValueError('No putative ortholog groups were detected in your dataset. Please try to lower the '
                          'similarity parameters (see Advanced Options in the submission page) and re-submit your job.')
@@ -142,7 +141,6 @@ if __name__ == '__main__':
                         help='path to a dir with all the hits files')
     parser.add_argument('putative_orthologs_path',
                         help='path to an output file in which the putative orthologs table will be written')
-    parser.add_argument('--delimiter', help='delimiter for the input and output files', default=consts.CSV_DELIMITER)
     add_default_step_args(parser)
     args = parser.parse_args()
 
@@ -150,7 +148,7 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        construct_table(logger, args.normalized_hits_dir, args.putative_orthologs_path, args.delimiter)
+        construct_table(logger, args.normalized_hits_dir, args.putative_orthologs_path)
     except Exception as e:
         logger.exception(f'Error in {os.path.basename(__file__)}')
         with open(args.error_file_path, 'a+') as f:

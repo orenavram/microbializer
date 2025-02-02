@@ -12,7 +12,7 @@ import dask.dataframe as dd
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
 
-from auxiliaries.pipeline_auxiliaries import fail, get_job_logger, add_default_step_args
+from auxiliaries.pipeline_auxiliaries import fail, get_job_logger, add_default_step_args, str_to_bool
 
 
 def extract_paralogs_of_genome(logger, m8_df, genome_name, max_scores_parts_dir, paralogs_dir,
@@ -125,7 +125,7 @@ if __name__ == '__main__':
     parser.add_argument('paralogs_dir', help='')
     parser.add_argument('max_rbh_scores_unified_dir', help='')
     parser.add_argument('scores_statistics_dir', help='')
-    parser.add_argument('--use_parquet', action='store_true')
+    parser.add_argument('--use_parquet', type=str_to_bool)
     add_default_step_args(parser)
     args = parser.parse_args()
 

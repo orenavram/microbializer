@@ -13,7 +13,7 @@ import traceback
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args
+from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args, str_to_bool
 from auxiliaries import consts
 
 
@@ -178,7 +178,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('orthologs_table_path', help='path to the orthologs table (input)')
     parser.add_argument('output_dir', help='path to the output dir')
-    parser.add_argument('--qfo_benchmark', help='whether the output OrthoXml should be in QfO benchmark format', action='store_true')
+    parser.add_argument('--qfo_benchmark', help='whether the output OrthoXml should be in QfO benchmark format', type=str_to_bool)
     add_default_step_args(parser)
     args = parser.parse_args()
 

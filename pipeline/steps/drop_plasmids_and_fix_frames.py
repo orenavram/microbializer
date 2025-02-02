@@ -9,7 +9,7 @@ from Bio import SeqIO
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args
+from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args, str_to_bool
 
 
 def filter_out_plasmids(logger, input_genome_path, output_genome_path, drop_plasmids, fix_frames):
@@ -60,8 +60,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('job_input_path', help='path to a file that contains the genome names to drop plasmids from')
     parser.add_argument('output_dir', help='path to output dir')
-    parser.add_argument('--drop_plasmids', action='store_true', help='Drop plasmids from the genome file')
-    parser.add_argument('--fix_frames', action='store_true', help='Fix frames of the genome file')
+    parser.add_argument('--drop_plasmids', type=str_to_bool, help='Drop plasmids from the genome file')
+    parser.add_argument('--fix_frames', type=str_to_bool, help='Fix frames of the genome file')
     add_default_step_args(parser)
     args = parser.parse_args()
 

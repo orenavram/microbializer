@@ -12,7 +12,7 @@ import traceback
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args
+from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args, str_to_bool
 from auxiliaries import consts
 
 
@@ -143,9 +143,9 @@ if __name__ == '__main__':
     parser.add_argument('--tree_search_software', default='iqtree',
                         help='Tree search software to perform phylogenetic tree search. Use iqtree/raxml/fasttree')
     parser.add_argument('--outgroup', default=None)
-    parser.add_argument('--bootstrap', default='no', choices=['yes', 'no'],
+    parser.add_argument('--bootstrap', type=str_to_bool,
                         help='whether or not to apply bootstrap procedure over the reconstructed species tree.')
-    parser.add_argument('--cpu', choices=[str(i) for i in range(1, 29)], default='1',
+    parser.add_argument('--cpu', default='1',
                         help='How many CPUs will be used? (for running in parallel mode). For further details see:\nhttps://support.nesi.org.nz/hc/en-gb/articles/115001854444-RAxML#parallel-versions')
     add_default_step_args(parser)
     args = parser.parse_args()
