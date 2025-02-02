@@ -17,7 +17,7 @@ from auxiliaries.pipeline_auxiliaries import get_job_logger, get_job_times_logge
     submit_batch, wait_for_results, add_results_to_final_dir, add_default_step_args, write_done_file, str_to_bool
 from auxiliaries.logic_auxiliaries import split_ogs_to_jobs_inputs_files_by_og_sizes
 from auxiliaries.infer_orthogroups_logic import infer_orthogroups
-from auxiliaries.configuration import InferOrthogroupsConfig, InferOrthogroupsLogicConfig
+from auxiliaries.configuration import InferOrthogroupsConfig
 from auxiliaries import consts
 
 
@@ -168,15 +168,8 @@ def infer_orthogroups_on_genomes_batch(
         logger.info(f'Calling: {cmd}')
         subprocess.run(cmd, shell=True, check=True)
 
-    infer_orthogroups_config = InferOrthogroupsLogicConfig(
-        genomes_names_path=config.genomes_names_path,
-        translated_orfs_dir=subset_proteomes_dir, all_proteins_path=subset_proteins_fasta_path,
-        add_orphan_genes_to_ogs=config.add_orphan_genes_to_ogs, skip_paralogs=False,
-        steps_results_dir=config.steps_results_dir, tmp_dir=config.tmp_dir, done_files_dir=config.done_files_dir,
-        max_parallel_jobs=config.max_parallel_jobs)
-
     final_orthogroups_dir_path, orphan_genes_dir, final_substep_number = infer_orthogroups(
-        logger, times_logger, config, infer_orthogroups_config, step_number)
+        logger, times_logger, config, step_number, subset_proteomes_dir, subset_proteins_fasta_path)
 
     final_orthogroups_file_path = final_orthogroups_dir_path / 'orthogroups.csv'
 

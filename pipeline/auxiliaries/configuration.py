@@ -24,22 +24,6 @@ PIPELINE_STEPS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', 
 
 
 @dataclass
-class InferOrthogroupsLogicConfig:
-    genomes_names_path: Path
-    translated_orfs_dir: Path
-    all_proteins_path: Path
-
-    add_orphan_genes_to_ogs: bool
-    skip_paralogs: bool
-
-    steps_results_dir: Path
-    tmp_dir: Path
-    done_files_dir: Path
-
-    max_parallel_jobs: int
-
-
-@dataclass
 class InferOrthogroupsConfig:
     # Directories paths and file names
     genomes_names_path: Path

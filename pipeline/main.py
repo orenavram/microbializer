@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from dataclasses import replace
 
 from auxiliaries.input_verifications import prepare_and_verify_input_data
 from auxiliaries.pipeline_auxiliaries import (wait_for_results, prepare_directories, submit_mini_batch,
@@ -19,7 +20,7 @@ from auxiliaries.pipeline_auxiliaries import (wait_for_results, prepare_director
                                               send_email_in_pipeline_end, submit_clean_folders_job,
                                               submit_clean_old_user_results_job, write_done_file)
 from auxiliaries import consts
-from auxiliaries.configuration import get_configuration, InferOrthogroupsLogicConfig
+from auxiliaries.configuration import get_configuration
 from auxiliaries.logic_auxiliaries import (plot_genomes_histogram, update_progressbar, define_intervals,
                                            combine_orphan_genes_stats, split_ogs_to_jobs_inputs_files_by_og_sizes)
 from auxiliaries.infer_orthogroups_logic import infer_orthogroups
@@ -269,15 +270,8 @@ def step_3_analyze_genome_completeness(logger, times_logger, config, translated_
 
 
 def step_5_full_orthogroups_inference(logger, times_logger, config, translated_orfs_dir, all_proteins_path):
-    infer_orthogroups_config = InferOrthogroupsLogicConfig(
-        genomes_names_path=config.genomes_names_path, translated_orfs_dir=translated_orfs_dir,
-        all_proteins_path=all_proteins_path,
-        add_orphan_genes_to_ogs=config.add_orphan_genes_to_ogs, skip_paralogs=False,
-        steps_results_dir=config.steps_results_dir, tmp_dir=config.tmp_dir, done_files_dir=config.done_files_dir,
-        max_parallel_jobs=config.max_parallel_jobs)
-
     final_orthogroups_dir_path, orphan_genes_dir, _ = infer_orthogroups(
-        logger, times_logger, config, infer_orthogroups_config, '05')
+        logger, times_logger, config, '05', translated_orfs_dir, all_proteins_path)
 
     if not config.do_not_copy_outputs_to_final_results_dir:
         add_results_to_final_dir(logger, orphan_genes_dir, config.final_output_dir)
@@ -393,15 +387,11 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
 
 
     # 06. infer pseudo orthogroups
-    infer_pseudo_orthogroups_config = InferOrthogroupsLogicConfig(
-        genomes_names_path=pseudo_genomes_strains_names_path, translated_orfs_dir=pseudo_genomes_dir_path,
-        all_proteins_path=all_pseudo_genomes_path,
-        add_orphan_genes_to_ogs=True, skip_paralogs=True,
-        steps_results_dir=config.steps_results_dir, tmp_dir=config.tmp_dir, done_files_dir=config.done_files_dir,
-        max_parallel_jobs=config.max_parallel_jobs)
-
+    config_for_pseudo_orthogroups_inference = replace(
+        config, genomes_names_path=pseudo_genomes_strains_names_path, add_orphan_genes_to_ogs=True)
     pseudo_orthogroups_dir_path, _, final_substep_number = infer_orthogroups(
-        logger, times_logger, config, infer_pseudo_orthogroups_config, '06')
+        logger, times_logger, config_for_pseudo_orthogroups_inference, '06', pseudo_genomes_dir_path,
+        all_pseudo_genomes_path, skip_paralogs=True)
 
     pseudo_orthogroups_file_path = pseudo_orthogroups_dir_path / 'orthogroups.csv'
 
