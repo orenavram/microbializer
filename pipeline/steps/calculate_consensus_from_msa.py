@@ -85,8 +85,8 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('job_input_path', help='path to job input file with OG paths')
-    parser.add_argument('output_dir', help='path to output dir')
+    parser.add_argument('job_input_path', type=Path, help='path to job input file with OG paths')
+    parser.add_argument('output_dir', type=Path, help='path to output dir')
     add_default_step_args(parser)
     args = parser.parse_args()
 
@@ -94,7 +94,7 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        calc_consensus_from_all_ogs(logger, Path(args.job_input_path), Path(args.output_dir))
+        calc_consensus_from_all_ogs(logger, args.job_input_path, args.output_dir)
     except Exception as e:
         logger.exception(f'Error in {Path(__file__).name}')
         with open(args.error_file_path, 'a+') as f:

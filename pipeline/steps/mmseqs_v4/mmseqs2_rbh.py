@@ -1,10 +1,9 @@
 import os
 import subprocess
 import sys
-import time
 from sys import argv
 import argparse
-import logging
+from pathlib import Path
 import shutil
 import pandas as pd
 import traceback
@@ -114,12 +113,12 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('job_input_path', help='path to a file that contains the genome pairs to find rbhs')
-    parser.add_argument('dbs_dir', help='path to dbs dir')
-    parser.add_argument('rbh_hits_dir', help='path to which the results will be written (blast m8 format)')
-    parser.add_argument('scores_statistics_dir', help='path to output dir of score statistics')
-    parser.add_argument('max_rbh_score_per_gene_dir', help='')
-    parser.add_argument('temp_dir', help='path to temp dir')
+    parser.add_argument('job_input_path', type=Path, help='path to a file that contains the genome pairs to find rbhs')
+    parser.add_argument('dbs_dir', type=Path, help='path to dbs dir')
+    parser.add_argument('rbh_hits_dir', type=Path, help='path to which the results will be written (blast m8 format)')
+    parser.add_argument('scores_statistics_dir', type=Path, help='path to output dir of score statistics')
+    parser.add_argument('max_rbh_score_per_gene_dir', type=Path, help='')
+    parser.add_argument('temp_dir', type=Path, help='path to temp dir')
     parser.add_argument('--identity_cutoff', type=float)
     parser.add_argument('--coverage_cutoff', type=float)
     parser.add_argument('--e_value_cutoff', type=float)

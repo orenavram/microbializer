@@ -1,7 +1,7 @@
 import sys
 from sys import argv
 import argparse
-import logging
+from pathlib import Path
 import os
 import traceback
 from Bio import SeqIO
@@ -58,8 +58,8 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('job_input_path', help='path to a file that contains the genome names to drop plasmids from')
-    parser.add_argument('output_dir', help='path to output dir')
+    parser.add_argument('job_input_path', type=Path, help='path to a file that contains the genome names to drop plasmids from')
+    parser.add_argument('output_dir', type=Path, help='path to output dir')
     parser.add_argument('--drop_plasmids', type=str_to_bool, help='Drop plasmids from the genome file')
     parser.add_argument('--fix_frames', type=str_to_bool, help='Fix frames of the genome file')
     add_default_step_args(parser)

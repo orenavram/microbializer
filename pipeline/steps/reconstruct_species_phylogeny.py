@@ -1,7 +1,7 @@
 import subprocess
 from sys import argv
 import argparse
-import logging
+from pathlib import Path
 import os
 import shutil
 import sys
@@ -135,10 +135,10 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('msa_path', help='path to a multiple sequence alignment file')
-    parser.add_argument('phylogenetic_raw_tree_path',
+    parser.add_argument('msa_path', type=Path, help='path to a multiple sequence alignment file')
+    parser.add_argument('phylogenetic_raw_tree_path', type=Path,
                         help='path to an output file in which the phylogenetic tree will be written')
-    parser.add_argument('tmp_path', help='path to a tmp folder')
+    parser.add_argument('tmp_path', type=Path, help='path to a tmp folder')
     parser.add_argument('--seed', help='RaxML seed parameter', default=12345)
     parser.add_argument('--tree_search_software', default='iqtree',
                         help='Tree search software to perform phylogenetic tree search. Use iqtree/raxml/fasttree')

@@ -140,8 +140,8 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('genomes_list_path', help='path to a file with a list of all genomes paths')
-    parser.add_argument('output_path', help='path to the output directory')
+    parser.add_argument('genomes_list_path', type=Path, help='path to a file with a list of all genomes paths')
+    parser.add_argument('output_path', type=Path, help='path to the output directory')
     parser.add_argument('--cpus', type=int, default=1, help='Number of CPUs to use')
     add_default_step_args(parser)
     args = parser.parse_args()
@@ -150,7 +150,7 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        run_ani(logger, Path(args.genomes_list_path), Path(args.output_path), args.cpus)
+        run_ani(logger, args.genomes_list_path, args.output_path, args.cpus)
     except Exception as e:
         logger.exception(f'Error in {Path(__file__).name}')
         with open(args.error_file_path, 'a+') as f:

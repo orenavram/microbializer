@@ -4,7 +4,7 @@ import sys
 import time
 from sys import argv
 import argparse
-import logging
+from pathlib import Path
 import shutil
 import traceback
 
@@ -57,9 +57,9 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('all_proteins_fasta', help='path to a protein fasta')
-    parser.add_argument('output_dir', help='')
-    parser.add_argument('output_path', help='')
+    parser.add_argument('all_proteins_fasta', type=Path, help='path to a protein fasta')
+    parser.add_argument('output_dir', type=Path, help='')
+    parser.add_argument('output_path', type=Path, help='')
     parser.add_argument('--identity_cutoff', type=float)
     parser.add_argument('--coverage_cutoff', type=float)
     parser.add_argument('--e_value_cutoff', type=float)

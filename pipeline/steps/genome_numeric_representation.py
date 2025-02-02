@@ -3,7 +3,7 @@ In this module, "core OGs" refer to OGs that contain a gene from each strain, ig
 core_minimal_percentage. "core genes" are genes that are part of "core OGs".
 """
 
-import logging
+from pathlib import Path
 import sys
 from sys import argv
 import os
@@ -15,7 +15,6 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args
-from auxiliaries import consts
 
 
 ORFS_FILE_HEADER_DELIMITER = ' # '
@@ -176,10 +175,10 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('orthologs_table_path', help='A path to an ortholog table')
-    parser.add_argument('ORFs_dir_path', help='A path to a ORF directory')
-    parser.add_argument('output_path', help='A path to which the numeric core genomes will be written')
-    parser.add_argument('tmp_dir', help='A path to tmp dir')
+    parser.add_argument('orthologs_table_path', type=Path, help='A path to an ortholog table')
+    parser.add_argument('ORFs_dir_path', type=Path, help='A path to a ORF directory')
+    parser.add_argument('output_path', type=Path, help='A path to which the numeric core genomes will be written')
+    parser.add_argument('tmp_dir', type=Path, help='A path to tmp dir')
     add_default_step_args(parser)
     args = parser.parse_args()
 

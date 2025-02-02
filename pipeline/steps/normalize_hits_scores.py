@@ -3,7 +3,7 @@ from sys import argv
 import argparse
 import os
 import sys
-import logging
+from pathlib import Path
 import traceback
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -40,8 +40,8 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('job_input_file', help='path to a file that contains the paths of the files to normalize and the normalization coefficients')
-    parser.add_argument('output_dir', help='path to output dir')
+    parser.add_argument('job_input_file', type=Path, help='path to a file that contains the paths of the files to normalize and the normalization coefficients')
+    parser.add_argument('output_dir', type=Path, help='path to output dir')
     parser.add_argument('--use_parquet', type=str_to_bool)
     add_default_step_args(parser)
     args = parser.parse_args()

@@ -5,6 +5,7 @@ import argparse
 import traceback
 import shutil
 import subprocess
+from pathlib import Path
 from Bio import SeqIO
 import pandas as pd
 from collections import defaultdict
@@ -190,11 +191,11 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('step_number', help='')
-    parser.add_argument('output_dir', help='')
-    parser.add_argument('tmp_dir', help='')
-    parser.add_argument('done_files_dir', help='')
-    parser.add_argument('translated_orfs_dir', help='')
-    parser.add_argument('genomes_names_path', help='')
+    parser.add_argument('output_dir', type=Path, help='')
+    parser.add_argument('tmp_dir', type=Path, help='')
+    parser.add_argument('done_files_dir', type=Path, help='')
+    parser.add_argument('translated_orfs_dir', type=Path, help='')
+    parser.add_argument('genomes_names_path', type=Path, help='')
     parser.add_argument('queue_name', help='')
     parser.add_argument('account_name', help='')
     parser.add_argument('node_name', type=none_or_str, help='')

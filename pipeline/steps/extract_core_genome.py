@@ -2,7 +2,6 @@ import os
 import sys
 from sys import argv
 import argparse
-import logging
 import traceback
 from pathlib import Path
 from Bio import SeqIO
@@ -95,11 +94,11 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('aa_alignments_path',
+    parser.add_argument('aa_alignments_path', type=Path,
                         help='path to a folder where each file is a multiple sequences fasta file')
-    parser.add_argument('strains_names_path', help='path to a file that contains all the strains')
-    parser.add_argument('core_genome_path', help='path to an output file in which the core genome will be written')
-    parser.add_argument('core_length_path', help='path to an output file in which the core genome length')
+    parser.add_argument('strains_names_path', type=Path, help='path to a file that contains all the strains')
+    parser.add_argument('core_genome_path', type=Path, help='path to an output file in which the core genome will be written')
+    parser.add_argument('core_length_path', type=Path, help='path to an output file in which the core genome length')
     parser.add_argument('--core_minimal_percentage', type=float, default=100.0,
                         help='number that represents the required percent that is needed to be considered a core gene. For example: (1) 100 means that for a gene to be considered core, all strains should have a member in the group.\n(2) 50 means that for a gene to be considered core, at least half of the strains should have a member in the group.\n(3) 0 means that every gene should be considered as a core gene.')
     parser.add_argument('--max_number_of_ogs', type=int, help='maximum number of ogs to add to core genome. None means there is no limit', default=None)

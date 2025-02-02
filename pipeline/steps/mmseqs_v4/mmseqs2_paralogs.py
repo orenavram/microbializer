@@ -2,7 +2,7 @@ import os
 import sys
 from sys import argv
 import argparse
-import logging
+from pathlib import Path
 import pandas as pd
 import traceback
 import json
@@ -150,13 +150,13 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('job_input_path', help='path to a file that contains the genome names to find paralogs')
-    parser.add_argument('dbs_dir', help='')
-    parser.add_argument('max_scores_parts_dir', help='')
-    parser.add_argument('paralogs_dir', help='')
-    parser.add_argument('max_rbh_scores_unified_dir', help='')
-    parser.add_argument('scores_statistics_dir', help='')
-    parser.add_argument('temp_dir', help='')
+    parser.add_argument('job_input_path', type=Path, help='path to a file that contains the genome names to find paralogs')
+    parser.add_argument('dbs_dir', type=Path, help='')
+    parser.add_argument('max_scores_parts_dir', type=Path, help='')
+    parser.add_argument('paralogs_dir', type=Path, help='')
+    parser.add_argument('max_rbh_scores_unified_dir', type=Path, help='')
+    parser.add_argument('scores_statistics_dir', type=Path, help='')
+    parser.add_argument('temp_dir', type=Path, help='')
     parser.add_argument('--identity_cutoff', type=float)
     parser.add_argument('--coverage_cutoff', type=float)
     parser.add_argument('--e_value_cutoff', type=float)

@@ -2,13 +2,12 @@ import os
 import sys
 from sys import argv
 import argparse
-import logging
+from pathlib import Path
 import pandas as pd
 import traceback
 import json
 import statistics
 import dask.dataframe as dd
-import numpy as np
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
@@ -119,11 +118,11 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('m8_path', help='a')
-    parser.add_argument('rbh_input_path', help='')
-    parser.add_argument('rbh_hits_dir', help='')
-    parser.add_argument('scores_statistics_dir', help='')
-    parser.add_argument('max_rbh_score_per_gene_dir', help='')
+    parser.add_argument('m8_path', type=Path, help='')
+    parser.add_argument('rbh_input_path', type=Path, help='')
+    parser.add_argument('rbh_hits_dir', type=Path, help='')
+    parser.add_argument('scores_statistics_dir', type=Path, help='')
+    parser.add_argument('max_rbh_score_per_gene_dir', type=Path, help='')
     parser.add_argument('--use_parquet', type=str_to_bool)
     add_default_step_args(parser)
     args = parser.parse_args()

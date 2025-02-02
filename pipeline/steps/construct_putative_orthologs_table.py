@@ -6,7 +6,7 @@ script_name.py /Users/Oren/Dropbox/Projects/microbializer/mock_output/all_recip_
 import os
 from sys import argv
 import argparse
-import logging
+from pathlib import Path
 import sys
 from collections import defaultdict
 import traceback
@@ -137,9 +137,9 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('normalized_hits_dir',
+    parser.add_argument('normalized_hits_dir', type=Path,
                         help='path to a dir with all the hits files')
-    parser.add_argument('putative_orthologs_path',
+    parser.add_argument('putative_orthologs_path', type=Path,
                         help='path to an output file in which the putative orthologs table will be written')
     add_default_step_args(parser)
     args = parser.parse_args()

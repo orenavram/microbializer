@@ -23,7 +23,7 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('job_input_path', help='path to file with the directories to clean')
+    parser.add_argument('job_input_path', type=Path, help='path to file with the directories to clean')
     add_default_step_args(parser)
     args = parser.parse_args()
 
@@ -31,7 +31,7 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        clean_folders(logger, Path(args.job_input_path))
+        clean_folders(logger, args.job_input_path)
     except Exception as e:
         logger.exception(f'Error in {Path(__file__).name}')
         with open(args.error_file_path, 'a+') as f:

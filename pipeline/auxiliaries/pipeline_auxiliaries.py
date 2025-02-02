@@ -341,7 +341,7 @@ def get_job_logger(log_file_dir, job_name, verbose):
     job_id = os.environ.get(consts.JOB_ID_ENVIRONMENT_VARIABLE, '')
 
     logger = logging.getLogger('main')
-    file_handler = logging.FileHandler(Path(log_file_dir) / f'{job_name}_{job_id}_log.txt', mode='a')
+    file_handler = logging.FileHandler(log_file_dir / f'{job_name}_{job_id}_log.txt', mode='a')
     formatter = logging.Formatter(consts.LOG_MESSAGE_FORMAT)
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
@@ -354,7 +354,7 @@ def get_job_times_logger(log_file_dir, job_name, verbose):
     job_id = os.environ.get(consts.JOB_ID_ENVIRONMENT_VARIABLE, '')
 
     logger = logging.getLogger('times')
-    file_handler = logging.FileHandler(Path(log_file_dir) / f'{job_name}_{job_id}_times_log.txt', mode='a')
+    file_handler = logging.FileHandler(log_file_dir / f'{job_name}_{job_id}_times_log.txt', mode='a')
     formatter = logging.Formatter(consts.LOG_MESSAGE_FORMAT)
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
@@ -378,6 +378,12 @@ def none_or_str(value):
     if value == 'None':
         return None
     return value
+
+
+def none_or_path(value):
+    if value == 'None':
+        return None
+    return Path(value)
 
 
 def submit_clean_folders_job(logger, config):
@@ -432,8 +438,8 @@ def submit_clean_old_user_results_job(logger, config):
 
 def add_default_step_args(args_parser):
     args_parser.add_argument('-v', '--verbose', help='Increase output verbosity', type=str_to_bool)
-    args_parser.add_argument('--logs_dir', help='path to tmp dir to write logs to')
-    args_parser.add_argument('--error_file_path', help='path to error file')
+    args_parser.add_argument('--logs_dir', type=Path, help='path to tmp dir to write logs to')
+    args_parser.add_argument('--error_file_path', type=Path, help='path to error file')
     args_parser.add_argument('--job_name', help='job name')
 
 

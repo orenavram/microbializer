@@ -1,8 +1,7 @@
 import itertools
-import shutil
 from sys import argv
 import argparse
-import logging
+from pathlib import Path
 import os
 import sys
 import pandas as pd
@@ -176,8 +175,8 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('orthologs_table_path', help='path to the orthologs table (input)')
-    parser.add_argument('output_dir', help='path to the output dir')
+    parser.add_argument('orthologs_table_path', type=Path, help='path to the orthologs table (input)')
+    parser.add_argument('output_dir', type=Path, help='path to the output dir')
     parser.add_argument('--qfo_benchmark', help='whether the output OrthoXml should be in QfO benchmark format', type=str_to_bool)
     add_default_step_args(parser)
     args = parser.parse_args()

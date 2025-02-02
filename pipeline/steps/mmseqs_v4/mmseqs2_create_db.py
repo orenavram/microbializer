@@ -3,7 +3,7 @@ import subprocess
 import sys
 from sys import argv
 import argparse
-import logging
+from pathlib import Path
 import traceback
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -45,9 +45,9 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('job_input_path', help='path to a file that contains the genome names to create dbs for')
-    parser.add_argument('proteomes_dir', help='path to dir of proteomes')
-    parser.add_argument('output_dir', help='path to which the results will be written')
+    parser.add_argument('job_input_path', type=Path, help='path to a file that contains the genome names to create dbs for')
+    parser.add_argument('proteomes_dir', type=Path, help='path to dir of proteomes')
+    parser.add_argument('output_dir', type=Path, help='path to which the results will be written')
     add_default_step_args(parser)
     args = parser.parse_args()
 

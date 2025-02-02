@@ -44,9 +44,9 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('orthologs_table_path', help='path to the orthologs table (input)')
-    parser.add_argument('finalized_table_path', help='path to the output orthologs table')
-    parser.add_argument('--orphan_genes_dir', help='path to a directory with the orphan genes')
+    parser.add_argument('orthologs_table_path', type=Path, help='path to the orthologs table (input)')
+    parser.add_argument('finalized_table_path', type=Path, help='path to the output orthologs table')
+    parser.add_argument('--orphan_genes_dir', type=Path, help='path to a directory with the orphan genes')
     add_default_step_args(parser)
     args = parser.parse_args()
 
@@ -54,8 +54,8 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        finalize_table(logger, Path(args.orthologs_table_path), Path(args.finalized_table_path),
-                       Path(args.orphan_genes_dir))
+        finalize_table(logger, args.orthologs_table_path, args.finalized_table_path,
+                       args.orphan_genes_dir)
     except Exception as e:
         logger.exception(f'Error in {Path(__file__).name}')
         with open(args.error_file_path, 'a+') as f:

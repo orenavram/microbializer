@@ -3,6 +3,7 @@ import sys
 from sys import argv
 import argparse
 import os
+from pathlib import Path
 from Bio import SeqIO
 import pandas as pd
 import traceback
@@ -112,10 +113,10 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('og_aa_dir', help='path to a dir of the amino acid sequences of all ogs')
-    parser.add_argument('og_table_path', help='path to the og table')
-    parser.add_argument('output_dir', help='path to the output dir')
-    parser.add_argument('output_og_table_path', help='path to the output og table with kegg annotations')
+    parser.add_argument('og_aa_dir', type=Path, help='path to a dir of the amino acid sequences of all ogs')
+    parser.add_argument('og_table_path', type=Path, help='path to the og table')
+    parser.add_argument('output_dir', type=Path, help='path to the output dir')
+    parser.add_argument('output_og_table_path', type=Path, help='path to the output og table with kegg annotations')
     parser.add_argument('cpus', help='number of cpus to use')
     parser.add_argument('--optimize', help='whether to use only 1 gene from each og or all genes', type=str_to_bool)
     add_default_step_args(parser)

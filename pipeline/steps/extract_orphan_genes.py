@@ -8,7 +8,7 @@ Created on Tue Jun 13 08:25:48 2023
 
 from sys import argv
 import argparse
-import logging
+from pathlib import Path
 import os
 import sys
 import pandas as pd
@@ -73,9 +73,9 @@ def main():
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('job_input_path', help='path to a file that contains the orfs path to extract orphan gene')
-    parser.add_argument('orthogroups_file', help='path to the the orthologs table')
-    parser.add_argument('output_dir', help='path to which the orphan proteins will be written')
+    parser.add_argument('job_input_path', type=Path, help='path to a file that contains the orfs path to extract orphan gene')
+    parser.add_argument('orthogroups_file', type=Path, help='path to the the orthologs table')
+    parser.add_argument('output_dir', type=Path, help='path to which the orphan proteins will be written')
     add_default_step_args(parser)
     args = parser.parse_args()
 

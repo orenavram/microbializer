@@ -1,7 +1,7 @@
 import os
 from sys import argv
 import argparse
-import logging
+from pathlib import Path
 import sys
 from Bio import SeqIO
 import traceback
@@ -12,9 +12,8 @@ import pandas as pd
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger, none_or_str, add_default_step_args
+from auxiliaries.pipeline_auxiliaries import get_job_logger, none_or_path, add_default_step_args
 from auxiliaries.logic_auxiliaries import flatten
-from auxiliaries import consts
 
 
 def write_og_dna_sequences_file(og_name, og_members, gene_to_sequence_dict, og_dna_path):
@@ -147,14 +146,14 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('all_orfs_path', type=none_or_str, help='path to a file of all ORFs of all genomes')
-    parser.add_argument('all_proteins_path', type=none_or_str, help='path to a file of all proteins of all genomes')
-    parser.add_argument('orthogroups_file_path', help='path of the orthogroups file')
-    parser.add_argument('job_input_path', help='')
-    parser.add_argument('ogs_dna_output_dir', type=none_or_str, help='path to an output directory of ogs dna')
-    parser.add_argument('ogs_aa_output_dir', type=none_or_str, help='path to an output directory of ogs aa')
-    parser.add_argument('ogs_aa_aligned_output_dir', type=none_or_str, help='path to an output directory of ogs aligned aa')
-    parser.add_argument('ogs_induced_dna_aligned_output_dir', type=none_or_str, help='path to an output directory of ogs induced aligned dna (codon alignment)')
+    parser.add_argument('all_orfs_path', type=none_or_path, help='path to a file of all ORFs of all genomes')
+    parser.add_argument('all_proteins_path', type=none_or_path, help='path to a file of all proteins of all genomes')
+    parser.add_argument('orthogroups_file_path', type=Path, help='path of the orthogroups file')
+    parser.add_argument('job_input_path', type=Path, help='')
+    parser.add_argument('ogs_dna_output_dir', type=none_or_path, help='path to an output directory of ogs dna')
+    parser.add_argument('ogs_aa_output_dir', type=none_or_path, help='path to an output directory of ogs aa')
+    parser.add_argument('ogs_aa_aligned_output_dir', type=none_or_path, help='path to an output directory of ogs aligned aa')
+    parser.add_argument('ogs_induced_dna_aligned_output_dir', type=none_or_path, help='path to an output directory of ogs induced aligned dna (codon alignment)')
     add_default_step_args(parser)
     args = parser.parse_args()
 

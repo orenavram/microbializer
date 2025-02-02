@@ -8,6 +8,7 @@ import subprocess
 import shutil
 import re
 import traceback
+from pathlib import Path
 from datetime import timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed, ProcessPoolExecutor
 
@@ -253,11 +254,11 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('ORF_dir', help='path to input fasta directory')
-    parser.add_argument('OG_dir', help='path to input Orthologous group directory')
-    parser.add_argument('output_dir', help='path to output directory')
-    parser.add_argument('cai_table_path', help='path to the output CAI table of all OGs')
-    parser.add_argument('tmp_dir', help='path to tmp directory')
+    parser.add_argument('ORF_dir', type=Path, help='path to input fasta directory')
+    parser.add_argument('OG_dir', type=Path, help='path to input Orthologous group directory')
+    parser.add_argument('output_dir', type=Path, help='path to output directory')
+    parser.add_argument('cai_table_path', type=Path, help='path to the output CAI table of all OGs')
+    parser.add_argument('tmp_dir', type=Path, help='path to tmp directory')
     parser.add_argument('cpus', help='number of cpus to use')
     add_default_step_args(parser)
     args = parser.parse_args()

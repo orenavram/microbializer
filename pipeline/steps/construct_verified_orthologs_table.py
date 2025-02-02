@@ -1,6 +1,6 @@
 from sys import argv
 import argparse
-import logging
+from pathlib import Path
 import os
 import sys
 import pandas as pd
@@ -62,9 +62,9 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('putative_orthologs_path', help='path to a file with the putative orthologs sets')
-    parser.add_argument('verified_clusters_path', help='path to a directory with the verified clusters')
-    parser.add_argument('finalized_table_path', help='path to an output file in which the final table will be written')
+    parser.add_argument('putative_orthologs_path', type=Path, help='path to a file with the putative orthologs sets')
+    parser.add_argument('verified_clusters_path', type=Path, help='path to a directory with the verified clusters')
+    parser.add_argument('finalized_table_path', type=Path, help='path to an output file in which the final table will be written')
     add_default_step_args(parser)
     args = parser.parse_args()
 

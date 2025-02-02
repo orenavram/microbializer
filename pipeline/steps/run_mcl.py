@@ -1,6 +1,6 @@
 from sys import argv
 import argparse
-import logging
+from pathlib import Path
 import subprocess
 import os
 import sys
@@ -66,10 +66,10 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('mcl_input_dir', help='path to dir of mcl input files')
-    parser.add_argument('job_input_path', help='')
-    parser.add_argument('mcl_output_dir', help='path to dir the MCL analysis will be written')
-    parser.add_argument('verified_clusters_dir', help='dir path to which verified clusters are written')
+    parser.add_argument('mcl_input_dir', type=Path, help='path to dir of mcl input files')
+    parser.add_argument('job_input_path', type=Path, help='')
+    parser.add_argument('mcl_output_dir', type=Path, help='path to dir the MCL analysis will be written')
+    parser.add_argument('verified_clusters_dir', type=Path, help='dir path to which verified clusters are written')
     parser.add_argument('--cpus', type=int, default=1, help='Number of CPUs to use')
     add_default_step_args(parser)
     args = parser.parse_args()
