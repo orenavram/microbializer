@@ -60,8 +60,8 @@ def RAxML_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num_
 
 def iqtree_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num_of_cpus, outgroup,
                        bootstrap, seed):
-    final_tree_name = phylogenetic_tree_path.name
-    search_prefix = tmp_folder / final_tree_name
+    search_prefix = tmp_folder / 'species_tree'
+    tree_output = search_prefix.with_suffix('.treefile')
 
     cmd = f"iqtree -s {msa_path} -m WAG+G -seed {seed} -pre {search_prefix} -T {num_of_cpus}"
     if outgroup:
@@ -73,12 +73,11 @@ def iqtree_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num
 
     logger.info(f'Reconstructing species phylogeny with IQTree. Executed command is: {cmd}')
     subprocess.run(cmd, shell=True, check=True)
-    logger.info(f'IQTree finished successfully. The tree was saved to {search_prefix}.treefile')
+    logger.info(f'IQTree finished successfully. The tree was saved to {tree_output}')
 
-    final_tree_path = search_prefix + ".treefile"
-    if final_tree_path.exists():
-        logger.info(f'Copying result {final_tree_path} to {phylogenetic_tree_path}')
-        shutil.copy(final_tree_path, phylogenetic_tree_path)
+    if tree_output.exists():
+        logger.info(f'Copying result {tree_output} to {phylogenetic_tree_path}')
+        shutil.copy(tree_output, phylogenetic_tree_path)
     else:
         logger.fatal(f'TREE WAS NOT GENERATED!!')
 

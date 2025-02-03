@@ -163,9 +163,9 @@ def visualize_Ws_with_PCA(W_vectors, output_dir, logger):
     logger.info(f"Time for PCA: {pca_time}")
 
 
-def calculate_cai(OG_dir, OG_index, genomes_codon_indexes, cais_output_dir):
-    OG_path = OG_dir / f'OG_{OG_index}.fna'
-    output_file_path = cais_output_dir / f'OG_{OG_index}.json'
+def calculate_cai(OG_dir, OG_name, genomes_codon_indexes, cais_output_dir):
+    OG_path = OG_dir / f'{OG_name}.fna'
+    output_file_path = cais_output_dir / f'{OG_name}.json'
 
     logger.info(f'Calculating CAI for genes in OG {OG_path}. Will save the results in {output_file_path}')
 
@@ -184,7 +184,7 @@ def calculate_cai(OG_dir, OG_index, genomes_codon_indexes, cais_output_dir):
         json.dump(cai_info, output_file)
 
     summarized_cai_info = {key: value for key, value in cai_info.items() if key in ['CAI_mean', 'CAI_std']}
-    return f'OG_{OG_index}', summarized_cai_info
+    return OG_name, summarized_cai_info
 
 
 def plot_CAI_histogram(logger, ogs_cai_info_df, output_dir):
@@ -201,13 +201,18 @@ def plot_CAI_histogram(logger, ogs_cai_info_df, output_dir):
 
 
 def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, cpus, logger):
+    if cpus == 1:
+        pool_executor_class = ThreadPoolExecutor
+    else:
+        pool_executor_class = ProcessPoolExecutor
+
     # 1. Calculate W vector for each genome
     logger.info("Finding HEGs in ORFs files and calculating W vectors...")
     hegs_output_dir = tmp_dir / 'HEGs'
     os.makedirs(hegs_output_dir, exist_ok=True)
 
     genome_name_to_codon_index = {}
-    with ProcessPoolExecutor(max_workers=cpus) as executor:
+    with pool_executor_class(max_workers=cpus) as executor:
         futures = []
         for orf_file in ORF_dir.iterdir():
             futures.append(executor.submit(get_W, orf_file, hegs_output_dir, logger))
@@ -232,10 +237,10 @@ def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, cpu
     os.makedirs(cais_output_dir, exist_ok=True)
 
     og_name_to_cai_info = {}
-    with ProcessPoolExecutor(max_workers=cpus) as executor:
+    with pool_executor_class(max_workers=cpus) as executor:
         futures = []
-        for OG_index in range(len(OG_dir.iterdir())):
-            futures.append(executor.submit(calculate_cai, OG_dir, OG_index, genome_name_to_codon_index, cais_output_dir))
+        for og_file in OG_dir.glob('*.fna'):
+            futures.append(executor.submit(calculate_cai, OG_dir, og_file.stem, genome_name_to_codon_index, cais_output_dir))
 
         for future in as_completed(futures):
             og_name, cai_info = future.result()
@@ -260,7 +265,7 @@ if __name__ == '__main__':
     parser.add_argument('output_dir', type=Path, help='path to output directory')
     parser.add_argument('cai_table_path', type=Path, help='path to the output CAI table of all OGs')
     parser.add_argument('tmp_dir', type=Path, help='path to tmp directory')
-    parser.add_argument('cpus', help='number of cpus to use')
+    parser.add_argument('cpus', type=int, help='number of cpus to use')
     add_default_step_args(parser)
     args = parser.parse_args()
 
@@ -268,7 +273,7 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        analyze_codon_bias(args.ORF_dir, args.OG_dir, args.output_dir, args.cai_table_path, args.tmp_dir, int(args.cpus), logger)
+        analyze_codon_bias(args.ORF_dir, args.OG_dir, args.output_dir, args.cai_table_path, args.tmp_dir, args.cpus, logger)
     except Exception as e:
         logger.exception(f'Error in {Path(__file__).name}')
         with open(args.error_file_path, 'a+') as f:
