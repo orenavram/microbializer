@@ -154,8 +154,8 @@ def get_configuration():
                              'should be considered as a core gene.')
     parser.add_argument('--bootstrap', type=str_to_bool, default=False,
                         help='whether or not to apply bootstrap procedure over the reconstructed species tree.')
-    parser.add_argument('--outgroup', default=None,
-                        help='The species name used to to root the phylogenetic tree, or None to leave unrooted.')
+    parser.add_argument('--outgroup',
+                        help='The species name used to to root the phylogenetic tree, or empty string to leave unrooted.')
     parser.add_argument('--filter_out_plasmids', type=str_to_bool, default=False,
                         help='whether or not to filter out plasmids from the input files')
     parser.add_argument('--inputs_fasta_type', choices=['genomes', 'orfs'], default='genomes',
@@ -171,9 +171,9 @@ def get_configuration():
                         default=consts.SLURM_PARTITION)
     parser.add_argument('--account_name', help='The slurm account to submit jobs to',
                         default=consts.SLURM_ACCOUNT)
-    parser.add_argument('--node_name', help='The node name to submit jobs to', default=None)
-    parser.add_argument('--step_to_complete', help='The final step to execute', default=None,
-                        choices=[*PIPELINE_STEPS, None])
+    parser.add_argument('--node_name', help='The node name to submit jobs to')
+    parser.add_argument('--step_to_complete', help='The final step to execute',
+                        choices=[*PIPELINE_STEPS, ''])
     parser.add_argument('--only_calc_ogs', type=str_to_bool, default=False,
                         help='Do only the necessary steps to calculate OGs')
     parser.add_argument('--bypass_number_of_genomes_limit', type=str_to_bool, default=False,
@@ -275,7 +275,7 @@ def validate_arguments(args):
             args.max_parallel_jobs = os.cpu_count()
 
     if args.outgroup == "No outgroup":
-        args.outgroup = None
+        args.outgroup = ''
 
     if args.identity_cutoff < 0 or args.identity_cutoff > 100:
         raise ValueError(f'identity_cutoff argument {args.identity_cutoff} has invalid value')

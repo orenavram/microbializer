@@ -143,7 +143,7 @@ if __name__ == '__main__':
     parser.add_argument('--seed', help='RaxML seed parameter', default=12345)
     parser.add_argument('--tree_search_software', default='iqtree',
                         help='Tree search software to perform phylogenetic tree search. Use iqtree/raxml/fasttree')
-    parser.add_argument('--outgroup', default=None)
+    parser.add_argument('--outgroup', help='outgroup for the tree search')
     parser.add_argument('--bootstrap', type=str_to_bool,
                         help='whether or not to apply bootstrap procedure over the reconstructed species tree.')
     parser.add_argument('--cpu', default='1',

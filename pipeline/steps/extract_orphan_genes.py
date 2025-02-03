@@ -64,7 +64,7 @@ def extract_orphan_proteins_from_all_files(logger, job_input_path, orthogroups_f
 
     with open(job_input_path, 'r') as f:
         for line in f:
-            proteins_file_path = line.strip()
+            proteins_file_path = Path(line.strip())
             extract_orphan_proteins(logger, proteins_file_path, orthogroups_df, output_dir)
 
 

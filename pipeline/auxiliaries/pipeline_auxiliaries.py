@@ -287,7 +287,7 @@ def send_email_in_pipeline_end(logger, process_id, email_address, job_name, stat
     if email_address:
         email_addresses.append(email_address)
     else:
-        logger.warning(f'process_id = {process_id} email_address is None, state = {state}, job_name = {job_name}')
+        logger.warning(f'process_id = {process_id} email_address is empty, state = {state}, job_name = {job_name}')
 
     # sends mail once the job finished or crashes
     if state == SharedConsts.State.Finished:
@@ -358,12 +358,6 @@ def str_to_bool(value):
         return False
     else:
         raise argparse.ArgumentTypeError("Boolean value expected.")
-
-
-def none_or_str(value):
-    if value == 'None':
-        return None
-    return value
 
 
 def none_or_path(value):
