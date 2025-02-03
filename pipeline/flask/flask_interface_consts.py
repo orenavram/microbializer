@@ -141,7 +141,7 @@ INTERVAL_BETWEEN_LISTENER_SAMPLES = 120  # in seconds
 
 MICROBIALIZER_JOB_TEMPLATE = f'''#!/bin/bash
 
-sleep {INTERVAL_BETWEEN_LISTENER_SAMPLES}
+sleep 30
 
 echo "Job ID: $SLURM_JOB_ID"
 echo "Running on nodes: $SLURM_JOB_NODELIST"

@@ -99,6 +99,7 @@ class Config:
     orthoxml_memory: str
     phylogeny_time_limit: str
     infer_orthogroups_time_limit: str
+    merge_sub_orthogroups_memory: str
 
     def to_csv(self, path: Path):
         config_df = pd.DataFrame(list(asdict(self).items()), columns=['key', 'value'])
@@ -260,6 +261,7 @@ def get_configuration():
                     ani_memory=consts.ANI_MEMORY_GB,
                     orthoxml_memory=consts.ORTHOXML_MEMORY_GB,
                     infer_orthogroups_time_limit=consts.INFER_ORTHOGROUPS_TIME_LIMIT,
+                    merge_sub_orthogroups_memory=consts.MERGE_SUB_ORTHOGROUPS_MEMORY_GB
                     )
 
     config.to_csv(output_dir / 'config.csv')
