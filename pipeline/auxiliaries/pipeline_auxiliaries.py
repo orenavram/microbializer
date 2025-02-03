@@ -23,7 +23,7 @@ from flask import flask_interface_consts, SharedConsts
 
 def validate_slurm_error_logs(logger, slurm_logs_dir, error_file_path):
     for slurm_log_file in slurm_logs_dir.glob('*.err'):
-        if os.path.getsize(slurm_log_file) == 0:
+        if slurm_log_file.stat().st_size == 0:
             continue
 
         with open(slurm_log_file) as f:
@@ -284,7 +284,7 @@ def submit_batch(logger, config, script_path, batch_parameters_list, logs_dir, j
 def send_email_in_pipeline_end(logger, process_id, email_address, job_name, state):
     email_addresses = [flask_interface_consts.OWNER_EMAIL]
     email_addresses.extend(flask_interface_consts.ADDITIONAL_OWNER_EMAILS)
-    if email_address is not None:
+    if email_address:
         email_addresses.append(email_address)
     else:
         logger.warning(f'process_id = {process_id} email_address is None, state = {state}, job_name = {job_name}')

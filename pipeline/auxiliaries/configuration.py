@@ -5,8 +5,6 @@ import os
 import logging
 import sys
 from pathlib import Path
-from typing import Optional
-
 import pandas as pd
 
 from . import consts
@@ -24,64 +22,41 @@ PIPELINE_STEPS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', 
 
 
 @dataclass
-class InferOrthogroupsConfig:
-    # Directories paths and file names
+class Config:
+    # Directories paths and file names - will be set by the pipeline
+    run_dir: Path
+
+    raw_data_path: Path
+    data_path: Path
     genomes_names_path: Path
 
     steps_results_dir: Path
     tmp_dir: Path
     done_files_dir: Path
+    final_output_dir: Path
+    final_output_dir_name: str
 
+    progressbar_file_path: Path
     error_file_path: Path
 
     # Job submission
     queue_name: str
     account_name: str
-    node_name: Optional[str]
+    node_name: str
     max_parallel_jobs: int
     use_job_manager: bool
+
+    # Email at job completion
+    email: str
+    job_name: str
+    run_number: str
+    send_email: bool
 
     # Pipeline parameters
     identity_cutoff: float
     coverage_cutoff: float
     e_value_cutoff: float
     sensitivity: float
-
-    add_orphan_genes_to_ogs: bool
-    pseudo_genome_mode: str
-    run_optimized_mmseqs: bool
-
-    # Debugging parameters
-    use_parquet: bool
-    verbose: bool
-
-    # cpus, memory, time
-    job_default_memory: str
-    mmseqs_big_dataset_cpus: int
-    mmseqs_big_dataset_memory: str
-    mmseqs_time_limit: str
-
-
-@dataclass
-class Config(InferOrthogroupsConfig):
-    # Directories paths and file names - will be set by the pipeline
-    run_dir: Path
-
-    raw_data_path: Path
-    data_path: Path
-
-    final_output_dir: Path
-    final_output_dir_name: str
-
-    progressbar_file_path: Path
-
-    # Email at job completion
-    email: Optional[str]
-    job_name: Optional[str]
-    run_number: str
-    send_email: bool
-
-    # Pipeline parameters
     core_minimal_percentage: float
     inputs_fasta_type: str
 
@@ -89,22 +64,31 @@ class Config(InferOrthogroupsConfig):
     bootstrap: bool
     max_number_of_core_ogs_for_phylogeny: int
 
+    add_orphan_genes_to_ogs: bool
+    run_optimized_mmseqs: bool
     filter_out_plasmids: bool
     num_of_genomes_in_batch: int
+    pseudo_genome_mode: str
 
     # Debugging parameters
     do_not_copy_outputs_to_final_results_dir: bool
     bypass_number_of_genomes_limit: bool
-    step_to_complete: Optional[str]
+    step_to_complete: str
     qfo_benchmark: bool
     only_calc_ogs: bool
     always_run_full_orthogroups_inference: bool
+    use_parquet: bool
+    verbose: bool
 
     # Clean at end
     clean_intermediate_outputs: bool
     clean_old_job_directories: bool
 
     # cpus, memory, time
+    job_default_memory: str
+    mmseqs_big_dataset_cpus: int
+    mmseqs_big_dataset_memory: str
+    mmseqs_time_limit: str
     phylogeny_cpus: int
     phylogeny_memory: str
     kegg_cpus: int
@@ -115,6 +99,29 @@ class Config(InferOrthogroupsConfig):
     orthoxml_memory: str
     phylogeny_time_limit: str
     infer_orthogroups_time_limit: str
+
+    def to_csv(self, path: Path):
+        config_df = pd.DataFrame(list(asdict(self).items()), columns=['key', 'value'])
+        config_df.to_csv(path, index=False)
+
+    @classmethod
+    def from_csv(cls, path: Path):
+        config_df = pd.read_csv(path)
+        data_dict = dict(zip(config_df["key"], config_df["value"]))
+
+        typed_data = {}
+        for key, value in data_dict.items():
+            if key in cls.__annotations__:
+                expected_type = cls.__annotations__[key]
+
+                if expected_type == bool:
+                    typed_data[key] = str_to_bool(value)
+                else:
+                    typed_data[key] = expected_type(value)
+            else:
+                raise ValueError(f'key {key} not in {cls} annotations')
+
+        return cls(**typed_data)
 
 
 def get_configuration():
@@ -214,7 +221,7 @@ def get_configuration():
 
                     email=args.email, job_name=args.job_name, run_number=run_number,
                     send_email=consts.ENV == 'lsweb' and SEND_EMAIL_WHEN_JOB_FINISHED_FROM_PIPELINE and
-                               args.step_to_complete is None and not args.only_calc_ogs and
+                               args.step_to_complete and not args.only_calc_ogs and
                                not args.do_not_copy_outputs_to_final_results_dir,
 
                     identity_cutoff=args.identity_cutoff, coverage_cutoff=args.coverage_cutoff,
@@ -255,8 +262,7 @@ def get_configuration():
                     infer_orthogroups_time_limit=consts.INFER_ORTHOGROUPS_TIME_LIMIT,
                     )
 
-    config_df = pd.DataFrame(list(asdict(config).items()), columns=['key', 'value'])
-    config_df.to_csv(output_dir / 'config.csv', index=False)
+    config.to_csv(output_dir / 'config.csv')
 
     return logger, times_logger, config
 

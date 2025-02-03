@@ -13,7 +13,7 @@ from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_ar
 
 
 def normalize_hits_scores(logger, blast_result, output_path, scores_normalize_coefficient, use_parquet):
-    query_vs_reference_file_name = os.path.splitext(os.path.basename(blast_result))[0]
+    query_vs_reference_file_name = blast_result.stem
     strain1_name, strain2_name = query_vs_reference_file_name.split('_vs_')
 
     if use_parquet:
@@ -30,8 +30,8 @@ def normalize_hits_scores_of_all_files(logger, job_input_file, output_dir, use_p
     with open(job_input_file, 'r') as f:
         for line in f:
             hits_path, scores_normalize_coefficient = line.strip().split()
-            hits_file_name = os.path.splitext(os.path.basename(hits_path))[0]
-            output_path = os.path.join(output_dir, f"{hits_file_name}.m8")
+            hits_path = Path(hits_path)
+            output_path = output_dir / f"{hits_path.stem}.m8"
             normalize_hits_scores(logger, hits_path, output_path, float(scores_normalize_coefficient), use_parquet)
 
 

@@ -133,7 +133,7 @@ def build_orthoxml_and_tsv_output(logger, all_clusters_df, output_dir, qfo_bench
             ortholog_groups.append(og_list)
 
     # export orthoXML document to output_file
-    orthoxml_output_file_path = os.path.join(output_dir, 'orthogroups.orthoxml')
+    orthoxml_output_file_path = output_dir / 'orthogroups.orthoxml'
     with open(orthoxml_output_file_path, "w") as oxml_file:
         oxml.export(oxml_file, level=0)
 
@@ -142,7 +142,7 @@ def build_orthoxml_and_tsv_output(logger, all_clusters_df, output_dir, qfo_bench
 
     # write to tsv output all ortholog pairs
     if consts.OUTPUT_TSV_OF_ORTHOLOGS_PAIRS:
-        tsv_output_file_path = os.path.join(output_dir, 'ortholog_pairs.tsv')
+        tsv_output_file_path = output_dir / 'ortholog_pairs.tsv'
         with open(tsv_output_file_path, "w") as tsv_file:
             for og_list in ortholog_groups:
                 for strain1_genes, strain2_genes in itertools.combinations(og_list, 2):
@@ -158,7 +158,7 @@ def create_phyletic_pattern(logger, orthogroups_df, output_dir):
         phyletic_pattern = ''.join(pd.notnull(orthogroups_df[strain_name]).astype(int).astype(str))
         phyletic_patterns_str += f'>{strain_name}\n{phyletic_pattern}\n'
 
-    phyletic_patterns_path = os.path.join(output_dir, 'phyletic_pattern.fas')
+    phyletic_patterns_path = output_dir / 'phyletic_pattern.fas'
     with open(phyletic_patterns_path, 'w') as f:
         f.write(phyletic_patterns_str)
     logger.info(f'Created phyletic pattern at {phyletic_patterns_path}')

@@ -10,31 +10,29 @@ import statistics
 import dask.dataframe as dd
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
+sys.path.append(str(SCRIPT_DIR.parent.parent))
 
 from auxiliaries.pipeline_auxiliaries import fail, get_job_logger, add_default_step_args, str_to_bool
 
 
 def extract_paralogs_of_genome(logger, m8_df, genome_name, max_scores_parts_dir, paralogs_dir,
                                max_rbh_scores_unified_dir, scores_statistics_dir, temp_dir, use_parquet, verbose):
-    genome_max_rbh_scores_path = os.path.join(max_rbh_scores_unified_dir, f'{genome_name}.csv')
-    output_paralogs_filtered_path = os.path.join(paralogs_dir, f'{genome_name}_vs_{genome_name}.m8_filtered')
-    score_stats_file = os.path.join(scores_statistics_dir, f'{genome_name}_vs_{genome_name}.stats')
+    genome_max_rbh_scores_path = max_rbh_scores_unified_dir / f'{genome_name}.csv'
+    output_paralogs_filtered_path = paralogs_dir / f'{genome_name}_vs_{genome_name}.m8_filtered'
+    score_stats_file = scores_statistics_dir / f'{genome_name}_vs_{genome_name}.stats'
 
-    if os.path.exists(genome_max_rbh_scores_path) and os.path.exists(output_paralogs_filtered_path) and os.path.exists(score_stats_file):
+    if genome_max_rbh_scores_path.exists() and output_paralogs_filtered_path.exists() and score_stats_file.exists():
         return
 
     # Unify all max_rbh_scores files of the genome to one file
-    max_scores_files = [f for f in os.listdir(max_scores_parts_dir) if f.split('_max_scores_with_')[0] == genome_name]
+    max_scores_files = [f for f in max_scores_parts_dir.iterdir() if f.stem.split('_max_scores_with_')[0] == genome_name]
     if max_scores_files:
         max_scores_dfs = []
         for max_scores_file in max_scores_files:
-            max_scores_path = os.path.join(max_scores_parts_dir, max_scores_file)
-
             if use_parquet:
-                max_scores_df = pd.read_parquet(max_scores_path)
+                max_scores_df = pd.read_parquet(max_scores_file)
             else:
-                max_scores_df = pd.read_csv(max_scores_path)
+                max_scores_df = pd.read_csv(max_scores_file)
 
             max_scores_dfs.append(max_scores_df)
 
@@ -57,7 +55,7 @@ def extract_paralogs_of_genome(logger, m8_df, genome_name, max_scores_parts_dir,
     m8_df = m8_df[(m8_df['query_genome'] == genome_name) & (m8_df['target_genome'] == genome_name)]
     m8_df = m8_df[['query', 'target', 'score']]
     m8_df = m8_df.sort_values(by=['query', 'target']).reset_index(drop=True)
-    output_paralogs_raw_path = os.path.join(temp_dir, f'{genome_name}_vs_{genome_name}.m8')
+    output_paralogs_raw_path = temp_dir / f'{genome_name}_vs_{genome_name}.m8'
     if use_parquet:
         m8_df.to_parquet(output_paralogs_raw_path, index=False)
     else:
@@ -105,7 +103,7 @@ def extract_paralogs(logger, m8_path, genomes_input_path, max_scores_parts_dir, 
     with open(genomes_input_path, 'r') as f:
         genomes = [genome.strip() for genome in f]
 
-    temp_dir = os.path.join(paralogs_dir, 'tmp')
+    temp_dir = paralogs_dir / 'tmp'
     os.makedirs(temp_dir, exist_ok=True)
 
     m8_df = dd.read_parquet(m8_path).compute()

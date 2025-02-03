@@ -5,7 +5,6 @@ Created on Sun Oct 22 10:16:41 2017
 @author: Oren
 """
 
-import os
 import time
 import subprocess
 from . import consts
@@ -16,8 +15,8 @@ MEMORY_SUFFIX = 'G'
 CHECK_JOB_DETAILS_COMMAND = 'scontrol show job'
 
 
-def add_slurm_header(sbatch_file_content, queue_name, tmp_dir, job_name, CPUs, account_name, memory, time_in_hours=None,
-                     node_name=None):
+def add_slurm_header(sbatch_file_content, queue_name, tmp_dir, job_name, CPUs, account_name, memory, time_in_hours,
+                     node_name):
     sbatch_file_content += f'#SBATCH --job-name={job_name}\n'
     sbatch_file_content += f'#SBATCH --account={account_name}\n'
     sbatch_file_content += f'#SBATCH --partition={queue_name}\n'
@@ -41,7 +40,7 @@ def add_slurm_header(sbatch_file_content, queue_name, tmp_dir, job_name, CPUs, a
 
 
 def generate_job_file(logger, queue_name, tmp_dir, cmds_path, job_name, job_path, CPUs, account_name, memory,
-                      time_in_hours=None, node_name=None):
+                      time_in_hours, node_name):
     """compose the job file content and fetches it"""
     job_file_content = f'#!/bin/bash {"-x" if consts.JOB_FILES_DEBUG_MODE else ""}\n'  # 'old bash: #!/bin/tcsh -x\n'
     job_file_content = add_slurm_header(job_file_content, queue_name, tmp_dir, job_name, CPUs, account_name, memory,
@@ -49,7 +48,7 @@ def generate_job_file(logger, queue_name, tmp_dir, cmds_path, job_name, job_path
     job_file_content += f'{cmds_path}\n'
 
     # log the runtime of the job
-    job_log_file_path = f'{tmp_dir}/$(echo ${consts.JOB_NAME_ENVIRONMENT_VARIABLE})_$(echo ${consts.JOB_ID_ENVIRONMENT_VARIABLE})_log.txt'
+    job_log_file_path = tmp_dir / f'$(echo ${consts.JOB_NAME_ENVIRONMENT_VARIABLE})_$(echo ${consts.JOB_ID_ENVIRONMENT_VARIABLE})_log.txt'
     job_file_content += f'{CHECK_JOB_DETAILS_COMMAND} ${consts.JOB_ID_ENVIRONMENT_VARIABLE} | grep -m 1 "{consts.JOB_WALL_TIME_KEY}" >> {job_log_file_path}\n'
     job_file_content += f'{CHECK_JOB_DETAILS_COMMAND} ${consts.JOB_ID_ENVIRONMENT_VARIABLE} | grep -m 1 "{consts.JOB_CPUS_KEY}" >> {job_log_file_path}\n'
 
@@ -57,21 +56,10 @@ def generate_job_file(logger, queue_name, tmp_dir, cmds_path, job_name, job_path
         job_fp.write(job_file_content)
     subprocess.call(['chmod', '+x', job_path])  # set execution permissions
 
-    logger.debug('First job details for debugging:')
-    logger.debug('#' * 80)
-    logger.debug('-> job_path is:\n' + job_path)
-    logger.debug('\n-> job_file_content is:\n' + job_file_content)
-    logger.debug('-> out file is at:\n' + os.path.join(tmp_dir, job_name + '.$JOB_ID.out'))
-    logger.debug('#' * 80)
-
 
 def submit_cmds_from_file_to_q(logger, job_name, cmds_path, tmp_dir, queue_name, CPUs, account_name, memory,
-                               time_in_hours=None, node_name=None, additional_params=''):
-    logger.debug('-> Job will be submitted to ' + queue_name + '\'s queue')
-    logger.debug('-> out, err and slurm files will be written to:\n' + tmp_dir + '/')
-    logger.debug('-> Job will use ' + CPUs + ' CPU(s)\n')
-
-    job_path = os.path.join(tmp_dir, job_name + JOB_EXTENSION)  # path to job
+                               time_in_hours, node_name, additional_params=''):
+    job_path = tmp_dir / f'{job_name}{JOB_EXTENSION}'  # path to job
     generate_job_file(logger, queue_name, tmp_dir, cmds_path, job_name, job_path, CPUs, account_name, memory,
                       time_in_hours, node_name)
 
@@ -98,5 +86,3 @@ def submit_cmds_from_file_to_q(logger, job_name, cmds_path, tmp_dir, queue_name,
                 logger.error(f"Job submission of {job_path} failed too many times. Exiting")
                 raise e
             time.sleep(1)
-
-    logger.debug('@ -> Sending jobs is done. @')

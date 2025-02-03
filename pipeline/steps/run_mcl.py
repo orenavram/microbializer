@@ -14,7 +14,7 @@ from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_ar
 
 
 def mcl(logger, input_file, output_file, cpus):
-    if os.path.exists(output_file):
+    if output_file.exists():
         return
 
     # --abc for a columns format, i.e., item1\item2\tscore
@@ -31,8 +31,8 @@ def verify(logger, og_name, input_file, output_dir):
     if len(lines) == 0:
         raise ValueError(f'{input_file} is empty! There\'s a bug in the previous step!')
     elif len(lines) == 1:
-        output_file_path = os.path.join(output_dir, og_name + ".verified_cluster")
-        if os.path.exists(output_file_path):
+        output_file_path = output_dir / f'{og_name}.verified_cluster'
+        if output_file_path.exists():
             return
         shutil.copyfile(input_file, output_file_path)
         logger.info(f'Only one cluster in {input_file}. Copied it to {output_file_path}')
@@ -41,8 +41,8 @@ def verify(logger, og_name, input_file, output_dir):
         for line in lines:
             if len(line.split('\t')) == 1:
                 continue  # Skip lines with 1 protein (orphan genes)
-            verified_cluster_path = os.path.join(output_dir, f"{og_name}_{og_subset_id}.split_cluster")
-            if not os.path.exists(verified_cluster_path):
+            verified_cluster_path = output_dir / f"{og_name}_{og_subset_id}.split_cluster"
+            if not verified_cluster_path.exists():
                 with open(verified_cluster_path, 'w') as verified_cluster_file:
                     verified_cluster_file.write(line)
             og_subset_id += 1
@@ -55,8 +55,8 @@ def run_mcl_on_all_putative_ogs(logger, mcl_input_dir, job_input_path, mcl_outpu
         ogs_names = [line.strip() for line in f]
 
     for og_name in ogs_names:
-        input_mcl_path = os.path.join(mcl_input_dir, f'{og_name}.mcl_input')
-        output_mcl_path = os.path.join(mcl_output_dir, f'{og_name}.mcl_output')
+        input_mcl_path = mcl_input_dir / f'{og_name}.mcl_input'
+        output_mcl_path = mcl_output_dir / f'{og_name}.mcl_output'
         mcl(logger, input_mcl_path, output_mcl_path, cpus)
         verify(logger, og_name, output_mcl_path, verified_clusters_dir)
 

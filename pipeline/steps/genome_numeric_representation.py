@@ -135,12 +135,11 @@ def get_genome_numeric_representation(logger, orthologs_table_path, ORFs_dir_pat
     genome_name_to_gene_name_to_orientation = {}
     reference_genome_name = genome_names[0]  # the numbers will be set with respect to this (arbitrary) genome
     for genome_name in genome_names:
-        gene_name_to_location, gene_to_orientation = get_genes_info_dicts(
-            os.path.join(ORFs_dir_path, f'{genome_name}.fna'))
+        gene_name_to_location, gene_to_orientation = get_genes_info_dicts(ORFs_dir_path / f'{genome_name}.fna')
         genome_name_to_gene_name_to_location[genome_name] = gene_name_to_location
         genome_name_to_gene_name_to_orientation[genome_name] = gene_to_orientation
 
-    no_paralogs_path = os.path.join(tmp_dir, 'no_paralogs.csv')
+    no_paralogs_path = tmp_dir / 'no_paralogs.csv'
     remove_paralogs(orthologs_table_path, genome_names, no_paralogs_path)
 
     genome_name_to_core_genes, ref_gene_to_OG, core_genome_size = \

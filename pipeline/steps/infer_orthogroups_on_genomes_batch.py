@@ -17,7 +17,7 @@ from auxiliaries.pipeline_auxiliaries import get_job_logger, get_job_times_logge
     submit_batch, wait_for_results, add_results_to_final_dir, add_default_step_args, write_done_file, str_to_bool
 from auxiliaries.logic_auxiliaries import split_ogs_to_jobs_inputs_files_by_og_sizes
 from auxiliaries.infer_orthogroups_logic import infer_orthogroups
-from auxiliaries.configuration import InferOrthogroupsConfig
+from auxiliaries.configuration import Config
 from auxiliaries import consts
 
 
@@ -183,30 +183,10 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
+    parser.add_argument('config_path', help='')
     parser.add_argument('step_number', help='')
-    parser.add_argument('steps_results_dir', type=Path, help='')
-    parser.add_argument('tmp_dir', type=Path, help='')
-    parser.add_argument('done_files_dir', type=Path, help='')
     parser.add_argument('translated_orfs_dir', type=Path, help='')
-    parser.add_argument('genomes_names_path', type=Path, help='')
-    parser.add_argument('queue_name', help='')
-    parser.add_argument('account_name', help='')
-    parser.add_argument('node_name', type=none_or_str, help='')
-    parser.add_argument('identity_cutoff', help='', type=float)
-    parser.add_argument('coverage_cutoff', help='', type=float)
-    parser.add_argument('e_value_cutoff', help='', type=float)
-    parser.add_argument('sensitivity', type=float)
-    parser.add_argument('max_parallel_jobs', help='', type=int)
-    parser.add_argument('use_job_manager', help='', type=str_to_bool)
     parser.add_argument('genomes_batch_id', help='', type=int)
-    parser.add_argument('pseudo_genome_mode', help='', type=str)
-    parser.add_argument('--run_optimized_mmseqs', help='', type=str_to_bool)
-    parser.add_argument('--use_parquet', type=str_to_bool)
-    parser.add_argument('--add_orphan_genes_to_ogs', type=str_to_bool)
-    parser.add_argument('--job_default_memory'),
-    parser.add_argument('--mmseqs_big_dataset_cpus', type=int),
-    parser.add_argument('--mmseqs_big_dataset_memory'),
-    parser.add_argument('--mmseqs_time_limit', type=int),
     add_default_step_args(parser)
     args = parser.parse_args()
 
@@ -215,28 +195,7 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        config = InferOrthogroupsConfig(
-            genomes_names_path=args.genomes_names_path,
-
-            steps_results_dir=args.steps_results_dir, tmp_dir=args.tmp_dir, done_files_dir=args.done_files_dir,
-            error_file_path=args.error_file_path,
-
-            queue_name=args.queue_name, account_name=args.account_name, node_name=args.node_name,
-            max_parallel_jobs=args.max_parallel_jobs, use_job_manager=args.use_job_manager,
-            low_memory_machine=args.low_memory_machine,
-
-            identity_cutoff=args.identity_cutoff, coverage_cutoff=args.coverage_cutoff,
-            e_value_cutoff=args.e_value_cutoff, sensitivity=args.sensitivity,
-
-            add_orphan_genes_to_ogs=args.add_orphan_genes_to_ogs, pseudo_genome_mode=args.pseudo_genome_mode,
-            run_optimized_mmseqs=args.run_optimized_mmseqs,
-
-            use_parquet=args.use_parquet, verbose=args.verbose,
-
-            job_default_memory=args.job_default_memory, mmseqs_big_dataset_cpus=args.mmseqs_big_dataset_cpus,
-            mmseqs_big_dataset_memory=args.mmseqs_big_dataset_memory, mmseqs_time_limit=args.mmseqs_time_limit
-        )
-
+        config = Config.from_csv(args.config_path)
         infer_orthogroups_on_genomes_batch(
             logger, times_logger, config, args.step_number, args.translated_orfs_dir, args.genomes_batch_id)
     except Exception as e:

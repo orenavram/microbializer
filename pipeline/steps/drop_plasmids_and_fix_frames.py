@@ -47,9 +47,9 @@ def filter_out_plasmids(logger, input_genome_path, output_genome_path, drop_plas
 def filter_out_plasmids_of_all_files(logger, job_input_path, output_dir, drop_plasmids, fix_frames):
     with open(job_input_path, 'r') as f:
         for line in f:
-            genome_path = line.strip()
-            genome_file_name = os.path.basename(genome_path)
-            output_path = os.path.join(output_dir, genome_file_name)
+            genome_path = Path(line.strip())
+            genome_file_name = genome_path.name
+            output_path = output_dir / genome_file_name
             filter_out_plasmids(logger, genome_path, output_path, drop_plasmids, fix_frames)
 
 

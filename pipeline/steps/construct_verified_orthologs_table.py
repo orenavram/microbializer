@@ -15,8 +15,7 @@ from auxiliaries.logic_auxiliaries import get_strain_name
 
 
 def get_verified_clusters_set(verified_clusters_path):
-    return set([os.path.splitext(file)[0]
-                for file in os.listdir(verified_clusters_path) if file.endswith('verified_cluster')])
+    return set([file.stem for file in verified_clusters_path.glob('*verified_cluster')])
 
 
 def finalize_table(logger, putative_orthologs_path, verified_clusters_path, finalized_table_path):
@@ -32,10 +31,8 @@ def finalize_table(logger, putative_orthologs_path, verified_clusters_path, fina
 
     # Iterate through new clusters (that were split from the putative clusters) and create Series objects from them
     new_clusters = []
-    for cluster_file_name in os.listdir(verified_clusters_path):
-        if cluster_file_name.endswith('verified_cluster'):
-            continue
-        with open(os.path.join(verified_clusters_path, cluster_file_name), 'r') as new_cluster:
+    for cluster_file_path in verified_clusters_path.glob('*split_cluster'):
+        with open(cluster_file_path, 'r') as new_cluster:
             genes = new_cluster.readline().strip().split('\t')
         strain_to_genes = defaultdict(list)
         for gene in genes:

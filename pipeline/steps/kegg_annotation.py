@@ -18,8 +18,7 @@ from auxiliaries import consts
 def create_fasta_of_unified_ogs_sequences(logger, og_aa_dir, output_fasta, optimize):
     if optimize:
         records = []
-        for filename in os.listdir(og_aa_dir):
-            og_path = os.path.join(og_aa_dir, filename)
+        for og_path in og_aa_dir.iterdir():
             # read only the first sequence from each og
             first_record = SeqIO.parse(og_path, 'fasta').__next__()
             records.append(first_record)
@@ -92,18 +91,18 @@ def kegg_annotation(logger, og_aa_dir, og_table_path, output_dir, output_og_tabl
         logger.info(f'{output_og_table_path} already exists. Exiting...')
         return
 
-    unified_ogs_sequences = os.path.join(output_dir, 'unified_ogs_sequences.faa')
+    unified_ogs_sequences = output_dir / 'unified_ogs_sequences.faa'
     create_fasta_of_unified_ogs_sequences(logger, og_aa_dir, unified_ogs_sequences, optimize)
 
     # run hmmsearch
-    hmmsearch_output = os.path.join(output_dir, 'hmmsearch_output.txt')
+    hmmsearch_output = output_dir / 'hmmsearch_output.txt'
     cmd = f'hmmsearch --noali -o /dev/null --cpu {cpus} --tblout {hmmsearch_output} {consts.KEGG_DATABASE_PATH} {unified_ogs_sequences}'
     logger.info(f'Running: {cmd}')
     subprocess.run(cmd, shell=True, check=True)
     logger.info(f'Finished running hmmsearch. Output written to {hmmsearch_output}')
 
     hmmsearch_output_df = filter_hmmsearh_output(hmmsearch_output)
-    filtered_hmmsearch_output = os.path.join(output_dir, 'filtered_hmmsearch_output.csv')
+    filtered_hmmsearch_output = output_dir / 'filtered_hmmsearch_output.csv'
     hmmsearch_output_df.to_csv(filtered_hmmsearch_output, index=False)
     logger.info(f'Wrote filtered hmmsearch output to {filtered_hmmsearch_output}')
 

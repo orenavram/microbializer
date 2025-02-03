@@ -25,9 +25,9 @@ def extract_msa_dimensions(msa_path):
 
 def RAxML_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num_of_cpus, outgroup,
                       bootstrap, seed):
-    final_tree_name = os.path.split(phylogenetic_tree_path)[1]
+    final_tree_name = phylogenetic_tree_path.name
 
-    final_tree_path = os.path.join(tmp_folder, f'RAxML_result.{final_tree_name}')
+    final_tree_path = tmp_folder / f'RAxML_result.{final_tree_name}'
     cmd = f'raxmlHPC-PTHREADS-SSE3 -m PROTGAMMAILG -p {seed} -s {msa_path} -n {final_tree_name} -w {tmp_folder} -T {num_of_cpus}'
 
     if outgroup:
@@ -35,33 +35,33 @@ def RAxML_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num_
         cmd += ' ' + f'-o {outgroup}'
     if bootstrap:
         logger.info(f'{consts.NUMBER_OF_RAXML_BOOTSTRAP_ITERATIONS} bootstrap iterations are going to be done')
-        final_tree_path = os.path.join(tmp_folder, f'RAxML_bipartitions.{final_tree_name}')
+        final_tree_path = tmp_folder / f'RAxML_bipartitions.{final_tree_name}'
         cmd += f' -f a -x {seed} -N {consts.NUMBER_OF_RAXML_BOOTSTRAP_ITERATIONS}'
 
     logger.info(f'Reconstructing species phylogeny with RAxML. Executed command is:\n{cmd}')
     subprocess.run(cmd, shell=True, check=True)
 
-    if os.path.exists(final_tree_path):
+    if final_tree_path.exists():
         logger.info(f'Copying result {final_tree_path} to {phylogenetic_tree_path}')
         shutil.copy(final_tree_path, phylogenetic_tree_path)
     else:
         logger.fatal(f'TREE WAS NOT GENERATED!!')
 
     # update info file regarding duplicated sequences reduction
-    raxml_info_output_path = os.path.join(tmp_folder, f'RAxML_info.{final_tree_name}')
-    if os.path.exists(raxml_info_output_path):
+    raxml_info_output_path = tmp_folder / f'RAxML_info.{final_tree_name}'
+    if raxml_info_output_path.exists():
         with open(raxml_info_output_path) as f:
             info = f.read()
-        info = info.replace(f' {os.path.split(msa_path)[0]}/', ': ').replace('reduced',
-                                                                             'reduced (at the same folder of the reconstructed core genome)')
+        info = info.replace(f' {msa_path.parent}/', ': ').replace('reduced',
+                                                                  'reduced (at the same folder of the reconstructed core genome)')
         with open(raxml_info_output_path, 'w') as f:
             f.write(info)
 
 
 def iqtree_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num_of_cpus, outgroup,
                        bootstrap, seed):
-    final_tree_name = os.path.split(phylogenetic_tree_path)[1]
-    search_prefix = os.path.join(tmp_folder, final_tree_name)
+    final_tree_name = phylogenetic_tree_path.name
+    search_prefix = tmp_folder / final_tree_name
 
     cmd = f"iqtree -s {msa_path} -m WAG+G -seed {seed} -pre {search_prefix} -T {num_of_cpus}"
     if outgroup:
@@ -76,7 +76,7 @@ def iqtree_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num
     logger.info(f'IQTree finished successfully. The tree was saved to {search_prefix}.treefile')
 
     final_tree_path = search_prefix + ".treefile"
-    if os.path.exists(final_tree_path):
+    if final_tree_path.exists():
         logger.info(f'Copying result {final_tree_path} to {phylogenetic_tree_path}')
         shutil.copy(final_tree_path, phylogenetic_tree_path)
     else:

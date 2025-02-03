@@ -9,7 +9,7 @@ import shutil
 import traceback
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
+sys.path.append(str(SCRIPT_DIR.parent.parent))
 
 from auxiliaries.pipeline_auxiliaries import fail, get_job_logger, add_default_step_args
 from auxiliaries import consts
@@ -25,10 +25,10 @@ def too_many_trials(logger, cmd, error_file_path):
 
 def run_mmseqs(logger, all_proteins_fasta, output_dir, output_path, identity_cutoff, coverage_cutoff,
                e_value_cutoff, number_of_genomes, cpus, error_file_path, sensitivity):
-    tmp_dir = os.path.join(output_dir, f'tmp')
+    tmp_dir = output_dir / 'tmp'
 
     i = 1
-    while not os.path.exists(output_path):
+    while not output_path.exsits():
         # when the data set is very big some files are not generated because of the heavy load
         # so we need to make sure they will be generated!
         # control verbosity level by -v [3] param ; verbosity levels: 0=nothing, 1: +errors, 2: +warnings, 3: +info
@@ -46,7 +46,7 @@ def run_mmseqs(logger, all_proteins_fasta, output_dir, output_path, identity_cut
         try:
             shutil.rmtree(tmp_dir)
         except Exception:
-            if not os.path.exists(output_path):
+            if not output_path.exists():
                 tmp_dir = f"{tmp_dir}_try_{i}"
 
     logger.info(f"{output_path} was created successfully.")

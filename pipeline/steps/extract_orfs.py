@@ -121,23 +121,23 @@ def extract_orfs(logger, all_orfs_path, all_proteins_path, orthogroups_file_path
         logger.info(f'Extracting sequences for {og_name} ({len(og_members)} members)...')
 
         if ogs_dna_output_dir:
-            og_dna_path = os.path.join(ogs_dna_output_dir, f'{og_name}.fna')
-            if not os.path.exists(og_dna_path):
+            og_dna_path = ogs_dna_output_dir / f'{og_name}.fna'
+            if not og_dna_path.exists():
                 write_og_dna_sequences_file(og_name, og_members, gene_to_sequence_dict, og_dna_path)
 
         if ogs_aa_output_dir:
-            og_aa_path = os.path.join(ogs_aa_output_dir, f'{og_name}.faa')
-            if not os.path.exists(og_aa_path):
+            og_aa_path = ogs_aa_output_dir / f'{og_name}.faa'
+            if not og_aa_path.exists():
                 write_og_aa_sequences_file(og_name, og_members, protein_to_sequence_dict, og_aa_path)
 
         if ogs_aa_aligned_output_dir:
-            og_aligned_aa_path = os.path.join(ogs_aa_aligned_output_dir, f'{og_name}.faa')
-            if not os.path.exists(og_aligned_aa_path):
+            og_aligned_aa_path = ogs_aa_aligned_output_dir / f'{og_name}.faa'
+            if not og_aligned_aa_path.exists():
                 reconstruct_msa(logger, og_aa_path, og_aligned_aa_path)
 
         if ogs_induced_dna_aligned_output_dir:
-            og_induced_dna_aligned_path = os.path.join(ogs_induced_dna_aligned_output_dir, f'{og_name}.fna')
-            if not os.path.exists(og_induced_dna_aligned_path):
+            og_induced_dna_aligned_path = ogs_induced_dna_aligned_output_dir / f'{og_name}.fna'
+            if not og_induced_dna_aligned_path.exists():
                 induce_msa(logger, og_members, gene_to_sequence_dict, og_aligned_aa_path, og_induced_dna_aligned_path)
 
 

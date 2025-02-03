@@ -54,14 +54,14 @@ def clean_seq_records(records):
 
 def find_HEGs_in_orf_file(ORFs_file, genome_name, hegs_output_dir, logger):
     # Create blast db from ORF file
-    db_dir = os.path.join(hegs_output_dir, f'{genome_name}_db')
-    db_name = os.path.join(db_dir, genome_name + '.db')
+    db_dir = hegs_output_dir / f'{genome_name}_db'
+    db_name = db_dir / f'{genome_name}.db'
     cmd = f'makeblastdb -in {ORFs_file} -out {db_name} -dbtype nucl'
     logger.info('Making blastdb with command: ' + cmd)
     subprocess.run(cmd, shell=True, check=True)
 
     # Query blast db with ecoli HEGs reference file
-    hegs_hits_file = os.path.join(hegs_output_dir, genome_name + '_HEG_hits.tsv')
+    hegs_hits_file = hegs_output_dir / f'{genome_name}_HEG_hits.tsv'
     cmd = f'tblastn -db {db_name} -query {consts.HEGS_ECOLI_FILE_PATH} -out {hegs_hits_file} -outfmt 6 ' \
           f'-max_target_seqs {MAX_HITS_TO_KEEP_FOR_EACH_REFERENCE_HEG}'
     logger.info("Finding Hits with command: " + cmd)
@@ -81,19 +81,19 @@ def find_HEGs_in_orf_file(ORFs_file, genome_name, hegs_output_dir, logger):
 def get_W(ORFs_file, hegs_output_dir, logger):
     logger.info("Getting HEGs from the ORFs file: " + str(ORFs_file))
 
-    genome_name = os.path.splitext(os.path.basename(ORFs_file))[0]
+    genome_name = ORFs_file.stem
 
     # Identify HEGs in the ORFs file
     HEGs_names = find_HEGs_in_orf_file(ORFs_file, genome_name, hegs_output_dir, logger)
     HEGs_records = [record for record in SeqIO.parse(ORFs_file, "fasta") if record.id in HEGs_names]
-    HEGs_fasta_path = os.path.join(hegs_output_dir, genome_name + "_HEGs.fa")
+    HEGs_fasta_path = hegs_output_dir / f'{genome_name}_HEGs.fa'
     SeqIO.write(HEGs_records, HEGs_fasta_path, "fasta")  # Write HEGs to a file for logging and debugging
     logger.info(f'Found {len(HEGs_names)} HEGs in {genome_name}, and wrote them to {HEGs_fasta_path}')
 
     # Find genome codon index of HEGs
     records_were_cleaned = clean_seq_records(HEGs_records)
     if records_were_cleaned:
-        HEGs_cleaned_fasta_path = os.path.join(hegs_output_dir, genome_name + "_HEGs_cleaned.fa")
+        HEGs_cleaned_fasta_path = hegs_output_dir / f'{genome_name}_HEGs_cleaned.fa'
         SeqIO.write(HEGs_records, HEGs_cleaned_fasta_path, "fasta")  # Write cleaned HEGs to a file for logging and debugging
         logger.warning(f'Non-complete or illegal codons were found in the ORFs of {genome_name}. They were removed,'
                        f'and the cleaned HEGs were written to {HEGs_cleaned_fasta_path}')
@@ -148,14 +148,14 @@ def visualize_Ws_with_PCA(W_vectors, output_dir, logger):
 
     # Save plot to output_dir
     plt.tight_layout()
-    w_vectors_pca_plot_path = os.path.join(output_dir, 'Relative_Adaptiveness_scatter_plot.png')
+    w_vectors_pca_plot_path = output_dir / 'Relative_Adaptiveness_scatter_plot.png'
     plt.savefig(w_vectors_pca_plot_path, dpi=600)
     logger.info(f'PCA plot of w_vectors was saved to {w_vectors_pca_plot_path}')
     plt.close()
 
     # Save point labels and coordinates to file
     point_labels_df = pd.DataFrame({'Genome': W_vectors.index, 'X': x, 'Y': y, 'Cluster': cluster_labels + 1})
-    point_labels_path = os.path.join(output_dir, 'Relative_Adaptiveness_scatter_plot_clusters.csv')
+    point_labels_path = output_dir / 'Relative_Adaptiveness_scatter_plot_clusters.csv'
     point_labels_df.to_csv(point_labels_path, index=False)
     logger.info(f'Point labels and coordinates were saved to {point_labels_path}')
 
@@ -164,8 +164,8 @@ def visualize_Ws_with_PCA(W_vectors, output_dir, logger):
 
 
 def calculate_cai(OG_dir, OG_index, genomes_codon_indexes, cais_output_dir):
-    OG_path = os.path.join(OG_dir, f'OG_{OG_index}.fna')
-    output_file_path = os.path.join(cais_output_dir, f'OG_{OG_index}.json')
+    OG_path = OG_dir / f'OG_{OG_index}.fna'
+    output_file_path = cais_output_dir / f'OG_{OG_index}.json'
 
     logger.info(f'Calculating CAI for genes in OG {OG_path}. Will save the results in {output_file_path}')
 
@@ -194,7 +194,7 @@ def plot_CAI_histogram(logger, ogs_cai_info_df, output_dir):
     plt.axis('auto')
     plt.hist(ogs_cai_info_df["CAI_mean"], bins=30)
     plt.tight_layout()
-    cai_histogram_path = os.path.join(output_dir, 'CAI_histogram.png')
+    cai_histogram_path = output_dir / 'CAI_histogram.png'
     plt.savefig(cai_histogram_path, dpi=600)
     logger.info(f'CAI histogram was saved to {cai_histogram_path}')
     plt.close()
@@ -203,14 +203,14 @@ def plot_CAI_histogram(logger, ogs_cai_info_df, output_dir):
 def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, cpus, logger):
     # 1. Calculate W vector for each genome
     logger.info("Finding HEGs in ORFs files and calculating W vectors...")
-    hegs_output_dir = os.path.join(tmp_dir, 'HEGs')
+    hegs_output_dir = tmp_dir / 'HEGs'
     os.makedirs(hegs_output_dir, exist_ok=True)
 
     genome_name_to_codon_index = {}
     with ProcessPoolExecutor(max_workers=cpus) as executor:
         futures = []
-        for orf_file in os.listdir(ORF_dir):
-            futures.append(executor.submit(get_W, os.path.join(ORF_dir, orf_file), hegs_output_dir, logger))
+        for orf_file in ORF_dir.iterdir():
+            futures.append(executor.submit(get_W, orf_file, hegs_output_dir, logger))
 
         for future in as_completed(futures):
             genome_name, genome_codon_index = future.result()
@@ -218,7 +218,7 @@ def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, cpu
 
     genomes_W_vectors_df = pd.DataFrame.from_dict(genome_name_to_codon_index, orient='index')
     genomes_W_vectors_df = genomes_W_vectors_df.round(3)
-    genomes_W_vectors_path = os.path.join(output_dir, 'W_vectors.csv')
+    genomes_W_vectors_path = output_dir / 'W_vectors.csv'
     genomes_W_vectors_df.to_csv(genomes_W_vectors_path, index_label='Genome')
     logger.info(f"W vectors were calculated successfully and written to {genomes_W_vectors_path}")
 
@@ -228,13 +228,13 @@ def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, cpu
 
     # 3. Calculate CAI for each OG
     logger.info("Calculating CAI for each OG...")
-    cais_output_dir = os.path.join(tmp_dir, 'OGs_CAIs')
+    cais_output_dir = tmp_dir / 'OGs_CAIs'
     os.makedirs(cais_output_dir, exist_ok=True)
 
     og_name_to_cai_info = {}
     with ProcessPoolExecutor(max_workers=cpus) as executor:
         futures = []
-        for OG_index in range(len(os.listdir(OG_dir))):
+        for OG_index in range(len(OG_dir.iterdir())):
             futures.append(executor.submit(calculate_cai, OG_dir, OG_index, genome_name_to_codon_index, cais_output_dir))
 
         for future in as_completed(futures):

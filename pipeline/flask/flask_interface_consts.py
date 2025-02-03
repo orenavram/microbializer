@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 WEBSERVER_NAME = 'M1CR0B1AL1Z3R'
 WEBSERVER_PROJECT_ROOT_DIR = '/lsweb/pupko/microbializer'
@@ -27,12 +27,12 @@ INPUT_FASTA_TYPE = "inputs_fasta_type"
 INPUTS_GENOMES_ZIPPED = "genomes.zip"
 
 # Output files (the paths are relative to the unique folder of the job)
-ALL_OUTPUTS_DIRECTORY = WEBSERVER_NAME + "_outputs"
+ALL_OUTPUTS_DIRECTORY = Path(WEBSERVER_NAME + "_outputs")
 ALL_OUTPUTS_ZIPPED = WEBSERVER_NAME + "_outputs.zip"
 
 # Error description file (the path is relative to the unique folder of the job)
 ERROR_FILE_NAME = "error.txt"
-ERROR_FILE_PATH = os.path.join(ALL_OUTPUTS_DIRECTORY, ERROR_FILE_NAME)
+ERROR_FILE_PATH = ALL_OUTPUTS_DIRECTORY / ERROR_FILE_NAME
 
 # Whether to send email when job finished from pipeline or flask
 SEND_EMAIL_WHEN_JOB_FINISHED_FROM_PIPELINE = True  # If True, flask won't send emails. If False, flask will send emails.
@@ -42,35 +42,35 @@ CLEAN_OLD_JOBS_DIRECTORIES_FROM_PIPELINE = True  # If True, flask won't clean ol
 # Progress bar file (the path is relative to the unique folder of the job)
 PROGRESSBAR_FILE_NAME = "progressbar.csv"
 
-ANI_CSV = f"{ALL_OUTPUTS_DIRECTORY}/01_ani/ani_pairwise_values.csv"
-ANI_MAP = f"{ALL_OUTPUTS_DIRECTORY}/01_ani/ani_map.png"
+ANI_CSV = ALL_OUTPUTS_DIRECTORY / '01_ani' / 'ani_pairwise_values.csv'
+ANI_MAP = ALL_OUTPUTS_DIRECTORY / '01_ani' / 'ani_map.png'
 
-ORFS_COUNT_PER_GENOME = f"{ALL_OUTPUTS_DIRECTORY}/02b_orfs_plots/orfs_counts.json"
-ORFS_COUNT_HISTOGRAM = f"{ALL_OUTPUTS_DIRECTORY}/02b_orfs_plots/orfs_counts.png"
-GC_CONTENT_PER_GENOME = f"{ALL_OUTPUTS_DIRECTORY}/02b_orfs_plots/orfs_gc_content.json"
-GC_CONTENT_HISTOGRAM = f"{ALL_OUTPUTS_DIRECTORY}/02b_orfs_plots/orfs_gc_content.png"
-GENOME_COMPLETENESS_PER_GENOME = f"{ALL_OUTPUTS_DIRECTORY}/03_genomes_completeness/genomes_completeness.json"
-GENOME_COMPLETENESS_HISTOGRAM = f"{ALL_OUTPUTS_DIRECTORY}/03_genomes_completeness/genomes_completeness.png"
-ORPHAN_GENES_PER_GENOME = f"{ALL_OUTPUTS_DIRECTORY}/04_orphan_genes/orphan_genes_count.json"
-ORPHAN_GENES_HISTOGRAM = f"{ALL_OUTPUTS_DIRECTORY}/04_orphan_genes/orphan_genes_count.png"
+ORFS_COUNT_PER_GENOME = ALL_OUTPUTS_DIRECTORY / '02b_orfs_plots' / 'orfs_counts.json'
+ORFS_COUNT_HISTOGRAM = ALL_OUTPUTS_DIRECTORY / '02b_orfs_plots' / 'orfs_counts.png'
+GC_CONTENT_PER_GENOME = ALL_OUTPUTS_DIRECTORY / '02b_orfs_plots' / 'orfs_gc_content.json'
+GC_CONTENT_HISTOGRAM = ALL_OUTPUTS_DIRECTORY / '02b_orfs_plots' / 'orfs_gc_content.png'
+GENOME_COMPLETENESS_PER_GENOME = ALL_OUTPUTS_DIRECTORY / '03_genomes_completeness' / 'genomes_completeness.json'
+GENOME_COMPLETENESS_HISTOGRAM = ALL_OUTPUTS_DIRECTORY / '03_genomes_completeness' / 'genomes_completeness.png'
+ORPHAN_GENES_PER_GENOME = ALL_OUTPUTS_DIRECTORY / '04_orphan_genes' / 'orphan_genes_count.json'
+ORPHAN_GENES_HISTOGRAM = ALL_OUTPUTS_DIRECTORY / '04_orphan_genes' / 'orphan_genes_count.png'
 
-OG_TABLE = f"{ALL_OUTPUTS_DIRECTORY}/05a_orthogroups/orthogroups.csv"
-OG_TABLE_ANNOTATED = f"{ALL_OUTPUTS_DIRECTORY}/05a_orthogroups/orthogroups_annotated.csv"
-OG_TABLE_ORTHOXML = f"{ALL_OUTPUTS_DIRECTORY}/05a_orthogroups/orthogroups.orthoxml"
-PHYLETIC_PATTERN = f"{ALL_OUTPUTS_DIRECTORY}/05a_orthogroups/phyletic_pattern.fas"
-OG_SIZE_HISTOGRAM = f"{ALL_OUTPUTS_DIRECTORY}/05b_orthogroups_sizes/groups_sizes.png"
+OG_TABLE = ALL_OUTPUTS_DIRECTORY / '05a_orthogroups' / 'orthogroups.csv'
+OG_TABLE_ANNOTATED = ALL_OUTPUTS_DIRECTORY / '05a_orthogroups' / 'orthogroups_annotated.csv'
+OG_TABLE_ORTHOXML = ALL_OUTPUTS_DIRECTORY / '05a_orthogroups' / 'orthogroups.orthoxml'
+PHYLETIC_PATTERN = ALL_OUTPUTS_DIRECTORY / '05a_orthogroups' / 'phyletic_pattern.fas'
+OG_SIZE_HISTOGRAM = ALL_OUTPUTS_DIRECTORY / '05b_orthogroups_sizes' / 'groups_sizes.png'
 
-CORE_PROTEOME = f"{ALL_OUTPUTS_DIRECTORY}/07a_aligned_core_proteome/aligned_core_proteome.fas"
-CORE_GENOME = f"{ALL_OUTPUTS_DIRECTORY}/07b_aligned_core_genome/aligned_core_genome.fas"
-GENOME_NUMERIC_REPRESENTATION = f"{ALL_OUTPUTS_DIRECTORY}/08_genome_numeric_representation/core_genome_numeric_representation.txt"
+CORE_PROTEOME = ALL_OUTPUTS_DIRECTORY / '07a_aligned_core_proteome' / 'aligned_core_proteome.fas'
+CORE_GENOME = ALL_OUTPUTS_DIRECTORY / '07b_aligned_core_genome' / 'aligned_core_genome.fas'
+GENOME_NUMERIC_REPRESENTATION = ALL_OUTPUTS_DIRECTORY / '08_genome_numeric_representation' / 'core_genome_numeric_representation.txt'
 
-SPECIES_TREE_NEWICK = f"{ALL_OUTPUTS_DIRECTORY}/09_species_phylogeny/final_species_tree.newick"
-SPECIES_TREE_PNG = f"{ALL_OUTPUTS_DIRECTORY}/09_species_phylogeny/final_species_tree.png"
+SPECIES_TREE_NEWICK = ALL_OUTPUTS_DIRECTORY / '09_species_phylogeny' / 'final_species_tree.newick'
+SPECIES_TREE_PNG = ALL_OUTPUTS_DIRECTORY / '09_species_phylogeny' / 'final_species_tree.png'
 
-CAI_HISTOGRAM = f"{ALL_OUTPUTS_DIRECTORY}/10_codon_bias/CAI_histogram.png"
-W_VECTORS = f"{ALL_OUTPUTS_DIRECTORY}/10_codon_bias/W_vectors.csv"
-GENOMES_CLUSTERS_BY_W_VECTORS = f"{ALL_OUTPUTS_DIRECTORY}/10_codon_bias/Relative_Adaptiveness_scatter_plot.png"
-GENOMES_CLUSTERS_BY_W_VECTORS_CSV = f"{ALL_OUTPUTS_DIRECTORY}/10_codon_bias/Relative_Adaptiveness_scatter_plot_clusters.csv"
+CAI_HISTOGRAM = ALL_OUTPUTS_DIRECTORY / '10_codon_bias' / 'CAI_histogram.png'
+W_VECTORS = ALL_OUTPUTS_DIRECTORY / '10_codon_bias' / 'W_vectors.csv'
+GENOMES_CLUSTERS_BY_W_VECTORS = ALL_OUTPUTS_DIRECTORY / '10_codon_bias' / 'Relative_Adaptiveness_scatter_plot.png'
+GENOMES_CLUSTERS_BY_W_VECTORS_CSV = ALL_OUTPUTS_DIRECTORY / '10_codon_bias' / 'Relative_Adaptiveness_scatter_plot_clusters.csv'
 
 TITLE_HISTOGRAM_FOR_ORFS = "Open Reading Frames (ORFs)"
 TITLE_HISTOGRAM_FOR_GC_CONTENT = "GC Content %"

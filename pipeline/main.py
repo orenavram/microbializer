@@ -234,7 +234,7 @@ def step_3_analyze_genome_completeness(logger, times_logger, config, translated_
 
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
         for job_index, job_fasta_files in job_index_to_fasta_files.items():
-            job_input_path = os.path.join(jobs_inputs_dir, f'{job_index}.txt')
+            job_input_path = jobs_inputs_dir / f'{job_index}.txt'
             with open(job_input_path, 'w') as f:
                 f.write('\n'.join(job_fasta_files))
 
@@ -313,17 +313,15 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
             with open(subset_genomes_names_path, 'w') as subset_genomes_names_fp:
                 subset_genomes_names_fp.write('\n'.join(subset_genome_names))
 
-            params = [step_number, subset_output_dir, subset_tmp_dir, subset_done_dir, translated_orfs_dir,
-                      subset_genomes_names_path, config.queue_name,
-                      config.account_name, config.node_name, config.identity_cutoff, config.coverage_cutoff,
-                      config.e_value_cutoff, config.sensitivity, max(1, config.max_parallel_jobs // len(genomes_batches)),
-                      config.use_job_manager, batch_id, config.pseudo_genome_mode,
-                      f'--run_optimized_mmseqs {config.run_optimized_mmseqs}', f'--use_parquet {config.use_parquet}',
-                      '--add_orphan_genes_to_ogs True', # Always add orphan genes to OGs in this step
-                      f'--job_default_memory {config.job_default_memory}',
-                      f'--mmseqs_big_dataset_cpus {config.mmseqs_big_dataset_cpus}',
-                      f'--mmseqs_big_dataset_memory {config.mmseqs_big_dataset_memory}',
-                      f'--mmseqs_time_limit {config.mmseqs_time_limit}']
+            config_for_subset_inference = replace(
+                config, genomes_names_path=subset_genomes_names_path, steps_results_dir=subset_output_dir,
+                tmp_dir=subset_tmp_dir, done_files_dir=subset_done_dir,
+                max_parallel_jobs=max(1, config.max_parallel_jobs // len(genomes_batches)),
+                add_orphan_genes_to_ogs=True)
+            subset_config_path = subset_tmp_dir / 'config.csv'
+            config_for_subset_inference.to_csv(subset_config_path)
+
+            params = [subset_config_path, step_number, translated_orfs_dir, batch_id]
             all_cmds_params.append(params)
 
         num_of_batches = submit_batch(logger, config, script_path, all_cmds_params, inference_tmp_dir,
@@ -635,7 +633,7 @@ def step_8_build_orthologous_groups_fastas(logger, times_logger, config, all_orf
                                  orthogroups_induced_dna_msa_dir_path]
             all_cmds_params.append(single_cmd_params)
 
-        orfs_size_gb = (os.path.getsize(all_orfs_fasta_path) + os.path.getsize(all_proteins_fasta_path)) / 1024 ** 3
+        orfs_size_gb = (all_orfs_fasta_path.stat().st_size + all_proteins_fasta_path.stat().st_size) / 1024 ** 3
         memory = max(int(config.job_default_memory), math.ceil(orfs_size_gb * 2))
 
         step_pre_processing_time = timedelta(seconds=int(time.time() - start_time))
@@ -695,8 +693,8 @@ def step_9_extract_core_genome_and_core_proteome(logger, times_logger, config, a
     if not core_genome_done_file_path.exists():
         logger.info('Extracting aligned core genome...')
 
-        aligned_core_genome_file_path = os.path.join(aligned_core_genome_path, 'aligned_core_genome.fas')
-        core_genome_length_file_path = os.path.join(aligned_core_genome_path, 'core_length.txt')
+        aligned_core_genome_file_path = aligned_core_genome_path / 'aligned_core_genome.fas'
+        core_genome_length_file_path = aligned_core_genome_path / 'core_length.txt'
 
         params = [dna_alignments_path, config.genomes_names_path,
                   aligned_core_genome_file_path,
@@ -1100,7 +1098,7 @@ def main():
 
         run_main_pipeline(logger, times_logger, config)
 
-        if config.step_to_complete is None and not config.only_calc_ogs and not config.do_not_copy_outputs_to_final_results_dir:
+        if config.step_to_complete and not config.only_calc_ogs and not config.do_not_copy_outputs_to_final_results_dir:
             logger.info('Zipping results folder...')
             shutil.make_archive(config.final_output_dir, 'zip', config.run_dir, config.final_output_dir_name)
             logger.info(f'Zipped results folder to {config.final_output_dir}.zip')

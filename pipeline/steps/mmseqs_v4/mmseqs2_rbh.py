@@ -11,7 +11,7 @@ import statistics
 import json
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
+sys.path.append(str(SCRIPT_DIR.parent.parent))
 
 from auxiliaries.pipeline_auxiliaries import fail, get_job_logger, add_default_step_args, str_to_bool
 from auxiliaries.logic_auxiliaries import add_score_column_to_mmseqs_output
@@ -24,34 +24,34 @@ def search_rbh(logger, genome1, genome2, dbs_dir, rbh_hits_dir, scores_statistic
     input:  2 protein dbs
     output: query_vs_reference "mmseqs2 easy-rbh" results file
     """
-    output_rbh_path = os.path.join(rbh_hits_dir, f'{genome1}_vs_{genome2}.m8')
-    output_statistics_path = os.path.join(scores_statistics_dir, f'{genome1}_vs_{genome2}.stats')
-    output_genome1_max_scores = os.path.join(max_rbh_score_per_gene_dir, f'{genome1}_max_scores_with_{genome2}.csv')
-    output_genome2_max_scores = os.path.join(max_rbh_score_per_gene_dir, f'{genome2}_max_scores_with_{genome1}.csv')
+    output_rbh_path = rbh_hits_dir / f'{genome1}_vs_{genome2}.m8'
+    output_statistics_path = scores_statistics_dir / f'{genome1}_vs_{genome2}.stats'
+    output_genome1_max_scores = max_rbh_score_per_gene_dir / f'{genome1}_max_scores_with_{genome2}.csv'
+    output_genome2_max_scores = max_rbh_score_per_gene_dir / f'{genome2}_max_scores_with_{genome1}.csv'
 
-    if os.path.exists(output_rbh_path) and os.path.exists(output_statistics_path) \
-            and os.path.exists(output_genome1_max_scores) and os.path.exists(output_genome2_max_scores):
+    if output_rbh_path.exists() and output_statistics_path.exists() \
+            and output_genome1_max_scores.exists() and output_genome2_max_scores.exists():
         return
 
-    tmp_dir = os.path.join(temp_dir, f'tmp_{genome1}_vs_{genome2}')
+    tmp_dir = temp_dir / f'tmp_{genome1}_vs_{genome2}'
     os.makedirs(tmp_dir, exist_ok=True)
 
     # control verbosity level by -v [3] param ; verbosity levels: 0=nothing, 1: +errors, 2: +warnings, 3: +info
-    db_1_path = os.path.join(dbs_dir, f'{genome1}.db')
-    db_2_path = os.path.join(dbs_dir, f'{genome2}.db')
-    result_db_path = os.path.join(tmp_dir, f'{genome1}_vs_{genome2}.db')
-    rbh_command_tmp_dir = os.path.join(tmp_dir, 'tmp_rbh_command')
+    db_1_path = dbs_dir / f'{genome1}.db'
+    db_2_path = dbs_dir / f'{genome2}.db'
+    result_db_path = tmp_dir / f'{genome1}_vs_{genome2}.db'
+    rbh_command_tmp_dir = tmp_dir / 'tmp_rbh_command'
     rbh_command = f'mmseqs rbh {db_1_path} {db_2_path} {result_db_path} {rbh_command_tmp_dir} --min-seq-id {identity_cutoff} ' \
                   f'-c {coverage_cutoff} --cov-mode 0 -e {e_value_cutoff} --threads 1 --search-type 1 ' \
                   f'--comp-bias-corr 0 -v 1 -s {sensitivity}'
     logger.info(f'Calling: {rbh_command}')
     subprocess.run(rbh_command, shell=True, check=True)
 
-    if os.path.getsize(result_db_path) == 0:
+    if result_db_path.stat().st_size == 0:
         logger.info(f"{result_db_path} was created successfully but is empty. No rbh-hits were found.")
         return
 
-    m8_outfile_raw = os.path.join(tmp_dir, f'{genome1}_vs_{genome2}.m8.raw')
+    m8_outfile_raw = tmp_dir / f'{genome1}_vs_{genome2}.m8.raw'
     convert_command = f'mmseqs convertalis {db_1_path} {db_2_path} {result_db_path} {m8_outfile_raw} ' \
                       f'--format-output {consts.MMSEQS_OUTPUT_FORMAT} --search-type 1 --threads 1 -v 1'
     logger.info(f'Calling: {convert_command}')

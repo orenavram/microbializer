@@ -47,23 +47,23 @@ def extract_core_genome(logger, alignments_path, strains_names_path, core_genome
         strains_names = f.read().rstrip().split('\n')
     num_of_strains = len(strains_names)
 
-    output_dir = Path(os.path.dirname(core_genome_path))
+    output_dir = core_genome_path.parent
 
     strain_to_core_genome_dict = dict.fromkeys(strains_names, '')
     core_ogs = []
-    for og_file in os.listdir(alignments_path):  # TODO: consider sorting by og name (currently the concatenation is arbitrary)
-        gene_name_to_sequence_dict = {record.id: record.seq for record in SeqIO.parse(os.path.join(alignments_path, og_file), 'fasta')}
+    for og_file in alignments_path.iterdir():  # TODO: consider sorting by og name (currently the concatenation is arbitrary)
+        gene_name_to_sequence_dict = {record.id: record.seq for record in SeqIO.parse(og_file, 'fasta')}
         og_alignment_length = len(next(iter(gene_name_to_sequence_dict.values())))
         num_of_strains_in_og = get_num_of_strains_in_og(gene_name_to_sequence_dict)
         if num_of_strains_in_og / num_of_strains >= core_minimal_percentage / 100:  # meaning OG is core
-            logger.info(f'Adding to core genome: {og_file} '
+            logger.info(f'Adding to core genome: {og_file.stem} '
                         f'({num_of_strains_in_og}/{num_of_strains} >= {core_minimal_percentage}%)')
-            update_core_genome(logger, og_file, gene_name_to_sequence_dict, og_alignment_length, strain_to_core_genome_dict)
-            core_ogs.append(os.path.splitext(og_file)[0].split('_')[1])  # e.g., og_2655.faa -> 2655
+            update_core_genome(logger, og_file.stem, gene_name_to_sequence_dict, og_alignment_length, strain_to_core_genome_dict)
+            core_ogs.append(og_file.stem.split('_')[1])  # e.g., og_2655 -> 2655
             if max_number_of_ogs and len(core_ogs) == max_number_of_ogs:
                 break
         else:
-            logger.info(f'Not a core gene: {og_file} '
+            logger.info(f'Not a core gene: {og_file.stem} '
                         f'({num_of_strains_in_og}/{num_of_strains} < {core_minimal_percentage}%)')
 
     core_genome_length = None

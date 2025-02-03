@@ -24,12 +24,8 @@ def cluster_genes_to_connected_components(logger, normalized_hits_dir, putative_
     group_name_to_member_genes = {}
     next_group_id = 0
 
-    for file in os.listdir(normalized_hits_dir):
-        if not file.endswith('.m8'):
-            continue
-
-        logger.info(f'Processing file: {file}')
-        hits_file_path = os.path.join(normalized_hits_dir, file)
+    for hits_file_path in normalized_hits_dir.glob('*.m8'):
+        logger.info(f'Processing file: {hits_file_path}')
         with open(hits_file_path) as f:
             for line in f:
                 line_tokens = line.rstrip().split(',')
@@ -116,7 +112,7 @@ def cluster_genes_to_connected_components(logger, normalized_hits_dir, putative_
 
 
 def construct_table(logger, normalized_hits_dir, putative_orthologs_path):
-    if not os.path.exists(putative_orthologs_path):
+    if not putative_orthologs_path.exists():
         cluster_genes_to_connected_components(logger, normalized_hits_dir, putative_orthologs_path)
     else:
         logger.info(f'Putative orthogroups table already exists at {putative_orthologs_path}')

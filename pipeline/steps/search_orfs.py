@@ -25,7 +25,7 @@ def find_genes(logger, genome_path, orfs_output_file_path):
     logger.info(f'Starting prodigal. Executed command is: {cmd}')
     subprocess.run(cmd, shell=True, check=True)
 
-    if not os.path.exists(orfs_output_file_path) or os.stat(orfs_output_file_path).st_size == 0:
+    if not orfs_output_file_path.exists() or os.stat(orfs_output_file_path).st_size == 0:
         raise Exception(f'Could not extract ORFs for {genome_path}')
     with open(orfs_output_file_path, 'rb', 0) as orf_f, mmap.mmap(orf_f.fileno(), 0, access=mmap.ACCESS_READ) as s:
         if s.find(b'>') == -1:
@@ -64,9 +64,9 @@ def extract_orfs_statistics(logger, orf_path, orfs_statistics_dir):
     orfs_statistics['orfs_count'] = orfs_count
     orfs_statistics['gc_content'] = total_num_of_GC / total_num_of_nucleotides
 
-    genome_name = os.path.splitext(os.path.basename(orf_path))[0]
+    genome_name = orf_path.stem
     orfs_statistics_file_name = f'{genome_name}.json'
-    orfs_statistics_file_path = os.path.join(orfs_statistics_dir, orfs_statistics_file_name)
+    orfs_statistics_file_path = orfs_statistics_dir / orfs_statistics_file_name
     with open(orfs_statistics_file_path, 'w') as fp:
         json.dump(orfs_statistics, fp)
 
@@ -77,9 +77,9 @@ def find_genes_of_all_files(logger, job_input_path, orfs_sequences_dir, orfs_sta
                             inputs_fasta_type):
     with open(job_input_path, 'r') as f:
         for line in f:
-            genome_path = line.strip()
-            genome_name = os.path.splitext(os.path.basename(genome_path))[0]
-            orfs_output_file_path = os.path.join(orfs_sequences_dir, f'{genome_name}.fna')
+            genome_path = Path(line.strip())
+            genome_name = genome_path.stem
+            orfs_output_file_path = orfs_sequences_dir / f'{genome_name}.fna'
 
             if inputs_fasta_type == 'genomes':
                 find_genes(logger, genome_path, orfs_output_file_path)
@@ -87,7 +87,7 @@ def find_genes_of_all_files(logger, job_input_path, orfs_sequences_dir, orfs_sta
                 mimic_prodigal_output(genome_path, orfs_output_file_path)
 
             extract_orfs_statistics(logger, orfs_output_file_path, orfs_statistics_dir)
-            fna_to_faa(logger, orfs_output_file_path, os.path.join(orfs_translated_dir, f'{genome_name}.faa'))
+            fna_to_faa(logger, orfs_output_file_path, orfs_translated_dir / f'{genome_name}.faa')
 
 
 if __name__ == '__main__':

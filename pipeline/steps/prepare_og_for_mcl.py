@@ -18,17 +18,12 @@ from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_ar
 def load_all_ogs_hits(normalized_hits_dir, strain_to_gene_to_og):
     og_to_gene_pair_to_score = defaultdict(dict)
 
-    for normalized_hits_file_name in os.listdir(normalized_hits_dir):
-        if not normalized_hits_file_name.endswith('.m8'):
-            continue
-
-        strain_1, strain_2 = os.path.splitext(normalized_hits_file_name)[0].split('_vs_')
+    for hits_file_path in normalized_hits_dir.glob('*.m8'):
+        strain_1, strain_2 = hits_file_path.stem.split('_vs_')
         if strain_1 not in strain_to_gene_to_og or strain_2 not in strain_to_gene_to_og:  # it means that this hit file isn't relevant for the examined OGs
             continue
 
         strain_1_genes_to_og = strain_to_gene_to_og[strain_1]
-
-        hits_file_path = os.path.join(normalized_hits_dir, normalized_hits_file_name)
         with open(hits_file_path) as f:
             f.readline()  # skip header
             for line in f:
@@ -46,7 +41,7 @@ def prepare_ogs_for_mcl(logger, normalized_hits_dir, putative_ogs_path, job_inpu
         ogs_numbers = [line.strip() for line in f]
 
     # Filter out OGs that already have an output file (this might happen if the job was restarted)
-    ogs_numbers = [og_number for og_number in ogs_numbers if not os.path.exists(os.path.join(output_path, og_number + '.mcl_input'))]
+    ogs_numbers = [og_number for og_number in ogs_numbers if not (output_path / f'{og_number}.mcl_input').exists()]
     if not ogs_numbers:
         logger.info('All OGs already have an output file. Exiting...')
         return
@@ -72,19 +67,18 @@ def prepare_ogs_for_mcl(logger, normalized_hits_dir, putative_ogs_path, job_inpu
 
     logger.info('Preparing input files for MCL...')
     for og_number in ogs_numbers:
-        mcl_file_name = og_number + '.mcl_input'
-        mcl_file_path = os.path.join(output_path, mcl_file_name)
+        mcl_file_path = output_path / f'{og_number}.mcl_input'
 
         og_text_for_mcl = ''
         for (gene1, gene2), score in og_to_gene_pair_to_score[og_number].items():
             og_text_for_mcl += f'{gene1}\t{gene2}\t{score}\n'
 
         mcl_write_try_index = 1
-        while not os.path.exists(mcl_file_path):
+        while not mcl_file_path.exists():
             try:
                 with open(mcl_file_path, 'w') as mcl_f:
                     mcl_f.write(og_text_for_mcl)
-                logger.info(f'Wrote {mcl_file_name}')
+                logger.info(f'Wrote {mcl_file_path}')
             except Exception as e:
                 logger.error(f'Error writing {mcl_file_path} (try {mcl_write_try_index}): {e}')
                 sleep(1)

@@ -11,7 +11,7 @@ import subprocess
 import shutil
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
+sys.path.append(str(SCRIPT_DIR.parent.parent))
 
 from auxiliaries.pipeline_auxiliaries import fail, get_job_logger, add_default_step_args, str_to_bool
 from auxiliaries.logic_auxiliaries import add_score_column_to_mmseqs_output
@@ -21,24 +21,22 @@ from auxiliaries import consts
 def search_paralogs(logger, genome_name, dbs_dir, max_scores_parts_dir, paralogs_dir, max_rbh_scores_unified_dir,
                     scores_statistics_dir, temp_dir, identity_cutoff, coverage_cutoff, e_value_cutoff, use_parquet,
                     sensitivity):
-    genome_max_rbh_scores_path = os.path.join(max_rbh_scores_unified_dir, f'{genome_name}.csv')
-    output_paralogs_filtered_path = os.path.join(paralogs_dir, f'{genome_name}_vs_{genome_name}.m8_filtered')
-    score_stats_file = os.path.join(scores_statistics_dir, f'{genome_name}_vs_{genome_name}.stats')
+    genome_max_rbh_scores_path = max_rbh_scores_unified_dir / f'{genome_name}.csv'
+    output_paralogs_filtered_path = paralogs_dir / f'{genome_name}_vs_{genome_name}.m8_filtered'
+    score_stats_file = scores_statistics_dir / f'{genome_name}_vs_{genome_name}.stats'
 
-    if os.path.exists(genome_max_rbh_scores_path) and os.path.exists(output_paralogs_filtered_path) and os.path.exists(score_stats_file):
+    if genome_max_rbh_scores_path.exists() and output_paralogs_filtered_path.exists() and score_stats_file.exists():
         return
 
     # Unify all max_rbh_scores files of the genome to one file
-    max_scores_files = [f for f in os.listdir(max_scores_parts_dir) if f.split('_max_scores_with_')[0] == genome_name]
+    max_scores_files = [f for f in max_scores_parts_dir.iterdir() if f.stem.split('_max_scores_with_')[0] == genome_name]
     if max_scores_files:
         max_scores_dfs = []
         for max_scores_file in max_scores_files:
-            max_scores_path = os.path.join(max_scores_parts_dir, max_scores_file)
-
             if use_parquet:
-                max_scores_df = pd.read_parquet(max_scores_path)
+                max_scores_df = pd.read_parquet(max_scores_file)
             else:
-                max_scores_df = pd.read_csv(max_scores_path)
+                max_scores_df = pd.read_csv(max_scores_file)
 
             max_scores_dfs.append(max_scores_df)
 
@@ -57,24 +55,24 @@ def search_paralogs(logger, genome_name, dbs_dir, max_scores_parts_dir, paralogs
         logger.info(f"No max_rbh_scores files were found for {genome_name}.")
         max_score_per_gene = {}
 
-    genome_db_path = os.path.join(dbs_dir, f'{genome_name}.db')
+    genome_db_path = dbs_dir / f'{genome_name}.db'
 
-    tmp_dir = os.path.join(temp_dir, f'tmp_{genome_name}_vs_{genome_name}')
+    tmp_dir = temp_dir / f'tmp_{genome_name}_vs_{genome_name}'
     os.makedirs(tmp_dir, exist_ok=True)
 
-    result_db_path = os.path.join(tmp_dir, f'{genome_name}_vs_{genome_name}.db')
-    search_tmp_dir = os.path.join(tmp_dir, f'tmp_search_command')
+    result_db_path = tmp_dir / f'{genome_name}_vs_{genome_name}.db'
+    search_tmp_dir = tmp_dir / f'tmp_search_command'
     search_command = f'mmseqs search {genome_db_path} {genome_db_path} {result_db_path} {search_tmp_dir} ' \
                      f'--min-seq-id {identity_cutoff} -c {coverage_cutoff} --cov-mode 0 -e {e_value_cutoff} --threads 1 ' \
                      f'--search-type 1 --comp-bias-corr 0 -v 1 --alignment-mode 3 -s {sensitivity}'
     logger.info(f'Calling: {search_command}')
     subprocess.run(search_command, shell=True, check=True)
 
-    if os.path.getsize(result_db_path) == 0:
+    if result_db_path.stat().st_size == 0:
         logger.info(f"{result_db_path} was created successfully but is empty. No paralogs were found.")
         return
 
-    m8_outfile_raw = os.path.join(tmp_dir, f'{genome_name}_vs_{genome_name}.m8.raw')
+    m8_outfile_raw = tmp_dir / f'{genome_name}_vs_{genome_name}.m8.raw'
     convert_command = f'mmseqs convertalis {genome_db_path} {genome_db_path} {result_db_path} {m8_outfile_raw} ' \
                       f'--format-output {consts.MMSEQS_OUTPUT_FORMAT} --search-type 1 --threads 1 -v 1'
     logger.info(f'Calling: {convert_command}')
@@ -88,7 +86,7 @@ def search_paralogs(logger, genome_name, dbs_dir, max_scores_parts_dir, paralogs
     m8_df = m8_df[['query', 'target', 'score']]
     m8_df = m8_df.sort_values(by=['query', 'target']).reset_index(drop=True)
 
-    outputs_paralogs_processed = os.path.join(temp_dir, f'{genome_name}_vs_{genome_name}.m8')
+    outputs_paralogs_processed = temp_dir / f'{genome_name}_vs_{genome_name}.m8'
     if use_parquet:
         m8_df.to_parquet(outputs_paralogs_processed, index=False)
     else:

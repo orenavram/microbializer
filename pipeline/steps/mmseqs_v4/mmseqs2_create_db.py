@@ -7,15 +7,15 @@ from pathlib import Path
 import traceback
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-sys.path.append(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
+sys.path.append(str(SCRIPT_DIR.parent.parent))
 
 from auxiliaries.pipeline_auxiliaries import fail, get_job_logger, add_default_step_args
 
 
 def create_db(logger, genome_name, proteomes_dir, output_dir):
-    protein_fasta_path = os.path.join(proteomes_dir, f'{genome_name}.faa')
-    db_path = os.path.join(output_dir, f'{genome_name}.db')
-    if os.path.exists(db_path):
+    protein_fasta_path = proteomes_dir / f'{genome_name}.faa'
+    db_path = output_dir / f'{genome_name}.db'
+    if db_path.exists():
         return
 
     # control verbosity level by -v [3] param ; verbosity levels: 0=nothing, 1: +errors, 2: +warnings, 3: +info

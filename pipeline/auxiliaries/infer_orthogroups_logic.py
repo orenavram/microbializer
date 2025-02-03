@@ -119,7 +119,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
         params = [normalized_hits_output_dir,
                   putative_orthologs_table_path]
         submit_mini_batch(logger, config, script_path, [params], putative_orthologs_table_tmp_dir,
-                          os.path.split(script_path)[-1])
+                          'putative_table')
         wait_for_results(logger, times_logger, step_name, putative_orthologs_table_tmp_dir, 1,
                          config.error_file_path)
 

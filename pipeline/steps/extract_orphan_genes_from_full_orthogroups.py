@@ -37,12 +37,12 @@ def extract_orphan_proteins(logger, strain_name, orphan_orthogroups, output_dir)
 
     orphan_genes = orphan_orthogroups_of_strain[~orphan_orthogroups_of_strain.str.contains(';')]
 
-    orphans_path = os.path.join(output_dir, f'{strain_name}_orphans.txt')
+    orphans_path = output_dir / f'{strain_name}_orphans.txt'
     with open(orphans_path, 'w') as orphans_path_fp:
         orphans_path_fp.write('\n'.join(list(orphan_orthogroups_with_paralogs) + list(orphan_genes)))
     logger.info(f'Orphan genes of {strain_name} were written to {orphans_path}')
 
-    orphans_count_path = os.path.join(output_dir, f'{strain_name}_orphans_stats.csv')
+    orphans_count_path = output_dir / f'{strain_name}_orphans_stats.csv'
     orphans_stats = {
         'Orphan orthogroups count': len(orphan_orthogroups_with_paralogs),
         'Orphan single genes count': len(orphan_genes),

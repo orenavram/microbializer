@@ -20,22 +20,18 @@ def aggregate_mmseqs_scores(orthologs_scores_statistics_dir, paralogs_scores_sta
     scores_means_per_strains_pair = {}
     scores_total_sum = 0
     scores_total_records = 0
-    for scores_statistics_file in os.listdir(orthologs_scores_statistics_dir):
-        if not scores_statistics_file.endswith('.stats'):
-            continue
-        strains_names = os.path.splitext(scores_statistics_file)[0]
-        with open(os.path.join(orthologs_scores_statistics_dir, scores_statistics_file)) as fp:
+    for scores_statistics_file in orthologs_scores_statistics_dir.glob('*.stats'):
+        strains_names = scores_statistics_file.stem
+        with open(scores_statistics_file) as fp:
             strains_statistics = json.load(fp)
         scores_means_per_strains_pair[strains_names] = strains_statistics['mean']
         scores_total_sum += strains_statistics['sum']
         scores_total_records += strains_statistics['number of records']
 
     if not skip_paralogs:
-        for scores_statistics_file in os.listdir(paralogs_scores_statistics_dir):
-            if not scores_statistics_file.endswith('.stats'):
-                continue
-            strains_names = os.path.splitext(scores_statistics_file)[0]
-            with open(os.path.join(paralogs_scores_statistics_dir, scores_statistics_file)) as fp:
+        for scores_statistics_file in paralogs_scores_statistics_dir.glob('*.stats'):
+            strains_names = scores_statistics_file.stem
+            with open(scores_statistics_file) as fp:
                 strains_statistics = json.load(fp)
             scores_means_per_strains_pair[strains_names] = strains_statistics['mean']
             scores_total_sum += strains_statistics['sum']
@@ -101,12 +97,12 @@ def get_all_genes_in_table(df):
 def plot_genomes_histogram(data, output_dir, output_file_name, title, xlabel):
     # data is expected to be: {'genome1': 54, 'genome2': 20, ...}
 
-    with open(os.path.join(output_dir, f'{output_file_name}.json'), 'w') as fp:
+    with open(output_dir / f'{output_file_name}.json', 'w') as fp:
         json.dump(data, fp)
 
     output_df = pd.DataFrame.from_dict(data, orient='index', columns=[title])
     output_df.index.name = 'Genome'
-    output_df.to_csv(os.path.join(output_dir, f'{output_file_name}.csv'))
+    output_df.to_csv(output_dir / f'{output_file_name}.csv')
 
     sns.histplot(output_df, x=title, kde=True)
     plt.title(f'Distribution of {title}', fontsize=20, loc='center', wrap=True)
@@ -114,7 +110,7 @@ def plot_genomes_histogram(data, output_dir, output_file_name, title, xlabel):
     plt.ylabel('Genomes count', fontsize=15)
     plt.gca().yaxis.set_major_locator(MaxNLocator(integer=True))  # make y-axis integer
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, f'{output_file_name}.png'), dpi=600)
+    plt.savefig(output_dir / f'{output_file_name}.png', dpi=600)
 
     plt.clf()
 
@@ -145,11 +141,10 @@ def define_intervals(start, end, number_of_intervals):
 
 def get_directory_size_in_gb(directory):
     total_size = 0
-    for file in os.listdir(directory):
-        file_path = os.path.join(directory, file)
+    for file_path in directory.iterdir():
         # Skip broken symlinks and non-files
-        if os.path.isfile(file_path):
-            total_size += os.path.getsize(file_path)
+        if file_path.is_file():
+            total_size += file_path.stat().st_size
     # Convert bytes to gigabytes and round up
     size_in_gb = total_size / (1024 ** 3)
     return size_in_gb
@@ -181,14 +176,12 @@ def fna_to_faa(logger, nucleotide_path, protein_path):
 
 def combine_orphan_genes_stats(orphan_genes_dir, output_dir):
     all_stat_dfs = []
-    for file_name in os.listdir(orphan_genes_dir):
-        if 'orphans_stats.csv' not in file_name:
-            continue
-        df = pd.read_csv(os.path.join(orphan_genes_dir, file_name), index_col=0)
+    for file_path in orphan_genes_dir.glob('*orphans_stats.csv'):
+        df = pd.read_csv(file_path, index_col=0)
         all_stat_dfs.append(df)
 
     combined_df = pd.concat(all_stat_dfs)
-    combined_df.to_csv(os.path.join(output_dir, 'orphans_genes_stats.csv'))
+    combined_df.to_csv(output_dir / 'orphans_genes_stats.csv')
 
     number_of_orphans_per_file = combined_df['Total orphans count'].to_dict()
     plot_genomes_histogram(number_of_orphans_per_file, output_dir, 'orphan_genes_count', 'Orphan genes count',
