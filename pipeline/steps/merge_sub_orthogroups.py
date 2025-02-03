@@ -4,6 +4,7 @@ from pathlib import Path
 import sys
 import traceback
 import pandas as pd
+import numpy as np
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent))
