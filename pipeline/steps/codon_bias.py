@@ -201,6 +201,8 @@ def plot_CAI_histogram(logger, ogs_cai_info_df, output_dir):
 
 
 def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, cpus, logger):
+    # When cpus == 1, it means we run on a low-memory machine, so we don't want to spawn new processes to avoid
+    # 'OSError: [Errno 12] Cannot allocate memory'
     if cpus == 1:
         pool_executor_class = ThreadPoolExecutor
     else:

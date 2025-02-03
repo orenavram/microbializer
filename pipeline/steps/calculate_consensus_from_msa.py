@@ -77,7 +77,7 @@ def calc_consensus_from_all_ogs(logger, job_input_path, output_dir):
         ogs_paths = [line.strip() for line in f]
 
     for og_path in ogs_paths:
-        calc_consensus(logger, og_path, output_dir)
+        calc_consensus(logger, Path(og_path), output_dir)
 
 
 if __name__ == '__main__':

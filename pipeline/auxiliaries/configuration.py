@@ -106,7 +106,7 @@ class Config:
 
     @classmethod
     def from_csv(cls, path: Path):
-        config_df = pd.read_csv(path)
+        config_df = pd.read_csv(path, na_filter=False)
         data_dict = dict(zip(config_df["key"], config_df["value"]))
 
         typed_data = {}

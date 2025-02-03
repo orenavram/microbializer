@@ -79,7 +79,7 @@ def create_pseudo_genome_from_ogs(
             job_index_to_ogs_paths = defaultdict(list)
             for i, og_aligned_file_path in enumerate(orthologs_aa_aligned_dir_path.iterdir()):
                 job_index = i % config.max_parallel_jobs
-                job_index_to_ogs_paths[job_index].append(og_aligned_file_path)
+                job_index_to_ogs_paths[job_index].append(str(og_aligned_file_path))
 
             all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
             for job_index, ogs_paths in job_index_to_ogs_paths.items():
