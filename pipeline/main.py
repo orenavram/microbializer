@@ -481,7 +481,7 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
             logger.info(f'add_orphan_genes_to_ogs is True. Copied {merged_orthogroups_file_path} to '
                         f'{final_orthogroups_file_path} since it already contains orphans.')
         else:
-            orthogroups_df = pd.read_csv(merged_orthogroups_file_path, index_col='OG_name')
+            orthogroups_df = pd.read_csv(merged_orthogroups_file_path, index_col='OG_name', dtype=str)
             orthogroups_df = orthogroups_df[~((orthogroups_df.count(axis=1) == 1) &
                                               ~(orthogroups_df.apply(lambda row: row.dropna().iloc[0].__contains__(';'), axis=1)))]
             orthogroups_df.reset_index(drop=True, inplace=True)

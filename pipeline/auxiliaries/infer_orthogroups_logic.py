@@ -127,7 +127,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    putative_orthologs_table_df = pd.read_csv(putative_orthologs_table_path)
+    putative_orthologs_table_df = pd.read_csv(putative_orthologs_table_path, dtype=str)
 
     # prepare_og_for_mcl.py
     step_number = f'{base_step_number}_{start_substep_number + 2}'
