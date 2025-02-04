@@ -2,7 +2,6 @@ import subprocess
 from sys import argv
 import argparse
 from pathlib import Path
-import os
 import shutil
 import sys
 from Bio import SeqIO

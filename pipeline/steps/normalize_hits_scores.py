@@ -1,7 +1,6 @@
 import pandas as pd
 from sys import argv
 import argparse
-import os
 import sys
 from pathlib import Path
 import traceback

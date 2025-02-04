@@ -9,7 +9,6 @@ Created on Tue Jun 13 08:25:48 2023
 from sys import argv
 import argparse
 from pathlib import Path
-import os
 import sys
 import pandas as pd
 from Bio import SeqIO

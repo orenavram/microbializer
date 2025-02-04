@@ -177,11 +177,11 @@ def get_recursive_step_cummulative_times(path):
 def prepare_directories(logger, outputs_dir_prefix, tmp_dir_prefix, dir_name):
     outputs_dir = outputs_dir_prefix / dir_name
     logger.info(f'Creating {outputs_dir}')
-    os.makedirs(outputs_dir, exist_ok=True)
+    outputs_dir.mkdir(parents=True, exist_ok=True)
 
     tmp_dir = tmp_dir_prefix / dir_name
     logger.info(f'Creating {tmp_dir}')
-    os.makedirs(tmp_dir, exist_ok=True)
+    tmp_dir.mkdir(parents=True, exist_ok=True)
 
     return outputs_dir, tmp_dir
 
@@ -237,8 +237,8 @@ def submit_mini_batch(logger, config, script_path, mini_batch_parameters_list, l
 
     if config.use_job_manager:
         # Add execution permissions to cmds_path
-        current_permissions = os.stat(cmds_path).st_mode
-        os.chmod(cmds_path, current_permissions | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+        current_permissions = cmds_path.stat().st_mode
+        cmds_path.chmod(current_permissions | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
         if memory is None:
             memory = config.job_default_memory
@@ -372,7 +372,7 @@ def submit_clean_folders_job(logger, config):
     folders_to_clean = [str(config.steps_results_dir)]
 
     clean_folders_tmp_dir = config.tmp_dir / 'clean_folders'
-    os.makedirs(clean_folders_tmp_dir, exist_ok=True)
+    clean_folders_tmp_dir.mkdir(parents=True, exist_ok=True)
 
     clean_folders_error_file_path = clean_folders_tmp_dir / 'error.txt'
     clean_folders_file_path = clean_folders_tmp_dir / 'folders.txt'
@@ -388,7 +388,7 @@ def submit_clean_folders_job(logger, config):
 
 def submit_clean_old_user_results_job(logger, config):
     logger.info('Checking if a clean old jobs job is needed...')
-    os.makedirs(consts.CLEAN_JOBS_LOGS_DIR, exist_ok=True)
+    consts.CLEAN_JOBS_LOGS_DIR.mkdir(parents=True, exist_ok=True)
 
     datetime_format = "%Y_%m_%d_%H_%M_%S"
     parsed_datetimes = []
@@ -409,7 +409,7 @@ def submit_clean_old_user_results_job(logger, config):
 
     logger.info('Submitting a job to clean old user results...')
     tmp_dir = consts.CLEAN_JOBS_LOGS_DIR / now.strftime(datetime_format)
-    os.makedirs(tmp_dir, exist_ok=True)
+    tmp_dir.mkdir(parents=True, exist_ok=True)
     clean_old_jobs_error_file_path = tmp_dir / 'error.txt'
     script_path = consts.SRC_DIR / 'steps' / 'clean_old_jobs.py'
     params = []

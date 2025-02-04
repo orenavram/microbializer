@@ -6,7 +6,6 @@ core_minimal_percentage. "core genes" are genes that are part of "core OGs".
 from pathlib import Path
 import sys
 from sys import argv
-import os
 import argparse
 import pandas as pd
 import traceback

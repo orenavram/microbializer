@@ -1,4 +1,3 @@
-import os
 import math
 from collections import defaultdict
 import dask.dataframe as dd
@@ -80,7 +79,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
 
         all_cmds_params = []
         jobs_inputs_dir = normalized_hits_tmp_dir / 'jobs_inputs'
-        os.makedirs(jobs_inputs_dir, exist_ok=True)
+        jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
         for job_index, job_input_info in job_index_to_hits_files_and_coefficients.items():
             job_input_path = jobs_inputs_dir / f'{job_index}.txt'
             with open(job_input_path, 'w') as f:
@@ -178,8 +177,8 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
         logger.info('Executing MCL...')
         start_time = time.time()
 
-        os.makedirs(mcl_outputs_dir, exist_ok=True)
-        os.makedirs(verified_clusters_output_dir, exist_ok=True)
+        mcl_outputs_dir.mkdir(parents=True, exist_ok=True)
+        verified_clusters_output_dir.mkdir(parents=True, exist_ok=True)
 
         job_paths = split_ogs_to_jobs_inputs_files_by_og_sizes(putative_orthologs_table_df, mcl_tmp_dir,
                                                                config.max_parallel_jobs)
@@ -240,7 +239,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
     done_file_path = config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
         logger.info('Extracting orphan genes...')
-        os.makedirs(orphan_genes_internal_dir, exist_ok=True)
+        orphan_genes_internal_dir.mkdir(parents=True, exist_ok=True)
 
         job_index_to_fasta_files = defaultdict(list)
 
@@ -249,7 +248,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
             job_index_to_fasta_files[job_index].append(str(fasta_file))
 
         jobs_inputs_dir = orphans_tmp_dir / 'job_inputs'
-        os.makedirs(jobs_inputs_dir, exist_ok=True)
+        jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
 
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
         for job_index, job_fasta_files in job_index_to_fasta_files.items():
@@ -372,14 +371,14 @@ def run_unified_mmseqs(logger, times_logger, config, base_step_number, all_prote
     orthologs_output_dir, pipeline_step_tmp_dir = prepare_directories(
         logger, config.steps_results_dir, config.tmp_dir, step_name)
     orthologs_scores_statistics_dir = orthologs_output_dir / 'scores_statistics'
-    os.makedirs(orthologs_scores_statistics_dir, exist_ok=True)
+    orthologs_scores_statistics_dir.mkdir(parents=True, exist_ok=True)
     max_rbh_scores_parts_output_dir = orthologs_output_dir / 'max_rbh_scores_parts'
-    os.makedirs(max_rbh_scores_parts_output_dir, exist_ok=True)
+    max_rbh_scores_parts_output_dir.mkdir(parents=True, exist_ok=True)
     done_file_path = config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
         if len(strains_names) >= 2:
             rbh_inputs_dir = pipeline_step_tmp_dir / 'rbh_inputs_dir'
-            os.makedirs(rbh_inputs_dir, exist_ok=True)
+            rbh_inputs_dir.mkdir(parents=True, exist_ok=True)
             job_index_to_pairs = defaultdict(list)
             for i, (genome1, genome2) in enumerate(itertools.combinations(strains_names, 2)):
                 job_index = i % config.max_parallel_jobs
@@ -419,15 +418,15 @@ def run_unified_mmseqs(logger, times_logger, config, base_step_number, all_prote
     paralogs_output_dir, pipeline_step_tmp_dir = prepare_directories(
         logger, config.steps_results_dir, config.tmp_dir, step_name)
     paralogs_scores_statistics_dir = paralogs_output_dir / 'scores_statistics'
-    os.makedirs(paralogs_scores_statistics_dir, exist_ok=True)
+    paralogs_scores_statistics_dir.mkdir(parents=True, exist_ok=True)
     max_rbh_scores_unified_dir = paralogs_output_dir / 'max_rbh_scores_unified'
-    os.makedirs(max_rbh_scores_unified_dir, exist_ok=True)
+    max_rbh_scores_unified_dir.mkdir(parents=True, exist_ok=True)
     done_file_path = config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
         logger.info('Searching for paralogs in each genome')
 
         paralogs_inputs_dir = pipeline_step_tmp_dir / 'paralogs_inputs_dir'
-        os.makedirs(paralogs_inputs_dir, exist_ok=True)
+        paralogs_inputs_dir.mkdir(parents=True, exist_ok=True)
         job_index_to_genome = defaultdict(list)
         for i, genome in enumerate(strains_names):
             job_index = i % config.max_parallel_jobs
@@ -479,7 +478,7 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, config, base_step_numb
             job_index_to_strain_names[job_index].append(strain_name)
 
         jobs_inputs_dir = mmseqs_dbs_tmp_dir / 'job_inputs'
-        os.makedirs(jobs_inputs_dir, exist_ok=True)
+        jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
 
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
         for job_index, job_strain_names in job_index_to_strain_names.items():
@@ -508,15 +507,15 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, config, base_step_numb
     orthologs_output_dir, orthologs_tmp_dir = prepare_directories(
         logger, config.steps_results_dir, config.tmp_dir, step_name)
     orthologs_scores_statistics_dir = orthologs_output_dir / 'scores_statistics'
-    os.makedirs(orthologs_scores_statistics_dir, exist_ok=True)
+    orthologs_scores_statistics_dir.mkdir(parents=True, exist_ok=True)
     max_rbh_scores_parts_output_dir = orthologs_output_dir / 'max_rbh_scores_parts'
-    os.makedirs(max_rbh_scores_parts_output_dir, exist_ok=True)
+    max_rbh_scores_parts_output_dir.mkdir(parents=True, exist_ok=True)
     done_file_path = config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
         if len(strains_names) >= 2:
             logger.info(f'Querying all VS all (using mmseqs2)...')
             temp_dir = orthologs_output_dir / 'temp'
-            os.makedirs(temp_dir, exist_ok=True)
+            temp_dir.mkdir(parents=True, exist_ok=True)
 
             job_index_to_strain_pairs = defaultdict(list)
             for i, (strain1_name, strain2_name) in enumerate(itertools.combinations(strains_names, 2)):
@@ -524,7 +523,7 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, config, base_step_numb
                 job_index_to_strain_pairs[job_index].append((strain1_name, strain2_name))
 
             jobs_inputs_dir = orthologs_tmp_dir / 'job_inputs'
-            os.makedirs(jobs_inputs_dir, exist_ok=True)
+            jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
 
             all_cmds_params = []
             for job_index, job_strain_pairs in job_index_to_strain_pairs.items():
@@ -568,14 +567,14 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, config, base_step_numb
     paralogs_output_dir, paralogs_tmp_dir = prepare_directories(
         logger, config.steps_results_dir, config.tmp_dir, step_name)
     paralogs_scores_statistics_dir = paralogs_output_dir / 'scores_statistics'
-    os.makedirs(paralogs_scores_statistics_dir, exist_ok=True)
+    paralogs_scores_statistics_dir.mkdir(parents=True, exist_ok=True)
     max_rbh_scores_unified_dir = paralogs_output_dir / 'max_rbh_scores_unified'
-    os.makedirs(max_rbh_scores_unified_dir, exist_ok=True)
+    max_rbh_scores_unified_dir.mkdir(parents=True, exist_ok=True)
     done_file_path = config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
         logger.info('Searching for paralogs in each genome')
         temp_dir = paralogs_output_dir / 'temp'
-        os.makedirs(temp_dir, exist_ok=True)
+        temp_dir.mkdir(parents=True, exist_ok=True)
 
         job_index_to_strain_names = defaultdict(list)
 
@@ -584,7 +583,7 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, config, base_step_numb
             job_index_to_strain_names[job_index].append(strain_name)
 
         jobs_inputs_dir = paralogs_tmp_dir / 'job_inputs'
-        os.makedirs(jobs_inputs_dir, exist_ok=True)
+        jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
 
         all_cmds_params = []
 

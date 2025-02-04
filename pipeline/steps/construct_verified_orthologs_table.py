@@ -1,7 +1,6 @@
 from sys import argv
 import argparse
 from pathlib import Path
-import os
 import sys
 import pandas as pd
 from collections import defaultdict

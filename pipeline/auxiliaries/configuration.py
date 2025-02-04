@@ -222,7 +222,7 @@ def get_configuration():
 
                     email=args.email, job_name=args.job_name, run_number=run_number,
                     send_email=consts.ENV == 'lsweb' and SEND_EMAIL_WHEN_JOB_FINISHED_FROM_PIPELINE and
-                               args.step_to_complete and not args.only_calc_ogs and
+                               not args.step_to_complete and not args.only_calc_ogs and
                                not args.do_not_copy_outputs_to_final_results_dir,
 
                     identity_cutoff=args.identity_cutoff, coverage_cutoff=args.coverage_cutoff,
@@ -312,7 +312,7 @@ def prepare_pipeline_framework(args):
             raise ValueError(f'contigs_dir argument {raw_data_path} does not exist!')
 
     output_dir = run_dir / args.output_dir
-    os.makedirs(output_dir, exist_ok=True)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     level = logging.DEBUG if args.verbose else logging.INFO
     formatter = logging.Formatter(consts.LOG_MESSAGE_FORMAT)
@@ -336,7 +336,7 @@ def prepare_pipeline_framework(args):
     final_output_dir_name = f'{WEBSERVER_NAME}_{args.output_dir}'
     final_output_dir = run_dir / final_output_dir_name
     logger.info(f'Creating final_output_dir is: {final_output_dir}')
-    os.makedirs(final_output_dir, exist_ok=True)
+    final_output_dir.mkdir(parents=True, exist_ok=True)
 
     error_file_path = final_output_dir / ERROR_FILE_NAME
     progressbar_file_path = run_dir / PROGRESSBAR_FILE_NAME
@@ -346,19 +346,19 @@ def prepare_pipeline_framework(args):
 
     tmp_dir = output_dir / 'tmp'
     logger.info(f'Creating tmp_dir in: {tmp_dir}')
-    os.makedirs(tmp_dir, exist_ok=True)
+    tmp_dir.mkdir(parents=True, exist_ok=True)
 
     done_files_dir = output_dir / 'done'
     logger.info(f'Creating done_files_dir in: {done_files_dir}')
-    os.makedirs(done_files_dir, exist_ok=True)
+    done_files_dir.mkdir(parents=True, exist_ok=True)
 
     steps_results_dir = output_dir / 'steps_results'
     logger.info(f'Creating results_dir in: {steps_results_dir}')
-    os.makedirs(steps_results_dir, exist_ok=True)
+    steps_results_dir.mkdir(parents=True, exist_ok=True)
 
     data_path = output_dir / 'inputs'
     logger.info(f'Creating data_path is: {data_path}')
-    os.makedirs(data_path, exist_ok=True)
+    data_path.mkdir(parents=True, exist_ok=True)
 
     genomes_names_path = output_dir / 'genomes_names.txt'
 

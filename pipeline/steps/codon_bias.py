@@ -1,7 +1,6 @@
 import sys
 from sys import argv
 import argparse
-import os
 import time
 import json
 import subprocess
@@ -211,7 +210,7 @@ def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, cpu
     # 1. Calculate W vector for each genome
     logger.info("Finding HEGs in ORFs files and calculating W vectors...")
     hegs_output_dir = tmp_dir / 'HEGs'
-    os.makedirs(hegs_output_dir, exist_ok=True)
+    hegs_output_dir.mkdir(parents=True, exist_ok=True)
 
     genome_name_to_codon_index = {}
     with pool_executor_class(max_workers=cpus) as executor:
@@ -236,7 +235,7 @@ def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, cpu
     # 3. Calculate CAI for each OG
     logger.info("Calculating CAI for each OG...")
     cais_output_dir = tmp_dir / 'OGs_CAIs'
-    os.makedirs(cais_output_dir, exist_ok=True)
+    cais_output_dir.mkdir(parents=True, exist_ok=True)
 
     og_name_to_cai_info = {}
     with pool_executor_class(max_workers=cpus) as executor:

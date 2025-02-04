@@ -3,7 +3,6 @@ Running example:
 script_name.py /Users/Oren/Dropbox/Projects/microbializer/mock_output/all_recip_hits.csv /Users/Oren/Dropbox/Projects/microbializer/mock_output/putative_orthologs_table.tsv
 """
 
-import os
 from sys import argv
 import argparse
 from pathlib import Path

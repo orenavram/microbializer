@@ -2,7 +2,6 @@ from sys import argv
 import argparse
 import sys
 import traceback
-import os
 import time
 from math import floor
 from pathlib import Path
@@ -24,7 +23,7 @@ def clean_old_jobs(logger):
         if not job_dir_path.is_dir():
             continue
 
-        seconds_since_last_modification = time.time() - os.stat(job_dir_path).st_mtime
+        seconds_since_last_modification = time.time() - job_dir_path.stat().st_mtime
         days_since_last_modification = floor(seconds_since_last_modification / 60 / 60 / 24)
 
         if days_since_last_modification > SharedConsts.TIME_TO_KEEP_PROCSES_IDS_FOLDERS + 1:  # Take confidence interval of 1 day

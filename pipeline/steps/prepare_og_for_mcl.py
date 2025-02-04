@@ -1,8 +1,6 @@
-
 from sys import argv
 import argparse
 from pathlib import Path
-import os
 import sys
 import traceback
 from time import sleep

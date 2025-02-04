@@ -2,7 +2,6 @@ import sys
 from sys import argv
 import argparse
 from pathlib import Path
-import os
 import traceback
 from Bio import SeqIO
 

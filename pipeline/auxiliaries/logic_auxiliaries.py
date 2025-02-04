@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import re
 import json
 import math
@@ -208,8 +207,8 @@ def split_ogs_to_jobs_inputs_files_by_og_sizes(orthogroups_df, step_tmp_dir, max
         # Update the job's genes count
         job_index_to_genes_count[job_index_with_min_genes_count] += row["genes_count"]
 
-    job_inputs_dir =  step_tmp_dir / 'jobs_inputs'
-    os.makedirs(job_inputs_dir, exist_ok=True)
+    job_inputs_dir = step_tmp_dir / 'jobs_inputs'
+    job_inputs_dir.mkdir(parents=True, exist_ok=True)
     job_paths = []
     for job_index, ogs in job_index_to_ogs.items():
         job_path = job_inputs_dir / f'{job_index}.txt'

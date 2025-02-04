@@ -1,4 +1,3 @@
-import os
 import shutil
 import sys
 import math
@@ -67,7 +66,7 @@ def step_1_fix_input_files(logger, times_logger, config):
             job_index_to_fasta_files[job_index].append(str(fasta_file))
 
         jobs_inputs_dir = pipeline_step_tmp_dir / 'job_inputs'
-        os.makedirs(jobs_inputs_dir, exist_ok=True)
+        jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
 
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
         for job_index, job_fasta_files in job_index_to_fasta_files.items():
@@ -111,9 +110,9 @@ def step_2_search_orfs(logger, times_logger, config):
     if not done_file_path.exists():
         logger.info('Extracting ORFs...')
 
-        os.makedirs(orfs_sequences_dir, exist_ok=True)
-        os.makedirs(orfs_statistics_dir, exist_ok=True)
-        os.makedirs(orfs_translated_dir, exist_ok=True)
+        orfs_sequences_dir.mkdir(parents=True, exist_ok=True)
+        orfs_statistics_dir.mkdir(parents=True, exist_ok=True)
+        orfs_translated_dir.mkdir(parents=True, exist_ok=True)
 
         job_index_to_fasta_files = defaultdict(list)
 
@@ -122,7 +121,7 @@ def step_2_search_orfs(logger, times_logger, config):
             job_index_to_fasta_files[job_index].append(str(fasta_file))
 
         jobs_inputs_dir = orfs_tmp_dir / 'job_inputs'
-        os.makedirs(jobs_inputs_dir, exist_ok=True)
+        jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
 
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
         for job_index, job_fasta_files in job_index_to_fasta_files.items():
@@ -228,9 +227,9 @@ def step_3_analyze_genome_completeness(logger, times_logger, config, translated_
             job_index_to_fasta_files[job_index].append(str(fasta_file))
 
         jobs_inputs_dir = genome_completeness_tmp_dir / 'job_inputs'
-        os.makedirs(jobs_inputs_dir, exist_ok=True)
+        jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
         genomes_output_dir_path = genome_completeness_tmp_dir / 'individual_proteomes_outputs'
-        os.makedirs(genomes_output_dir_path, exist_ok=True)
+        genomes_output_dir_path.mkdir(parents=True, exist_ok=True)
 
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
         for job_index, job_fasta_files in job_index_to_fasta_files.items():
@@ -305,9 +304,9 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
             subset_output_dir = inference_dir_path / f'subset_{batch_id}'
             subset_tmp_dir = inference_tmp_dir / f'subset_{batch_id}'
             subset_done_dir = done_dir_path / f'subset_{batch_id}'
-            os.makedirs(subset_output_dir, exist_ok=True)
-            os.makedirs(subset_tmp_dir, exist_ok=True)
-            os.makedirs(subset_done_dir, exist_ok=True)
+            subset_output_dir.mkdir(parents=True, exist_ok=True)
+            subset_tmp_dir.mkdir(parents=True, exist_ok=True)
+            subset_done_dir.mkdir(parents=True, exist_ok=True)
 
             subset_genomes_names_path = subset_output_dir / f'genomes_names.txt'
             with open(subset_genomes_names_path, 'w') as subset_genomes_names_fp:
@@ -354,8 +353,8 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
         logger.info('Collection psuedo genomes and sub-orthogroups...')
         start_time = time.time()
 
-        os.makedirs(pseudo_genomes_dir_path, exist_ok=True)
-        os.makedirs(sub_orthogroups_dir_path, exist_ok=True)
+        pseudo_genomes_dir_path.mkdir(parents=True, exist_ok=True)
+        sub_orthogroups_dir_path.mkdir(parents=True, exist_ok=True)
         pseudo_genomes_names = []
 
         for batch_dir_path in inference_dir_path.iterdir():
@@ -427,7 +426,7 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
     done_file_path = config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
         logger.info('Extracting orphan genes...')
-        os.makedirs(orphan_genes_internal_dir, exist_ok=True)
+        orphan_genes_internal_dir.mkdir(parents=True, exist_ok=True)
 
         job_index_to_genome_names = defaultdict(list)
 
@@ -436,7 +435,7 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
             job_index_to_genome_names[job_index].append(genome_name)
 
         jobs_inputs_dir = orphans_tmp_dir / 'job_inputs'
-        os.makedirs(jobs_inputs_dir, exist_ok=True)
+        jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
 
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
         for job_index, job_genome_names in job_index_to_genome_names.items():
@@ -587,10 +586,10 @@ def step_8_build_orthologous_groups_fastas(logger, times_logger, config, all_orf
         logger.info('Extracting orthologs groups sequences according to final orthologs table...')
         start_time = time.time()
 
-        os.makedirs(orthogroups_dna_dir_path, exist_ok=True)
-        os.makedirs(orthologs_aa_dir_path, exist_ok=True)
-        os.makedirs(orthogroups_aa_msa_dir_path, exist_ok=True)
-        os.makedirs(orthogroups_induced_dna_msa_dir_path, exist_ok=True)
+        orthogroups_dna_dir_path.mkdir(parents=True, exist_ok=True)
+        orthologs_aa_dir_path.mkdir(parents=True, exist_ok=True)
+        orthogroups_aa_msa_dir_path.mkdir(parents=True, exist_ok=True)
+        orthogroups_induced_dna_msa_dir_path.mkdir(parents=True, exist_ok=True)
 
         orthogroups_df = pd.read_csv(final_orthologs_table_file_path)
         job_paths = split_ogs_to_jobs_inputs_files_by_og_sizes(orthogroups_df, pipeline_step_tmp_dir, config.max_parallel_jobs)
@@ -775,7 +774,7 @@ def step_11_phylogeny(logger, times_logger, config, aligned_core_proteome_file_p
     if not ani_done_file_path.exists():
         logger.info('Calculating ANI values...')
         ani_tmp_files = ani_tmp_dir / 'temp_results'
-        os.makedirs(ani_tmp_files, exist_ok=True)
+        ani_tmp_files.mkdir(parents=True, exist_ok=True)
 
         genomes_paths = [str(genome_path) for genome_path in config.data_path.iterdir()]
         genomes_list_path = ani_tmp_files / 'genomes_list.txt'
@@ -819,8 +818,8 @@ def step_11_phylogeny(logger, times_logger, config, aligned_core_proteome_file_p
 
             # Needed to avoid an error in drawing the tree (since the default xdg_runtime_dir is sometimes not writable)
             xdg_runtime_dir = phylogeny_tmp_dir / 'xdg_runtime_dir'
-            os.makedirs(xdg_runtime_dir, exist_ok=True)
-            os.chmod(xdg_runtime_dir, 0o700)
+            xdg_runtime_dir.mkdir(parents=True, exist_ok=True)
+            xdg_runtime_dir.chmod(0o700)
 
             submit_mini_batch(logger, config, script_path, [params], phylogeny_tmp_dir,
                               'tree_reconstruction', num_of_cpus=config.phylogeny_cpus,

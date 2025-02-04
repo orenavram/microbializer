@@ -143,7 +143,7 @@ def unpack_data(logger, raw_data_path, run_dir, error_file_path):
     for file_path in raw_data_path.iterdir():
         if not file_path.is_dir():
             # make sure each fasta has writing permissions for downstream editing
-            os.chmod(file_path, 0o644)  # -rw-r--r--
+            file_path.chmod(0o644)  # -rw-r--r--
         else:
             if file_path.name == '__MACOSX':
                 # happens too many times to mac users so i decided to assist in this case
@@ -178,7 +178,7 @@ def move_file(logger, file_path, new_file_name, error_file_path):
                     f'{file_path}\n'
                     f'to this:\n'
                     f'{new_file_path}')
-        os.rename(file_path, new_file_path)
+        file_path.rename(new_file_path)
     except:
         error_msg = f'One (or more) file name(s) contain illegal character such as parenthesis, pipes, or slashes.\n' \
                     f'In order to avoid downstream parsing errors, {flask_interface_consts.WEBSERVER_NAME} ' \

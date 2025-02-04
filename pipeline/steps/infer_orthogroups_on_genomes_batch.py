@@ -1,4 +1,3 @@
-import os
 import sys
 from sys import argv
 import argparse
@@ -37,8 +36,8 @@ def create_pseudo_genome_from_ogs(
     done_file_path = config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
         logger.info('Extracting orthologs groups sequences according to final orthologs table...')
-        os.makedirs(orthologs_aa_dir_path, exist_ok=True)
-        os.makedirs(orthologs_aa_aligned_dir_path, exist_ok=True)
+        orthologs_aa_dir_path.mkdir(parents=True, exist_ok=True)
+        orthologs_aa_aligned_dir_path.mkdir(parents=True, exist_ok=True)
 
         job_paths = split_ogs_to_jobs_inputs_files_by_og_sizes(
             final_orthogroups_df, pipeline_step_tmp_dir, config.max_parallel_jobs)
@@ -74,7 +73,7 @@ def create_pseudo_genome_from_ogs(
             logger.info('Calculating consensus sequences for all aligned OGs...')
 
             job_input_files = ogs_consensus_tmp_dir / 'job_input_files'
-            os.makedirs(job_input_files, exist_ok=True)
+            job_input_files.mkdir(parents=True, exist_ok=True)
 
             job_index_to_ogs_paths = defaultdict(list)
             for i, og_aligned_file_path in enumerate(orthologs_aa_aligned_dir_path.iterdir()):
@@ -157,7 +156,7 @@ def infer_orthogroups_on_genomes_batch(
 
     subset_proteomes_dir = config.steps_results_dir / 'proteomes'
     if not subset_proteomes_dir.exists():
-        os.makedirs(subset_proteomes_dir, exist_ok=True)
+        subset_proteomes_dir.mkdir(parents=True, exist_ok=True)
         for genome_name in genomes_names:
             shutil.copy(translated_orfs_dir / f'{genome_name}.faa',
                         subset_proteomes_dir / f'{genome_name}.faa')

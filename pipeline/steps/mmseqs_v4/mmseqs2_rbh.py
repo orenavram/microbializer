@@ -1,4 +1,3 @@
-import os
 import subprocess
 import sys
 from sys import argv
@@ -34,7 +33,7 @@ def search_rbh(logger, genome1, genome2, dbs_dir, rbh_hits_dir, scores_statistic
         return
 
     tmp_dir = temp_dir / f'tmp_{genome1}_vs_{genome2}'
-    os.makedirs(tmp_dir, exist_ok=True)
+    tmp_dir.mkdir(parents=True, exist_ok=True)
 
     # control verbosity level by -v [3] param ; verbosity levels: 0=nothing, 1: +errors, 2: +warnings, 3: +info
     db_1_path = dbs_dir / f'{genome1}.db'

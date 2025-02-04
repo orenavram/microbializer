@@ -1,4 +1,3 @@
-import os
 import sys
 from sys import argv
 import argparse
@@ -104,7 +103,7 @@ def extract_paralogs(logger, m8_path, genomes_input_path, max_scores_parts_dir, 
         genomes = [genome.strip() for genome in f]
 
     temp_dir = paralogs_dir / 'tmp'
-    os.makedirs(temp_dir, exist_ok=True)
+    temp_dir.mkdir(parents=True, exist_ok=True)
 
     m8_df = dd.read_parquet(m8_path).compute()
     for genome in genomes:

@@ -3,7 +3,6 @@ import sys
 from sys import argv
 import argparse
 from pathlib import Path
-import os
 import traceback
 import mmap
 import json
@@ -25,7 +24,7 @@ def find_genes(logger, genome_path, orfs_output_file_path):
     logger.info(f'Starting prodigal. Executed command is: {cmd}')
     subprocess.run(cmd, shell=True, check=True)
 
-    if not orfs_output_file_path.exists() or os.stat(orfs_output_file_path).st_size == 0:
+    if not orfs_output_file_path.exists() or orfs_output_file_path.stat().st_size == 0:
         raise Exception(f'Could not extract ORFs for {genome_path}')
     with open(orfs_output_file_path, 'rb', 0) as orf_f, mmap.mmap(orf_f.fileno(), 0, access=mmap.ACCESS_READ) as s:
         if s.find(b'>') == -1:

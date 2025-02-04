@@ -1,4 +1,3 @@
-import os
 import sys
 from sys import argv
 import argparse
@@ -105,7 +104,7 @@ def extract_rbh_hits(logger, m8_path, rbh_input_path, rbh_hits_dir, scores_stati
         genome_pairs = [pair.strip().split() for pair in genome_pairs]
 
     temp_dir = rbh_hits_dir / 'tmp'
-    os.makedirs(temp_dir, exist_ok=True)
+    temp_dir.mkdir(parents=True, exist_ok=True)
 
     m8_df = dd.read_parquet(m8_path).compute()
     for genome1, genome2 in genome_pairs:

@@ -1,4 +1,3 @@
-import os
 import sys
 from sys import argv
 import argparse
@@ -58,7 +57,7 @@ def search_paralogs(logger, genome_name, dbs_dir, max_scores_parts_dir, paralogs
     genome_db_path = dbs_dir / f'{genome_name}.db'
 
     tmp_dir = temp_dir / f'tmp_{genome_name}_vs_{genome_name}'
-    os.makedirs(tmp_dir, exist_ok=True)
+    tmp_dir.mkdir(parents=True, exist_ok=True)
 
     result_db_path = tmp_dir / f'{genome_name}_vs_{genome_name}.db'
     search_tmp_dir = tmp_dir / f'tmp_search_command'

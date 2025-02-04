@@ -2,7 +2,6 @@ import subprocess
 import sys
 from sys import argv
 import argparse
-import os
 from pathlib import Path
 from Bio import SeqIO
 import pandas as pd
