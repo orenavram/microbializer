@@ -285,7 +285,7 @@ def submit_batch(logger, config, script_path, batch_parameters_list, logs_dir, j
 
 
 def send_email_in_pipeline_end(logger, process_id, email_address, job_name, state):
-    email_addresses = [flask_interface_consts.OWNER_EMAIL]
+    email_addresses = [SharedConsts.OWNER_EMAIL]
     email_addresses.extend(flask_interface_consts.ADDITIONAL_OWNER_EMAILS)
     if email_address:
         email_addresses.append(email_address)

@@ -2,7 +2,6 @@ from pathlib import Path
 
 WEBSERVER_NAME = 'M1CR0B1AL1Z3R'
 WEBSERVER_PROJECT_ROOT_DIR = '/lsweb/pupko/microbializer'
-OWNER_EMAIL = 'yairshimony@mail.tau.ac.il'
 ADDITIONAL_OWNER_EMAILS = ['edodotan@mail.tau.ac.il']
 
 # Arguments keys to run the pipeline with

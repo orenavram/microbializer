@@ -1,10 +1,10 @@
 from pathlib import Path
 from enum import Enum
 
-from . import flask_interface_consts
 
 WEBSERVER_DOMAIN = 'microbializer.tau.ac.il'
 WEBSERVER_ADDRESS = f'https://{WEBSERVER_DOMAIN}'
+OWNER_EMAIL = 'yairshimony@mail.tau.ac.il'
 
 # OUTPUT consts
 K_MER_COUNTER_MATRIX_FILE_NAME = Path('CounterMatrixForUI.csv')
@@ -186,7 +186,7 @@ class EMAIL_CONSTS:
     CONTENT_PROCESS_CRASHED = f"Thank you for using Microbializer.\n" \
                               f"We are sorry for the inconvenience, but the process crashed.\n" \
                               f"Please look at: {WEBSERVER_ADDRESS}/error_from_job/{{process_id}} for the error details and verify your input.\n" \
-                              f"For more help contact: {flask_interface_consts.OWNER_EMAIL}"
+                              f"For more help contact: {OWNER_EMAIL}"
 
     CONTENT_PROCESS_FINISHED = f"Thank you for using Microbializer.\n" \
                                f"Your results visual summary is at: {WEBSERVER_ADDRESS}/results/{{process_id}}\n" \
@@ -194,7 +194,7 @@ class EMAIL_CONSTS:
                                f"Please note that the results are available for {str(TIME_TO_KEEP_PROCSES_IDS_FOLDERS)} days, " \
                                f"and will be deleted after, so remember to download them (we cannot keep them for a longer time due to storage limitations).\n\n" \
                                f"Please remember to cite us in your work (citation info is at: {WEBSERVER_ADDRESS}/about).\n" \
-                               f"For more help contact: {flask_interface_consts.OWNER_EMAIL}"
+                               f"For more help contact: {OWNER_EMAIL}"
 
     SUBMITTED_TITLE = '''Microbializer {job_name} - Job Submitted'''
     SUBMITTED_CONTENT = f"Thank you for using Microbializer.\n" \
@@ -267,7 +267,7 @@ class UI_CONSTS:
         ALL_FILES_NOT_CREATE = 'Cannot find the required zip files for all results'
         FILE_NOT_FOUND = 'Cannot find the required file'
 
-    ERROR_CONTACT_INFO = f'For more information, or any other inquiries, please contact {flask_interface_consts.OWNER_EMAIL}'
+    ERROR_CONTACT_INFO = f'For more information, or any other inquiries, please contact {OWNER_EMAIL}'
 
     PROCESS_INFO_KR = f"We are processing your request. This may take an hour for a small number of genomes and up to several days for a large one. This link is valid for {TIME_TO_KEEP_PROCSES_IDS_FOLDERS} days. if an email address was provided, a link will be sent upon analysis completion."
 

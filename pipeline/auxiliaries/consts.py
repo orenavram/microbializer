@@ -1,7 +1,3 @@
-#############################################################################################################
-# this file should be saved as part of the pipeline and the cgi should import it rather than copy it twice! #
-#############################################################################################################
-
 from enum import Enum
 from pathlib import Path
 
