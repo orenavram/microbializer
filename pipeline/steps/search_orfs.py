@@ -94,7 +94,8 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('job_input_path', type=Path, help='path to a file that contains the genome names to search orfs for')
+    parser.add_argument('job_input_path', type=Path,
+                        help='path to a file that contains the genome names to search orfs for')
     parser.add_argument('orfs_sequences_dir', type=Path, help='path to orfs sequences dir')
     parser.add_argument('orfs_statistics_dir', type=Path, help='path to orfs statistics dir')
     parser.add_argument('orfs_translated_dir', type=Path, help='path to orfs translated dir')

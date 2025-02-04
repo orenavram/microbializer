@@ -29,15 +29,16 @@ GENOME_DOWNLOAD_SUMMARY_RESULTS_FILE_NAME = Path('genome_download_summary.txt')
 RANK_KRAKEN_TRANSLATIONS = {'U': 'Unclassified', 'R': 'Root', 'D': 'Domain', 'K': 'Kingdom', 'P': 'Phylum',
                             'C': 'Class', 'O': 'Order', 'F': 'Family', 'G': 'Genus', 'S': 'Species'}
 
-USER_FILE_NAME_ZIP = "genomes.zip"  #names of the files to be downloaded
-USER_FILE_NAME_TAR = "genomes.tar.gz" #names of the files to be downloaded
-MAX_NUMBER_PROCESS = 15 #number of process to run in parallel
+USER_FILE_NAME_ZIP = "genomes.zip"  # names of the files to be downloaded
+USER_FILE_NAME_TAR = "genomes.tar.gz"  # names of the files to be downloaded
+MAX_NUMBER_PROCESS = 15  # number of process to run in parallel
 
 PATH_TO_OUTPUT_PROCESSOR_SCRIPT = Path("/bioseq/genome_fltr_backend/OutputProcessor.py")
 CUSTOM_DB_NAME = 'custom'  # the name of the custom db type
 
 DF_LOADER_CHUCK_SIZE = 1e6
-RESULTS_COLUMNS_TO_KEEP = ['is_classified', 'read_name', 'max_specie', 'classified_species', 'read_length', 'max_k_mer_p',
+RESULTS_COLUMNS_TO_KEEP = ['is_classified', 'read_name', 'max_specie', 'classified_species', 'read_length',
+                           'max_k_mer_p',
                            'all_classified_K_mers', 'split']
 SUMMARY_RESULTS_COLUMN_NAMES = ['percentage_of_reads', 'number_of_reads_under', 'number_of_reads_exact', 'rank_code',
                                 'ncbi_taxonomyID', 'name']
@@ -72,7 +73,6 @@ PATH2SAVE_MONITOR_DATA = r'SavedObjects/monitored_data'
 INTERVAL_BETWEEN_CLEANING_THE_PROCESSES_DICT = 24  # in hours
 TIME_TO_SAVE_PROCESSES_IN_THE_PROCESSES_DICT = 30  # in days
 TIME_TO_KEEP_PROCSES_IDS_FOLDERS = 14  # in days the entire folder of the process
-
 
 # post processing
 POSTPROCESS_JOB_PREFIX = 'PP'
@@ -203,7 +203,6 @@ class EMAIL_CONSTS:
 
 
 class UI_CONSTS:
-    
     static_folder_path = 'gifs/'
     states_gifs_dict = {
         State.Running: {
@@ -218,15 +217,15 @@ class UI_CONSTS:
             "background": "#1674d2",
             "gif_id": "TvLuZ00OIADoQ"
         },
-        State.Waiting:  {
+        State.Waiting: {
             "background": "#1674d2",
             "gif_id": "TvLuZ00OIADoQ"
         },
-        State.Init:  {
+        State.Init: {
             "background": "#1674d2",
             "gif_id": "TvLuZ00OIADoQ"
         },
-        State.Queue:  {
+        State.Queue: {
             "background": "#1674d2",
             "gif_id": "TvLuZ00OIADoQ"
         }
@@ -234,20 +233,20 @@ class UI_CONSTS:
 
     states_text_dict = {
         State.Running: "Your process is running...",
-        State.Finished: "Your process finished... Redirecting to results page.", #TODO is needed??
-        State.Crashed: "Your process failed.\nWe suggest you rerun the process.", #TODO finish
+        State.Finished: "Your process finished... Redirecting to results page.",  # TODO is needed??
+        State.Crashed: "Your process failed.\nWe suggest you rerun the process.",  # TODO finish
         State.Waiting: "We are currently running other processes.\nYour process will start soon.",
         State.Init: "The process is initialized and will shortly enter the next stage.",
         State.Queue: "Job is queued",
     }
-    
+
     global allowed_files_str  # todo: Edo, do we have to use a global var?
     ALLOWED_EXTENSIONS = {'zip', 'gz'}
-    allowed_files_str = ', '.join(ALLOWED_EXTENSIONS) #better to path string than list
+    allowed_files_str = ', '.join(ALLOWED_EXTENSIONS)  # better to path string than list
 
     class UI_Errors(Enum):
         UNKNOWN_PROCESS_ID = 'The provided process id does not exist'
-        INVALID_EXPORT_PARAMS ='invalid paramters for export'
+        INVALID_EXPORT_PARAMS = 'invalid paramters for export'
         POSTPROCESS_CRASH = 'can\'t postprocess'
         INVALID_MAIL = 'invalid mail'
         CANT_ADD_PROCESS = 'can\'t add search process'
@@ -268,15 +267,15 @@ class UI_CONSTS:
         ALL_FILES_NOT_CREATE = 'Cannot find the required zip files for all results'
         FILE_NOT_FOUND = 'Cannot find the required file'
 
-
     ERROR_CONTACT_INFO = f'For more information, or any other inquiries, please contact {flask_interface_consts.OWNER_EMAIL}'
 
     PROCESS_INFO_KR = f"We are processing your request. This may take an hour for a small number of genomes and up to several days for a large one. This link is valid for {TIME_TO_KEEP_PROCSES_IDS_FOLDERS} days. if an email address was provided, a link will be sent upon analysis completion."
 
-    TEXT_TO_RELOAD_HTML = "update" # empty string not allowed! will cause massive bug!
-    FETCH_UPDATE_INTERVAL_HTML_SEC = 15 # should be greater than 5 (keep-alive timeout mod_wsgi).
-    
+    TEXT_TO_RELOAD_HTML = "update"  # empty string not allowed! will cause massive bug!
+    FETCH_UPDATE_INTERVAL_HTML_SEC = 15  # should be greater than 5 (keep-alive timeout mod_wsgi).
+
     #  About page text
-    HELP_TEXT_ABOUT_LIST = ["""Here we present the GenomeFLTR web server. The web server was developed to easily filter genomic reads at a click of a mouse. The server automatically updates the databases and provides a simple and interactive GUI (graphical user interface) to personalize the user output. Visual and textual results that are ready for publication or further analysis are provided."""]
+    HELP_TEXT_ABOUT_LIST = [
+        """Here we present the GenomeFLTR web server. The web server was developed to easily filter genomic reads at a click of a mouse. The server automatically updates the databases and provides a simple and interactive GUI (graphical user interface) to personalize the user output. Visual and textual results that are ready for publication or further analysis are provided."""]
     HELP_TEXT_JOB_NAME = """The job name as inserted by the user"""
     HELP_TEXT_TAXA_DOWNLOAD = """The referenced genome downloaded to compare against"""

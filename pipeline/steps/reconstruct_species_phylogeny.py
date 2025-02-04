@@ -110,7 +110,8 @@ def draw_tree(logger, phylogenetic_tree_path, bootstrap):
     logger.info(f'The tree was saved as PNG and SVG files in the same folder as the tree file.')
 
 
-def generate_phylogenetic_tree(logger, msa_path, phylogenetic_tree_path, tmp_folder, seed, tree_search_software, outgroup,
+def generate_phylogenetic_tree(logger, msa_path, phylogenetic_tree_path, tmp_folder, seed, tree_search_software,
+                               outgroup,
                                bootstrap, num_of_cpus):
     # optionally use to decide which program to use
     # n_seq, n_loci = extract_msa_dimensions(msa_path)
@@ -123,7 +124,7 @@ def generate_phylogenetic_tree(logger, msa_path, phylogenetic_tree_path, tmp_fol
             iqtree_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num_of_cpus, outgroup,
                                bootstrap, seed)
         elif tree_search_software == 'fasttree':
-            fasttree_tree_search(tmp_folder, msa_path,phylogenetic_tree_path, logger, num_of_cpus, outgroup,
+            fasttree_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num_of_cpus, outgroup,
                                  bootstrap, seed)
 
     draw_tree(logger, phylogenetic_tree_path, bootstrap)

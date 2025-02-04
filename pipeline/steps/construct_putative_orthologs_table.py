@@ -101,7 +101,8 @@ def cluster_genes_to_connected_components(logger, normalized_hits_dir, putative_
             strain = member_gene_to_strain_name_dict[member]
             strain_to_members[strain].append(member)
         strain_to_members = {strain: ';'.join(sorted(members)) for strain, members in strain_to_members.items()}
-        group_row_str = ','.join([f'OG_{group_index}'] + [strain_to_members.get(strain, '') for strain in sorted_strains])
+        group_row_str = ','.join(
+            [f'OG_{group_index}'] + [strain_to_members.get(strain, '') for strain in sorted_strains])
         result += group_row_str + '\n'
 
     with open(putative_orthologs_path, 'w') as f:

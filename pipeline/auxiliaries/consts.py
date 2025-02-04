@@ -54,7 +54,6 @@ else:
 USE_JOB_MANAGER = False if ENV == 'wsl' else True
 MAX_PARALLEL_JOBS = 50
 
-
 # General Job submission consts
 Q_SUBMITTER_ADD_SSH_PREFIX = False
 if ENV == 'c-001':
@@ -66,7 +65,7 @@ JOB_NAME_ENVIRONMENT_VARIABLE = 'SLURM_JOB_NAME'
 JOB_ID_ENVIRONMENT_VARIABLE = 'SLURM_JOB_ID'
 JOB_FILES_DEBUG_MODE = False
 
-JOB_WALL_TIME_KEY ='RunTime='
+JOB_WALL_TIME_KEY = 'RunTime='
 JOB_CPUS_KEY = 'NumCPUs='
 
 JOB_DEFAULT_MEMORY_GB = '4'
@@ -85,7 +84,6 @@ MERGE_SUB_ORTHOGROUPS_MEMORY_GB = '16'
 PHYLOGENY_TIME_LIMIT = 48
 MMSEQS_TIME_LIMIT = 72
 INFER_ORTHOGROUPS_TIME_LIMIT = 96
-
 
 HEGS_ECOLI_FILE_PATH = SRC_DIR / 'data' / 'HEG_ecoli.txt'
 KEGG_DATABASE_PATH = SRC_DIR / 'data' / 'kegg' / 'prokaryote_database.hmm'
@@ -112,6 +110,7 @@ DEFAULT_CORE_MINIMAL_PERCENTAGE = 100
 JOB_DONE_FILE_SUFFIX = '.done'
 CHECK_JOB_DONE_INTERVAL_SECONDS = 10
 
+
 class SimilarityScore(Enum):
     BITS = 1
     EVALUE = 2  # Currently not supported
@@ -120,7 +119,7 @@ class SimilarityScore(Enum):
 SIMILARITY_SCORE_CRITERION = SimilarityScore.BITS
 
 BLAST_OUTPUT_HEADER = ['query', 'subject', 'identity_percent', 'alignment_length', 'mismatches', 'gap_openings',
-                        'query_start', 'query_end', 'subject_start', 'subject_end', 'evalue', 'bit_score']
+                       'query_start', 'query_end', 'subject_start', 'subject_end', 'evalue', 'bit_score']
 MMSEQS_OUTPUT_FORMAT = 'query,target,bits'
 MMSEQS_OUTPUT_HEADER = MMSEQS_OUTPUT_FORMAT.split(',')
 MMSEQS_OUTPUT_COLUMNS_TYPES = {'query': str, 'target': str, 'bits': int}
@@ -138,10 +137,10 @@ OUTPUTS_DIRECTORIES_MAP = {
     '02_2_orfs_plots': '02b_orfs_plots',
     'orfs_translated': '02c_translated_orfs',
     '03_genomes_completeness': '03_genomes_completeness',
-    '05_9_orphan_genes': '04_orphan_genes',    # full_orthogroups_inference
-    '05_10_orthogroups_final': '05a_orthogroups',   # full_orthogroups_inference
-    '06_12_orphan_genes_from_orthogroups': '04_orphan_genes',    # approximate_orthogroups_inference
-    '06_13_orthogroups_final': '05a_orthogroups',    # approximate_orthogroups_inference
+    '05_9_orphan_genes': '04_orphan_genes',  # full_orthogroups_inference
+    '05_10_orthogroups_final': '05a_orthogroups',  # full_orthogroups_inference
+    '06_12_orphan_genes_from_orthogroups': '04_orphan_genes',  # approximate_orthogroups_inference
+    '06_13_orthogroups_final': '05a_orthogroups',  # approximate_orthogroups_inference
     '07_1_orthogroups_variations': '05a_orthogroups',
     '07_2_orthogroups_sizes': '05b_orthogroups_sizes',
     'orthogroups_dna': '06a_orthogroups_dna',

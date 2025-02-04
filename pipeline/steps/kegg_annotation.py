@@ -42,10 +42,11 @@ def filter_hmmsearh_output(hmmsearch_output):
     hmmsearch_output_df = hmmsearch_output_df.merge(ko_list_df, left_on='knum', right_on='knum', how='left')
 
     # filter out rows with score below threshold
-    hmmsearch_output_df = hmmsearch_output_df[((hmmsearch_output_df['score_type'] == 'full') &
-                                              (hmmsearch_output_df['full_score'] >= hmmsearch_output_df['threshold'])) |
-                                              ((hmmsearch_output_df['score_type'] == 'domain') &
-                                              (hmmsearch_output_df['domain_score'] >= hmmsearch_output_df['threshold']))]
+    hmmsearch_output_df = hmmsearch_output_df[
+        ((hmmsearch_output_df['score_type'] == 'full') &
+         (hmmsearch_output_df['full_score'] >= hmmsearch_output_df['threshold'])) |
+        ((hmmsearch_output_df['score_type'] == 'domain') &
+         (hmmsearch_output_df['domain_score'] >= hmmsearch_output_df['threshold']))]
 
     return hmmsearch_output_df
 
@@ -67,7 +68,8 @@ def add_kegg_annotations_to_og_table(og_table_path, hmmsearch_output_df):
     gene_to_og_df = create_gene_to_og_map(og_table_df)
     hmmsearch_output_df = hmmsearch_output_df.merge(gene_to_og_df, left_on='gene', right_on='gene', how='left')
 
-    og_to_knums_df = hmmsearch_output_df.groupby('OG_name')['knum'].apply(lambda ko_list: ';'.join(ko_list.dropna().unique()))
+    og_to_knums_df = hmmsearch_output_df.groupby('OG_name')['knum'].apply(
+        lambda ko_list: ';'.join(ko_list.dropna().unique()))
     og_to_knums_df = og_to_knums_df.reset_index()
 
     knum_to_description = pd.read_csv(consts.KEGG_KO_LIST_PATH, index_col='knum')['description'].to_dict()
@@ -81,7 +83,8 @@ def add_kegg_annotations_to_og_table(og_table_path, hmmsearch_output_df):
     og_to_knums_df['knum_description'] = og_to_knums_df['knum'].apply(map_descriptions)
 
     # Merge the new columns into the original table
-    og_table_with_kegg_df = og_table_df[['OG_name']].merge(og_to_knums_df, left_on='OG_name', right_on='OG_name', how='left')
+    og_table_with_kegg_df = og_table_df[['OG_name']].merge(og_to_knums_df, left_on='OG_name', right_on='OG_name',
+                                                           how='left')
     return og_table_with_kegg_df
 
 

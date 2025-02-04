@@ -15,7 +15,6 @@ sys.path.append(str(SCRIPT_DIR.parent))
 
 from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args
 
-
 ORFS_FILE_HEADER_DELIMITER = ' # '
 ORFS_FILE_HEADER_GENE_INDEX = 0
 ORFS_FILE_HEADER_ORIENTATION_INDEX = 3

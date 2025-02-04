@@ -69,7 +69,8 @@ def main():
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('job_input_path', type=Path, help='path to a file that contains the strain names to extract orphan genes')
+    parser.add_argument('job_input_path', type=Path,
+                        help='path to a file that contains the strain names to extract orphan genes')
     parser.add_argument('orthogroups_file', type=Path, help='path to the the orthologs table')
     parser.add_argument('output_dir', type=Path, help='path to which the orphan proteins will be written')
     add_default_step_args(parser)

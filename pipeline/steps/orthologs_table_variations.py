@@ -14,7 +14,6 @@ sys.path.append(str(SCRIPT_DIR.parent))
 from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args, str_to_bool
 from auxiliaries import consts
 
-
 ORPHANS_FILENAME_GENOME_NAME_PATTERN = re.compile('(.+)_orphans.txt')
 
 
@@ -91,7 +90,7 @@ def build_orthoxml_and_tsv_output(logger, all_clusters_df, output_dir, qfo_bench
 
                     next_id += 1
             except Exception as e:
-                 raise BrokenPipeError(f"Failed parsing gene names for column {strain_column} and OG {og_index}: {e}")
+                raise BrokenPipeError(f"Failed parsing gene names for column {strain_column} and OG {og_index}: {e}")
 
         database_xml.set_genes(genes_xml)
         species_xml.add_database(database_xml)
@@ -176,7 +175,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('orthologs_table_path', type=Path, help='path to the orthologs table (input)')
     parser.add_argument('output_dir', type=Path, help='path to the output dir')
-    parser.add_argument('--qfo_benchmark', help='whether the output OrthoXml should be in QfO benchmark format', type=str_to_bool)
+    parser.add_argument('--qfo_benchmark', help='whether the output OrthoXml should be in QfO benchmark format',
+                        type=str_to_bool)
     add_default_step_args(parser)
     args = parser.parse_args()
 

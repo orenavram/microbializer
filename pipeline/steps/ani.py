@@ -67,12 +67,12 @@ def run_ani(logger, genomes_list_path, output_path, cpus):
 
 
 def plot_ani_clustermap(
-    ani_df: pd.DataFrame,
-    ani_map_path: Path,
-    dendrogram_ratio: float = 0.15,
-    cmap_colors: list[str] | None = None,
-    cmap_gamma: float = 1.0,
-    cbar_pos: tuple[float, float, float, float] = (0.02, 0.8, 0.05, 0.18),
+        ani_df: pd.DataFrame,
+        ani_map_path: Path,
+        dendrogram_ratio: float = 0.15,
+        cmap_colors: list[str] | None = None,
+        cmap_gamma: float = 1.0,
+        cbar_pos: tuple[float, float, float, float] = (0.02, 0.8, 0.05, 0.18),
 ) -> None:
     all_values = itertools.chain.from_iterable(ani_df.values)
     min_ani = min(filter(lambda v: v != 0, all_values))

@@ -68,7 +68,8 @@ def wait_for_results(logger, times_logger, script_name, path, num_of_expected_re
     validate_slurm_error_logs(logger, path, error_file_path)
 
     if not recursive_step:
-        walltime_sum, cpus_used_per_job, log_files_without_times, log_files_without_cpus = get_jobs_cummulative_time(logger, path)
+        walltime_sum, cpus_used_per_job, log_files_without_times, log_files_without_cpus = get_jobs_cummulative_time(
+            logger, path)
         times_logger.info(f'Step {script_name} took {total_time_waited}. '
                           f'There were {num_of_expected_results} jobs and '
                           f'cumulatively they took {walltime_sum} wallclock time (times {cpus_used_per_job} cpus used '
@@ -139,11 +140,13 @@ def get_jobs_cummulative_time(logger, path):
             cpus_used_in_jobs.append(cpus_used_per_job)
 
     cpus_used_in_jobs = set(cpus_used_in_jobs)
-    if cpus_used_in_jobs == {1, 2} or cpus_used_in_jobs == {2}:  # Sometimes when we submit jobs with 1 cpu, 2 are allocated and it's not an error
+    # Sometimes when we submit jobs with 1 cpu, 2 are allocated and it's not an error
+    if cpus_used_in_jobs == {1, 2} or cpus_used_in_jobs == {2}:
         cpus_used_in_jobs = {1}
     if len(cpus_used_in_jobs) != 1:  # The way that jobs are submitted ensures that each job in a step uses the same number of cpus
-        logger.error(f'Not all jobs used the same number of cpus in path {path}. cpus_used_in_jobs = {cpus_used_in_jobs}. '
-                     f'Setting cpus_used_in_jobs to 1 to avoid errors.')
+        logger.error(
+            f'Not all jobs used the same number of cpus in path {path}. cpus_used_in_jobs = {cpus_used_in_jobs}. '
+            f'Setting cpus_used_in_jobs to 1 to avoid errors.')
         cpus_used_in_jobs = {1}
 
     return walltime_sum, next(iter(cpus_used_in_jobs)), log_files_without_times, log_files_without_cpus
@@ -157,7 +160,7 @@ def get_recursive_step_cummulative_times(path):
     for log_file_path in path.glob('*times_log.txt'):
         with open(log_file_path, 'r') as log_file:
             content = log_file.read()
-        
+
         regex_search_result = pattern.finditer(content)
         if regex_search_result is None:
             log_files_without_times.append(log_file_path)
@@ -242,8 +245,8 @@ def submit_mini_batch(logger, config, script_path, mini_batch_parameters_list, l
 
         if memory is None:
             memory = config.job_default_memory
-        submit_cmds_from_file_to_q(logger, job_name, cmds_path, logs_dir, config.queue_name, str(num_of_cpus), config.account_name,
-                                   memory, time_in_hours, config.node_name)
+        submit_cmds_from_file_to_q(logger, job_name, cmds_path, logs_dir, config.queue_name, str(num_of_cpus),
+                                   config.account_name, memory, time_in_hours, config.node_name)
     else:
         # fetch directly on shell
         for shell_cmd in shell_cmds_as_str.split('\n'):

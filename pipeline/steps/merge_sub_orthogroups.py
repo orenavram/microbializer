@@ -62,7 +62,8 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        merge_sub_orthogroups(logger, args.pseudo_orthogroups_file_path, args.sub_orthogroups_dir_path, args.output_path)
+        merge_sub_orthogroups(logger, args.pseudo_orthogroups_file_path, args.sub_orthogroups_dir_path,
+                              args.output_path)
     except Exception as e:
         logger.exception(f'Error in {Path(__file__).name}')
         with open(args.error_file_path, 'a+') as f:

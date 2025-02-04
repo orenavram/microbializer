@@ -147,7 +147,8 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('job_input_path', type=Path, help='path to a file that contains the genome names to find paralogs')
+    parser.add_argument('job_input_path', type=Path,
+                        help='path to a file that contains the genome names to find paralogs')
     parser.add_argument('dbs_dir', type=Path, help='')
     parser.add_argument('max_scores_parts_dir', type=Path, help='')
     parser.add_argument('paralogs_dir', type=Path, help='')

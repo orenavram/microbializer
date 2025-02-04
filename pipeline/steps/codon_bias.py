@@ -93,7 +93,8 @@ def get_W(ORFs_file, hegs_output_dir, logger):
     records_were_cleaned = clean_seq_records(HEGs_records)
     if records_were_cleaned:
         HEGs_cleaned_fasta_path = hegs_output_dir / f'{genome_name}_HEGs_cleaned.fa'
-        SeqIO.write(HEGs_records, HEGs_cleaned_fasta_path, "fasta")  # Write cleaned HEGs to a file for logging and debugging
+        # Write cleaned HEGs to a file for logging and debugging
+        SeqIO.write(HEGs_records, HEGs_cleaned_fasta_path, "fasta")
         logger.warning(f'Non-complete or illegal codons were found in the ORFs of {genome_name}. They were removed,'
                        f'and the cleaned HEGs were written to {HEGs_cleaned_fasta_path}')
 
@@ -241,7 +242,8 @@ def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, cpu
     with pool_executor_class(max_workers=cpus) as executor:
         futures = []
         for og_file in OG_dir.glob('*.fna'):
-            futures.append(executor.submit(calculate_cai, OG_dir, og_file.stem, genome_name_to_codon_index, cais_output_dir))
+            futures.append(
+                executor.submit(calculate_cai, OG_dir, og_file.stem, genome_name_to_codon_index, cais_output_dir))
 
         for future in as_completed(futures):
             og_name, cai_info = future.result()
@@ -274,7 +276,8 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        analyze_codon_bias(args.ORF_dir, args.OG_dir, args.output_dir, args.cai_table_path, args.tmp_dir, args.cpus, logger)
+        analyze_codon_bias(args.ORF_dir, args.OG_dir, args.output_dir, args.cai_table_path, args.tmp_dir, args.cpus,
+                           logger)
     except Exception as e:
         logger.exception(f'Error in {Path(__file__).name}')
         with open(args.error_file_path, 'a+') as f:

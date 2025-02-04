@@ -32,7 +32,8 @@ def compute_genome_completeness(logger, genomic_translated_f, out_dir):
             for line in out_hmmsearch:
                 if not line.startswith('#'):
                     if line.isspace() or float(line.split()[2]) > consts.BUSCO_EVAULE_CUTOFF:
-                        logger.info(f"Proteome {genomic_translated_f} doesn't include a gene that matches the profile {profile_path.name}")
+                        logger.info(
+                            f"Proteome {genomic_translated_f} doesn't include a gene that matches the profile {profile_path.name}")
                     else:
                         score += 1
                     break
@@ -62,7 +63,8 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('job_input_path', type=Path, help='path to a file that contains the genome names to asses completeness for')
+    parser.add_argument('job_input_path', type=Path,
+                        help='path to a file that contains the genome names to asses completeness for')
     parser.add_argument('output_dir', type=Path, help='path to the output dir')
     add_default_step_args(parser)
     args = parser.parse_args()

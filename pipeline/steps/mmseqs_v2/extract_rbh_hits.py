@@ -37,10 +37,12 @@ def extract_rbh_hits_of_pair(logger, m8_df, genome1, genome2, rbh_hits_dir, scor
         genome2_to_1_df.to_csv(temp_dir / f'{genome2}_to_{genome1}.m8', index=False)
 
     # Step 1: Identify the best hits from genome1 to genome2
-    genome1_to_2_best_hits_df = genome1_to_2_df[genome1_to_2_df['score'] == genome1_to_2_df.groupby('query')['score'].transform('max')]
+    genome1_to_2_best_hits_df = genome1_to_2_df[
+        genome1_to_2_df['score'] == genome1_to_2_df.groupby('query')['score'].transform('max')]
 
     # Step 2: Identify the best hits from genome2 to genome1
-    genome2_to_1_best_hits_df = genome2_to_1_df[genome2_to_1_df['score'] == genome2_to_1_df.groupby('query')['score'].transform('max')]
+    genome2_to_1_best_hits_df = genome2_to_1_df[
+        genome2_to_1_df['score'] == genome2_to_1_df.groupby('query')['score'].transform('max')]
 
     # Step 3: Perform an inner merge on both dataframes to find reciprocal matches
     reciprocal_best_hits = pd.merge(

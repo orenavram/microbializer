@@ -151,8 +151,10 @@ if __name__ == '__main__':
     parser.add_argument('job_input_path', type=Path, help='')
     parser.add_argument('ogs_dna_output_dir', type=none_or_path, help='path to an output directory of ogs dna')
     parser.add_argument('ogs_aa_output_dir', type=none_or_path, help='path to an output directory of ogs aa')
-    parser.add_argument('ogs_aa_aligned_output_dir', type=none_or_path, help='path to an output directory of ogs aligned aa')
-    parser.add_argument('ogs_induced_dna_aligned_output_dir', type=none_or_path, help='path to an output directory of ogs induced aligned dna (codon alignment)')
+    parser.add_argument('ogs_aa_aligned_output_dir', type=none_or_path,
+                        help='path to an output directory of ogs aligned aa')
+    parser.add_argument('ogs_induced_dna_aligned_output_dir', type=none_or_path,
+                        help='path to an output directory of ogs induced aligned dna (codon alignment)')
     add_default_step_args(parser)
     args = parser.parse_args()
 

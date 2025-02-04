@@ -57,7 +57,8 @@ def extract_core_genome(logger, alignments_path, strains_names_path, core_genome
         if num_of_strains_in_og / num_of_strains >= core_minimal_percentage / 100:  # meaning OG is core
             logger.info(f'Adding to core genome: {og_file.stem} '
                         f'({num_of_strains_in_og}/{num_of_strains} >= {core_minimal_percentage}%)')
-            update_core_genome(logger, og_file.stem, gene_name_to_sequence_dict, og_alignment_length, strain_to_core_genome_dict)
+            update_core_genome(logger, og_file.stem, gene_name_to_sequence_dict, og_alignment_length,
+                               strain_to_core_genome_dict)
             core_ogs.append(og_file.stem.split('_')[1])  # e.g., og_2655 -> 2655
             if max_number_of_ogs and len(core_ogs) == max_number_of_ogs:
                 break
@@ -96,11 +97,13 @@ if __name__ == '__main__':
     parser.add_argument('aa_alignments_path', type=Path,
                         help='path to a folder where each file is a multiple sequences fasta file')
     parser.add_argument('strains_names_path', type=Path, help='path to a file that contains all the strains')
-    parser.add_argument('core_genome_path', type=Path, help='path to an output file in which the core genome will be written')
+    parser.add_argument('core_genome_path', type=Path,
+                        help='path to an output file in which the core genome will be written')
     parser.add_argument('core_length_path', type=Path, help='path to an output file in which the core genome length')
     parser.add_argument('--core_minimal_percentage', type=float, default=100.0,
                         help='number that represents the required percent that is needed to be considered a core gene. For example: (1) 100 means that for a gene to be considered core, all strains should have a member in the group.\n(2) 50 means that for a gene to be considered core, at least half of the strains should have a member in the group.\n(3) 0 means that every gene should be considered as a core gene.')
-    parser.add_argument('--max_number_of_ogs', type=int, help='maximum number of ogs to add to core genome. None means there is no limit', default=None)
+    parser.add_argument('--max_number_of_ogs', type=int,
+                        help='maximum number of ogs to add to core genome. None means there is no limit', default=None)
     add_default_step_args(parser)
     args = parser.parse_args()
 

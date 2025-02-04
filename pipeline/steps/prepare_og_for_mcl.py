@@ -26,8 +26,8 @@ def load_all_ogs_hits(normalized_hits_dir, strain_to_gene_to_og):
             f.readline()  # skip header
             for line in f:
                 gene_1, gene_2, score = line.rstrip().split(',')
-                if gene_1 in strain_1_genes_to_og:  # if gene_1 is in strain_1_genes_to_of and mapped to OG x, then gene_2 is also in OG x
-                                                    # (becuase each putative OG is a conneceted component of the hits graph)
+                # if gene_1 is in strain_1_genes_to_of and mapped to OG x, then gene_2 is also in OG x (becuase each putative OG is a conneceted component of the hits graph)
+                if gene_1 in strain_1_genes_to_og:
                     og = strain_1_genes_to_og[gene_1]
                     og_to_gene_pair_to_score[og][(gene_1, gene_2)] = score
 
@@ -101,7 +101,8 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        prepare_ogs_for_mcl(logger, args.normalized_hits_dir, args.putative_ogs_path, args.job_input_path, args.output_path)
+        prepare_ogs_for_mcl(logger, args.normalized_hits_dir, args.putative_ogs_path, args.job_input_path,
+                            args.output_path)
     except Exception as e:
         logger.exception(f'Error in {Path(__file__).name}')
         with open(args.error_file_path, 'a+') as f:

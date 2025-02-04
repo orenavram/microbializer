@@ -15,7 +15,6 @@ from .pipeline_auxiliaries import remove_path, fail
 from .configuration import Config
 from flask import flask_interface_consts
 
-
 ILLEGAL_CHARS = '\\;:,^`~\'\"'
 
 
@@ -110,7 +109,8 @@ def unpack_data(logger, raw_data_path, run_dir, error_file_path):
         except Exception as e:
             logger.info(e)
             remove_path(logger, raw_data_path)
-            fail(logger, f'{flask_interface_consts.WEBSERVER_NAME} failed to decompress your data. Please make sure all your FASTA files names '
+            fail(logger,
+                 f'{flask_interface_consts.WEBSERVER_NAME} failed to decompress your data. Please make sure all your FASTA files names '
                  f'do contain only dashes, dots, and alphanumeric characters (a-z, A-Z, 0-9). Other characters such as '
                  f'parenthesis, pipes, slashes, are not allowed. Please also make sure your archived file format is legal (either a '
                  f'.zip file or a .tar.gz file in which each file is in FASTA format containing genomic sequence of a different species).',
@@ -151,7 +151,7 @@ def unpack_data(logger, raw_data_path, run_dir, error_file_path):
                 shutil.rmtree(file_path, ignore_errors=True)
             else:
                 fail(logger, f'Please make sure to upload one archived folder containing (only) FASTA files '
-                     f'("{file_path.name}" is a folder).', error_file_path)
+                             f'("{file_path.name}" is a folder).', error_file_path)
 
     return raw_data_path
 

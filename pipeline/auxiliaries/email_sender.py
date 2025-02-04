@@ -2,7 +2,6 @@ import argparse
 from email.mime.text import MIMEText
 from smtplib import SMTP
 
-
 # constants to use when sending e-mails using the server admin's email address.
 ADMIN_EMAIL = 'TAU BioSequence <bioSequence@tauex.tau.ac.il>'
 SMTP_SERVER = 'mxout.tau.ac.il'

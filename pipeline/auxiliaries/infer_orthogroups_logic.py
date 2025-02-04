@@ -8,14 +8,14 @@ import time
 from datetime import timedelta
 
 from . import consts
-from .pipeline_auxiliaries import wait_for_results, prepare_directories, submit_mini_batch, submit_batch, write_done_file
+from .pipeline_auxiliaries import wait_for_results, prepare_directories, submit_mini_batch, submit_batch, \
+    write_done_file
 from .logic_auxiliaries import aggregate_mmseqs_scores, add_score_column_to_mmseqs_output, \
     get_directory_size_in_gb, combine_orphan_genes_stats, split_ogs_to_jobs_inputs_files_by_og_sizes
 
 
 def infer_orthogroups(logger, times_logger, config, base_step_number, translated_orfs_dir, all_proteins_path,
                       skip_paralogs=False):
-
     orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir = \
         run_mmseqs_and_extract_hits(logger, times_logger, config, base_step_number, translated_orfs_dir,
                                     all_proteins_path, skip_paralogs)
@@ -32,7 +32,7 @@ def infer_orthogroups(logger, times_logger, config, base_step_number, translated
 def run_mmseqs_and_extract_hits(logger, times_logger, config, base_step_number, translated_orfs_dir, all_proteins_path,
                                 skip_paralogs):
     if config.run_optimized_mmseqs:
-        orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir =\
+        orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir = \
             run_unified_mmseqs(logger, times_logger, config, base_step_number, all_proteins_path, skip_paralogs)
     else:
         orthologs_output_dir, paralogs_output_dir, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir = \
@@ -67,15 +67,15 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
         for i, hits_file in enumerate(orthologs_output_dir.glob('*.m8')):
             job_index = i % config.max_parallel_jobs
             strains_pair = hits_file.stem
-            job_index_to_hits_files_and_coefficients[job_index].append((str(hits_file),
-                                                                        scores_normalize_coefficients[strains_pair]))
+            job_index_to_hits_files_and_coefficients[job_index].append(
+                (str(hits_file), scores_normalize_coefficients[strains_pair]))
 
         if not skip_paralogs:
             for i, hits_file in enumerate(paralogs_output_dir.glob('*.m8_filtered')):
                 job_index = i % config.max_parallel_jobs
                 strains_pair = hits_file.stem
-                job_index_to_hits_files_and_coefficients[job_index].append((str(hits_file),
-                                                                            scores_normalize_coefficients[strains_pair]))
+                job_index_to_hits_files_and_coefficients[job_index].append(
+                    (str(hits_file), scores_normalize_coefficients[strains_pair]))
 
         all_cmds_params = []
         jobs_inputs_dir = normalized_hits_tmp_dir / 'jobs_inputs'
@@ -95,11 +95,11 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
         num_of_batches = submit_batch(logger, config, script_path, all_cmds_params, normalized_hits_tmp_dir,
                                       'hits_normalize')
 
-        wait_for_results(logger, times_logger, step_name, normalized_hits_tmp_dir, num_of_batches, config.error_file_path)
+        wait_for_results(logger, times_logger, step_name, normalized_hits_tmp_dir, num_of_batches,
+                         config.error_file_path)
         write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
-
 
     # construct_putative_orthologs_table.py
     # Input: (1) a path for a i_vs_j_reciprocal_hits.tsv file (2) a path for a putative orthologs file (with a single line).
@@ -159,7 +159,6 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-
     # run_mcl.py
     # Input: (1) a path to an MCL input file (2) a path to MCL's output.
     # Output: MCL analysis.
@@ -200,7 +199,6 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-
     # construct_verified_orthologs_table.py
     # Input: (1) a path for directory with all the verified OGs (2) an output path to a final OGs table.
     # Output: aggregates all the well-clustered OGs to the final table.
@@ -226,7 +224,6 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
         write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
-
 
     # extract_orphan_genes.py
     step_number = f'{base_step_number}_{start_substep_number + 5}'
@@ -274,7 +271,6 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-
     # orthogroups_final
     step_number = f'{base_step_number}_{start_substep_number + 6}'
     logger.info(f'Step {step_number}: {"_" * 100}')
@@ -288,7 +284,8 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
         logger.info('Constructing final orthologs table...')
 
         if config.add_orphan_genes_to_ogs:
-            params = [orthogroups_file_path, final_orthogroups_file_path, f'--orphan_genes_dir {orphan_genes_internal_dir}']
+            params = [orthogroups_file_path, final_orthogroups_file_path,
+                      f'--orphan_genes_dir {orphan_genes_internal_dir}']
 
             submit_mini_batch(logger, config, script_path, [params], pipeline_step_tmp_dir,
                               'add_orphans_to_orthogroups')

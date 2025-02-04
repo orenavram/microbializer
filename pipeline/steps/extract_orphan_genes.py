@@ -33,7 +33,8 @@ def extract_orphan_proteins(logger, proteins_file_path, orthogroups_df, output_d
     # Orphan ortogroups - orthogroups that contain genes from only one strain
     orphan_orthogroups = orthogroups_df[orthogroups_df.count(axis=1) == 1]
     orphan_orthogroups_of_strain = list(orphan_orthogroups[strain_name].dropna())
-    genes_in_orphan_orthogroups_of_strain = flatten([orthogroup.split(';') for orthogroup in orphan_orthogroups_of_strain])
+    genes_in_orphan_orthogroups_of_strain = flatten(
+        [orthogroup.split(';') for orthogroup in orphan_orthogroups_of_strain])
 
     # Orphan genes (not in any orthogroup)
     orthogroups_strain_column = orthogroups_df[strain_name].dropna()
@@ -72,7 +73,8 @@ def main():
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('job_input_path', type=Path, help='path to a file that contains the orfs path to extract orphan gene')
+    parser.add_argument('job_input_path', type=Path,
+                        help='path to a file that contains the orfs path to extract orphan gene')
     parser.add_argument('orthogroups_file', type=Path, help='path to the the orthologs table')
     parser.add_argument('output_dir', type=Path, help='path to which the orphan proteins will be written')
     add_default_step_args(parser)

@@ -11,11 +11,11 @@ import seaborn as sns
 import numpy as np
 from Bio import SeqIO
 
-
 from . import consts
 
 
-def aggregate_mmseqs_scores(orthologs_scores_statistics_dir, paralogs_scores_statistics_dir, output_file, skip_paralogs):
+def aggregate_mmseqs_scores(orthologs_scores_statistics_dir, paralogs_scores_statistics_dir, output_file,
+                            skip_paralogs):
     scores_means_per_strains_pair = {}
     scores_total_sum = 0
     scores_total_records = 0
@@ -189,9 +189,8 @@ def combine_orphan_genes_stats(orphan_genes_dir, output_dir):
 
 def split_ogs_to_jobs_inputs_files_by_og_sizes(orthogroups_df, step_tmp_dir, max_parallel_jobs):
     orthogroups_df['strains_count'] = orthogroups_df.notna().sum(axis=1) - 1
-    orthogroups_df['paralogs_count'] = orthogroups_df.apply(lambda row:
-                                                            sum(genes.count(';') for genes in row[1:-1] if pd.notna(genes)),
-                                                            axis=1)
+    orthogroups_df['paralogs_count'] = orthogroups_df.apply(
+        lambda row: sum(genes.count(';') for genes in row[1:-1] if pd.notna(genes)), axis=1)
     orthogroups_df['genes_count'] = orthogroups_df['strains_count'] + orthogroups_df['paralogs_count']
     ogs_genes_count_df = orthogroups_df[['OG_name', 'genes_count']]
     ogs_genes_count_df.sort_values(by='genes_count', ascending=False, inplace=True)

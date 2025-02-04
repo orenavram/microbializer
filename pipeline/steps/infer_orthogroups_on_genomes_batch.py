@@ -92,11 +92,11 @@ def create_pseudo_genome_from_ogs(
             num_of_batches = submit_batch(logger, config, script_path, all_cmds_params, ogs_consensus_tmp_dir,
                                           'ogs_consensus')
 
-            wait_for_results(logger, times_logger, step_name, ogs_consensus_tmp_dir, num_of_batches, config.error_file_path)
+            wait_for_results(logger, times_logger, step_name, ogs_consensus_tmp_dir, num_of_batches,
+                             config.error_file_path)
             write_done_file(logger, done_file_path)
         else:
             logger.info(f'done file {done_file_path} already exists. Skipping step...')
-
 
     step_number = f'{base_step_number}_{previous_substep_number + 3}'
     logger.info(f'Step {step_number}: {"_" * 100}')
@@ -148,9 +148,8 @@ def create_pseudo_genome_from_ogs(
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
 
-def infer_orthogroups_on_genomes_batch(
-        logger, times_logger, config, step_number, translated_orfs_dir, genomes_batch_id):
-
+def infer_orthogroups_on_genomes_batch(logger, times_logger, config, step_number, translated_orfs_dir,
+                                       genomes_batch_id):
     with open(config.genomes_names_path, 'r') as genomes_names_fp:
         genomes_names = genomes_names_fp.read().split('\n')
 

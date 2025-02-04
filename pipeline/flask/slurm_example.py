@@ -77,7 +77,7 @@ def submit_job(script_commands, job_name, logs_path, logger, current_working_dir
                 "partition": flask_interface_consts.MICROBIALIZER_PROCESSOR_JOB_QUEUE_NAME,
                 "tasks": 1,
                 "name": job_name,
-                #"account": "< account_name >",
+                # "account": "< account_name >",
                 "nodes": "1",
                 # "allocation_node_list": "compute-0-299",
                 "cpus_per_task": int(flask_interface_consts.NUBMER_OF_CPUS_MICROBIALIZER_PROCESSOR_JOB),
@@ -86,7 +86,8 @@ def submit_job(script_commands, job_name, logs_path, logger, current_working_dir
                     "set": True,
                     "infinite": False
                 },
-                "time_limit": flask_interface_consts.MICROBIALIZER_MAIN_JOB_TIME_LIMIT_IN_HOURS * 60,  # we should pass the time_limit in minutes
+                # we should pass the time_limit in minutes
+                "time_limit": flask_interface_consts.MICROBIALIZER_MAIN_JOB_TIME_LIMIT_IN_HOURS * 60,
                 # Full path to your error/output file.
                 "standard_output": slurm_output_file,
                 "standard_error": slurm_error_file,
