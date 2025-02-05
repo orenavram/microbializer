@@ -357,7 +357,6 @@ def prepare_pipeline_framework(args):
     steps_results_dir.mkdir(parents=True, exist_ok=True)
 
     data_path = output_dir / 'inputs'
-    logger.info(f'Creating data_path is: {data_path}')
     data_path.mkdir(parents=True, exist_ok=True)
 
     genomes_names_path = output_dir / 'genomes_names.txt'
