@@ -67,7 +67,8 @@ class Config:
     add_orphan_genes_to_ogs: bool
     run_optimized_mmseqs: bool
     filter_out_plasmids: bool
-    num_of_genomes_in_batch: int
+    genomes_batch_size: int
+    genomes_batch_size_calc_method: str
     pseudo_genome_mode: str
 
     # Debugging parameters
@@ -185,7 +186,8 @@ def get_configuration():
                         help='When True, use parquet files when possible instead of csv')
     parser.add_argument('--do_not_copy_outputs_to_final_results_dir', type=str_to_bool, default=False, )
     parser.add_argument('--clean_intermediate_outputs', type=str_to_bool, default=False, )
-    parser.add_argument('--num_of_genomes_in_batch', type=int, default=50)
+    parser.add_argument('--genomes_batch_size', type=int, default=50)
+    parser.add_argument('--genomes_batch_size_calc_method', choices=['fixed_number', 'sqrt', 'min_comparisons'], default='fixed_number')
     parser.add_argument('--pseudo_genome_mode', type=str, choices=['first_gene', 'consensus_gene'],
                         default='first_gene')
     parser.add_argument('--always_run_full_orthogroups_inference', type=str_to_bool, default=False, )
@@ -233,7 +235,9 @@ def get_configuration():
 
                     add_orphan_genes_to_ogs=args.add_orphan_genes_to_ogs,
                     filter_out_plasmids=args.filter_out_plasmids,
-                    num_of_genomes_in_batch=args.num_of_genomes_in_batch, pseudo_genome_mode=args.pseudo_genome_mode,
+                    genomes_batch_size=args.genomes_batch_size,
+                    genomes_batch_size_calc_method=args.genomes_batch_size_calc_method,
+                    pseudo_genome_mode=args.pseudo_genome_mode,
                     run_optimized_mmseqs=args.run_optimized_mmseqs,
 
                     do_not_copy_outputs_to_final_results_dir=args.do_not_copy_outputs_to_final_results_dir,

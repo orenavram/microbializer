@@ -21,7 +21,8 @@ from auxiliaries.pipeline_auxiliaries import (wait_for_results, prepare_director
 from auxiliaries import consts
 from auxiliaries.configuration import get_configuration
 from auxiliaries.logic_auxiliaries import (plot_genomes_histogram, update_progressbar, define_intervals,
-                                           combine_orphan_genes_stats, split_ogs_to_jobs_inputs_files_by_og_sizes)
+                                           combine_orphan_genes_stats, split_ogs_to_jobs_inputs_files_by_og_sizes,
+                                           calc_genomes_batch_size)
 from auxiliaries.infer_orthogroups_logic import infer_orthogroups
 from flask.SharedConsts import State
 
@@ -286,7 +287,7 @@ def step_5_full_orthogroups_inference(logger, times_logger, config, translated_o
     return final_orthogroups_dir_path / 'orthogroups.csv'
 
 
-def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, translated_orfs_dir):
+def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, translated_orfs_dir, genomes_batch_size):
     with open(config.genomes_names_path, 'r') as genomes_names_fp:
         genomes_names = genomes_names_fp.read().split('\n')
 
@@ -300,7 +301,7 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
     done_file_path = config.done_files_dir / f'{step_name}.txt'
     done_dir_path = config.done_files_dir / step_name
     if not done_file_path.exists():
-        number_of_batches = len(genomes_names) // config.num_of_genomes_in_batch
+        number_of_batches = len(genomes_names) // genomes_batch_size
         genomes_batches = define_intervals(0, len(genomes_names) - 1, number_of_batches)
 
         all_cmds_params = []
@@ -994,7 +995,8 @@ def run_main_pipeline(logger, times_logger, config):
         logger.info("Step 3 completed.")
         return
 
-    if len(genomes_names) < config.num_of_genomes_in_batch * 2 or config.always_run_full_orthogroups_inference:
+    genomes_batch_size = calc_genomes_batch_size(logger, config, len(genomes_names))
+    if len(genomes_names) < genomes_batch_size * 2 or config.always_run_full_orthogroups_inference:
         final_orthogroups_file_path = step_5_full_orthogroups_inference(
             logger, times_logger, config, translated_orfs_dir, all_proteins_fasta_path)
 
@@ -1003,7 +1005,7 @@ def run_main_pipeline(logger, times_logger, config):
             return
     else:
         final_orthogroups_file_path = step_5_6_approximate_orthogroups_inference(
-            logger, times_logger, config, translated_orfs_dir)
+            logger, times_logger, config, translated_orfs_dir, genomes_batch_size)
 
         if config.step_to_complete == '6':
             logger.info("Step 5 completed.")

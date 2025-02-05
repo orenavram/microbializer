@@ -219,3 +219,18 @@ def split_ogs_to_jobs_inputs_files_by_og_sizes(orthogroups_df, step_tmp_dir, max
     orthogroups_df.drop(columns=['strains_count', 'paralogs_count', 'genes_count'], inplace=True)
 
     return job_paths
+
+
+def calc_genomes_batch_size(logger, config, num_of_genomes):
+    if config.genomes_batch_size_calc_method == 'fixed_number':
+        genomes_batch_size = config.genomes_batch_size
+    elif config.genomes_batch_size_calc_method == 'sqrt':
+        genomes_batch_size = math.ceil(math.sqrt(num_of_genomes))
+    elif config.genomes_batch_size_calc_method == 'min_comparisons':
+        genomes_batch_size = math.ceil((num_of_genomes * 2) ** (1/3))
+    else:
+        raise ValueError(f"Unknown genomes batch size calculation method: {config.genomes_batch_size_calc_method}")
+
+    logger.info(f'Calculated genomes batch size: {genomes_batch_size}, according to method: '
+                f'{config.genomes_batch_size_calc_method} and number of genomes: {num_of_genomes}')
+    return genomes_batch_size
