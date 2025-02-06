@@ -1,4 +1,6 @@
-inference_method,totalTime
-original,23 days 22:18:31
-pseudo_genomes,4 days 12:34:33
-pseudo_genomes_consensus,5 days 02:11:36
+inference_method,totalTime,num_orthogroups
+original,23 days 22:18:31,23293
+pseudo_50,4 days 12:34:33,23884
+pseudo_batchsize_mincomparisons,1 days 05:27:32,23404
+pseudo_batchsize_sqrt,1 days 16:24:35,23724
+pseudo_consensus_50,5 days 02:11:36,23974

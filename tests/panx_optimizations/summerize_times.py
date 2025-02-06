@@ -3,22 +3,24 @@ from pathlib import Path
 import re
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-DATA_DIR = SCRIPT_DIR / 'benchmark_1060_c_001'
+DATA_DIR = SCRIPT_DIR / 'salmonella_300_c_001'
 
 RELEVANT_STEPS_PREFIXES = {
     'original': ['05_'],
-    'pseudo_genomes': ['05_subsets_inference', '06_'],
-    'pseudo_genomes_consensus': ['05_subsets_inference', '06_'],
+    'pseudo': ['05_subsets_inference', '06_'],
 }
 
 
 def main():
-    experiments_times = {}
+    experiments_times = []
     for dir in DATA_DIR.iterdir():
         if not dir.is_dir():
             continue
 
-        relevant_log_steps = RELEVANT_STEPS_PREFIXES[dir.name]
+        if dir.name == 'original':
+            relevant_log_steps = RELEVANT_STEPS_PREFIXES['original']
+        else:
+            relevant_log_steps = RELEVANT_STEPS_PREFIXES['pseudo']
         times_log_path = dir / 'times_log.txt'
 
         with open(times_log_path) as f:
@@ -41,9 +43,14 @@ def main():
                 times.append(pd.Timedelta(time_string))
 
         total_time = sum(times, pd.Timedelta(0))
-        experiments_times[dir.name] = total_time
 
-    experiments_times_df = pd.DataFrame(list(experiments_times.items()), columns=['inference_method', 'totalTime'])
+        orthogroups_path = dir / 'orthogroups.csv'
+        orthogroups_df = pd.read_csv(orthogroups_path)
+        num_orthogroups = len(orthogroups_df)
+
+        experiments_times.append((dir.name, total_time, num_orthogroups))
+
+    experiments_times_df = pd.DataFrame(experiments_times, columns=['inference_method', 'totalTime', 'num_orthogroups'])
     experiments_times_df.to_csv(DATA_DIR / 'experiments_times.csv', index=False)
 
 
