@@ -12,7 +12,7 @@ RELEVANT_STEPS_PREFIXES = {
 
 
 def main():
-    experiments_times = []
+    experiments_info = []
     for dir in DATA_DIR.iterdir():
         if not dir.is_dir():
             continue
@@ -48,10 +48,16 @@ def main():
         orthogroups_df = pd.read_csv(orthogroups_path)
         num_orthogroups = len(orthogroups_df)
 
-        experiments_times.append((dir.name, total_time, num_orthogroups))
+        scores_path = dir.glob('comparison_scores*.csv').__next__()
+        scores_df = pd.read_csv(scores_path)
+        scores = list(scores_df.iloc[0])
 
-    experiments_times_df = pd.DataFrame(experiments_times, columns=['inference_method', 'totalTime', 'num_orthogroups'])
-    experiments_times_df.to_csv(DATA_DIR / 'experiments_times.csv', index=False)
+        experiments_info.append((dir.name, total_time, num_orthogroups, *scores))
+
+    experiments_times_df = pd.DataFrame(experiments_info, columns=['inference_method', 'totalTime', 'num_orthogroups',
+                                                                   'adjusted_rand_score', 'homogeneity', 'completeness',
+                                                                   'v_measure', 'fowlkes_mallows_score'])
+    experiments_times_df.to_csv(DATA_DIR / 'experiments_results.csv', index=False)
 
 
 if __name__ == '__main__':
