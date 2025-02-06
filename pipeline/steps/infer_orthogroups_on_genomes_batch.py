@@ -33,11 +33,13 @@ def create_pseudo_genome_from_ogs(
         logger, config.steps_results_dir, config.tmp_dir, step_name)
     orthologs_aa_dir_path = orthogroups_fasta_dir_path / 'orthogroups_aa'
     orthologs_aa_aligned_dir_path = orthogroups_fasta_dir_path / 'orthogroups_aa_aligned'
+    orthologs_aa_consensus_dir_path = orthogroups_fasta_dir_path / 'orthogroups_aa_consensus'
     done_file_path = config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
         logger.info('Extracting orthologs groups sequences according to final orthologs table...')
         orthologs_aa_dir_path.mkdir(parents=True, exist_ok=True)
         orthologs_aa_aligned_dir_path.mkdir(parents=True, exist_ok=True)
+        orthologs_aa_consensus_dir_path.mkdir(parents=True, exist_ok=True)
 
         job_paths = split_ogs_to_jobs_inputs_files_by_og_sizes(
             final_orthogroups_df, pipeline_step_tmp_dir, config.max_parallel_jobs)
@@ -50,7 +52,8 @@ def create_pseudo_genome_from_ogs(
                                  None,
                                  orthologs_aa_dir_path,
                                  orthologs_aa_aligned_dir_path if config.pseudo_genome_mode == 'consensus_gene' else None,
-                                 None]
+                                 None,
+                                 orthologs_aa_consensus_dir_path if config.pseudo_genome_mode == 'consensus_gene' else None]
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches = submit_batch(logger, config, script_path, all_cmds_params, pipeline_step_tmp_dir,
@@ -61,44 +64,7 @@ def create_pseudo_genome_from_ogs(
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    if config.pseudo_genome_mode == 'consensus_gene':
-        step_number = f'{base_step_number}_{previous_substep_number + 2}'
-        logger.info(f'Step {step_number}: {"_" * 100}')
-        step_name = f'{step_number}_ogs_consensus'
-        script_path = consts.SRC_DIR / 'steps' / 'calculate_consensus_from_msa.py'
-        ogs_consensus_dir_path, ogs_consensus_tmp_dir = prepare_directories(
-            logger, config.steps_results_dir, config.tmp_dir, step_name)
-        done_file_path = config.done_files_dir / f'{step_name}.txt'
-        if not done_file_path.exists():
-            logger.info('Calculating consensus sequences for all aligned OGs...')
-
-            job_input_files = ogs_consensus_tmp_dir / 'job_input_files'
-            job_input_files.mkdir(parents=True, exist_ok=True)
-
-            job_index_to_ogs_paths = defaultdict(list)
-            for i, og_aligned_file_path in enumerate(orthologs_aa_aligned_dir_path.iterdir()):
-                job_index = i % config.max_parallel_jobs
-                job_index_to_ogs_paths[job_index].append(str(og_aligned_file_path))
-
-            all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-            for job_index, ogs_paths in job_index_to_ogs_paths.items():
-                job_input_path = job_input_files / f'job_input_{job_index}.txt'
-                with open(job_input_path, 'w') as f:
-                    f.write('\n'.join(ogs_paths))
-
-                single_cmd_params = [job_input_path, ogs_consensus_dir_path]
-                all_cmds_params.append(single_cmd_params)
-
-            num_of_batches = submit_batch(logger, config, script_path, all_cmds_params, ogs_consensus_tmp_dir,
-                                          'ogs_consensus')
-
-            wait_for_results(logger, times_logger, step_name, ogs_consensus_tmp_dir, num_of_batches,
-                             config.error_file_path)
-            write_done_file(logger, done_file_path)
-        else:
-            logger.info(f'done file {done_file_path} already exists. Skipping step...')
-
-    step_number = f'{base_step_number}_{previous_substep_number + 3}'
+    step_number = f'{base_step_number}_{previous_substep_number + 2}'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_pseudo_genome'
     pseudo_genome_dir_path, pseudo_genome_tmp_dir = prepare_directories(
@@ -122,7 +88,7 @@ def create_pseudo_genome_from_ogs(
                 record_to_og[first_record.id] = og_name
 
         elif config.pseudo_genome_mode == 'consensus_gene':
-            for og_path in ogs_consensus_dir_path.glob('*.faa'):
+            for og_path in orthologs_aa_consensus_dir_path.glob('*.faa'):
                 og_name = og_path.stem
 
                 record = SeqIO.parse(og_path, 'fasta').__next__()

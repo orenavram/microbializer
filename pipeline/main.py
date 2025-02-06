@@ -369,8 +369,8 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
                 continue
             batch_id = batch_dir_path.name.split('_')[1]
 
-            orthogroups_with_representative_path = batch_dir_path / '05_13_pseudo_genome' / f'orthogroups_with_representative_{batch_id}.csv'
-            pseudo_genome_file_path = batch_dir_path / '05_13_pseudo_genome' / f'pseudo_genome_{batch_id}.faa'
+            orthogroups_with_representative_path = batch_dir_path / '05_12_pseudo_genome' / f'orthogroups_with_representative_{batch_id}.csv'
+            pseudo_genome_file_path = batch_dir_path / '05_12_pseudo_genome' / f'pseudo_genome_{batch_id}.faa'
 
             shutil.copy(orthogroups_with_representative_path, sub_orthogroups_dir_path)
             shutil.copy(pseudo_genome_file_path, pseudo_genomes_dir_path)
@@ -584,11 +584,11 @@ def step_8_build_orthologous_groups_fastas(logger, times_logger, config, all_orf
     script_path = consts.SRC_DIR / 'steps' / 'extract_orfs.py'
     orthogroups_fasta_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, config.steps_results_dir,
                                                                             config.tmp_dir, step_name)
-
     orthogroups_dna_dir_path = orthogroups_fasta_dir_path / 'orthogroups_dna'
     orthologs_aa_dir_path = orthogroups_fasta_dir_path / 'orthogroups_aa'
     orthogroups_aa_msa_dir_path = orthogroups_fasta_dir_path / 'orthogroups_aa_msa'
     orthogroups_induced_dna_msa_dir_path = orthogroups_fasta_dir_path / 'orthogroups_induced_dna_msa'
+    orthogroups_aa_consensus_dir_path = orthogroups_fasta_dir_path / 'orthogroups_aa_consensus'
 
     done_file_path = config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
@@ -599,6 +599,7 @@ def step_8_build_orthologous_groups_fastas(logger, times_logger, config, all_orf
         orthologs_aa_dir_path.mkdir(parents=True, exist_ok=True)
         orthogroups_aa_msa_dir_path.mkdir(parents=True, exist_ok=True)
         orthogroups_induced_dna_msa_dir_path.mkdir(parents=True, exist_ok=True)
+        orthogroups_aa_consensus_dir_path.mkdir(parents=True, exist_ok=True)
 
         orthogroups_df = pd.read_csv(final_orthologs_table_file_path)
         job_paths = split_ogs_to_jobs_inputs_files_by_og_sizes(orthogroups_df, pipeline_step_tmp_dir,
@@ -612,7 +613,8 @@ def step_8_build_orthologous_groups_fastas(logger, times_logger, config, all_orf
                                  orthogroups_dna_dir_path,
                                  orthologs_aa_dir_path,
                                  orthogroups_aa_msa_dir_path,
-                                 orthogroups_induced_dna_msa_dir_path]
+                                 orthogroups_induced_dna_msa_dir_path,
+                                 orthogroups_aa_consensus_dir_path if config.kegg_optimization_mode == 'consensus_of_og' else None]
             all_cmds_params.append(single_cmd_params)
 
         orfs_size_gb = (all_orfs_fasta_path.stat().st_size + all_proteins_fasta_path.stat().st_size) / 1024 ** 3
@@ -908,7 +910,7 @@ def step_12_orthogroups_annotations(logger, times_logger, config, orfs_dir,
             kegg_output_dir_path,
             kegg_table_path,
             config.kegg_cpus,
-            '--optimize True'
+            f'--optimization_mode {config.kegg_optimization_mode}'
         ]
         submit_mini_batch(logger, config, script_path, [params], kegg_tmp_dir,
                           'kegg', num_of_cpus=config.kegg_cpus, memory=config.kegg_memory)

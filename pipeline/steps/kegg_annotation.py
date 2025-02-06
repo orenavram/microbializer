@@ -10,23 +10,30 @@ import traceback
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args, str_to_bool
+from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args, none_or_path
 from auxiliaries import consts
 
 
-def create_fasta_of_unified_ogs_sequences(logger, og_aa_dir, output_fasta, optimize):
-    if optimize:
+def create_fasta_of_unified_ogs_sequences(logger, og_aa_dir, og_aa_consensus_dir, output_fasta_path, optimization_mode):
+    if optimization_mode == 'first_gene_of_og':
         records = []
         for og_path in og_aa_dir.iterdir():
             # read only the first sequence from each og
             first_record = SeqIO.parse(og_path, 'fasta').__next__()
             records.append(first_record)
 
-        SeqIO.write(records, output_fasta, 'fasta')
-        logger.info(f'Wrote {len(records)} records to {output_fasta} (only 1 gene from each og)')
-    else:
-        subprocess.run(f'cat {og_aa_dir}/* >> {output_fasta}', shell=True, check=True)
-        logger.info(f'Wrote all records to {output_fasta}')
+        SeqIO.write(records, output_fasta_path, 'fasta')
+        logger.info(f'Wrote {len(records)} records to {output_fasta_path} (only first gene from each og)')
+    elif optimization_mode == 'consensus_of_og':
+        cmd = f'cat {og_aa_consensus_dir}/* >> {output_fasta_path}'
+        logger.info(f'Running: {cmd}')
+        subprocess.run(cmd, shell=True, check=True)
+        logger.info(f'Wrote all consensus sequences of OGs from {og_aa_consensus_dir} to {output_fasta_path}')
+    else:  # optimization_mode == 'all_genes_of_og'
+        cmd = f'cat {og_aa_dir}/* >> {output_fasta_path}'
+        logger.info(f'Running: {cmd}')
+        subprocess.run(cmd, shell=True, check=True)
+        logger.info(f'Wrote all records of OGs from {og_aa_dir} to {output_fasta_path}')
 
 
 def filter_hmmsearh_output(hmmsearch_output):
@@ -88,13 +95,15 @@ def add_kegg_annotations_to_og_table(og_table_path, hmmsearch_output_df):
     return og_table_with_kegg_df
 
 
-def kegg_annotation(logger, og_aa_dir, og_table_path, output_dir, output_og_table_path, cpus, optimize):
+def kegg_annotation(logger, og_aa_dir, og_aa_consensus_dir, og_table_path, output_dir, output_og_table_path, cpus,
+                    optimization_mode):
     if output_og_table_path.exists():
         logger.info(f'{output_og_table_path} already exists. Exiting...')
         return
 
     unified_ogs_sequences = output_dir / 'unified_ogs_sequences.faa'
-    create_fasta_of_unified_ogs_sequences(logger, og_aa_dir, unified_ogs_sequences, optimize)
+    create_fasta_of_unified_ogs_sequences(logger, og_aa_dir, og_aa_consensus_dir, unified_ogs_sequences,
+                                          optimization_mode)
 
     # run hmmsearch
     hmmsearch_output = output_dir / 'hmmsearch_output.txt'
@@ -118,12 +127,15 @@ if __name__ == '__main__':
     print(script_run_message)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('og_aa_dir', type=Path, help='path to a dir of the amino acid sequences of all ogs')
+    parser.add_argument('og_aa_dir', type=none_or_path, help='path to a dir of the amino acid sequences of all ogs')
+    parser.add_argument('og_aa_consensus_dir', type=none_or_path,
+                        help='path to a dir of the amino acid consensus sequence of all ogs')
     parser.add_argument('og_table_path', type=Path, help='path to the og table')
     parser.add_argument('output_dir', type=Path, help='path to the output dir')
     parser.add_argument('output_og_table_path', type=Path, help='path to the output og table with kegg annotations')
     parser.add_argument('cpus', help='number of cpus to use')
-    parser.add_argument('--optimize', help='whether to use only 1 gene from each og or all genes', type=str_to_bool)
+    parser.add_argument('--optimization_mode', help='whether to use only 1 gene from each og or all genes of consensus',
+                        choices=['first_gene_of_og', 'consensus_of_og', 'all_genes_of_og'])
     add_default_step_args(parser)
     args = parser.parse_args()
 
@@ -131,8 +143,8 @@ if __name__ == '__main__':
 
     logger.info(script_run_message)
     try:
-        kegg_annotation(logger, args.og_aa_dir, args.og_table_path, args.output_dir, args.output_og_table_path,
-                        args.cpus, args.optimize)
+        kegg_annotation(logger, args.og_aa_dir, args.og_aa_consensus_dir, args.og_table_path, args.output_dir,
+                        args.output_og_table_path, args.cpus, args.optimization_mode)
     except Exception as e:
         logger.exception(f'Error in {Path(__file__).name}')
         with open(args.error_file_path, 'a+') as f:

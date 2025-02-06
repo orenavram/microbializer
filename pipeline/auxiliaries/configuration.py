@@ -70,6 +70,7 @@ class Config:
     genomes_batch_size: int
     genomes_batch_size_calc_method: str
     pseudo_genome_mode: str
+    kegg_optimization_mode: str
 
     # Debugging parameters
     do_not_copy_outputs_to_final_results_dir: bool
@@ -193,6 +194,8 @@ def get_configuration():
     parser.add_argument('--always_run_full_orthogroups_inference', type=str_to_bool, default=False, )
     parser.add_argument('--max_parallel_jobs', help='', type=int)
     parser.add_argument('--use_job_manager', type=str_to_bool, default=consts.USE_JOB_MANAGER)
+    parser.add_argument('--kegg_optimization_mode', choices=['first_gene_of_og', 'consensus_of_og', 'all_genes_of_og'],
+                        default='first_gene_of_og')
     parser.add_argument('-v', '--verbose', type=str_to_bool, default=False,
                         help='Increase output verbosity')
 
@@ -239,6 +242,7 @@ def get_configuration():
                     genomes_batch_size_calc_method=args.genomes_batch_size_calc_method,
                     pseudo_genome_mode=args.pseudo_genome_mode,
                     run_optimized_mmseqs=args.run_optimized_mmseqs,
+                    kegg_optimization_mode=args.kegg_optimization_mode,
 
                     do_not_copy_outputs_to_final_results_dir=args.do_not_copy_outputs_to_final_results_dir,
                     bypass_number_of_genomes_limit=args.bypass_number_of_genomes_limit,
