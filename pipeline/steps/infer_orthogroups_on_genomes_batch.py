@@ -122,9 +122,10 @@ def infer_orthogroups_on_genomes_batch(logger, times_logger, config, step_number
     subset_proteomes_dir = config.steps_results_dir / 'proteomes'
     if not subset_proteomes_dir.exists():
         subset_proteomes_dir.mkdir(parents=True, exist_ok=True)
+        logger.info(f'Copying translated ORFs to {subset_proteomes_dir}...')
         for genome_name in genomes_names:
-            shutil.copy(translated_orfs_dir / f'{genome_name}.faa',
-                        subset_proteomes_dir / f'{genome_name}.faa')
+            shutil.copy(translated_orfs_dir / f'{genome_name}.faa', subset_proteomes_dir / f'{genome_name}.faa')
+            logger.info(f'Copied {genome_name}.faa to {subset_proteomes_dir}')
 
     subset_proteins_fasta_path = config.steps_results_dir / 'all_proteomes.faa'
     if not subset_proteins_fasta_path.exists():
