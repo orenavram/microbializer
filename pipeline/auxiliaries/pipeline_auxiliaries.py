@@ -28,11 +28,8 @@ def validate_slurm_error_logs(logger, slurm_logs_dir, error_file_path):
 
         with open(slurm_log_file) as f:
             for line in f:
-                pass
-            last_line = line
-
-        if last_line.startswith('slurmstepd: error'):
-            fail(logger, f'file {slurm_log_file} shows a slurm error: {last_line}', error_file_path)
+                if line.startswith('slurmstepd: error: Detected 1 oom_kill event'):  # Catch memory errors
+                    fail(logger, f'file {slurm_log_file} shows a slurm error: {line}', error_file_path)
 
 
 def wait_for_results(logger, times_logger, script_name, path, num_of_expected_results, error_file_path,
