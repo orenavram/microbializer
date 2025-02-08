@@ -192,8 +192,7 @@ def split_ogs_to_jobs_inputs_files_by_og_sizes(orthogroups_df, step_tmp_dir, max
     orthogroups_df['paralogs_count'] = orthogroups_df.apply(
         lambda row: sum(genes.count(';') for genes in row[1:-1] if pd.notna(genes)), axis=1)
     orthogroups_df['genes_count'] = orthogroups_df['strains_count'] + orthogroups_df['paralogs_count']
-    ogs_genes_count_df = orthogroups_df[['OG_name', 'genes_count']]
-    ogs_genes_count_df.sort_values(by='genes_count', ascending=False, inplace=True)
+    ogs_genes_count_df = orthogroups_df[['OG_name', 'genes_count']].sort_values(by='genes_count', ascending=False)
 
     job_index_to_ogs = {i: [] for i in range(max_parallel_jobs)}
     job_index_to_genes_count = {i: 0 for i in range(max_parallel_jobs)}

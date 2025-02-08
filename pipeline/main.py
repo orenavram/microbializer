@@ -545,10 +545,10 @@ def step_7_orthologs_table_variations(logger, times_logger, config, final_orthog
                                                                   step_name)
     done_file_path = config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
-        logger.info('Collecting sizes...')
+        logger.info('Collecting orthogroups sizes...')
         start_time = time.time()
 
-        final_orthologs_table_df = pd.read_csv(final_orthogroups_file_path, index_col='OG_name')
+        final_orthologs_table_df = pd.read_csv(final_orthogroups_file_path, index_col='OG_name', dtype=str)
         group_sizes = final_orthologs_table_df.apply(lambda row: row.count(), axis=1)
         group_sizes.name = 'OG size (number of genomes)'
         group_sizes.to_csv(group_sizes_path / 'groups_sizes.csv')
