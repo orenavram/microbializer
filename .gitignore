@@ -9,3 +9,9 @@ pipeline/flask/api_secrets.py
 /tests/panx_optimizations/benchmark_1060_c_001/original/orthogroups.csv
 /tests/panx_optimizations/benchmark_1060_c_001/pseudo_genomes/orthogroups.csv
 /tests/panx_optimizations/benchmark_1060_c_001/pseudo_genomes_consensus/orthogroups.csv
+/tests/panx_optimizations/benchmark_1060_c_001/pseudo_batchsize_mincomparisons/orthogroups.csv
+/tests/panx_optimizations/benchmark_1060_c_001/pseudo_batchsize_50/orthogroups.csv
+/tests/panx_optimizations/benchmark_1060_c_001/pseudo_batchsize_sqrt/orthogroups.csv
+/tests/panx_optimizations/benchmark_1060_c_001/pseudo_consensus_batchsize_50/orthogroups.csv
+/tests/panx_optimizations/benchmark_1060_c_001/pseudo_consensus_mincomparisons/orthogroups.csv
+/tests/panx_optimizations/benchmark_1060_c_001/pseudo_consensus_sqrt/orthogroups.csv
