@@ -15,3 +15,5 @@ pipeline/flask/api_secrets.py
 /tests/panx_optimizations/benchmark_1060_c_001/pseudo_consensus_batchsize_50/orthogroups.csv
 /tests/panx_optimizations/benchmark_1060_c_001/pseudo_consensus_mincomparisons/orthogroups.csv
 /tests/panx_optimizations/benchmark_1060_c_001/pseudo_consensus_sqrt/orthogroups.csv
+/tests/kegg_optimization/salmonella_300_c_001/use_first_gene_of_og/unified_ogs_sequences.faa
+/tests/kegg_optimization/salmonella_300_c_001/use_consensus_of_og/unified_ogs_sequences.faa

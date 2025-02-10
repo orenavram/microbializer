@@ -25,12 +25,12 @@ def create_fasta_of_unified_ogs_sequences(logger, og_aa_dir, og_aa_consensus_dir
         SeqIO.write(records, output_fasta_path, 'fasta')
         logger.info(f'Wrote {len(records)} records to {output_fasta_path} (only first gene from each og)')
     elif optimization_mode == 'consensus_of_og':
-        cmd = f'cat {og_aa_consensus_dir}/* >> {output_fasta_path}'
+        cmd = f'find {og_aa_consensus_dir} -type f -exec cat {{}} + > {output_fasta_path}'
         logger.info(f'Running: {cmd}')
         subprocess.run(cmd, shell=True, check=True)
         logger.info(f'Wrote all consensus sequences of OGs from {og_aa_consensus_dir} to {output_fasta_path}')
     else:  # optimization_mode == 'all_genes_of_og'
-        cmd = f'cat {og_aa_dir}/* >> {output_fasta_path}'
+        cmd = f'find {og_aa_dir} -type f -exec cat {{}} + > {output_fasta_path}'
         logger.info(f'Running: {cmd}')
         subprocess.run(cmd, shell=True, check=True)
         logger.info(f'Wrote all records of OGs from {og_aa_dir} to {output_fasta_path}')
@@ -70,10 +70,14 @@ def create_gene_to_og_map(og_table_df):
     return result_df
 
 
-def add_kegg_annotations_to_og_table(og_table_path, hmmsearch_output_df):
-    og_table_df = pd.read_csv(og_table_path)
+def add_kegg_annotations_to_og_table(og_table_path, hmmsearch_output_df, optimization_mode):
+    og_table_df = pd.read_csv(og_table_path, dtype=str)
     gene_to_og_df = create_gene_to_og_map(og_table_df)
-    hmmsearch_output_df = hmmsearch_output_df.merge(gene_to_og_df, left_on='gene', right_on='gene', how='left')
+
+    if optimization_mode in ['first_gene_of_og', 'all_genes_of_og']:
+        hmmsearch_output_df = hmmsearch_output_df.merge(gene_to_og_df, left_on='gene', right_on='gene', how='left')
+    else:  # optimization_mode == 'consensus_of_og'
+        hmmsearch_output_df['OG_name'] = hmmsearch_output_df['gene'].str.replace('_consensus', '')
 
     og_to_knums_df = hmmsearch_output_df.groupby('OG_name')['knum'].apply(
         lambda ko_list: ';'.join(ko_list.dropna().unique()))
@@ -117,7 +121,7 @@ def kegg_annotation(logger, og_aa_dir, og_aa_consensus_dir, og_table_path, outpu
     hmmsearch_output_df.to_csv(filtered_hmmsearch_output, index=False)
     logger.info(f'Wrote filtered hmmsearch output to {filtered_hmmsearch_output}')
 
-    og_table_with_kegg_df = add_kegg_annotations_to_og_table(og_table_path, hmmsearch_output_df)
+    og_table_with_kegg_df = add_kegg_annotations_to_og_table(og_table_path, hmmsearch_output_df, optimization_mode)
     og_table_with_kegg_df.to_csv(output_og_table_path, index=False)
     logger.info(f'Wrote og table with kegg annotations to {output_og_table_path}')
 

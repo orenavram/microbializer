@@ -601,7 +601,7 @@ def step_8_build_orthologous_groups_fastas(logger, times_logger, config, all_orf
         orthogroups_induced_dna_msa_dir_path.mkdir(parents=True, exist_ok=True)
         orthogroups_aa_consensus_dir_path.mkdir(parents=True, exist_ok=True)
 
-        orthogroups_df = pd.read_csv(final_orthologs_table_file_path)
+        orthogroups_df = pd.read_csv(final_orthologs_table_file_path, dtype=str)
         job_paths = split_ogs_to_jobs_inputs_files_by_og_sizes(orthogroups_df, pipeline_step_tmp_dir,
                                                                config.max_parallel_jobs)
         all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
@@ -638,7 +638,8 @@ def step_8_build_orthologous_groups_fastas(logger, times_logger, config, all_orf
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    return orthogroups_dna_dir_path, orthologs_aa_dir_path, orthogroups_aa_msa_dir_path, orthogroups_induced_dna_msa_dir_path
+    return orthogroups_dna_dir_path, orthologs_aa_dir_path, orthogroups_aa_msa_dir_path, \
+        orthogroups_induced_dna_msa_dir_path, orthogroups_aa_consensus_dir_path
 
 
 def step_9_extract_core_genome_and_core_proteome(logger, times_logger, config, aa_alignments_path, dna_alignments_path):
@@ -861,8 +862,8 @@ def step_11_phylogeny(logger, times_logger, config, aligned_core_proteome_file_p
 
 
 def step_12_orthogroups_annotations(logger, times_logger, config, orfs_dir,
-                                    orthologs_dna_sequences_dir_path, orthologs_aa_sequences_dir_path,
-                                    final_orthologs_table_file_path):
+                                    orthologs_dna_sequences_dir_path, ogs_aa_sequences_dir_path,
+                                    ogs_aa_consensus_dir_path, final_orthologs_table_file_path):
     # 12_1.  codon_bias.py
     # Input: ORF dir and OG dir
     # Output: W_vector for each genome, CAI for each OG
@@ -905,7 +906,8 @@ def step_12_orthogroups_annotations(logger, times_logger, config, orfs_dir,
         logger.info('Annotation with KEGG Orthology...')
 
         params = [
-            orthologs_aa_sequences_dir_path,
+            ogs_aa_sequences_dir_path,
+            ogs_aa_consensus_dir_path,
             final_orthologs_table_file_path,
             kegg_output_dir_path,
             kegg_table_path,
@@ -942,7 +944,7 @@ def step_12_orthogroups_annotations(logger, times_logger, config, orfs_dir,
         logger.info('Adding annotations to orthogroups...')
         start_time = time.time()
 
-        final_orthologs_df = pd.read_csv(final_orthologs_table_file_path)
+        final_orthologs_df = pd.read_csv(final_orthologs_table_file_path, dtype=str)
 
         if kegg_table_path.exists():
             kegg_table_df = pd.read_csv(kegg_table_path)[['OG_name', 'knum', 'knum_description']]
@@ -1025,9 +1027,9 @@ def run_main_pipeline(logger, times_logger, config):
     if config.only_calc_ogs:
         return
 
-    ogs_dna_sequences_path, og_aa_sequences_path, ogs_aa_alignments_path, ogs_dna_alignments_path = \
-        step_8_build_orthologous_groups_fastas(logger, times_logger, config, all_orfs_fasta_path,
-                                               all_proteins_fasta_path, final_orthogroups_file_path)
+    ogs_dna_sequences_path, ogs_aa_sequences_path, ogs_aa_alignments_path, ogs_dna_alignments_path, \
+        ogs_aa_consensus_dir_path = step_8_build_orthologous_groups_fastas(
+        logger, times_logger, config, all_orfs_fasta_path, all_proteins_fasta_path, final_orthogroups_file_path)
     update_progressbar(config.progressbar_file_path, 'Prepare orthogroups fasta files')
 
     if config.step_to_complete == '8':
@@ -1059,7 +1061,7 @@ def run_main_pipeline(logger, times_logger, config):
         return
 
     step_12_orthogroups_annotations(logger, times_logger, config, orfs_dir, ogs_dna_sequences_path,
-                                    og_aa_sequences_path, final_orthogroups_file_path)
+                                    ogs_aa_sequences_path, ogs_aa_consensus_dir_path, final_orthogroups_file_path)
     update_progressbar(config.progressbar_file_path, 'Analyze orthogroups codon bias')
     update_progressbar(config.progressbar_file_path, 'Annotate orthogroups with KO terms')
 
