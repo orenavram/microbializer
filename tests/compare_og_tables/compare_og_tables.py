@@ -1,10 +1,10 @@
-import os
 import pandas as pd
 from sklearn import metrics
+from pathlib import Path
 
-BASE_PATH = r"C:\repos\microbializer\tests\panx_optimizations\salmonella_300_c_001"
-OG_TABLE_ORIGINAL = os.path.join(BASE_PATH, "original", "orthogroups.csv")
-OG_TABLE_APPROXIMATION = os.path.join(BASE_PATH, "original", "orthogroups.csv")
+BASE_PATH = Path(r"C:\repos\microbializer\tests\panx_optimizations\benchmark_1060_c_001")
+OG_TABLE_ORIGINAL = BASE_PATH / "original" / "orthogroups.csv"
+OG_TABLE_APPROXIMATION = BASE_PATH / "pseudo_consensus_sqrt" / "orthogroups.csv"
 
 
 def compare_clusterings(true_labels, pred_labels, output_path):
@@ -34,7 +34,7 @@ def compare_clusterings(true_labels, pred_labels, output_path):
 
 
 def convert_og_table_to_labels(og_table_path):
-    df = pd.read_csv(og_table_path)
+    df = pd.read_csv(og_table_path, dtype=str)
 
     # 1. Melt the DataFrame to get all genome entries in a single column
     melted_df = df.melt(id_vars='OG_name', value_name='genes', var_name='genome').dropna()
@@ -63,7 +63,7 @@ def main():
         print(f"Genes in original but not in approximation or vice versa: {genes_difference}")
         return
 
-    compare_clusterings(original_labels, approximation_labels, os.path.join(BASE_PATH, "comparison_scores_original_vs_original.csv"))
+    compare_clusterings(original_labels, approximation_labels, OG_TABLE_APPROXIMATION / '..' / "comparison_scores_original_vs_pseudo_consensus_sqrt.csv")
 
 
 if __name__ == '__main__':
