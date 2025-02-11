@@ -3,7 +3,7 @@ from pathlib import Path
 import re
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-DATA_DIR = SCRIPT_DIR / 'benchmark_1060_c_001'
+DATA_DIR = SCRIPT_DIR / 'salmonella_300_c_001'
 
 RELEVANT_STEPS_PREFIXES = {
     'original': ['05_'],

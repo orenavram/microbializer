@@ -14,7 +14,7 @@ from auxiliaries.pipeline_auxiliaries import none_or_path, add_default_step_args
 from auxiliaries.logic_auxiliaries import flatten
 
 
-def write_og_dna_sequences_file(og_name, og_members, gene_to_sequence_dict, og_dna_path):
+def write_og_dna_sequences_file(logger, og_name, og_members, gene_to_sequence_dict, og_dna_path):
     og_sequences = ''
     for gene_name in og_members:
         og_sequences += f'>{gene_name}\n{gene_to_sequence_dict[gene_name]}\n'
@@ -24,7 +24,7 @@ def write_og_dna_sequences_file(og_name, og_members, gene_to_sequence_dict, og_d
     logger.info(f'Extracted dna sequences for {og_name} to {og_dna_path}')
 
 
-def write_og_aa_sequences_file(og_name, og_members, protein_to_sequence_dict, og_aa_path):
+def write_og_aa_sequences_file(logger, og_name, og_members, protein_to_sequence_dict, og_aa_path):
     og_sequences = ''
     for protein_name in og_members:
         og_sequences += f'>{protein_name}\n{protein_to_sequence_dict[protein_name]}\n'
@@ -176,12 +176,12 @@ def extract_orfs(logger, all_orfs_path, all_proteins_path, orthogroups_file_path
         if ogs_dna_output_dir:
             og_dna_path = ogs_dna_output_dir / f'{og_name}.fna'
             if not og_dna_path.exists():
-                write_og_dna_sequences_file(og_name, og_members, gene_to_sequence_dict, og_dna_path)
+                write_og_dna_sequences_file(logger, og_name, og_members, gene_to_sequence_dict, og_dna_path)
 
         if ogs_aa_output_dir:
             og_aa_path = ogs_aa_output_dir / f'{og_name}.faa'
             if not og_aa_path.exists():
-                write_og_aa_sequences_file(og_name, og_members, protein_to_sequence_dict, og_aa_path)
+                write_og_aa_sequences_file(logger, og_name, og_members, protein_to_sequence_dict, og_aa_path)
 
         if ogs_aa_aligned_output_dir:
             og_aligned_aa_path = ogs_aa_aligned_output_dir / f'{og_name}.faa'

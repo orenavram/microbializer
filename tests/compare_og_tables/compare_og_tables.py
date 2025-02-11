@@ -2,9 +2,9 @@ import pandas as pd
 from sklearn import metrics
 from pathlib import Path
 
-BASE_PATH = Path(r"C:\repos\microbializer\tests\panx_optimizations\benchmark_1060_c_001")
+BASE_PATH = Path(r"C:\repos\microbializer\tests\panx_optimizations\salmonella_300_c_001")
 OG_TABLE_ORIGINAL = BASE_PATH / "original" / "orthogroups.csv"
-OG_TABLE_APPROXIMATION = BASE_PATH / "pseudo_consensus_sqrt" / "orthogroups.csv"
+OG_TABLE_APPROXIMATION = BASE_PATH / "pseudo_consensus_mincomparisons" / "orthogroups.csv"
 
 
 def compare_clusterings(true_labels, pred_labels, output_path):
