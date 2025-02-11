@@ -15,9 +15,9 @@ from matplotlib.colors import LinearSegmentedColormap
 from seaborn.matrix import ClusterGrid
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-sys.path.append(str(SCRIPT_DIR.parent))
+sys.path.append(str(SCRIPT_DIR.parent.parent))
 
-from auxiliaries.pipeline_auxiliaries import add_default_step_args, run_step
+from pipeline.auxiliaries.run_step_utils import add_default_step_args, run_step
 
 
 def run_ani(logger, genomes_list_path, output_path, cpus):

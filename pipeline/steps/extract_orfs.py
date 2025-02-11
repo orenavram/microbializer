@@ -8,10 +8,10 @@ from collections import Counter
 import pandas as pd
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-sys.path.append(str(SCRIPT_DIR.parent))
+sys.path.append(str(SCRIPT_DIR.parent.parent))
 
-from auxiliaries.pipeline_auxiliaries import none_or_path, add_default_step_args, run_step
-from auxiliaries.logic_auxiliaries import flatten
+from pipeline.auxiliaries.run_step_utils import add_default_step_args, run_step
+from pipeline.auxiliaries.general_utils import flatten, none_or_path
 
 
 def write_og_dna_sequences_file(logger, og_name, og_members, gene_to_sequence_dict, og_dna_path):

@@ -4,9 +4,10 @@ from pathlib import Path
 from Bio import SeqIO
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-sys.path.append(str(SCRIPT_DIR.parent))
+sys.path.append(str(SCRIPT_DIR.parent.parent))
 
-from auxiliaries.pipeline_auxiliaries import add_default_step_args, str_to_bool, run_step
+from pipeline.auxiliaries.run_step_utils import add_default_step_args, run_step
+from pipeline.auxiliaries.general_utils import str_to_bool
 
 
 def filter_out_plasmids(logger, input_genome_path, output_genome_path, drop_plasmids, fix_frames):

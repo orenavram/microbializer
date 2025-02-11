@@ -7,14 +7,16 @@ from Bio import SeqIO
 import pandas as pd
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-sys.path.append(str(SCRIPT_DIR.parent))
+sys.path.append(str(SCRIPT_DIR.parent.parent))
 
-from auxiliaries.pipeline_auxiliaries import get_job_times_logger, prepare_directories, run_step, \
-    submit_batch, wait_for_results, add_results_to_final_dir, add_default_step_args, write_done_file, str_to_bool
-from auxiliaries.logic_auxiliaries import split_ogs_to_jobs_inputs_files_by_og_sizes
-from auxiliaries.infer_orthogroups_logic import infer_orthogroups
-from auxiliaries.configuration import Config
-from auxiliaries import consts
+from pipeline.auxiliaries.run_step_utils import get_job_times_logger, prepare_directories, run_step, \
+    submit_batch, wait_for_results, add_default_step_args
+from pipeline.auxiliaries.logic_utils import split_ogs_to_jobs_inputs_files_by_og_sizes
+from pipeline.auxiliaries.general_utils import write_done_file
+
+from pipeline.auxiliaries.infer_orthogroups_logic import infer_orthogroups
+from pipeline.auxiliaries.configuration import Config
+from pipeline.auxiliaries import consts
 
 
 def create_pseudo_genome_from_ogs(

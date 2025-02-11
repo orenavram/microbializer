@@ -6,10 +6,11 @@ from pathlib import Path
 import shutil
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-sys.path.append(str(SCRIPT_DIR.parent.parent))
+sys.path.append(str(SCRIPT_DIR.parent.parent.parent))
 
-from auxiliaries.pipeline_auxiliaries import fail, add_default_step_args, run_step
-from auxiliaries import consts
+from pipeline.auxiliaries.run_step_utils import add_default_step_args, run_step
+from pipeline.auxiliaries.general_utils import fail
+from pipeline.auxiliaries import consts
 
 
 def too_many_trials(logger, cmd, error_file_path):

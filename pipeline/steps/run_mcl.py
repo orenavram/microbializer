@@ -5,9 +5,9 @@ import sys
 import shutil
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-sys.path.append(str(SCRIPT_DIR.parent))
+sys.path.append(str(SCRIPT_DIR.parent.parent))
 
-from auxiliaries.pipeline_auxiliaries import add_default_step_args, run_step
+from pipeline.auxiliaries.run_step_utils import add_default_step_args, run_step
 
 
 def mcl(logger, input_file, output_file, cpus):

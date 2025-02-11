@@ -7,10 +7,9 @@ import json
 from Bio import SeqIO
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-sys.path.append(str(SCRIPT_DIR.parent))
+sys.path.append(str(SCRIPT_DIR.parent.parent))
 
-from auxiliaries.pipeline_auxiliaries import add_default_step_args, run_step
-from auxiliaries.logic_auxiliaries import fna_to_faa
+from pipeline.auxiliaries.run_step_utils import add_default_step_args, run_step
 
 
 def find_genes(logger, genome_path, orfs_output_file_path):
@@ -31,7 +30,7 @@ def find_genes(logger, genome_path, orfs_output_file_path):
     logger.info(f'ORFs were extracted successfully for {genome_path} to {orfs_output_file_path}')
 
 
-def mimic_prodigal_output(input_orfs_path, output_orf_path):
+def mimic_prodigal_output(logger, input_orfs_path, output_orf_path):
     # edit headers of ORFs to match the structure of prodigal output
     fixed_content = ''
     with open(input_orfs_path, 'r') as orfs_file:
@@ -70,6 +69,20 @@ def extract_orfs_statistics(logger, orf_path, orfs_statistics_dir):
     logger.info(f'ORFs statistics were extracted successfully for {genome_name} to {orfs_statistics_file_path}')
 
 
+def fna_to_faa(logger, nucleotide_path, protein_path):
+    with open(nucleotide_path, "r") as in_handle, open(protein_path, "w") as out_handle:
+        # Iterate through each sequence record in the input file
+        for record in SeqIO.parse(in_handle, "fasta"):
+            # Translate the DNA sequence into a protein sequence
+            translated_record = record.translate(id=True, name=True, description=True)
+
+            # Write the translated record to the output file
+            SeqIO.write(translated_record, out_handle, "fasta")
+
+    logger.info(f'Translated fatsa file {nucleotide_path}. Output was written successfully to: {protein_path}')
+
+
+
 def find_genes_of_all_files(logger, job_input_path, orfs_sequences_dir, orfs_statistics_dir, orfs_translated_dir,
                             inputs_fasta_type):
     with open(job_input_path, 'r') as f:
@@ -81,7 +94,7 @@ def find_genes_of_all_files(logger, job_input_path, orfs_sequences_dir, orfs_sta
             if inputs_fasta_type == 'genomes':
                 find_genes(logger, genome_path, orfs_output_file_path)
             else:  # inputs_fasta_type == 'orfs'
-                mimic_prodigal_output(genome_path, orfs_output_file_path)
+                mimic_prodigal_output(logger, genome_path, orfs_output_file_path)
 
             extract_orfs_statistics(logger, orfs_output_file_path, orfs_statistics_dir)
             fna_to_faa(logger, orfs_output_file_path, orfs_translated_dir / f'{genome_name}.faa')

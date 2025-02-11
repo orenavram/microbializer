@@ -6,14 +6,14 @@ import sys
 import subprocess
 from pathlib import Path
 
-SCRIPT_DIR = Path(__file__).resolve().parent
-sys.path.append(str(SCRIPT_DIR.parent))
-
 from . import consts
-from .pipeline_auxiliaries import remove_path, fail, write_done_file
-from .logic_auxiliaries import update_progressbar
+from .general_utils import remove_path, fail, write_done_file
 from .configuration import Config
-from flask.flask_interface_consts import WEBSERVER_NAME
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+sys.path.append(str(SCRIPT_DIR.parent.parent))
+
+from pipeline.flask.flask_interface_consts import WEBSERVER_NAME
 
 ILLEGAL_CHARS_IN_FILE_NAMES = '\\/:*?\"\'<>` |(),;&'
 ILLEGAL_CHARS_IN_RECORD_IDS = ':;,\'\"'
@@ -83,8 +83,6 @@ def prepare_and_verify_input_data(logger, config: Config):
         write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
-
-    update_progressbar(config.progressbar_file_path, 'Validate input files')
 
 
 def unpack_data(logger, raw_data_path, run_dir, error_file_path):

@@ -5,9 +5,9 @@ import pandas as pd
 import numpy as np
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-sys.path.append(str(SCRIPT_DIR.parent))
+sys.path.append(str(SCRIPT_DIR.parent.parent))
 
-from auxiliaries.pipeline_auxiliaries import add_default_step_args, run_step
+from pipeline.auxiliaries.run_step_utils import add_default_step_args, run_step
 
 
 def merge_sub_orthogroups(logger, pseudo_orthogroups_file_path, sub_orthogroups_dir_path, output_path):

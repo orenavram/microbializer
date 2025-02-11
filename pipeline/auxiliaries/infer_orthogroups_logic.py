@@ -8,10 +8,10 @@ import time
 from datetime import timedelta
 
 from . import consts
-from .pipeline_auxiliaries import wait_for_results, prepare_directories, submit_mini_batch, submit_batch, \
-    write_done_file
-from .logic_auxiliaries import aggregate_mmseqs_scores, add_score_column_to_mmseqs_output, \
-    get_directory_size_in_gb, combine_orphan_genes_stats, split_ogs_to_jobs_inputs_files_by_og_sizes
+from .general_utils import write_done_file, get_directory_size_in_gb
+from .run_step_utils import wait_for_results, prepare_directories, submit_mini_batch, submit_batch
+from .logic_utils import aggregate_mmseqs_scores, add_score_column_to_mmseqs_output, combine_orphan_genes_stats, \
+    split_ogs_to_jobs_inputs_files_by_og_sizes
 
 
 def infer_orthogroups(logger, times_logger, config, base_step_number, translated_orfs_dir, all_proteins_path,

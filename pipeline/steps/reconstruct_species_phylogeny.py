@@ -7,10 +7,11 @@ from Bio import SeqIO
 from ete3 import Tree, TreeStyle
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-sys.path.append(str(SCRIPT_DIR.parent))
+sys.path.append(str(SCRIPT_DIR.parent.parent))
 
-from auxiliaries.pipeline_auxiliaries import add_default_step_args, str_to_bool, run_step
-from auxiliaries import consts
+from pipeline.auxiliaries.run_step_utils import add_default_step_args, run_step
+from pipeline.auxiliaries.general_utils import str_to_bool
+from pipeline.auxiliaries import consts
 
 
 def extract_msa_dimensions(msa_path):

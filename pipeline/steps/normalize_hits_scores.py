@@ -4,9 +4,10 @@ import sys
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-sys.path.append(str(SCRIPT_DIR.parent))
+sys.path.append(str(SCRIPT_DIR.parent.parent))
 
-from auxiliaries.pipeline_auxiliaries import add_default_step_args, str_to_bool, run_step
+from pipeline.auxiliaries.run_step_utils import add_default_step_args, run_step
+from pipeline.auxiliaries.general_utils import str_to_bool
 
 
 def normalize_hits_scores(logger, blast_result, output_path, scores_normalize_coefficient, use_parquet):

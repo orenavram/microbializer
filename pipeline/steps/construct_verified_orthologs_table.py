@@ -5,10 +5,10 @@ import pandas as pd
 from collections import defaultdict
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-sys.path.append(str(SCRIPT_DIR.parent))
+sys.path.append(str(SCRIPT_DIR.parent.parent))
 
-from auxiliaries.pipeline_auxiliaries import add_default_step_args, run_step
-from auxiliaries.logic_auxiliaries import get_strain_name
+from pipeline.auxiliaries.run_step_utils import add_default_step_args, run_step
+from pipeline.auxiliaries.logic_utils import get_strain_name
 
 
 def get_verified_clusters_set(verified_clusters_path):

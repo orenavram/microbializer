@@ -1,26 +1,17 @@
 import os
-import shutil
 import subprocess
 from time import time, sleep
 import re
-import logging
-from datetime import timedelta, datetime
+from datetime import timedelta
 import pandas as pd
 import stat
-import sys
-import argparse
 from pathlib import Path
 import traceback
 from sys import argv
 
 from . import consts
-from .email_sender import send_email
 from .q_submitter_power import submit_cmds_from_file_to_q
-
-SCRIPT_DIR = Path(__file__).resolve().parent
-sys.path.append(str(SCRIPT_DIR.parent))
-
-from flask import flask_interface_consts, SharedConsts
+from .general_utils import get_logger, fail, str_to_bool
 
 
 def validate_slurm_error_logs(logger, slurm_logs_dir, error_file_path):
@@ -188,13 +179,6 @@ def prepare_directories(logger, outputs_dir_prefix, tmp_dir_prefix, dir_name):
     return outputs_dir, tmp_dir
 
 
-def fail(logger, error_msg, error_file_path):
-    logger.error(error_msg)
-    with open(error_file_path, 'w') as error_f:
-        error_f.write(error_msg + '\n')
-    raise ValueError(error_msg)
-
-
 def submit_mini_batch(logger, config, script_path, mini_batch_parameters_list, logs_dir, job_name, num_of_cpus=1,
                       memory=None, time_in_hours=None, command_to_run_before_script=None,
                       alternative_error_file=None):
@@ -203,8 +187,6 @@ def submit_mini_batch(logger, config, script_path, mini_batch_parameters_list, l
     :param mini_batch_parameters_list: a list of lists. each sublist corresponds to a single command and contain its parameters
     :param logs_dir:
     :param job_name:
-    :param queue_name:
-    :param verbose:
     :param num_of_cpus:
     :return: an example command to debug on the shell
     """
@@ -261,7 +243,6 @@ def submit_batch(logger, config, script_path, batch_parameters_list, logs_dir, j
     :param batch_parameters_list: a list of lists. each sublist corresponds to a single command and contain its parameters
     :param logs_dir:
     :param job_name_suffix: a string that will be concatenated after the batch number as the job name
-    :param queue_name:
     :param num_of_cmds_per_job:
     :param num_of_cpus:
     :return: number of batches submitted (in case waiting for the results) and an example command to debug on the shell
@@ -283,150 +264,18 @@ def submit_batch(logger, config, script_path, batch_parameters_list, logs_dir, j
     return num_of_mini_batches
 
 
-def send_email_in_pipeline_end(logger, config, state):
-    if not config.send_email:
-        return
-
-    email_addresses = [SharedConsts.OWNER_EMAIL]
-    email_addresses.extend(flask_interface_consts.ADDITIONAL_OWNER_EMAILS)
-    if config.email:
-        email_addresses.append(config.email)
-    else:
-        logger.warning(f'process_id = {config.run_number} email_address is empty, state = {state}, job_name = {config.job_name}')
-
-    # sends mail once the job finished or crashes
-    if state == SharedConsts.State.Finished:
-        send_email(logger, SharedConsts.EMAIL_CONSTS.create_title(state, config.job_name),
-                   SharedConsts.EMAIL_CONSTS.CONTENT_PROCESS_FINISHED.format(process_id=config.run_number), email_addresses)
-    elif state == SharedConsts.State.Crashed:
-        send_email(logger, SharedConsts.EMAIL_CONSTS.create_title(state, config.job_name),
-                   SharedConsts.EMAIL_CONSTS.CONTENT_PROCESS_CRASHED.format(process_id=config.run_number), email_addresses)
-
-
-def add_results_to_final_dir(logger, source_dir_path, final_output_dir):
-    dest = final_output_dir / consts.OUTPUTS_DIRECTORIES_MAP[source_dir_path.name]
-
-    try:
-        logger.info(f'Copying {source_dir_path} TO {dest}')
-        shutil.copytree(source_dir_path, dest, dirs_exist_ok=True)
-    except Exception:
-        logger.exception(f'Failed to copy {source_dir_path} to {dest}')
-        raise
-
-    return dest
-
-
-def remove_path(logger, path_to_remove):
-    logger.info(f'Removing {path_to_remove} ...')
-    try:
-        shutil.rmtree(path_to_remove)  # maybe it's a folder
-    except:
-        pass
-    try:
-        os.remove(path_to_remove)
-    except:
-        pass
-
-
 def get_job_logger(log_file_dir, job_name, verbose):
     job_id = os.environ.get(consts.JOB_ID_ENVIRONMENT_VARIABLE, '')
-
-    logger = logging.getLogger('main')
-    file_handler = logging.FileHandler(log_file_dir / f'{job_name}_{job_id}_log.txt', mode='a')
-    formatter = logging.Formatter(consts.LOG_MESSAGE_FORMAT)
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
-    logger.setLevel(logging.DEBUG if verbose else logging.INFO)
+    logger = get_logger(log_file_dir / f'{job_name}_{job_id}_log.txt', 'main', verbose)
 
     return logger
 
 
 def get_job_times_logger(log_file_dir, job_name, verbose):
     job_id = os.environ.get(consts.JOB_ID_ENVIRONMENT_VARIABLE, '')
-
-    logger = logging.getLogger('times')
-    file_handler = logging.FileHandler(log_file_dir / f'{job_name}_{job_id}_times_log.txt', mode='a')
-    formatter = logging.Formatter(consts.LOG_MESSAGE_FORMAT)
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
-    logger.setLevel(logging.DEBUG if verbose else logging.INFO)
+    logger = get_logger(log_file_dir / f'{job_name}_{job_id}_times_log.txt', 'times', verbose)
 
     return logger
-
-
-def str_to_bool(value):
-    if isinstance(value, bool):
-        return value
-    if value.lower() in ("yes", "true", "t", "1"):
-        return True
-    elif value.lower() in ("no", "false", "f", "0"):
-        return False
-    else:
-        raise argparse.ArgumentTypeError("Boolean value expected.")
-
-
-def none_or_path(value):
-    if value == 'None':
-        return None
-    return Path(value)
-
-
-def submit_clean_folders_job(logger, config):
-    if not config.clean_intermediate_outputs:
-        return
-
-    logger.info('Cleaning up intermediate results...')
-
-    folders_to_clean = [str(config.steps_results_dir)]
-
-    clean_folders_tmp_dir = config.tmp_dir / 'clean_folders'
-    clean_folders_tmp_dir.mkdir(parents=True, exist_ok=True)
-
-    clean_folders_error_file_path = clean_folders_tmp_dir / 'error.txt'
-    clean_folders_file_path = clean_folders_tmp_dir / 'folders.txt'
-    with open(clean_folders_file_path, 'w') as fp:
-        fp.write('\n'.join(folders_to_clean))
-
-    params = [clean_folders_file_path]
-
-    script_path = consts.SRC_DIR / 'steps' / 'clean_folders.py'
-    submit_mini_batch(logger, config, script_path, [params], clean_folders_tmp_dir,
-                      'clean_folders', alternative_error_file=clean_folders_error_file_path)
-
-
-def submit_clean_old_user_results_job(logger, config):
-    if not config.clean_old_job_directories:
-        return
-
-    logger.info('Checking if a clean old jobs job is needed...')
-    consts.CLEAN_JOBS_LOGS_DIR.mkdir(parents=True, exist_ok=True)
-
-    datetime_format = "%Y_%m_%d_%H_%M_%S"
-    parsed_datetimes = []
-    for subdir in consts.CLEAN_JOBS_LOGS_DIR.iterdir():
-        if subdir.is_dir():
-            try:
-                parsed_datetimes.append(datetime.strptime(subdir.name, datetime_format))
-            except ValueError:
-                # Skip directories that don't match the datetime format
-                pass
-
-    now = datetime.now()
-    if parsed_datetimes:
-        most_recent = max(parsed_datetimes)
-        if now - most_recent < timedelta(days=1):
-            logger.info('No need to run a clean old user results job since the last run was less than a day ago.')
-            return
-
-    logger.info('Submitting a job to clean old user results...')
-    tmp_dir = consts.CLEAN_JOBS_LOGS_DIR / now.strftime(datetime_format)
-    tmp_dir.mkdir(parents=True, exist_ok=True)
-    clean_old_jobs_error_file_path = tmp_dir / 'error.txt'
-    script_path = consts.SRC_DIR / 'steps' / 'clean_old_jobs.py'
-    params = []
-
-    submit_mini_batch(logger, config, script_path, [params], tmp_dir, 'clean_old_jobs',
-                      alternative_error_file=clean_old_jobs_error_file_path)
 
 
 def add_default_step_args(args_parser):
@@ -434,12 +283,6 @@ def add_default_step_args(args_parser):
     args_parser.add_argument('--logs_dir', type=Path, help='path to tmp dir to write logs to')
     args_parser.add_argument('--error_file_path', type=Path, help='path to error file')
     args_parser.add_argument('--job_name', help='job name')
-
-
-def write_done_file(logger, done_file_path):
-    with open(done_file_path, 'w') as f:
-        f.write('.')
-    logger.info(f'{done_file_path} was generated.')
 
 
 def run_step(args, step_method, *step_args):

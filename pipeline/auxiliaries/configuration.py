@@ -2,21 +2,19 @@ from dataclasses import dataclass, asdict
 import argparse
 import json
 import os
-import logging
 import sys
 from pathlib import Path
 import pandas as pd
 
 from . import consts
-from .pipeline_auxiliaries import str_to_bool
+from .general_utils import str_to_bool, get_logger
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-sys.path.append(str(SCRIPT_DIR.parent))
+sys.path.append(str(SCRIPT_DIR.parent.parent))
 
-from flask.flask_interface_consts import (WEBSERVER_NAME, ERROR_FILE_NAME, PROGRESSBAR_FILE_NAME,
-                                          SEND_EMAIL_WHEN_JOB_FINISHED_FROM_PIPELINE,
-                                          CLEAN_OLD_JOBS_DIRECTORIES_FROM_PIPELINE)
-from flask.SharedConsts import USER_FILE_NAME_ZIP, USER_FILE_NAME_TAR
+from pipeline.flask.flask_interface_consts import WEBSERVER_NAME, ERROR_FILE_NAME, PROGRESSBAR_FILE_NAME, \
+    SEND_EMAIL_WHEN_JOB_FINISHED_FROM_PIPELINE, CLEAN_OLD_JOBS_DIRECTORIES_FROM_PIPELINE
+from pipeline.flask.SharedConsts import USER_FILE_NAME_ZIP, USER_FILE_NAME_TAR
 
 PIPELINE_STEPS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
 
@@ -322,20 +320,8 @@ def prepare_pipeline_framework(args):
     output_dir = run_dir / args.output_dir
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    level = logging.DEBUG if args.verbose else logging.INFO
-    formatter = logging.Formatter(consts.LOG_MESSAGE_FORMAT)
-
-    logger = logging.getLogger('main')
-    main_file_handler = logging.FileHandler(output_dir / 'main_log.txt', mode='a')
-    main_file_handler.setFormatter(formatter)
-    logger.addHandler(main_file_handler)
-    logger.setLevel(level)
-
-    times_logger = logging.getLogger('times')
-    times_file_handler = logging.FileHandler(output_dir / 'times_log.txt', mode='a')
-    times_file_handler.setFormatter(formatter)
-    times_logger.addHandler(times_file_handler)
-    times_logger.setLevel(level)
+    logger = get_logger(output_dir / 'main_log.txt', 'main', args.verbose)
+    times_logger = get_logger(output_dir / 'times_log.txt', 'times', args.verbose)
 
     logger.info(args)
     logger.info(f'run_dir is: {run_dir}')

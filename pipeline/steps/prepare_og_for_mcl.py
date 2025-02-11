@@ -6,9 +6,9 @@ import pandas as pd
 from collections import defaultdict
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-sys.path.append(str(SCRIPT_DIR.parent))
+sys.path.append(str(SCRIPT_DIR.parent.parent))
 
-from auxiliaries.pipeline_auxiliaries import add_default_step_args, run_step
+from pipeline.auxiliaries.run_step_utils import add_default_step_args, run_step
 
 
 def load_all_ogs_hits(normalized_hits_dir, strain_to_gene_to_og):

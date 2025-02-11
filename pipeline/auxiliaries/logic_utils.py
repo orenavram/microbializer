@@ -1,15 +1,11 @@
 from __future__ import annotations
 
-import re
 import json
-import math
-
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 import seaborn as sns
 import numpy as np
-from Bio import SeqIO
 
 from . import consts
 
@@ -51,14 +47,6 @@ def get_strain_name(gene_name):
     return gene_name.split(':')[0]
 
 
-def max_with_nan(x, y):
-    if np.isnan(x):
-        return y
-    if np.isnan(y):
-        return x
-    return max(x, y)
-
-
 def add_score_column_to_mmseqs_output(mmseqs_output_df):
     if consts.SIMILARITY_SCORE_CRITERION == consts.SimilarityScore.BITS:
         mmseqs_output_df['score'] = mmseqs_output_df['bits']
@@ -70,27 +58,6 @@ def add_score_column_to_mmseqs_output(mmseqs_output_df):
         mmseqs_output_df.loc[mmseqs_output_df['score'] == np.inf, 'score'] = max_score + 1
     else:
         raise ValueError(f"Unknown similarity score criterion: {consts.SIMILARITY_SCORE_CRITERION}")
-
-
-def remove_bootstrap_values(in_tree_path, out_tree_path):
-    with open(in_tree_path) as f:
-        tree_as_str = f.read()
-
-    tree_as_str = re.sub('\)\d+:', '):', tree_as_str)
-    with open(out_tree_path, 'w') as f:
-        f.write(tree_as_str)
-
-
-def flatten(l):
-    return [item.strip() for sublist in l for item in sublist if pd.notna(item)]
-
-
-def get_all_genes_in_table(df):
-    # Expect as input a dataframe with genes in the cells (without an OG column)
-    all_df_values = flatten(df.values)
-
-    all_genes = flatten([value.split(';') for value in all_df_values])
-    return all_genes
 
 
 def plot_genomes_histogram(data, output_dir, output_file_name, title, xlabel):
@@ -114,41 +81,6 @@ def plot_genomes_histogram(data, output_dir, output_file_name, title, xlabel):
     plt.clf()
 
 
-def update_progressbar(progressbar_file_path, step_name_finished):
-    df = pd.read_csv(progressbar_file_path)
-    df.loc[df['Step'] == step_name_finished, 'Finished'] = True
-    df.to_csv(progressbar_file_path, index=False)
-
-
-def define_intervals(start, end, number_of_intervals):
-    # Calculate the interval length
-    interval_length = math.ceil((end - start + 1) / number_of_intervals)
-
-    # Create the intervals
-    intervals = []
-    i = start
-    while i < end:
-        interval_end = i + interval_length - 1
-        intervals.append((i, interval_end))
-        i = interval_end + 1
-
-    # Adjust the last interval to ensure it ends exactly at end
-    intervals[-1] = (intervals[-1][0], end)
-
-    return intervals
-
-
-def get_directory_size_in_gb(directory):
-    total_size = 0
-    for file_path in directory.iterdir():
-        # Skip broken symlinks and non-files
-        if file_path.is_file():
-            total_size += file_path.stat().st_size
-    # Convert bytes to gigabytes and round up
-    size_in_gb = total_size / (1024 ** 3)
-    return size_in_gb
-
-
 def convert_seq_identity_to_sensitivity(seq_identity):
     if seq_identity <= 0.3:
         sensitivity = 6
@@ -158,19 +90,6 @@ def convert_seq_identity_to_sensitivity(seq_identity):
         sensitivity = 1.0 + (1.0 * (0.8 - seq_identity) * 10)
 
     return sensitivity
-
-
-def fna_to_faa(logger, nucleotide_path, protein_path):
-    with open(nucleotide_path, "r") as in_handle, open(protein_path, "w") as out_handle:
-        # Iterate through each sequence record in the input file
-        for record in SeqIO.parse(in_handle, "fasta"):
-            # Translate the DNA sequence into a protein sequence
-            translated_record = record.translate(id=True, name=True, description=True)
-
-            # Write the translated record to the output file
-            SeqIO.write(translated_record, out_handle, "fasta")
-
-    logger.info(f'Translated fatsa file {nucleotide_path}. Output was written successfully to: {protein_path}')
 
 
 def combine_orphan_genes_stats(orphan_genes_dir, output_dir):
@@ -218,18 +137,3 @@ def split_ogs_to_jobs_inputs_files_by_og_sizes(orthogroups_df, step_tmp_dir, max
     orthogroups_df.drop(columns=['strains_count', 'paralogs_count', 'genes_count'], inplace=True)
 
     return job_paths
-
-
-def calc_genomes_batch_size(logger, config, num_of_genomes):
-    if config.genomes_batch_size_calc_method == 'fixed_number':
-        genomes_batch_size = config.genomes_batch_size
-    elif config.genomes_batch_size_calc_method == 'sqrt':
-        genomes_batch_size = math.ceil(math.sqrt(num_of_genomes))
-    elif config.genomes_batch_size_calc_method == 'min_comparisons':
-        genomes_batch_size = math.ceil((num_of_genomes * 2) ** (1/3))
-    else:
-        raise ValueError(f"Unknown genomes batch size calculation method: {config.genomes_batch_size_calc_method}")
-
-    logger.info(f'Calculated genomes batch size: {genomes_batch_size}, according to method: '
-                f'{config.genomes_batch_size_calc_method} and number of genomes: {num_of_genomes}')
-    return genomes_batch_size

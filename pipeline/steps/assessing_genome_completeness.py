@@ -4,10 +4,10 @@ from pathlib import Path
 import sys
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-sys.path.append(str(SCRIPT_DIR.parent))
+sys.path.append(str(SCRIPT_DIR.parent.parent))
 
-from auxiliaries.pipeline_auxiliaries import add_default_step_args, run_step
-from auxiliaries import consts
+from pipeline.auxiliaries.run_step_utils import add_default_step_args, run_step
+from pipeline.auxiliaries import consts
 
 
 def compute_genome_completeness(logger, genomic_translated_f, out_dir):

@@ -12,13 +12,22 @@ import traceback
 import statistics
 import json
 from multiprocessing import Pool
+import numpy as np
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent))
 
 from auxiliaries.pipeline_auxiliaries import fail, get_job_logger
-from auxiliaries.logic_auxiliaries import add_score_column_to_mmseqs_output, max_with_nan
+from auxiliaries.logic_auxiliaries import add_score_column_to_mmseqs_output
 from auxiliaries import consts
+
+
+def max_with_nan(x, y):
+    if np.isnan(x):
+        return y
+    if np.isnan(y):
+        return x
+    return max(x, y)
 
 
 def extract_paralogs(logger, genome_name, m8_df, max_scores_parts_dir, paralogs_dir,

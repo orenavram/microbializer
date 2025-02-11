@@ -8,11 +8,12 @@ import statistics
 import json
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-sys.path.append(str(SCRIPT_DIR.parent.parent))
+sys.path.append(str(SCRIPT_DIR.parent.parent.parent))
 
-from auxiliaries.pipeline_auxiliaries import fail, add_default_step_args, str_to_bool, run_step
-from auxiliaries.logic_auxiliaries import add_score_column_to_mmseqs_output
-from auxiliaries import consts
+from pipeline.auxiliaries.run_step_utils import add_default_step_args, run_step
+from pipeline.auxiliaries.logic_utils import add_score_column_to_mmseqs_output
+from pipeline.auxiliaries.general_utils import str_to_bool
+from pipeline.auxiliaries import consts
 
 
 def search_rbh(logger, genome1, genome2, dbs_dir, rbh_hits_dir, scores_statistics_dir, max_rbh_score_per_gene_dir,

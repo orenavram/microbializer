@@ -7,9 +7,10 @@ import statistics
 import dask.dataframe as dd
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-sys.path.append(str(SCRIPT_DIR.parent.parent))
+sys.path.append(str(SCRIPT_DIR.parent.parent.parent))
 
-from auxiliaries.pipeline_auxiliaries import fail, add_default_step_args, str_to_bool, run_step
+from pipeline.auxiliaries.run_step_utils import add_default_step_args, run_step
+from pipeline.auxiliaries.general_utils import str_to_bool
 
 
 def extract_rbh_hits_of_pair(logger, m8_df, genome1, genome2, rbh_hits_dir, scores_statistics_dir,

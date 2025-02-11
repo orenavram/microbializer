@@ -4,9 +4,9 @@ import argparse
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-sys.path.append(str(SCRIPT_DIR.parent.parent))
+sys.path.append(str(SCRIPT_DIR.parent.parent.parent))
 
-from auxiliaries.pipeline_auxiliaries import fail, add_default_step_args, run_step
+from pipeline.auxiliaries.run_step_utils import add_default_step_args, run_step
 
 
 def create_db(logger, genome_name, proteomes_dir, output_dir):

@@ -6,10 +6,11 @@ from Bio import SeqIO
 import pandas as pd
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-sys.path.append(str(SCRIPT_DIR.parent))
+sys.path.append(str(SCRIPT_DIR.parent.parent))
 
-from auxiliaries.pipeline_auxiliaries import add_default_step_args, none_or_path, run_step
-from auxiliaries import consts
+from pipeline.auxiliaries.run_step_utils import add_default_step_args, run_step
+from pipeline.auxiliaries.general_utils import none_or_path
+from pipeline.auxiliaries import consts
 
 
 def create_fasta_of_unified_ogs_sequences(logger, og_aa_dir, og_aa_consensus_dir, output_fasta_path, optimization_mode):

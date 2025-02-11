@@ -13,40 +13,20 @@ import pandas as pd
 import seaborn as sns
 from dataclasses import replace
 
-from auxiliaries.input_verifications import prepare_and_verify_input_data
-from auxiliaries.pipeline_auxiliaries import (wait_for_results, prepare_directories, submit_mini_batch,
-                                              submit_batch, add_results_to_final_dir,
-                                              send_email_in_pipeline_end, submit_clean_folders_job,
-                                              submit_clean_old_user_results_job, write_done_file)
 from auxiliaries import consts
 from auxiliaries.configuration import get_configuration
-from auxiliaries.logic_auxiliaries import (plot_genomes_histogram, update_progressbar, define_intervals,
-                                           combine_orphan_genes_stats, split_ogs_to_jobs_inputs_files_by_og_sizes,
-                                           calc_genomes_batch_size)
+from auxiliaries.input_verifications import prepare_and_verify_input_data
+
+from auxiliaries.general_utils import write_done_file
+from auxiliaries.main_utils import send_email_in_pipeline_end, submit_clean_folders_job, zip_results, \
+    submit_clean_old_user_results_job, update_progressbar, define_intervals, add_results_to_final_dir, \
+    calc_genomes_batch_size, initialize_progressbar
+from auxiliaries.run_step_utils import wait_for_results, prepare_directories, submit_mini_batch, submit_batch
+from auxiliaries.logic_utils import (plot_genomes_histogram, combine_orphan_genes_stats,
+                                     split_ogs_to_jobs_inputs_files_by_og_sizes)
+
 from auxiliaries.infer_orthogroups_logic import infer_orthogroups
 from flask.SharedConsts import State
-
-
-def initialize_progressbar(config):
-    if config.only_calc_ogs:
-        steps = consts.ONLY_CALC_OGS_TABLE_STEPS_NAMES_FOR_PROGRESS_BAR
-    else:
-        steps = consts.FULL_STEPS_NAMES_FOR_PROGRESS_BAR
-
-    if not config.filter_out_plasmids:
-        steps.remove('Filter out plasmids')
-
-    if config.inputs_fasta_type == 'orfs':
-        for i in range(len(steps)):
-            if steps[i] == 'Predict and translate ORFs':
-                steps[i] = 'Translate ORFs'
-                break
-
-    if config.core_minimal_percentage != 100:
-        steps.remove('Calculate genomes numeric representation')
-
-    df = pd.DataFrame({'Step': steps, 'Finished': [False] * len(steps)})
-    df.to_csv(config.progressbar_file_path, index=False)
 
 
 def step_1_fix_input_files(logger, times_logger, config):
@@ -1081,17 +1061,22 @@ def main():
     try:
         initialize_progressbar(config)
         prepare_and_verify_input_data(logger, config)
+        update_progressbar(config.progressbar_file_path, 'Validate input files')
+
         run_main_pipeline(logger, times_logger, config)
 
-        if config.step_to_complete and not config.only_calc_ogs and not config.do_not_copy_outputs_to_final_results_dir:
-            logger.info('Zipping results folder...')
-            shutil.make_archive(config.final_output_dir, 'zip', config.run_dir, config.final_output_dir_name)
-            logger.info(f'Zipped results folder to {config.final_output_dir}.zip')
-
+        zip_results(logger, config)
         submit_clean_folders_job(logger, config)
+
         update_progressbar(config.progressbar_file_path, 'Finalize results')
         write_done_file(logger, config.done_files_dir / 'pipeline_finished_successfully.txt')
         state = State.Finished
+    except subprocess.CalledProcessError as e:
+        error_message = f'Error in command: "{e.cmd}": {e.stderr}'
+        logger.exception(error_message)
+        with open(config.error_file_path, 'a+') as f:
+            f.write(error_message)
+        state = State.Crashed
     except Exception as e:
         if not config.error_file_path.exists():
             with open(config.error_file_path, 'w') as f:
