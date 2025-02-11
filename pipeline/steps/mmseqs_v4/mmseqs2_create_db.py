@@ -1,14 +1,12 @@
 import subprocess
 import sys
-from sys import argv
 import argparse
 from pathlib import Path
-import traceback
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent.parent))
 
-from auxiliaries.pipeline_auxiliaries import fail, get_job_logger, add_default_step_args
+from auxiliaries.pipeline_auxiliaries import fail, add_default_step_args, run_step
 
 
 def create_db(logger, genome_name, proteomes_dir, output_dir):
@@ -40,9 +38,6 @@ def create_dbs(logger, job_input_path, proteomes_dir, output_dir):
 
 
 if __name__ == '__main__':
-    script_run_message = f'Starting command is: {" ".join(argv)}'
-    print(script_run_message)
-
     parser = argparse.ArgumentParser()
     parser.add_argument('job_input_path', type=Path,
                         help='path to a file that contains the genome names to create dbs for')
@@ -51,12 +46,4 @@ if __name__ == '__main__':
     add_default_step_args(parser)
     args = parser.parse_args()
 
-    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
-
-    logger.info(script_run_message)
-    try:
-        create_dbs(logger, args.job_input_path, args.proteomes_dir, args.output_dir)
-    except Exception as e:
-        logger.exception(f'Error in {Path(__file__).name}')
-        with open(args.error_file_path, 'a+') as f:
-            traceback.print_exc(file=f)
+    run_step(args, create_dbs, args.job_input_path, args.proteomes_dir, args.output_dir)

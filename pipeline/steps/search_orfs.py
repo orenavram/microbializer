@@ -1,9 +1,7 @@
 import subprocess
 import sys
-from sys import argv
 import argparse
 from pathlib import Path
-import traceback
 import mmap
 import json
 from Bio import SeqIO
@@ -11,7 +9,7 @@ from Bio import SeqIO
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args
+from auxiliaries.pipeline_auxiliaries import add_default_step_args, run_step
 from auxiliaries.logic_auxiliaries import fna_to_faa
 
 
@@ -90,9 +88,6 @@ def find_genes_of_all_files(logger, job_input_path, orfs_sequences_dir, orfs_sta
 
 
 if __name__ == '__main__':
-    script_run_message = f'Starting command is: {" ".join(argv)}'
-    print(script_run_message)
-
     parser = argparse.ArgumentParser()
     parser.add_argument('job_input_path', type=Path,
                         help='path to a file that contains the genome names to search orfs for')
@@ -103,13 +98,5 @@ if __name__ == '__main__':
     add_default_step_args(parser)
     args = parser.parse_args()
 
-    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
-
-    logger.info(script_run_message)
-    try:
-        find_genes_of_all_files(logger, args.job_input_path, args.orfs_sequences_dir, args.orfs_statistics_dir,
-                                args.orfs_translated_dir, args.inputs_fasta_type)
-    except Exception as e:
-        logger.exception(f'Error in {Path(__file__).name}')
-        with open(args.error_file_path, 'a+') as f:
-            traceback.print_exc(file=f)
+    run_step(args, find_genes_of_all_files, args.job_input_path, args.orfs_sequences_dir, args.orfs_statistics_dir,
+             args.orfs_translated_dir, args.inputs_fasta_type)

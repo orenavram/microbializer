@@ -1,9 +1,7 @@
 import sys
-from sys import argv
 import argparse
 from pathlib import Path
 import pandas as pd
-import traceback
 import json
 import statistics
 import subprocess
@@ -12,7 +10,7 @@ import shutil
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent.parent))
 
-from auxiliaries.pipeline_auxiliaries import fail, get_job_logger, add_default_step_args, str_to_bool
+from auxiliaries.pipeline_auxiliaries import fail, add_default_step_args, str_to_bool, run_step
 from auxiliaries.logic_auxiliaries import add_score_column_to_mmseqs_output
 from auxiliaries import consts
 
@@ -143,9 +141,6 @@ def search_paralogs_in_all_pairs(logger, job_input_path, dbs_dir, max_scores_par
 
 
 if __name__ == '__main__':
-    script_run_message = f'Starting command is: {" ".join(argv)}'
-    print(script_run_message)
-
     parser = argparse.ArgumentParser()
     parser.add_argument('job_input_path', type=Path,
                         help='path to a file that contains the genome names to find paralogs')
@@ -163,15 +158,6 @@ if __name__ == '__main__':
     add_default_step_args(parser)
     args = parser.parse_args()
 
-    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
-
-    logger.info(script_run_message)
-    try:
-        search_paralogs_in_all_pairs(logger, args.job_input_path, args.dbs_dir, args.max_scores_parts_dir,
-                                     args.paralogs_dir, args.max_rbh_scores_unified_dir, args.scores_statistics_dir,
-                                     args.temp_dir, args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff,
-                                     args.use_parquet, args.sensitivity)
-    except Exception as e:
-        logger.exception(f'Error in {Path(__file__).name}')
-        with open(args.error_file_path, 'a+') as f:
-            traceback.print_exc(file=f)
+    run_step(args, search_paralogs_in_all_pairs, args.job_input_path, args.dbs_dir, args.max_scores_parts_dir,
+             args.paralogs_dir, args.max_rbh_scores_unified_dir, args.scores_statistics_dir, args.temp_dir,
+             args.identity_cutoff, args.coverage_cutoff, args.e_value_cutoff, args.use_parquet, args.sensitivity)

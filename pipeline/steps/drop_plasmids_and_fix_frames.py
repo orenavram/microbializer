@@ -1,14 +1,12 @@
 import sys
-from sys import argv
 import argparse
 from pathlib import Path
-import traceback
 from Bio import SeqIO
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args, str_to_bool
+from auxiliaries.pipeline_auxiliaries import add_default_step_args, str_to_bool, run_step
 
 
 def filter_out_plasmids(logger, input_genome_path, output_genome_path, drop_plasmids, fix_frames):
@@ -53,9 +51,6 @@ def filter_out_plasmids_of_all_files(logger, job_input_path, output_dir, drop_pl
 
 
 if __name__ == '__main__':
-    script_run_message = f'Starting command is: {" ".join(argv)}'
-    print(script_run_message)
-
     parser = argparse.ArgumentParser()
     parser.add_argument('job_input_path', type=Path,
                         help='path to a file that contains the genome names to drop plasmids from')
@@ -65,13 +60,5 @@ if __name__ == '__main__':
     add_default_step_args(parser)
     args = parser.parse_args()
 
-    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
-
-    logger.info(script_run_message)
-    try:
-        filter_out_plasmids_of_all_files(logger, args.job_input_path, args.output_dir, args.drop_plasmids,
-                                         args.fix_frames)
-    except Exception as e:
-        logger.exception(f'Error in {Path(__file__).name}')
-        with open(args.error_file_path, 'a+') as f:
-            traceback.print_exc(file=f)
+    run_step(args, filter_out_plasmids_of_all_files, args.job_input_path, args.output_dir, args.drop_plasmids,
+             args.fix_frames)

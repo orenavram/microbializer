@@ -906,8 +906,8 @@ def step_12_orthogroups_annotations(logger, times_logger, config, orfs_dir,
         logger.info('Annotation with KEGG Orthology...')
 
         params = [
-            ogs_aa_sequences_dir_path,
-            ogs_aa_consensus_dir_path,
+            ogs_aa_sequences_dir_path if config.kegg_optimization_mode != 'consensus_of_og' else None,
+            ogs_aa_consensus_dir_path if config.kegg_optimization_mode == 'consensus_of_og' else None,
             final_orthologs_table_file_path,
             kegg_output_dir_path,
             kegg_table_path,

@@ -1,14 +1,12 @@
 import pandas as pd
-from sys import argv
 import argparse
 import sys
 from pathlib import Path
-import traceback
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args, str_to_bool
+from auxiliaries.pipeline_auxiliaries import add_default_step_args, str_to_bool, run_step
 
 
 def normalize_hits_scores(logger, blast_result, output_path, scores_normalize_coefficient, use_parquet):
@@ -35,9 +33,6 @@ def normalize_hits_scores_of_all_files(logger, job_input_file, output_dir, use_p
 
 
 if __name__ == '__main__':
-    script_run_message = f'Starting command is: {" ".join(argv)}'
-    print(script_run_message)
-
     parser = argparse.ArgumentParser()
     parser.add_argument('job_input_file', type=Path,
                         help='path to a file that contains the paths of the files to normalize and the normalization coefficients')
@@ -46,12 +41,4 @@ if __name__ == '__main__':
     add_default_step_args(parser)
     args = parser.parse_args()
 
-    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
-
-    logger.info(script_run_message)
-    try:
-        normalize_hits_scores_of_all_files(logger, args.job_input_file, args.output_dir, args.use_parquet)
-    except Exception as e:
-        logger.exception(f'Error in {Path(__file__).name}')
-        with open(args.error_file_path, 'a+') as f:
-            traceback.print_exc(file=f)
+    run_step(args, normalize_hits_scores_of_all_files, args.job_input_file, args.output_dir, args.use_parquet)

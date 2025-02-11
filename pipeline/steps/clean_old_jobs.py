@@ -1,7 +1,5 @@
-from sys import argv
 import argparse
 import sys
-import traceback
 import time
 from math import floor
 from pathlib import Path
@@ -10,7 +8,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent))
 
 from auxiliaries import consts
-from auxiliaries.pipeline_auxiliaries import get_job_logger, remove_path, add_default_step_args
+from auxiliaries.pipeline_auxiliaries import remove_path, add_default_step_args, run_step
 from flask import SharedConsts
 
 
@@ -34,19 +32,8 @@ def clean_old_jobs(logger):
 
 
 if __name__ == '__main__':
-    script_run_message = f'Starting command is: {" ".join(argv)}'
-    print(script_run_message)
-
     parser = argparse.ArgumentParser()
     add_default_step_args(parser)
     args = parser.parse_args()
 
-    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
-
-    logger.info(script_run_message)
-    try:
-        clean_old_jobs(logger)
-    except Exception as e:
-        logger.exception(f'Error in {Path(__file__).name}')
-        with open(args.error_file_path, 'a+') as f:
-            traceback.print_exc(file=f)
+    run_step(args, clean_old_jobs)

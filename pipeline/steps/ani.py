@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-from sys import argv
 import itertools
 import argparse
 import subprocess
 import sys
-import traceback
 from pathlib import Path
 import pandas as pd
 
@@ -19,7 +17,7 @@ from seaborn.matrix import ClusterGrid
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args
+from auxiliaries.pipeline_auxiliaries import add_default_step_args, run_step
 
 
 def run_ani(logger, genomes_list_path, output_path, cpus):
@@ -140,9 +138,6 @@ def plot_ani_clustermap(
 
 
 if __name__ == '__main__':
-    script_run_message = f'Starting command is: {" ".join(argv)}'
-    print(script_run_message)
-
     parser = argparse.ArgumentParser()
     parser.add_argument('genomes_list_path', type=Path, help='path to a file with a list of all genomes paths')
     parser.add_argument('output_path', type=Path, help='path to the output directory')
@@ -150,12 +145,4 @@ if __name__ == '__main__':
     add_default_step_args(parser)
     args = parser.parse_args()
 
-    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
-
-    logger.info(script_run_message)
-    try:
-        run_ani(logger, args.genomes_list_path, args.output_path, args.cpus)
-    except Exception as e:
-        logger.exception(f'Error in {Path(__file__).name}')
-        with open(args.error_file_path, 'a+') as f:
-            traceback.print_exc(file=f)
+    run_step(args, run_ani, args.genomes_list_path, args.output_path, args.cpus)

@@ -1,16 +1,14 @@
 import subprocess
 import sys
-from sys import argv
 import argparse
 from pathlib import Path
 from Bio import SeqIO
 import pandas as pd
-import traceback
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args, none_or_path
+from auxiliaries.pipeline_auxiliaries import add_default_step_args, none_or_path, run_step
 from auxiliaries import consts
 
 
@@ -113,7 +111,7 @@ def kegg_annotation(logger, og_aa_dir, og_aa_consensus_dir, og_table_path, outpu
     hmmsearch_output = output_dir / 'hmmsearch_output.txt'
     cmd = f'hmmsearch --noali -o /dev/null --cpu {cpus} --tblout {hmmsearch_output} {consts.KEGG_DATABASE_PATH} {unified_ogs_sequences}'
     logger.info(f'Running: {cmd}')
-    subprocess.run(cmd, shell=True, check=True)
+    subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
     logger.info(f'Finished running hmmsearch. Output written to {hmmsearch_output}')
 
     hmmsearch_output_df = filter_hmmsearh_output(hmmsearch_output)
@@ -127,9 +125,6 @@ def kegg_annotation(logger, og_aa_dir, og_aa_consensus_dir, og_table_path, outpu
 
 
 if __name__ == '__main__':
-    script_run_message = f'Starting command is: {" ".join(argv)}'
-    print(script_run_message)
-
     parser = argparse.ArgumentParser()
     parser.add_argument('og_aa_dir', type=none_or_path, help='path to a dir of the amino acid sequences of all ogs')
     parser.add_argument('og_aa_consensus_dir', type=none_or_path,
@@ -143,13 +138,5 @@ if __name__ == '__main__':
     add_default_step_args(parser)
     args = parser.parse_args()
 
-    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
-
-    logger.info(script_run_message)
-    try:
-        kegg_annotation(logger, args.og_aa_dir, args.og_aa_consensus_dir, args.og_table_path, args.output_dir,
-                        args.output_og_table_path, args.cpus, args.optimization_mode)
-    except Exception as e:
-        logger.exception(f'Error in {Path(__file__).name}')
-        with open(args.error_file_path, 'a+') as f:
-            traceback.print_exc(file=f)
+    run_step(args, kegg_annotation, args.og_aa_dir, args.og_aa_consensus_dir, args.og_table_path, args.output_dir,
+             args.output_og_table_path, args.cpus, args.optimization_mode)

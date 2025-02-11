@@ -1,20 +1,13 @@
-"""
-Running example:
-script_name.py /Users/Oren/Dropbox/Projects/microbializer/mock_output/all_recip_hits.csv /Users/Oren/Dropbox/Projects/microbializer/mock_output/putative_orthologs_table.tsv
-"""
-
-from sys import argv
 import argparse
 from pathlib import Path
 import sys
 from collections import defaultdict
-import traceback
 import pandas as pd
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args
+from auxiliaries.pipeline_auxiliaries import add_default_step_args, run_step
 
 
 def cluster_genes_to_connected_components(logger, normalized_hits_dir, putative_orthologs_path):
@@ -129,9 +122,6 @@ def construct_table(logger, normalized_hits_dir, putative_orthologs_path):
 
 
 if __name__ == '__main__':
-    script_run_message = f'Starting command is: {" ".join(argv)}'
-    print(script_run_message)
-
     parser = argparse.ArgumentParser()
     parser.add_argument('normalized_hits_dir', type=Path,
                         help='path to a dir with all the hits files')
@@ -140,12 +130,4 @@ if __name__ == '__main__':
     add_default_step_args(parser)
     args = parser.parse_args()
 
-    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
-
-    logger.info(script_run_message)
-    try:
-        construct_table(logger, args.normalized_hits_dir, args.putative_orthologs_path)
-    except Exception as e:
-        logger.exception(f'Error in {Path(__file__).name}')
-        with open(args.error_file_path, 'a+') as f:
-            traceback.print_exc(file=f)
+    run_step(args, construct_table, args.normalized_hits_dir, args.putative_orthologs_path)

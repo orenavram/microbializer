@@ -1,9 +1,7 @@
 import sys
-from sys import argv
 import argparse
 from pathlib import Path
 import pandas as pd
-import traceback
 import json
 import statistics
 import dask.dataframe as dd
@@ -11,7 +9,7 @@ import dask.dataframe as dd
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent.parent))
 
-from auxiliaries.pipeline_auxiliaries import fail, get_job_logger, add_default_step_args, str_to_bool
+from auxiliaries.pipeline_auxiliaries import fail, add_default_step_args, str_to_bool, run_step
 
 
 def extract_rbh_hits_of_pair(logger, m8_df, genome1, genome2, rbh_hits_dir, scores_statistics_dir,
@@ -115,9 +113,6 @@ def extract_rbh_hits(logger, m8_path, rbh_input_path, rbh_hits_dir, scores_stati
 
 
 if __name__ == '__main__':
-    script_run_message = f'Starting command is: {" ".join(argv)}'
-    print(script_run_message)
-
     parser = argparse.ArgumentParser()
     parser.add_argument('m8_path', type=Path, help='')
     parser.add_argument('rbh_input_path', type=Path, help='')
@@ -128,13 +123,5 @@ if __name__ == '__main__':
     add_default_step_args(parser)
     args = parser.parse_args()
 
-    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
-
-    logger.info(script_run_message)
-    try:
-        extract_rbh_hits(logger, args.m8_path, args.rbh_input_path, args.rbh_hits_dir,
-                         args.scores_statistics_dir, args.max_rbh_score_per_gene_dir, args.use_parquet, args.verbose)
-    except Exception as e:
-        logger.exception(f'Error in {Path(__file__).name}')
-        with open(args.error_file_path, 'a+') as f:
-            traceback.print_exc(file=f)
+    run_step(args, extract_rbh_hits, args.m8_path, args.rbh_input_path, args.rbh_hits_dir, args.scores_statistics_dir,
+             args.max_rbh_score_per_gene_dir, args.use_parquet, args.verbose)

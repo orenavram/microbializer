@@ -1,12 +1,10 @@
 import sys
-from sys import argv
 import argparse
 import time
 import json
 import subprocess
 import shutil
 import re
-import traceback
 from pathlib import Path
 from datetime import timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed, ProcessPoolExecutor
@@ -23,7 +21,7 @@ from sklearn.decomposition import PCA
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args
+from auxiliaries.pipeline_auxiliaries import add_default_step_args, run_step
 from auxiliaries.logic_auxiliaries import get_strain_name
 from auxiliaries import consts
 
@@ -200,7 +198,11 @@ def plot_CAI_histogram(logger, ogs_cai_info_df, output_dir):
     plt.close()
 
 
-def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, cpus, logger):
+def analyze_codon_bias(logger, ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, cpus):
+    if cai_table_path.exists():
+        logger.info(f"CAI table already exists at {cai_table_path}. Skipping this step.")
+        return
+
     # When cpus == 1, it means we run on a low-memory machine, so we don't want to spawn new processes to avoid
     # 'OSError: [Errno 12] Cannot allocate memory'
     if cpus == 1:
@@ -259,9 +261,6 @@ def analyze_codon_bias(ORF_dir, OG_dir, output_dir, cai_table_path, tmp_dir, cpu
 
 
 if __name__ == '__main__':
-    script_run_message = f'Starting command is: {" ".join(argv)}'
-    print(script_run_message)
-
     parser = argparse.ArgumentParser()
     parser.add_argument('ORF_dir', type=Path, help='path to input fasta directory')
     parser.add_argument('OG_dir', type=Path, help='path to input Orthologous group directory')
@@ -272,13 +271,5 @@ if __name__ == '__main__':
     add_default_step_args(parser)
     args = parser.parse_args()
 
-    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
-
-    logger.info(script_run_message)
-    try:
-        analyze_codon_bias(args.ORF_dir, args.OG_dir, args.output_dir, args.cai_table_path, args.tmp_dir, args.cpus,
-                           logger)
-    except Exception as e:
-        logger.exception(f'Error in {Path(__file__).name}')
-        with open(args.error_file_path, 'a+') as f:
-            traceback.print_exc(file=f)
+    run_step(args, analyze_codon_bias, args.ORF_dir, args.OG_dir, args.output_dir, args.cai_table_path, args.tmp_dir,
+             args.cpus)

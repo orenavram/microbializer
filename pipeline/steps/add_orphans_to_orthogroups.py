@@ -1,14 +1,12 @@
-from sys import argv
 import argparse
 import sys
 import pandas as pd
-import traceback
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args
+from auxiliaries.pipeline_auxiliaries import add_default_step_args, run_step
 
 
 def finalize_table(logger, orthologs_table_path, finalized_table_path, orphan_genes_dir):
@@ -40,9 +38,6 @@ def finalize_table(logger, orthologs_table_path, finalized_table_path, orphan_ge
 
 
 if __name__ == '__main__':
-    script_run_message = f'Starting command is: {" ".join(argv)}'
-    print(script_run_message)
-
     parser = argparse.ArgumentParser()
     parser.add_argument('orthologs_table_path', type=Path, help='path to the orthologs table (input)')
     parser.add_argument('finalized_table_path', type=Path, help='path to the output orthologs table')
@@ -50,13 +45,4 @@ if __name__ == '__main__':
     add_default_step_args(parser)
     args = parser.parse_args()
 
-    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
-
-    logger.info(script_run_message)
-    try:
-        finalize_table(logger, args.orthologs_table_path, args.finalized_table_path,
-                       args.orphan_genes_dir)
-    except Exception as e:
-        logger.exception(f'Error in {Path(__file__).name}')
-        with open(args.error_file_path, 'a+') as f:
-            traceback.print_exc(file=f)
+    run_step(args, finalize_table, args.orthologs_table_path, args.finalized_table_path, args.orphan_genes_dir)

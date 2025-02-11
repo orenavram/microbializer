@@ -1,23 +1,13 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Jun 13 08:25:48 2023
-
-@author: noa
-"""
-
-from sys import argv
 import argparse
 from pathlib import Path
 import sys
 import pandas as pd
 from Bio import SeqIO
-import traceback
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args
+from auxiliaries.pipeline_auxiliaries import add_default_step_args, run_step
 from auxiliaries.logic_auxiliaries import plot_genomes_histogram, flatten
 
 
@@ -64,10 +54,7 @@ def extract_orphan_proteins_of_all_strains(logger, job_input_path, orthogroups_f
             extract_orphan_proteins(logger, strain_name, orphan_orthogroups, output_dir)
 
 
-def main():
-    script_run_message = f'Starting command is: {" ".join(argv)}'
-    print(script_run_message)
-
+if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('job_input_path', type=Path,
                         help='path to a file that contains the strain names to extract orphan genes')
@@ -76,16 +63,4 @@ def main():
     add_default_step_args(parser)
     args = parser.parse_args()
 
-    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
-
-    logger.info(script_run_message)
-    try:
-        extract_orphan_proteins_of_all_strains(logger, args.job_input_path, args.orthogroups_file, args.output_dir)
-    except Exception as e:
-        logger.exception(f'Error in {Path(__file__).name}')
-        with open(args.error_file_path, 'a+') as f:
-            traceback.print_exc(file=f)
-
-
-if __name__ == '__main__':
-    main()
+    run_step(args, extract_orphan_proteins_of_all_strains, args.job_input_path, args.orthogroups_file, args.output_dir)

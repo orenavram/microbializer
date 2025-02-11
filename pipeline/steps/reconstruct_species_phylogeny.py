@@ -1,17 +1,15 @@
 import subprocess
-from sys import argv
 import argparse
 from pathlib import Path
 import shutil
 import sys
 from Bio import SeqIO
 from ete3 import Tree, TreeStyle
-import traceback
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args, str_to_bool
+from auxiliaries.pipeline_auxiliaries import add_default_step_args, str_to_bool, run_step
 from auxiliaries import consts
 
 
@@ -131,9 +129,6 @@ def generate_phylogenetic_tree(logger, msa_path, phylogenetic_tree_path, tmp_fol
 
 
 if __name__ == '__main__':
-    script_run_message = f'Starting command is: {" ".join(argv)}'
-    print(script_run_message)
-
     parser = argparse.ArgumentParser()
     parser.add_argument('msa_path', type=Path, help='path to a multiple sequence alignment file')
     parser.add_argument('phylogenetic_raw_tree_path', type=Path,
@@ -150,13 +145,5 @@ if __name__ == '__main__':
     add_default_step_args(parser)
     args = parser.parse_args()
 
-    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
-
-    logger.info(script_run_message)
-    try:
-        generate_phylogenetic_tree(logger, args.msa_path, args.phylogenetic_raw_tree_path, args.tmp_path, args.seed,
-                                   args.tree_search_software, args.outgroup, args.bootstrap, args.cpu)
-    except Exception as e:
-        logger.exception(f'Error in {Path(__file__).name}')
-        with open(args.error_file_path, 'a+') as f:
-            traceback.print_exc(file=f)
+    run_step(args, generate_phylogenetic_tree, args.msa_path, args.phylogenetic_raw_tree_path, args.tmp_path, args.seed,
+             args.tree_search_software, args.outgroup, args.bootstrap, args.cpu)

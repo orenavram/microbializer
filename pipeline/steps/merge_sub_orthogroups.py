@@ -1,15 +1,13 @@
-from sys import argv
 import argparse
 from pathlib import Path
 import sys
-import traceback
 import pandas as pd
 import numpy as np
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args
+from auxiliaries.pipeline_auxiliaries import add_default_step_args, run_step
 
 
 def merge_sub_orthogroups(logger, pseudo_orthogroups_file_path, sub_orthogroups_dir_path, output_path):
@@ -48,9 +46,6 @@ def merge_sub_orthogroups(logger, pseudo_orthogroups_file_path, sub_orthogroups_
 
 
 if __name__ == '__main__':
-    script_run_message = f'Starting command is: {" ".join(argv)}'
-    print(script_run_message)
-
     parser = argparse.ArgumentParser()
     parser.add_argument('pseudo_orthogroups_file_path', type=Path)
     parser.add_argument('sub_orthogroups_dir_path', type=Path)
@@ -58,13 +53,5 @@ if __name__ == '__main__':
     add_default_step_args(parser)
     args = parser.parse_args()
 
-    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
-
-    logger.info(script_run_message)
-    try:
-        merge_sub_orthogroups(logger, args.pseudo_orthogroups_file_path, args.sub_orthogroups_dir_path,
-                              args.output_path)
-    except Exception as e:
-        logger.exception(f'Error in {Path(__file__).name}')
-        with open(args.error_file_path, 'a+') as f:
-            traceback.print_exc(file=f)
+    run_step(args, merge_sub_orthogroups, args.pseudo_orthogroups_file_path, args.sub_orthogroups_dir_path,
+             args.output_path)

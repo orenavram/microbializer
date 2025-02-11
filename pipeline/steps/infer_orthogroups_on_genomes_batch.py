@@ -1,18 +1,15 @@
 import sys
-from sys import argv
 import argparse
-import traceback
 import shutil
 import subprocess
 from pathlib import Path
 from Bio import SeqIO
 import pandas as pd
-from collections import defaultdict
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger, get_job_times_logger, prepare_directories, \
+from auxiliaries.pipeline_auxiliaries import get_job_times_logger, prepare_directories, run_step, \
     submit_batch, wait_for_results, add_results_to_final_dir, add_default_step_args, write_done_file, str_to_bool
 from auxiliaries.logic_auxiliaries import split_ogs_to_jobs_inputs_files_by_og_sizes
 from auxiliaries.infer_orthogroups_logic import infer_orthogroups
@@ -144,9 +141,6 @@ def infer_orthogroups_on_genomes_batch(logger, times_logger, config, step_number
 
 
 if __name__ == '__main__':
-    script_run_message = f'Starting command is: {" ".join(argv)}'
-    print(script_run_message)
-
     parser = argparse.ArgumentParser()
     parser.add_argument('config_path', help='')
     parser.add_argument('step_number', help='')
@@ -155,15 +149,8 @@ if __name__ == '__main__':
     add_default_step_args(parser)
     args = parser.parse_args()
 
-    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
     times_logger = get_job_times_logger(args.logs_dir, args.job_name, args.verbose)
+    config = Config.from_csv(args.config_path)
 
-    logger.info(script_run_message)
-    try:
-        config = Config.from_csv(args.config_path)
-        infer_orthogroups_on_genomes_batch(
-            logger, times_logger, config, args.step_number, args.translated_orfs_dir, args.genomes_batch_id)
-    except Exception as e:
-        logger.exception(f'Error in {Path(__file__).name}')
-        with open(args.error_file_path, 'a+') as f:
-            traceback.print_exc(file=f)
+    run_step(args, infer_orthogroups_on_genomes_batch, times_logger, config, args.step_number, args.translated_orfs_dir,
+             args.genomes_batch_id)

@@ -1,8 +1,6 @@
-from sys import argv
 import argparse
 from pathlib import Path
 import sys
-import traceback
 from time import sleep
 import pandas as pd
 from collections import defaultdict
@@ -10,7 +8,7 @@ from collections import defaultdict
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args
+from auxiliaries.pipeline_auxiliaries import add_default_step_args, run_step
 
 
 def load_all_ogs_hits(normalized_hits_dir, strain_to_gene_to_og):
@@ -86,9 +84,6 @@ def prepare_ogs_for_mcl(logger, normalized_hits_dir, putative_ogs_path, job_inpu
 
 
 if __name__ == '__main__':
-    script_run_message = f'Starting command is: {" ".join(argv)}'
-    print(script_run_message)
-
     parser = argparse.ArgumentParser()
     parser.add_argument('normalized_hits_dir', type=Path, help='path to a file with all hits')
     parser.add_argument('putative_ogs_path', type=Path, help='path to a putative ogs path')
@@ -97,13 +92,5 @@ if __name__ == '__main__':
     add_default_step_args(parser)
     args = parser.parse_args()
 
-    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
-
-    logger.info(script_run_message)
-    try:
-        prepare_ogs_for_mcl(logger, args.normalized_hits_dir, args.putative_ogs_path, args.job_input_path,
-                            args.output_path)
-    except Exception as e:
-        logger.exception(f'Error in {Path(__file__).name}')
-        with open(args.error_file_path, 'a+') as f:
-            traceback.print_exc(file=f)
+    run_step(args, prepare_ogs_for_mcl, args.normalized_hits_dir, args.putative_ogs_path, args.job_input_path,
+             args.output_path)

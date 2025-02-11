@@ -10,6 +10,8 @@ import stat
 import sys
 import argparse
 from pathlib import Path
+import traceback
+from sys import argv
 
 from . import consts
 from .email_sender import send_email
@@ -429,3 +431,22 @@ def write_done_file(logger, done_file_path):
     with open(done_file_path, 'w') as f:
         f.write('.')
     logger.info(f'{done_file_path} was generated.')
+
+
+def run_step(args, step_method, *step_args):
+    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
+
+    script_run_message = f'Starting command is: {" ".join(argv)}'
+    logger.info(script_run_message)
+
+    try:
+        step_method(logger, *step_args)
+    except subprocess.CalledProcessError as e:
+        error_message = f'Error in function "{step_method.__name__}" in command: "{e.cmd}": {e.stderr}'
+        logger.exception(error_message)
+        with open(args.error_file_path, 'a+') as f:
+            f.write(error_message)
+    except Exception as e:
+        logger.exception(f'Error in function "{step_method.__name__}"')
+        with open(args.error_file_path, 'a+') as f:
+            traceback.print_exc(file=f)

@@ -1,15 +1,13 @@
-from sys import argv
 import argparse
 from pathlib import Path
 import subprocess
 import sys
-import traceback
 import shutil
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args
+from auxiliaries.pipeline_auxiliaries import add_default_step_args, run_step
 
 
 def mcl(logger, input_file, output_file, cpus):
@@ -48,8 +46,7 @@ def verify(logger, og_name, input_file, output_dir):
         logger.info(f'{input_file} was split into {og_subset_id} clusters in {output_dir}')
 
 
-def run_mcl_on_all_putative_ogs(logger, mcl_input_dir, job_input_path, mcl_output_dir,
-                                verified_clusters_dir, cpus):
+def run_mcl_on_all_putative_ogs(logger, mcl_input_dir, job_input_path, mcl_output_dir, verified_clusters_dir, cpus):
     with open(job_input_path, 'r') as f:
         ogs_names = [line.strip() for line in f]
 
@@ -61,9 +58,6 @@ def run_mcl_on_all_putative_ogs(logger, mcl_input_dir, job_input_path, mcl_outpu
 
 
 if __name__ == '__main__':
-    script_run_message = f'Starting command is: {" ".join(argv)}'
-    print(script_run_message)
-
     parser = argparse.ArgumentParser()
     parser.add_argument('mcl_input_dir', type=Path, help='path to dir of mcl input files')
     parser.add_argument('job_input_path', type=Path, help='')
@@ -73,13 +67,5 @@ if __name__ == '__main__':
     add_default_step_args(parser)
     args = parser.parse_args()
 
-    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
-
-    logger.info(script_run_message)
-    try:
-        run_mcl_on_all_putative_ogs(logger, args.mcl_input_dir, args.job_input_path,
-                                    args.mcl_output_dir, args.verified_clusters_dir, args.cpus)
-    except Exception as e:
-        logger.exception(f'Error in {Path(__file__).name}')
-        with open(args.error_file_path, 'a+') as f:
-            traceback.print_exc(file=f)
+    run_step(args, run_mcl_on_all_putative_ogs, args.mcl_input_dir, args.job_input_path, args.mcl_output_dir,
+             args.verified_clusters_dir, args.cpus)

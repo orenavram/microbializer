@@ -1,14 +1,12 @@
 import sys
-from sys import argv
 import argparse
-import traceback
 from pathlib import Path
 from Bio import SeqIO
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args
+from auxiliaries.pipeline_auxiliaries import add_default_step_args, run_step
 from auxiliaries.logic_auxiliaries import get_strain_name
 
 
@@ -90,9 +88,6 @@ def extract_core_genome(logger, alignments_path, strains_names_path, core_genome
 
 
 if __name__ == '__main__':
-    script_run_message = f'Starting command is: {" ".join(argv)}'
-    print(script_run_message)
-
     parser = argparse.ArgumentParser()
     parser.add_argument('aa_alignments_path', type=Path,
                         help='path to a folder where each file is a multiple sequences fasta file')
@@ -107,13 +102,5 @@ if __name__ == '__main__':
     add_default_step_args(parser)
     args = parser.parse_args()
 
-    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
-
-    logger.info(script_run_message)
-    try:
-        extract_core_genome(logger, args.aa_alignments_path, args.strains_names_path, args.core_genome_path,
-                            args.core_length_path, args.core_minimal_percentage, args.max_number_of_ogs)
-    except Exception as e:
-        logger.exception(f'Error in {Path(__file__).name}')
-        with open(args.error_file_path, 'a+') as f:
-            traceback.print_exc(file=f)
+    run_step(args, extract_core_genome, args.aa_alignments_path, args.strains_names_path, args.core_genome_path,
+             args.core_length_path, args.core_minimal_percentage, args.max_number_of_ogs)

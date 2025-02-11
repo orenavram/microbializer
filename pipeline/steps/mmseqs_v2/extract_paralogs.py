@@ -1,9 +1,7 @@
 import sys
-from sys import argv
 import argparse
 from pathlib import Path
 import pandas as pd
-import traceback
 import json
 import statistics
 import dask.dataframe as dd
@@ -11,7 +9,7 @@ import dask.dataframe as dd
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent.parent))
 
-from auxiliaries.pipeline_auxiliaries import fail, get_job_logger, add_default_step_args, str_to_bool
+from auxiliaries.pipeline_auxiliaries import fail, add_default_step_args, str_to_bool, run_step
 
 
 def extract_paralogs_of_genome(logger, m8_df, genome_name, max_scores_parts_dir, paralogs_dir,
@@ -112,9 +110,6 @@ def extract_paralogs(logger, m8_path, genomes_input_path, max_scores_parts_dir, 
 
 
 if __name__ == '__main__':
-    script_run_message = f'Starting command is: {" ".join(argv)}'
-    print(script_run_message)
-
     parser = argparse.ArgumentParser()
     parser.add_argument('m8_path', type=Path, help='')
     parser.add_argument('genomes_input_path', type=Path, help='')
@@ -126,13 +121,6 @@ if __name__ == '__main__':
     add_default_step_args(parser)
     args = parser.parse_args()
 
-    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
-
-    logger.info(script_run_message)
-    try:
-        extract_paralogs(logger, args.m8_path, args.genomes_input_path, args.max_scores_parts_dir, args.paralogs_dir,
-                         args.max_rbh_scores_unified_dir, args.scores_statistics_dir, args.use_parquet, args.verbose)
-    except Exception as e:
-        logger.exception(f'Error in {Path(__file__).name}')
-        with open(args.error_file_path, 'a+') as f:
-            traceback.print_exc(file=f)
+    run_step(args, extract_paralogs, args.m8_path, args.genomes_input_path, args.max_scores_parts_dir,
+             args.paralogs_dir, args.max_rbh_scores_unified_dir, args.scores_statistics_dir, args.use_parquet,
+             args.verbose)

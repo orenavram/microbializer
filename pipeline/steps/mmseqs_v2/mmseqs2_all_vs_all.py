@@ -1,16 +1,14 @@
 import subprocess
 import sys
 import time
-from sys import argv
 import argparse
 from pathlib import Path
 import shutil
-import traceback
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent.parent))
 
-from auxiliaries.pipeline_auxiliaries import fail, get_job_logger, add_default_step_args
+from auxiliaries.pipeline_auxiliaries import fail, add_default_step_args, run_step
 from auxiliaries import consts
 
 
@@ -52,9 +50,6 @@ def run_mmseqs(logger, all_proteins_fasta, output_dir, output_path, identity_cut
 
 
 if __name__ == '__main__':
-    script_run_message = f'Starting command is: {" ".join(argv)}'
-    print(script_run_message)
-
     parser = argparse.ArgumentParser()
     parser.add_argument('all_proteins_fasta', type=Path, help='path to a protein fasta')
     parser.add_argument('output_dir', type=Path, help='')
@@ -68,14 +63,6 @@ if __name__ == '__main__':
     add_default_step_args(parser)
     args = parser.parse_args()
 
-    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
-
-    logger.info(script_run_message)
-    try:
-        run_mmseqs(logger, args.all_proteins_fasta, args.output_dir, args.output_path, args.identity_cutoff,
-                   args.coverage_cutoff, args.e_value_cutoff, args.number_of_genomes, args.cpus, args.error_file_path,
-                   args.sensitivity)
-    except Exception as e:
-        logger.exception(f'Error in {Path(__file__).name}')
-        with open(args.error_file_path, 'a+') as f:
-            traceback.print_exc(file=f)
+    run_step(args, run_mmseqs, args.all_proteins_fasta, args.output_dir, args.output_path, args.identity_cutoff,
+             args.coverage_cutoff, args.e_value_cutoff, args.number_of_genomes, args.cpus, args.error_file_path,
+             args.sensitivity)

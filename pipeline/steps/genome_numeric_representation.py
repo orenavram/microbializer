@@ -5,15 +5,13 @@ core_minimal_percentage. "core genes" are genes that are part of "core OGs".
 
 from pathlib import Path
 import sys
-from sys import argv
 import argparse
 import pandas as pd
-import traceback
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent))
 
-from auxiliaries.pipeline_auxiliaries import get_job_logger, add_default_step_args
+from auxiliaries.pipeline_auxiliaries import add_default_step_args, run_step
 
 ORFS_FILE_HEADER_DELIMITER = ' # '
 ORFS_FILE_HEADER_GENE_INDEX = 0
@@ -167,9 +165,6 @@ def get_genome_numeric_representation(logger, orthologs_table_path, ORFs_dir_pat
 
 
 if __name__ == '__main__':
-    script_run_message = f'Starting command is: {" ".join(argv)}'
-    print(script_run_message)
-
     parser = argparse.ArgumentParser()
     parser.add_argument('orthologs_table_path', type=Path, help='A path to an ortholog table')
     parser.add_argument('ORFs_dir_path', type=Path, help='A path to a ORF directory')
@@ -178,14 +173,5 @@ if __name__ == '__main__':
     add_default_step_args(parser)
     args = parser.parse_args()
 
-    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
-
-    logger.info(script_run_message)
-
-    try:
-        get_genome_numeric_representation(logger, args.orthologs_table_path, args.ORFs_dir_path,
-                                          args.output_path, args.tmp_dir)
-    except Exception as e:
-        logger.exception(f'Error in {Path(__file__).name}')
-        with open(args.error_file_path, 'a+') as f:
-            traceback.print_exc(file=f)
+    run_step(args, get_genome_numeric_representation, args.orthologs_table_path, args.ORFs_dir_path, args.output_path,
+             args.tmp_dir)
