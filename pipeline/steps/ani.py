@@ -34,7 +34,7 @@ def run_ani(logger, genomes_list_path, output_path, cpus):
     # No ANI output is reported for a genome pair if ANI value is much below 80% (https://github.com/ParBLiSS/FastANI)
     cmd = f'fastANI --ql {genomes_list_path} --rl {genomes_list_path} -o {raw_output_path} -t {cpus}'
     logger.info(f'Starting fastANI. Executed command is: {cmd}')
-    subprocess.run(cmd, shell=True, check=True)
+    subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
     logger.info(f'fastANI finished successfully. Output is saved to {raw_output_path}')
 
     df = pd.read_csv(raw_output_path, delimiter='\t',
@@ -46,7 +46,7 @@ def run_ani(logger, genomes_list_path, output_path, cpus):
     ani_values_df.to_csv(ani_values_temp_path)
     logger.info(f'ANI temp values were saved to {ani_values_temp_path}')
 
-    plot_ani_clustermap(ani_values_df, ani_map_path)
+    plot_ani_clustermap(logger, ani_values_df, ani_map_path)
 
     if len(ani_values_df) >= 2:
         # Iterate over rows and find max value ignoring diagonal
@@ -65,6 +65,7 @@ def run_ani(logger, genomes_list_path, output_path, cpus):
 
 
 def plot_ani_clustermap(
+        logger,
         ani_df: pd.DataFrame,
         ani_map_path: Path,
         dendrogram_ratio: float = 0.15,

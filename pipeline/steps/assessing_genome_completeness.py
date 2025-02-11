@@ -23,7 +23,7 @@ def compute_genome_completeness(logger, genomic_translated_f, out_dir):
         hmmsearch_out_file_path = out_dir / f'{profile_path.stem}.txt'
         cmd = f'hmmsearch --noali -o /dev/null -E 0.1 --pfamtblout {hmmsearch_out_file_path} {profile_path} {genomic_translated_f}'
         logger.info(f'Running command: {cmd}')
-        subprocess.run(cmd, shell=True, check=True)
+        subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
 
         with open(hmmsearch_out_file_path) as out_hmmsearch:
             # Examine the first sequence hit (=the most significant hit = the first line that doesn't start with #)

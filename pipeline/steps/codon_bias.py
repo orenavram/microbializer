@@ -49,20 +49,20 @@ def clean_seq_records(records):
     return records_were_cleaned
 
 
-def find_HEGs_in_orf_file(ORFs_file, genome_name, hegs_output_dir, logger):
+def find_HEGs_in_orf_file(logger, ORFs_file, genome_name, hegs_output_dir):
     # Create blast db from ORF file
     db_dir = hegs_output_dir / f'{genome_name}_db'
     db_name = db_dir / f'{genome_name}.db'
     cmd = f'makeblastdb -in {ORFs_file} -out {db_name} -dbtype nucl'
     logger.info('Making blastdb with command: ' + cmd)
-    subprocess.run(cmd, shell=True, check=True)
+    subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
 
     # Query blast db with ecoli HEGs reference file
     hegs_hits_file = hegs_output_dir / f'{genome_name}_HEG_hits.tsv'
     cmd = f'tblastn -db {db_name} -query {consts.HEGS_ECOLI_FILE_PATH} -out {hegs_hits_file} -outfmt 6 ' \
           f'-max_target_seqs {MAX_HITS_TO_KEEP_FOR_EACH_REFERENCE_HEG}'
     logger.info("Finding Hits with command: " + cmd)
-    subprocess.run(cmd, shell=True, check=True)
+    subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
 
     shutil.rmtree(db_dir, ignore_errors=True)
 
@@ -75,13 +75,13 @@ def find_HEGs_in_orf_file(ORFs_file, genome_name, hegs_output_dir, logger):
     return hegs_names
 
 
-def get_W(ORFs_file, hegs_output_dir, logger):
+def get_W(logger, ORFs_file, hegs_output_dir):
     logger.info("Getting HEGs from the ORFs file: " + str(ORFs_file))
 
     genome_name = ORFs_file.stem
 
     # Identify HEGs in the ORFs file
-    HEGs_names = find_HEGs_in_orf_file(ORFs_file, genome_name, hegs_output_dir, logger)
+    HEGs_names = find_HEGs_in_orf_file(logger, ORFs_file, genome_name, hegs_output_dir)
     HEGs_records = [record for record in SeqIO.parse(ORFs_file, "fasta") if record.id in HEGs_names]
     HEGs_fasta_path = hegs_output_dir / f'{genome_name}_HEGs.fa'
     SeqIO.write(HEGs_records, HEGs_fasta_path, "fasta")  # Write HEGs to a file for logging and debugging
@@ -161,7 +161,7 @@ def visualize_Ws_with_PCA(W_vectors, output_dir, logger):
     logger.info(f"Time for PCA: {pca_time}")
 
 
-def calculate_cai(OG_dir, OG_name, genomes_codon_indexes, cais_output_dir):
+def calculate_cai(logger, OG_dir, OG_name, genomes_codon_indexes, cais_output_dir):
     OG_path = OG_dir / f'{OG_name}.fna'
     output_file_path = cais_output_dir / f'{OG_name}.json'
 
@@ -219,7 +219,7 @@ def analyze_codon_bias(logger, ORF_dir, OG_dir, output_dir, cai_table_path, tmp_
     with pool_executor_class(max_workers=cpus) as executor:
         futures = []
         for orf_file in ORF_dir.iterdir():
-            futures.append(executor.submit(get_W, orf_file, hegs_output_dir, logger))
+            futures.append(executor.submit(get_W, logger, orf_file, hegs_output_dir))
 
         for future in as_completed(futures):
             genome_name, genome_codon_index = future.result()
@@ -245,7 +245,7 @@ def analyze_codon_bias(logger, ORF_dir, OG_dir, output_dir, cai_table_path, tmp_
         futures = []
         for og_file in OG_dir.glob('*.fna'):
             futures.append(
-                executor.submit(calculate_cai, OG_dir, og_file.stem, genome_name_to_codon_index, cais_output_dir))
+                executor.submit(calculate_cai, logger, OG_dir, og_file.stem, genome_name_to_codon_index, cais_output_dir))
 
         for future in as_completed(futures):
             og_name, cai_info = future.result()

@@ -10,7 +10,8 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent))
 
 from . import consts
-from .pipeline_auxiliaries import remove_path, fail
+from .pipeline_auxiliaries import remove_path, fail, write_done_file
+from .logic_auxiliaries import update_progressbar
 from .configuration import Config
 from flask.flask_interface_consts import WEBSERVER_NAME
 
@@ -25,57 +26,65 @@ def record_has_illegal_chars(record_header):
 
 
 def prepare_and_verify_input_data(logger, config: Config):
-    logger.info(f'Examining {config.raw_data_path}..')
+    done_file_path = config.done_files_dir / '00_prepare_and_verify_inputs.txt'
+    if not done_file_path.exists():
+        logger.info(f'Examining {config.raw_data_path}..')
 
-    # extract zip and detect data folder
-    primary_data_path = unpack_data(logger, config.raw_data_path, config.run_dir, config.error_file_path)
+        # extract zip and detect data folder
+        primary_data_path = unpack_data(logger, config.raw_data_path, config.run_dir, config.error_file_path)
 
-    remove_system_files(logger, primary_data_path)
+        remove_system_files(logger, primary_data_path)
 
-    # copies input contigs_dir because we edit the files and want to keep the input directory as is
-    shutil.copytree(primary_data_path, config.data_path, dirs_exist_ok=True)
-    logger.info(f'Copied {primary_data_path} to {config.data_path}')
+        # copies input contigs_dir because we edit the files and want to keep the input directory as is
+        shutil.copytree(primary_data_path, config.data_path, dirs_exist_ok=True)
+        logger.info(f'Copied {primary_data_path} to {config.data_path}')
 
-    # have to be AFTER system files removal (in the weird case a file name starts with a space)
-    genome_names = set()
-    for file_path in config.data_path.iterdir():
-        new_file_path = fix_file_path(logger, config, file_path)
-        genome_name = new_file_path.stem
-        if genome_name in genome_names:
-            error_msg = f'Two (or more) of the uploaded genomes has the same name ' \
-                        f'e.g., {genome_name}. Please make sure each file name is unique.'
+        # have to be AFTER system files removal (in the weird case a file name starts with a space)
+        genome_names = set()
+        for file_path in config.data_path.iterdir():
+            new_file_path = fix_file_path(logger, config, file_path)
+            genome_name = new_file_path.stem
+            if genome_name in genome_names:
+                error_msg = f'Two (or more) of the uploaded genomes has the same name ' \
+                            f'e.g., {genome_name}. Please make sure each file name is unique.'
+                fail(logger, error_msg, config.error_file_path)
+            genome_names.add(genome_name)
+
+        data_path_files = list(config.data_path.iterdir())
+        number_of_genomes = len(data_path_files)
+        logger.info(f'Number of genomes to analyze is {number_of_genomes}')
+        logger.info(f'data_path contains the following {number_of_genomes} files: {data_path_files}')
+
+        # check MINimal number of genomes
+        if number_of_genomes < consts.MIN_NUMBER_OF_GENOMES_TO_ANALYZE and not config.bypass_number_of_genomes_limit:
+            error_msg = f'The dataset contains too few genomes ({WEBSERVER_NAME} does comparative analysis and ' \
+                        f'thus needs at least 2 genomes).'
             fail(logger, error_msg, config.error_file_path)
-        genome_names.add(genome_name)
 
-    data_path_files = list(config.data_path.iterdir())
-    number_of_genomes = len(data_path_files)
-    logger.info(f'Number of genomes to analyze is {number_of_genomes}')
-    logger.info(f'data_path contains the following {number_of_genomes} files: {data_path_files}')
+        # check MAXimal number of genomes
+        if number_of_genomes > consts.MAX_NUMBER_OF_GENOMES_TO_ANALYZE and not config.bypass_number_of_genomes_limit:
+            error_msg = f'The dataset contains too many genomes. {WEBSERVER_NAME} allows analyzing up to ' \
+                        f'{consts.MAX_NUMBER_OF_GENOMES_TO_ANALYZE} genomes due to the high resource consumption. However, ' \
+                        f'upon request, we might be able to analyze larger datasets. Please contact us ' \
+                        f'directly and we will try to do that for you.'
+            fail(logger, error_msg, config.error_file_path)
 
-    # check MINimal number of genomes
-    if number_of_genomes < consts.MIN_NUMBER_OF_GENOMES_TO_ANALYZE and not config.bypass_number_of_genomes_limit:
-        error_msg = f'The dataset contains too few genomes ({WEBSERVER_NAME} does comparative analysis and ' \
-                    f'thus needs at least 2 genomes).'
-        fail(logger, error_msg, config.error_file_path)
+        # must be only after the spaces removal from the species names!!
+        verification_error = verify_fasta_format(logger, config.data_path)
+        if verification_error:
+            remove_path(logger, config.data_path)
+            fail(logger, verification_error, config.error_file_path)
 
-    # check MAXimal number of genomes
-    if number_of_genomes > consts.MAX_NUMBER_OF_GENOMES_TO_ANALYZE and not config.bypass_number_of_genomes_limit:
-        error_msg = f'The dataset contains too many genomes. {WEBSERVER_NAME} allows analyzing up to ' \
-                    f'{consts.MAX_NUMBER_OF_GENOMES_TO_ANALYZE} genomes due to the high resource consumption. However, ' \
-                    f'upon request, we might be able to analyze larger datasets. Please contact us ' \
-                    f'directly and we will try to do that for you.'
-        fail(logger, error_msg, config.error_file_path)
+        genomes_names = [genome_path.stem for genome_path in sorted(config.data_path.iterdir())]
 
-    # must be only after the spaces removal from the species names!!
-    verification_error = verify_fasta_format(logger, config.data_path)
-    if verification_error:
-        remove_path(logger, config.data_path)
-        fail(logger, verification_error, config.error_file_path)
+        with open(config.genomes_names_path, 'w') as genomes_name_fp:
+            genomes_name_fp.write('\n'.join(genomes_names))
 
-    genomes_names = [genome_path.stem for genome_path in sorted(config.data_path.iterdir())]
+        write_done_file(logger, done_file_path)
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    with open(config.genomes_names_path, 'w') as genomes_name_fp:
-        genomes_name_fp.write('\n'.join(genomes_names))
+    update_progressbar(config.progressbar_file_path, 'Validate input files')
 
 
 def unpack_data(logger, raw_data_path, run_dir, error_file_path):
@@ -90,7 +99,7 @@ def unpack_data(logger, raw_data_path, run_dir, error_file_path):
             elif raw_data_path.suffix == '.gz':  # gunzip gz file
                 cmd = f'gunzip -f "{raw_data_path}"'
                 logger.info(f'Calling: {cmd}')
-                subprocess.run(cmd, shell=True, check=True)
+                subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
                 unzipped_data_path = raw_data_path.with_suffix("")  # trim the ".gz"
                 logger.info(f'Succeeded gunzipping {raw_data_path} to {unzipped_data_path}')
             else:

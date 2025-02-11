@@ -128,7 +128,7 @@ def infer_orthogroups_on_genomes_batch(logger, times_logger, config, step_number
     if not subset_proteins_fasta_path.exists():
         cmd = f"cat {subset_proteomes_dir / '*'} > {subset_proteins_fasta_path}"
         logger.info(f'Calling: {cmd}')
-        subprocess.run(cmd, shell=True, check=True)
+        subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
 
     final_orthogroups_dir_path, orphan_genes_dir, final_substep_number = infer_orthogroups(
         logger, times_logger, config, step_number, subset_proteomes_dir, subset_proteins_fasta_path)

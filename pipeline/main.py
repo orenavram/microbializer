@@ -89,6 +89,9 @@ def step_1_fix_input_files(logger, times_logger, config):
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
+    if config.filter_out_plasmids:
+        update_progressbar(config.progressbar_file_path, 'Filter out plasmids')
+
     return filtered_inputs_dir
 
 
@@ -196,11 +199,11 @@ def step_2_search_orfs(logger, times_logger, config):
 
         cmd = f"cat {orfs_sequences_dir / '*'} > {all_orfs_fasta_path}"
         logger.info(f'Calling: {cmd}')
-        subprocess.run(cmd, shell=True, check=True)
+        subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
 
         cmd = f"cat {orfs_translated_dir / '*'} > {all_proteins_fasta_path}"
         logger.info(f'Calling: {cmd}')
-        subprocess.run(cmd, shell=True, check=True)
+        subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
 
         step_time = timedelta(seconds=int(time.time() - start_time))
         times_logger.info(f'Step {step_name} took {step_time}.')
@@ -208,6 +211,9 @@ def step_2_search_orfs(logger, times_logger, config):
         write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+    update_progressbar(config.progressbar_file_path, 'Predict and translate ORFs')
+    update_progressbar(config.progressbar_file_path, 'Translate ORFs')
 
     return orfs_sequences_dir, orfs_translated_dir, all_orfs_fasta_path, all_proteins_fasta_path
 
@@ -272,6 +278,8 @@ def step_3_analyze_genome_completeness(logger, times_logger, config, translated_
         write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+    update_progressbar(config.progressbar_file_path, 'Calculate genomes completeness')
 
 
 def step_5_full_orthogroups_inference(logger, times_logger, config, translated_orfs_dir, all_proteins_path):
@@ -341,10 +349,6 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    if config.step_to_complete == '5':
-        logger.info("Step 5 completed.")
-        return
-
     # 06_0.	aggregate_sub_orthogroups
     step_number = '06_0'
     logger.info(f'Step {step_number}: {"_" * 100}')
@@ -378,7 +382,7 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
 
         cmd = f"cat {pseudo_genomes_dir_path / '*'} > {all_pseudo_genomes_path}"
         logger.info(f'Calling: {cmd}')
-        subprocess.run(cmd, shell=True, check=True)
+        subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
 
         with open(pseudo_genomes_strains_names_path, 'w') as pseudo_genomes_strains_names_fp:
             pseudo_genomes_strains_names_fp.write('\n'.join(pseudo_genomes_names))
@@ -638,6 +642,8 @@ def step_8_build_orthologous_groups_fastas(logger, times_logger, config, all_orf
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
+    update_progressbar(config.progressbar_file_path, 'Prepare orthogroups fasta files')
+
     return orthogroups_dna_dir_path, orthologs_aa_dir_path, orthogroups_aa_msa_dir_path, \
         orthogroups_induced_dna_msa_dir_path, orthogroups_aa_consensus_dir_path
 
@@ -740,6 +746,7 @@ def step_9_extract_core_genome_and_core_proteome(logger, times_logger, config, a
     with open(core_proteome_reduced_length_file_path, 'r') as fp:
         core_proteome_reduced_length = int(fp.read().strip())
 
+    update_progressbar(config.progressbar_file_path, 'Infer core genome and proteome')
     return aligned_core_proteome_reduced_file_path, core_proteome_reduced_length
 
 
@@ -773,6 +780,8 @@ def step_10_genome_numeric_representation(logger, times_logger, config, orfs_dir
         write_done_file(logger, numeric_done_file_path)
     else:
         logger.info(f'done file {numeric_done_file_path} already exists. Skipping step...')
+
+    update_progressbar(config.progressbar_file_path, 'Calculate genomes numeric representation')
 
 
 def step_11_phylogeny(logger, times_logger, config, aligned_core_proteome_file_path, genomes_names,
@@ -859,6 +868,9 @@ def step_11_phylogeny(logger, times_logger, config, aligned_core_proteome_file_p
         if not config.do_not_copy_outputs_to_final_results_dir:
             add_results_to_final_dir(logger, ani_output_dir, config.final_output_dir)
         write_done_file(logger, ani_done_file_path)
+
+    update_progressbar(config.progressbar_file_path, 'Reconstruct species phylogeny')
+    update_progressbar(config.progressbar_file_path, 'Calculate ANI (Average Nucleotide Identity)')
 
 
 def step_12_orthogroups_annotations(logger, times_logger, config, orfs_dir,
@@ -967,6 +979,9 @@ def step_12_orthogroups_annotations(logger, times_logger, config, orfs_dir,
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
+    update_progressbar(config.progressbar_file_path, 'Analyze orthogroups codon bias')
+    update_progressbar(config.progressbar_file_path, 'Annotate orthogroups with KO terms')
+
 
 def run_main_pipeline(logger, times_logger, config):
     with open(config.genomes_names_path, 'r') as genomes_names_fp:
@@ -975,8 +990,6 @@ def run_main_pipeline(logger, times_logger, config):
     if config.filter_out_plasmids or config.inputs_fasta_type == 'orfs':
         filtered_inputs_dir = step_1_fix_input_files(logger, times_logger, config)
         config.data_path = filtered_inputs_dir
-        if config.filter_out_plasmids:
-            update_progressbar(config.progressbar_file_path, 'Filter out plasmids')
 
     if config.step_to_complete == '1':
         logger.info("Step 1 completed.")
@@ -984,8 +997,6 @@ def run_main_pipeline(logger, times_logger, config):
 
     orfs_dir, translated_orfs_dir, all_orfs_fasta_path, all_proteins_fasta_path = step_2_search_orfs(
         logger, times_logger, config)
-    update_progressbar(config.progressbar_file_path, 'Predict and translate ORFs')
-    update_progressbar(config.progressbar_file_path, 'Translate ORFs')
 
     if config.step_to_complete == '2':
         logger.info("Step 2 completed.")
@@ -993,7 +1004,6 @@ def run_main_pipeline(logger, times_logger, config):
 
     if not config.only_calc_ogs:
         step_3_analyze_genome_completeness(logger, times_logger, config, translated_orfs_dir)
-        update_progressbar(config.progressbar_file_path, 'Calculate genomes completeness')
 
     if config.step_to_complete == '3':
         logger.info("Step 3 completed.")
@@ -1012,7 +1022,7 @@ def run_main_pipeline(logger, times_logger, config):
             logger, times_logger, config, translated_orfs_dir, genomes_batch_size)
 
         if config.step_to_complete == '6':
-            logger.info("Step 5 completed.")
+            logger.info("Step 6 completed.")
             return
 
     update_progressbar(config.progressbar_file_path, 'Infer orthogroups')
@@ -1030,7 +1040,6 @@ def run_main_pipeline(logger, times_logger, config):
     ogs_dna_sequences_path, ogs_aa_sequences_path, ogs_aa_alignments_path, ogs_dna_alignments_path, \
         ogs_aa_consensus_dir_path = step_8_build_orthologous_groups_fastas(
         logger, times_logger, config, all_orfs_fasta_path, all_proteins_fasta_path, final_orthogroups_file_path)
-    update_progressbar(config.progressbar_file_path, 'Prepare orthogroups fasta files')
 
     if config.step_to_complete == '8':
         logger.info("Step 8 completed.")
@@ -1038,14 +1047,12 @@ def run_main_pipeline(logger, times_logger, config):
 
     aligned_core_proteome_reduced_file_path, core_proteome_reduced_length = step_9_extract_core_genome_and_core_proteome(
         logger, times_logger, config, ogs_aa_alignments_path, ogs_dna_alignments_path)
-    update_progressbar(config.progressbar_file_path, 'Infer core genome and proteome')
 
     if config.step_to_complete == '9':
         logger.info("Step 9 completed.")
         return
 
     step_10_genome_numeric_representation(logger, times_logger, config, orfs_dir, final_orthogroups_file_path)
-    update_progressbar(config.progressbar_file_path, 'Calculate genomes numeric representation')
 
     if config.step_to_complete == '10':
         logger.info("Step 10 completed.")
@@ -1053,8 +1060,6 @@ def run_main_pipeline(logger, times_logger, config):
 
     step_11_phylogeny(logger, times_logger, config, aligned_core_proteome_reduced_file_path, genomes_names,
                       core_proteome_reduced_length)
-    update_progressbar(config.progressbar_file_path, 'Reconstruct species phylogeny')
-    update_progressbar(config.progressbar_file_path, 'Calculate ANI (Average Nucleotide Identity)')
 
     if config.step_to_complete == '11':
         logger.info("Step 11 completed.")
@@ -1062,8 +1067,6 @@ def run_main_pipeline(logger, times_logger, config):
 
     step_12_orthogroups_annotations(logger, times_logger, config, orfs_dir, ogs_dna_sequences_path,
                                     ogs_aa_sequences_path, ogs_aa_consensus_dir_path, final_orthogroups_file_path)
-    update_progressbar(config.progressbar_file_path, 'Analyze orthogroups codon bias')
-    update_progressbar(config.progressbar_file_path, 'Annotate orthogroups with KO terms')
 
     if config.step_to_complete == '12':
         logger.info("Step 12 completed.")
@@ -1077,16 +1080,7 @@ def main():
 
     try:
         initialize_progressbar(config)
-
-        done_file_path = config.done_files_dir / '00_prepare_and_verify_inputs.txt'
-        if not done_file_path.exists():
-            prepare_and_verify_input_data(logger, config)
-            write_done_file(logger, done_file_path)
-        else:
-            logger.info(f'done file {done_file_path} already exists. Skipping step...')
-
-        update_progressbar(config.progressbar_file_path, 'Validate input files')
-
+        prepare_and_verify_input_data(logger, config)
         run_main_pipeline(logger, times_logger, config)
 
         if config.step_to_complete and not config.only_calc_ogs and not config.do_not_copy_outputs_to_final_results_dir:
@@ -1094,12 +1088,9 @@ def main():
             shutil.make_archive(config.final_output_dir, 'zip', config.run_dir, config.final_output_dir_name)
             logger.info(f'Zipped results folder to {config.final_output_dir}.zip')
 
-        # remove intermediate results
-        if config.clean_intermediate_outputs:
-            submit_clean_folders_job(logger, config)
-
-        write_done_file(logger, config.done_files_dir / 'pipeline_finished_successfully.txt')
+        submit_clean_folders_job(logger, config)
         update_progressbar(config.progressbar_file_path, 'Finalize results')
+        write_done_file(logger, config.done_files_dir / 'pipeline_finished_successfully.txt')
         state = State.Finished
     except Exception as e:
         if not config.error_file_path.exists():
@@ -1110,11 +1101,8 @@ def main():
     total_time = timedelta(seconds=int(time.time() - start_time))
     times_logger.info(f'Total pipeline time: {total_time}. Done')
 
-    if config.send_email:
-        send_email_in_pipeline_end(logger, config.run_number, config.email, config.job_name, state)
-
-    if config.clean_old_job_directories:
-        submit_clean_old_user_results_job(logger, config)
+    send_email_in_pipeline_end(logger, config, state)
+    submit_clean_old_user_results_job(logger, config)
 
 
 if __name__ == '__main__':

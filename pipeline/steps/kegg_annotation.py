@@ -25,12 +25,12 @@ def create_fasta_of_unified_ogs_sequences(logger, og_aa_dir, og_aa_consensus_dir
     elif optimization_mode == 'consensus_of_og':
         cmd = f'find {og_aa_consensus_dir} -type f -exec cat {{}} + > {output_fasta_path}'
         logger.info(f'Running: {cmd}')
-        subprocess.run(cmd, shell=True, check=True)
+        subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
         logger.info(f'Wrote all consensus sequences of OGs from {og_aa_consensus_dir} to {output_fasta_path}')
     else:  # optimization_mode == 'all_genes_of_og'
         cmd = f'find {og_aa_dir} -type f -exec cat {{}} + > {output_fasta_path}'
         logger.info(f'Running: {cmd}')
-        subprocess.run(cmd, shell=True, check=True)
+        subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
         logger.info(f'Wrote all records of OGs from {og_aa_dir} to {output_fasta_path}')
 
 

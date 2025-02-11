@@ -42,7 +42,7 @@ def search_rbh(logger, genome1, genome2, dbs_dir, rbh_hits_dir, scores_statistic
                   f'-c {coverage_cutoff} --cov-mode 0 -e {e_value_cutoff} --threads 1 --search-type 1 ' \
                   f'--comp-bias-corr 0 -v 1 -s {sensitivity}'
     logger.info(f'Calling: {rbh_command}')
-    subprocess.run(rbh_command, shell=True, check=True)
+    subprocess.run(rbh_command, shell=True, check=True, capture_output=True, text=True)
 
     if result_db_path.stat().st_size == 0:
         logger.info(f"{result_db_path} was created successfully but is empty. No rbh-hits were found.")
@@ -52,7 +52,7 @@ def search_rbh(logger, genome1, genome2, dbs_dir, rbh_hits_dir, scores_statistic
     convert_command = f'mmseqs convertalis {db_1_path} {db_2_path} {result_db_path} {m8_outfile_raw} ' \
                       f'--format-output {consts.MMSEQS_OUTPUT_FORMAT} --search-type 1 --threads 1 -v 1'
     logger.info(f'Calling: {convert_command}')
-    subprocess.run(convert_command, shell=True, check=True)
+    subprocess.run(convert_command, shell=True, check=True, capture_output=True, text=True)
 
     logger.info(f"{m8_outfile_raw} was created successfully. Adding 'score' column to it...")
     # Add 'score' column to mmseqs output

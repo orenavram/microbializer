@@ -36,7 +36,7 @@ def RAxML_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num_
         cmd += f' -f a -x {seed} -N {consts.NUMBER_OF_RAXML_BOOTSTRAP_ITERATIONS}'
 
     logger.info(f'Reconstructing species phylogeny with RAxML. Executed command is:\n{cmd}')
-    subprocess.run(cmd, shell=True, check=True)
+    subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
 
     if final_tree_path.exists():
         logger.info(f'Copying result {final_tree_path} to {phylogenetic_tree_path}')
@@ -69,7 +69,7 @@ def iqtree_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num
         cmd += f' -B {consts.NUMBER_OF_IQTREE_BOOTSTRAP_ITERATIONS}'
 
     logger.info(f'Reconstructing species phylogeny with IQTree. Executed command is: {cmd}')
-    subprocess.run(cmd, shell=True, check=True)
+    subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
     logger.info(f'IQTree finished successfully. The tree was saved to {tree_output}')
 
     if tree_output.exists():
@@ -84,7 +84,7 @@ def fasttree_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, n
     cmd = f"FastTree {msa_path} > {phylogenetic_tree_path}"
 
     logger.info(f'Reconstructing species phylogeny with FastTree. Executed command is:\n{cmd}')
-    subprocess.run(cmd, shell=True, check=True)
+    subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
 
 
 def draw_tree(logger, phylogenetic_tree_path, bootstrap):

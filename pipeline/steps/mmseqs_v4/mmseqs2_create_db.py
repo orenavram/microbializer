@@ -18,7 +18,7 @@ def create_db(logger, genome_name, proteomes_dir, output_dir):
     # control verbosity level by -v [3] param ; verbosity levels: 0=nothing, 1: +errors, 2: +warnings, 3: +info
     create_db_command = f'mmseqs createdb {protein_fasta_path} {db_path} --dbtype 1 -v 1'
     logger.info(f'Calling: {create_db_command}')
-    subprocess.run(create_db_command, shell=True, check=True)
+    subprocess.run(create_db_command, shell=True, check=True, capture_output=True, text=True)
 
     logger.info(f"{db_path} was created successfully.")
 

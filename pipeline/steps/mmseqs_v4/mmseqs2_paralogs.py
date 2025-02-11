@@ -63,7 +63,7 @@ def search_paralogs(logger, genome_name, dbs_dir, max_scores_parts_dir, paralogs
                      f'--min-seq-id {identity_cutoff} -c {coverage_cutoff} --cov-mode 0 -e {e_value_cutoff} --threads 1 ' \
                      f'--search-type 1 --comp-bias-corr 0 -v 1 --alignment-mode 3 -s {sensitivity}'
     logger.info(f'Calling: {search_command}')
-    subprocess.run(search_command, shell=True, check=True)
+    subprocess.run(search_command, shell=True, check=True, capture_output=True, text=True)
 
     if result_db_path.stat().st_size == 0:
         logger.info(f"{result_db_path} was created successfully but is empty. No paralogs were found.")
@@ -73,7 +73,7 @@ def search_paralogs(logger, genome_name, dbs_dir, max_scores_parts_dir, paralogs
     convert_command = f'mmseqs convertalis {genome_db_path} {genome_db_path} {result_db_path} {m8_outfile_raw} ' \
                       f'--format-output {consts.MMSEQS_OUTPUT_FORMAT} --search-type 1 --threads 1 -v 1'
     logger.info(f'Calling: {convert_command}')
-    subprocess.run(convert_command, shell=True, check=True)
+    subprocess.run(convert_command, shell=True, check=True, capture_output=True, text=True)
 
     logger.info(f"{m8_outfile_raw} was created successfully. Adding 'score' column to it...")
     # Add 'score' column to mmseqs output

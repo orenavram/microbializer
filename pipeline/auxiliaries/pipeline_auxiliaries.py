@@ -251,7 +251,7 @@ def submit_mini_batch(logger, config, script_path, mini_batch_parameters_list, l
         for shell_cmd in shell_cmds_as_str.split('\n'):
             if shell_cmd:
                 logger.info(f'Running command: {shell_cmd}')
-                subprocess.run(shell_cmd, shell=True, check=True)
+                subprocess.run(shell_cmd, shell=True, check=True, capture_output=True, text=True)
 
 
 def submit_batch(logger, config, script_path, batch_parameters_list, logs_dir, job_name_suffix,
@@ -283,21 +283,24 @@ def submit_batch(logger, config, script_path, batch_parameters_list, logs_dir, j
     return num_of_mini_batches
 
 
-def send_email_in_pipeline_end(logger, process_id, email_address, job_name, state):
+def send_email_in_pipeline_end(logger, config, state):
+    if not config.send_email:
+        return
+
     email_addresses = [SharedConsts.OWNER_EMAIL]
     email_addresses.extend(flask_interface_consts.ADDITIONAL_OWNER_EMAILS)
-    if email_address:
-        email_addresses.append(email_address)
+    if config.email:
+        email_addresses.append(config.email)
     else:
-        logger.warning(f'process_id = {process_id} email_address is empty, state = {state}, job_name = {job_name}')
+        logger.warning(f'process_id = {config.run_number} email_address is empty, state = {state}, job_name = {config.job_name}')
 
     # sends mail once the job finished or crashes
     if state == SharedConsts.State.Finished:
-        send_email(logger, SharedConsts.EMAIL_CONSTS.create_title(state, job_name),
-                   SharedConsts.EMAIL_CONSTS.CONTENT_PROCESS_FINISHED.format(process_id=process_id), email_addresses)
+        send_email(logger, SharedConsts.EMAIL_CONSTS.create_title(state, config.job_name),
+                   SharedConsts.EMAIL_CONSTS.CONTENT_PROCESS_FINISHED.format(process_id=config.run_number), email_addresses)
     elif state == SharedConsts.State.Crashed:
-        send_email(logger, SharedConsts.EMAIL_CONSTS.create_title(state, job_name),
-                   SharedConsts.EMAIL_CONSTS.CONTENT_PROCESS_CRASHED.format(process_id=process_id), email_addresses)
+        send_email(logger, SharedConsts.EMAIL_CONSTS.create_title(state, config.job_name),
+                   SharedConsts.EMAIL_CONSTS.CONTENT_PROCESS_CRASHED.format(process_id=config.run_number), email_addresses)
 
 
 def add_results_to_final_dir(logger, source_dir_path, final_output_dir):
@@ -369,6 +372,9 @@ def none_or_path(value):
 
 
 def submit_clean_folders_job(logger, config):
+    if not config.clean_intermediate_outputs:
+        return
+
     logger.info('Cleaning up intermediate results...')
 
     folders_to_clean = [str(config.steps_results_dir)]
@@ -389,6 +395,9 @@ def submit_clean_folders_job(logger, config):
 
 
 def submit_clean_old_user_results_job(logger, config):
+    if not config.clean_old_job_directories:
+        return
+
     logger.info('Checking if a clean old jobs job is needed...')
     consts.CLEAN_JOBS_LOGS_DIR.mkdir(parents=True, exist_ok=True)
 
