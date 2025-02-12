@@ -22,7 +22,7 @@ def too_many_trials(logger, cmd, error_file_path):
 
 
 def run_mmseqs(logger, all_proteins_fasta, output_dir, output_path, identity_cutoff, coverage_cutoff,
-               e_value_cutoff, number_of_genomes, cpus, error_file_path, sensitivity):
+               e_value_cutoff, number_of_genomes, error_file_path, sensitivity, cpus):
     tmp_dir = output_dir / 'tmp'
 
     i = 1
@@ -60,10 +60,9 @@ if __name__ == '__main__':
     parser.add_argument('--e_value_cutoff', type=float)
     parser.add_argument('--sensitivity', type=float)
     parser.add_argument('--number_of_genomes', type=int, help='Number of genomes in analysis')
-    parser.add_argument('--cpus', type=int, default=1, help='Number of CPUs to use')
     add_default_step_args(parser)
     args = parser.parse_args()
 
     run_step(args, run_mmseqs, args.all_proteins_fasta, args.output_dir, args.output_path, args.identity_cutoff,
-             args.coverage_cutoff, args.e_value_cutoff, args.number_of_genomes, args.cpus, args.error_file_path,
-             args.sensitivity)
+             args.coverage_cutoff, args.e_value_cutoff, args.number_of_genomes, args.error_file_path,
+             args.sensitivity, args.cpus)

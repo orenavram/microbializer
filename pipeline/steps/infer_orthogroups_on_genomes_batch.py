@@ -151,7 +151,7 @@ if __name__ == '__main__':
     add_default_step_args(parser)
     args = parser.parse_args()
 
-    times_logger = get_job_times_logger(args.logs_dir, args.job_name, args.verbose)
+    times_logger = get_job_times_logger(args.logs_dir, args.job_name, args.verbose, args.use_job_manager)
     config = Config.from_csv(args.config_path)
 
     run_step(args, infer_orthogroups_on_genomes_batch, times_logger, config, args.step_number, args.translated_orfs_dir,

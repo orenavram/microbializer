@@ -142,7 +142,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('genomes_list_path', type=Path, help='path to a file with a list of all genomes paths')
     parser.add_argument('output_path', type=Path, help='path to the output directory')
-    parser.add_argument('--cpus', type=int, default=1, help='Number of CPUs to use')
     add_default_step_args(parser)
     args = parser.parse_args()
 

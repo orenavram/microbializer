@@ -141,10 +141,8 @@ if __name__ == '__main__':
     parser.add_argument('--outgroup', help='outgroup for the tree search')
     parser.add_argument('--bootstrap', type=str_to_bool,
                         help='whether or not to apply bootstrap procedure over the reconstructed species tree.')
-    parser.add_argument('--cpu', default='1',
-                        help='How many CPUs will be used? (for running in parallel mode). For further details see:\nhttps://support.nesi.org.nz/hc/en-gb/articles/115001854444-RAxML#parallel-versions')
     add_default_step_args(parser)
     args = parser.parse_args()
 
     run_step(args, generate_phylogenetic_tree, args.msa_path, args.phylogenetic_raw_tree_path, args.tmp_path, args.seed,
-             args.tree_search_software, args.outgroup, args.bootstrap, args.cpu)
+             args.tree_search_software, args.outgroup, args.bootstrap, args.cpus)

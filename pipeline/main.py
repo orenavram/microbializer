@@ -789,7 +789,7 @@ def step_11_phylogeny(logger, times_logger, config, aligned_core_proteome_file_p
         with open(genomes_list_path, 'w') as genomes_list_file:
             genomes_list_file.write('\n'.join(genomes_paths))
 
-        single_cmd_params = [genomes_list_path, ani_output_dir, f'--cpus {config.ani_cpus}']
+        single_cmd_params = [genomes_list_path, ani_output_dir]
 
         submit_mini_batch(logger, config, script_path, [single_cmd_params], ani_tmp_dir,
                           'ANI', num_of_cpus=config.ani_cpus, memory=config.ani_memory)
@@ -816,7 +816,6 @@ def step_11_phylogeny(logger, times_logger, config, aligned_core_proteome_file_p
             params = [aligned_core_proteome_file_path,
                       output_tree_path,
                       phylogeny_tmp_dir,
-                      f'--cpu {config.phylogeny_cpus}',
                       f'--bootstrap {config.bootstrap}']
             if config.outgroup:
                 if config.outgroup in genomes_names:
@@ -881,8 +880,7 @@ def step_12_orthogroups_annotations(logger, times_logger, config, orfs_dir,
             orthologs_dna_sequences_dir_path,
             codon_bias_output_dir_path,
             cai_table_path,
-            codon_bias_tmp_dir,
-            config.codon_bias_cpus
+            codon_bias_tmp_dir
         ]
         submit_mini_batch(logger, config, script_path, [params], codon_bias_tmp_dir,
                           'codon_bias', num_of_cpus=config.codon_bias_cpus)
@@ -909,7 +907,6 @@ def step_12_orthogroups_annotations(logger, times_logger, config, orfs_dir,
             final_orthologs_table_file_path,
             kegg_output_dir_path,
             kegg_table_path,
-            config.kegg_cpus,
             f'--optimization_mode {config.kegg_optimization_mode}'
         ]
         submit_mini_batch(logger, config, script_path, [params], kegg_tmp_dir,

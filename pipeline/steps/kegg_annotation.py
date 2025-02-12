@@ -98,8 +98,8 @@ def add_kegg_annotations_to_og_table(og_table_path, hmmsearch_output_df, optimiz
     return og_table_with_kegg_df
 
 
-def kegg_annotation(logger, og_aa_dir, og_aa_consensus_dir, og_table_path, output_dir, output_og_table_path, cpus,
-                    optimization_mode):
+def kegg_annotation(logger, og_aa_dir, og_aa_consensus_dir, og_table_path, output_dir, output_og_table_path,
+                    optimization_mode, cpus):
     if output_og_table_path.exists():
         logger.info(f'{output_og_table_path} already exists. Exiting...')
         return
@@ -133,11 +133,10 @@ if __name__ == '__main__':
     parser.add_argument('og_table_path', type=Path, help='path to the og table')
     parser.add_argument('output_dir', type=Path, help='path to the output dir')
     parser.add_argument('output_og_table_path', type=Path, help='path to the output og table with kegg annotations')
-    parser.add_argument('cpus', help='number of cpus to use')
     parser.add_argument('--optimization_mode', help='whether to use only 1 gene from each og or all genes of consensus',
                         choices=['first_gene_of_og', 'consensus_of_og', 'all_genes_of_og'])
     add_default_step_args(parser)
     args = parser.parse_args()
 
     run_step(args, kegg_annotation, args.og_aa_dir, args.og_aa_consensus_dir, args.og_table_path, args.output_dir,
-             args.output_og_table_path, args.cpus, args.optimization_mode)
+             args.output_og_table_path, args.optimization_mode, args.cpus)

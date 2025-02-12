@@ -267,7 +267,6 @@ if __name__ == '__main__':
     parser.add_argument('output_dir', type=Path, help='path to output directory')
     parser.add_argument('cai_table_path', type=Path, help='path to the output CAI table of all OGs')
     parser.add_argument('tmp_dir', type=Path, help='path to tmp directory')
-    parser.add_argument('cpus', type=int, help='number of cpus to use')
     add_default_step_args(parser)
     args = parser.parse_args()
 

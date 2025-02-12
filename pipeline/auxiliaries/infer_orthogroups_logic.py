@@ -326,8 +326,7 @@ def run_unified_mmseqs(logger, times_logger, config, base_step_number, all_prote
                   f'--coverage_cutoff {config.coverage_cutoff / 100}',
                   f'--e_value_cutoff {config.e_value_cutoff}',
                   f'--sensitivity {config.sensitivity}',
-                  f'--number_of_genomes {len(strains_names)}',
-                  f'--cpus {config.mmseqs_big_dataset_cpus}']
+                  f'--number_of_genomes {len(strains_names)}']
 
         submit_mini_batch(logger, config, script_path, [params], pipeline_step_tmp_dir,
                           'mmseqs', num_of_cpus=config.mmseqs_big_dataset_cpus,

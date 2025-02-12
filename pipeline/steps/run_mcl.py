@@ -63,7 +63,6 @@ if __name__ == '__main__':
     parser.add_argument('job_input_path', type=Path, help='')
     parser.add_argument('mcl_output_dir', type=Path, help='path to dir the MCL analysis will be written')
     parser.add_argument('verified_clusters_dir', type=Path, help='dir path to which verified clusters are written')
-    parser.add_argument('--cpus', type=int, default=1, help='Number of CPUs to use')
     add_default_step_args(parser)
     args = parser.parse_args()
 

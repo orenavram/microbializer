@@ -8,6 +8,7 @@ import stat
 from pathlib import Path
 import traceback
 from sys import argv
+from concurrent.futures import ProcessPoolExecutor
 
 from . import consts
 from .q_submitter_power import submit_cmds_from_file_to_q
@@ -209,7 +210,7 @@ def submit_mini_batch(logger, config, script_path, mini_batch_parameters_list, l
         shell_cmds_as_str += ' '.join(
             ['python', str(script_path), *[str(param) for param in params],
              f'-v {config.verbose}', f'--logs_dir {logs_dir}', f'--error_file_path {error_file_path}',
-             f'--job_name {job_name}']) + '\n'
+             f'--job_name {job_name}', f'--use_job_manager {config.use_job_manager}', f'--cpus {num_of_cpus}']) + '\n'
 
     # GENERATE DONE FILE
     shell_cmds_as_str += f'touch {logs_dir / (job_name + consts.JOB_DONE_FILE_SUFFIX)}\n'
@@ -226,6 +227,7 @@ def submit_mini_batch(logger, config, script_path, mini_batch_parameters_list, l
 
         if memory is None:
             memory = config.job_default_memory
+
         submit_cmds_from_file_to_q(logger, job_name, cmds_path, logs_dir, config.queue_name, str(num_of_cpus),
                                    config.account_name, memory, time_in_hours, config.node_name)
     else:
@@ -248,15 +250,22 @@ def submit_batch(logger, config, script_path, batch_parameters_list, logs_dir, j
     :return: number of batches submitted (in case waiting for the results) and an example command to debug on the shell
     """
     num_of_mini_batches = 0
-
     job_name_suffix = job_name_suffix.replace(' ', '_')  # job name cannot contain spaces!
+
+    if not config.use_job_manager:
+        executor = ProcessPoolExecutor(max_workers=config.max_parallel_jobs)
 
     for i in range(0, len(batch_parameters_list), num_of_cmds_per_job):
         mini_batch_parameters_list = batch_parameters_list[i: i + num_of_cmds_per_job]
         mini_batch_job_name = f'{num_of_mini_batches}_{job_name_suffix}'
-        submit_mini_batch(
-            logger, config, script_path, mini_batch_parameters_list, logs_dir, mini_batch_job_name,
-            num_of_cpus=num_of_cpus, memory=memory, time_in_hours=time_in_hours)
+
+        if config.use_job_manager:
+            submit_mini_batch(
+                logger, config, script_path, mini_batch_parameters_list, logs_dir, mini_batch_job_name,
+                num_of_cpus=num_of_cpus, memory=memory, time_in_hours=time_in_hours)
+        else:
+            executor.submit(submit_mini_batch, logger, config, script_path, mini_batch_parameters_list, logs_dir,
+                            mini_batch_job_name, num_of_cpus=num_of_cpus, memory=memory, time_in_hours=time_in_hours)
 
         num_of_mini_batches += 1
         sleep(0.1)
@@ -264,15 +273,23 @@ def submit_batch(logger, config, script_path, batch_parameters_list, logs_dir, j
     return num_of_mini_batches
 
 
-def get_job_logger(log_file_dir, job_name, verbose):
-    job_id = os.environ.get(consts.JOB_ID_ENVIRONMENT_VARIABLE, '')
+def get_job_logger(log_file_dir, job_name, verbose, use_job_manager):
+    if use_job_manager:
+        job_id = os.environ.get(consts.JOB_ID_ENVIRONMENT_VARIABLE, '')
+    else:
+        job_id = ''
+
     logger = get_logger(log_file_dir / f'{job_name}_{job_id}_log.txt', 'main', verbose)
 
     return logger
 
 
-def get_job_times_logger(log_file_dir, job_name, verbose):
-    job_id = os.environ.get(consts.JOB_ID_ENVIRONMENT_VARIABLE, '')
+def get_job_times_logger(log_file_dir, job_name, verbose, use_job_manager):
+    if use_job_manager:
+        job_id = os.environ.get(consts.JOB_ID_ENVIRONMENT_VARIABLE, '')
+    else:
+        job_id = ''
+
     logger = get_logger(log_file_dir / f'{job_name}_{job_id}_times_log.txt', 'times', verbose)
 
     return logger
@@ -283,13 +300,15 @@ def add_default_step_args(args_parser):
     args_parser.add_argument('--logs_dir', type=Path, help='path to tmp dir to write logs to')
     args_parser.add_argument('--error_file_path', type=Path, help='path to error file')
     args_parser.add_argument('--job_name', help='job name')
+    args_parser.add_argument('--use_job_manager', help='use job manager', type=str_to_bool)
+    args_parser.add_argument('--cpus', default=1, type=int)
 
 
 def run_step(args, step_method, *step_args):
-    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose)
+    start_time = time()
 
-    script_run_message = f'Starting command is: {" ".join(argv)}'
-    logger.info(script_run_message)
+    logger = get_job_logger(args.logs_dir, args.job_name, args.verbose, args.use_job_manager)
+    logger.info(f'Starting command is: {" ".join(argv)}')
 
     try:
         step_method(logger, *step_args)
@@ -302,3 +321,9 @@ def run_step(args, step_method, *step_args):
         logger.exception(f'Error in function "{step_method.__name__}"')
         with open(args.error_file_path, 'a+') as f:
             traceback.print_exc(file=f)
+
+    total_time = timedelta(seconds=int(time() - start_time))
+    
+    if not args.use_job_manager:
+        logger.info(f'Finished running step {step_method.__name__}: {consts.JOB_WALL_TIME_KEY}{total_time} TimeLimit')
+        logger.info(f'Finished running step {step_method.__name__}: {consts.JOB_CPUS_KEY}{args.cpus} NumTasks')
