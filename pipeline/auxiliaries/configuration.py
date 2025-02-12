@@ -181,7 +181,7 @@ def get_configuration():
                         help='Bypass the limit on number of genomes')
     parser.add_argument('--run_optimized_mmseqs', type=str_to_bool, default=False,
                         help='Optimize the mmseqs run')
-    parser.add_argument('--use_parquet', type=str_to_bool, default=False,
+    parser.add_argument('--use_parquet', type=str_to_bool, default=True,
                         help='When True, use parquet files when possible instead of csv')
     parser.add_argument('--do_not_copy_outputs_to_final_results_dir', type=str_to_bool, default=False, )
     parser.add_argument('--clean_intermediate_outputs', type=str_to_bool, default=False, )
