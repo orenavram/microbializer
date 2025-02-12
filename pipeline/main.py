@@ -636,13 +636,11 @@ def step_9_extract_core_genome_and_core_proteome(logger, times_logger, config, a
     script_path = consts.SRC_DIR / 'steps' / 'extract_core_genome.py'
     aligned_core_proteome_path, aligned_core_proteome_tmp_dir = prepare_directories(
         logger, config.steps_results_dir, config.tmp_dir, core_proteome_step_name)
+    aligned_core_proteome_file_path = aligned_core_proteome_path / 'aligned_core_proteome.fas'
+    core_proteome_length_file_path = aligned_core_proteome_path / 'core_length.txt'
     core_proteome_done_file_path = config.done_files_dir / f'{core_proteome_step_name}.txt'
-
     if not core_proteome_done_file_path.exists():
         logger.info('Extracting aligned core proteome...')
-
-        aligned_core_proteome_file_path = aligned_core_proteome_path / 'aligned_core_proteome.fas'
-        core_proteome_length_file_path = aligned_core_proteome_path / 'core_length.txt'
 
         params = [aa_alignments_path, config.genomes_names_path,
                   aligned_core_proteome_file_path,
@@ -688,16 +686,19 @@ def step_9_extract_core_genome_and_core_proteome(logger, times_logger, config, a
     core_proteome_reduced_length_file_path = aligned_core_proteome_reduced_path / 'core_length.txt'
     core_proteome_reduced_done_file_path = config.done_files_dir / f'{core_proteome_reduced_step_name}.txt'
     if not core_proteome_reduced_done_file_path.exists():
-        logger.info('Extracting aligned core proteome for phylogeny reconstruction...')
+        if config.max_number_of_core_ogs_for_phylogeny != -1:
+            logger.info('Extracting aligned core proteome for phylogeny reconstruction...')
 
-        params = [aa_alignments_path, config.genomes_names_path,
-                  aligned_core_proteome_reduced_file_path,
-                  core_proteome_reduced_length_file_path,
-                  f'--core_minimal_percentage {config.core_minimal_percentage}',  # how many members induce a core group?
-                  f'--max_number_of_ogs {config.max_number_of_core_ogs_for_phylogeny}']
-        submit_mini_batch(logger, config, script_path, [params], aligned_core_proteome_reduced_tmp_dir,
-                          'core_proteome')
-
+            params = [aa_alignments_path, config.genomes_names_path,
+                      aligned_core_proteome_reduced_file_path,
+                      core_proteome_reduced_length_file_path,
+                      f'--core_minimal_percentage {config.core_minimal_percentage}',  # how many members induce a core group?
+                      f'--max_number_of_ogs {config.max_number_of_core_ogs_for_phylogeny}']
+            submit_mini_batch(logger, config, script_path, [params], aligned_core_proteome_reduced_tmp_dir,
+                              'core_proteome')
+        else:
+            logger.info('max_number_of_core_ogs_for_phylogeny is -1. Skipping step...')
+            write_done_file(logger, core_proteome_reduced_done_file_path)
     else:
         logger.info(f'done file {core_proteome_reduced_done_file_path} already exists. Skipping step...')
 
@@ -722,6 +723,11 @@ def step_9_extract_core_genome_and_core_proteome(logger, times_logger, config, a
         wait_for_results(logger, times_logger, core_proteome_reduced_step_name, aligned_core_proteome_reduced_tmp_dir,
                          1, config.error_file_path)
         write_done_file(logger, core_proteome_reduced_done_file_path)
+
+    # if step 09_3 was skipped, meaning we don't limit the number of core OGs for phylogeny reconstruction
+    if config.max_number_of_core_ogs_for_phylogeny == -1:
+        aligned_core_proteome_reduced_file_path = aligned_core_proteome_file_path
+        core_proteome_reduced_length_file_path = core_proteome_length_file_path
 
     with open(core_proteome_reduced_length_file_path, 'r') as fp:
         core_proteome_reduced_length = int(fp.read().strip())

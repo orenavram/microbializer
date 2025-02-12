@@ -194,6 +194,7 @@ def get_configuration():
     parser.add_argument('--use_job_manager', type=str_to_bool, default=consts.USE_JOB_MANAGER)
     parser.add_argument('--kegg_optimization_mode', choices=['first_gene_of_og', 'consensus_of_og', 'all_genes_of_og'],
                         default='first_gene_of_og')
+    parser.add_argument('--max_number_of_core_ogs_for_phylogeny', help='-1 to not limit', type=int, default=consts.MAX_NUMBER_OF_CORE_OGS_FOR_PHYLOGENY)
     parser.add_argument('-v', '--verbose', type=str_to_bool, default=False,
                         help='Increase output verbosity')
 
@@ -232,7 +233,7 @@ def get_configuration():
                     e_value_cutoff=args.e_value_cutoff, sensitivity=args.sensitivity,
                     core_minimal_percentage=args.core_minimal_percentage, inputs_fasta_type=args.inputs_fasta_type,
                     outgroup=args.outgroup, bootstrap=args.bootstrap,
-                    max_number_of_core_ogs_for_phylogeny=consts.MAX_NUMBER_OF_CORE_OGS_FOR_PHYLOGENY,
+                    max_number_of_core_ogs_for_phylogeny=args.max_number_of_core_ogs_for_phylogeny,
 
                     add_orphan_genes_to_ogs=args.add_orphan_genes_to_ogs,
                     filter_out_plasmids=args.filter_out_plasmids,
