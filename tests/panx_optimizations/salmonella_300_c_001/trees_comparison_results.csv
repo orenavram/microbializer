@@ -1,0 +1,4 @@
+t1_name,t2_name,rf,rf_max
+original_all_core_ogs,original_1000_core_ogs,190,594
+original_all_core_ogs,optimized_1000_core_ogs,242,594
+original_1000_core_ogs,optimized_1000_core_ogs,204,594
