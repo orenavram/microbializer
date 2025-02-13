@@ -833,7 +833,7 @@ def step_11_phylogeny(logger, times_logger, config, aligned_core_proteome_file_p
                               'tree_reconstruction', num_of_cpus=config.phylogeny_cpus,
                               memory=config.phylogeny_memory,
                               # Needed to avoid an error in drawing the tree. Taken from: https://github.com/NVlabs/instant-ngp/discussions/300
-                              command_to_run_before_script=f'export QT_QPA_PLATFORM=offscreen\nexport XDG_RUNTIME_DIR={xdg_runtime_dir}',
+                              environment_variables_to_change_before_script={'QT_QPA_PLATFORM': 'offscreen', 'XDG_RUNTIME_DIR': xdg_runtime_dir},
                               time_in_hours=config.phylogeny_time_limit)
 
             # wait for the phylogenetic tree here

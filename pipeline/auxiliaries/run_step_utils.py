@@ -181,7 +181,7 @@ def prepare_directories(logger, outputs_dir_prefix, tmp_dir_prefix, dir_name):
 
 
 def submit_mini_batch(logger, config, script_path, mini_batch_parameters_list, logs_dir, job_name, num_of_cpus=1,
-                      memory=None, time_in_hours=None, command_to_run_before_script=None,
+                      memory=None, time_in_hours=None, environment_variables_to_change_before_script: dict = None,
                       alternative_error_file=None):
     """
     :param script_path:
@@ -202,8 +202,8 @@ def submit_mini_batch(logger, config, script_path, mini_batch_parameters_list, l
         shell_cmds_as_str += f'export PATH=$CONDA_PREFIX/bin:$PATH\n'
 
     # PREPARING RELEVANT COMMANDS
-    if command_to_run_before_script:
-        shell_cmds_as_str += f'{command_to_run_before_script}\n'
+    if environment_variables_to_change_before_script and config.use_job_manager:
+        shell_cmds_as_str += '\n'.join([f'{key}={value}' for key, value in environment_variables_to_change_before_script.items()])
 
     error_file_path = alternative_error_file if alternative_error_file else config.error_file_path
     for params in mini_batch_parameters_list:
@@ -231,11 +231,17 @@ def submit_mini_batch(logger, config, script_path, mini_batch_parameters_list, l
         submit_cmds_from_file_to_q(logger, job_name, cmds_path, logs_dir, config.queue_name, str(num_of_cpus),
                                    config.account_name, memory, time_in_hours, config.node_name)
     else:
+        new_env = os.environ.copy()
+        if environment_variables_to_change_before_script:
+            for key, value in environment_variables_to_change_before_script.items():
+                new_env[key] = value
+                logger.info(f'Changing environment variable {key} to {value} in the environment of {script_path}')
+
         # fetch directly on shell
         for shell_cmd in shell_cmds_as_str.split('\n'):
             if shell_cmd:
                 logger.info(f'Running command: {shell_cmd}')
-                subprocess.run(shell_cmd, shell=True, check=True, capture_output=True, text=True)
+                subprocess.run(shell_cmd, shell=True, check=True, capture_output=True, text=True, env=new_env)
 
 
 def submit_batch(logger, config, script_path, batch_parameters_list, logs_dir, job_name_suffix,
