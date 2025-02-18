@@ -65,6 +65,7 @@ class Config:
     add_orphan_genes_to_ogs: bool
     run_optimized_mmseqs: bool
     filter_out_plasmids: bool
+    min_num_of_genomes_to_optimize_orthogroups_inference: int
     genomes_batch_size: int
     genomes_batch_size_calc_method: str
     pseudo_genome_mode: str
@@ -183,17 +184,18 @@ def get_configuration():
                         help='Optimize the mmseqs run')
     parser.add_argument('--use_parquet', type=str_to_bool, default=True,
                         help='When True, use parquet files when possible instead of csv')
-    parser.add_argument('--do_not_copy_outputs_to_final_results_dir', type=str_to_bool, default=False, )
-    parser.add_argument('--clean_intermediate_outputs', type=str_to_bool, default=False, )
-    parser.add_argument('--genomes_batch_size', type=int, default=50)
-    parser.add_argument('--genomes_batch_size_calc_method', choices=['fixed_number', 'sqrt', 'min_comparisons'], default='fixed_number')
+    parser.add_argument('--do_not_copy_outputs_to_final_results_dir', type=str_to_bool, default=False)
+    parser.add_argument('--clean_intermediate_outputs', type=str_to_bool, default=False)
+    parser.add_argument('--genomes_batch_size', type=int, default=50, help='relevant if genomes_batch_size_calc_method = fixed_number')
+    parser.add_argument('--genomes_batch_size_calc_method', choices=['fixed_number', 'sqrt', 'min_comparisons'], default='min_comparisons')
     parser.add_argument('--pseudo_genome_mode', type=str, choices=['first_gene', 'consensus_gene'],
                         default='first_gene')
-    parser.add_argument('--always_run_full_orthogroups_inference', type=str_to_bool, default=False, )
-    parser.add_argument('--max_parallel_jobs', help='', type=int)
+    parser.add_argument('--always_run_full_orthogroups_inference', type=str_to_bool, default=False)
+    parser.add_argument('--min_num_of_genomes_to_optimize_orthogroups_inference', type=int, default=150)
+    parser.add_argument('--max_parallel_jobs', type=int)
     parser.add_argument('--use_job_manager', type=str_to_bool, default=consts.USE_JOB_MANAGER)
     parser.add_argument('--kegg_optimization_mode', choices=['first_gene_of_og', 'consensus_of_og', 'all_genes_of_og'],
-                        default='first_gene_of_og')
+                        default='consensus_of_og')
     parser.add_argument('--max_number_of_core_ogs_for_phylogeny', help='-1 to not limit', type=int, default=consts.MAX_NUMBER_OF_CORE_OGS_FOR_PHYLOGENY)
     parser.add_argument('-v', '--verbose', type=str_to_bool, default=False,
                         help='Increase output verbosity')
@@ -237,6 +239,7 @@ def get_configuration():
 
                     add_orphan_genes_to_ogs=args.add_orphan_genes_to_ogs,
                     filter_out_plasmids=args.filter_out_plasmids,
+                    min_num_of_genomes_to_optimize_orthogroups_inference=args.min_num_of_genomes_to_optimize_orthogroups_inference,
                     genomes_batch_size=args.genomes_batch_size,
                     genomes_batch_size_calc_method=args.genomes_batch_size_calc_method,
                     pseudo_genome_mode=args.pseudo_genome_mode,

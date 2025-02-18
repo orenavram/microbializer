@@ -291,6 +291,8 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
     if not done_file_path.exists():
         number_of_batches = len(genomes_names) // genomes_batch_size
         genomes_batches = define_intervals(0, len(genomes_names) - 1, number_of_batches)
+        logger.info(f'Infer orthogroups on {len(genomes_names)} genomes in {len(genomes_batches)} batches, '
+                    f'using batch size of {genomes_batch_size}')
 
         all_cmds_params = []
         for batch_id, (start_index, end_index_inclusive) in enumerate(genomes_batches):
@@ -320,6 +322,7 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
 
         num_of_batches = submit_batch(logger, config, script_path, all_cmds_params, inference_tmp_dir,
                                       'infer_orthogroups',
+                                      num_of_cmds_per_job=max(1, len(genomes_batches) // config.max_parallel_jobs),
                                       time_in_hours=config.infer_orthogroups_time_limit)
 
         wait_for_results(logger, times_logger, step_name, inference_tmp_dir,
@@ -993,7 +996,8 @@ def run_main_pipeline(logger, times_logger, config):
         return
 
     genomes_batch_size = calc_genomes_batch_size(logger, config, len(genomes_names))
-    if len(genomes_names) < genomes_batch_size * 2 or config.always_run_full_orthogroups_inference:
+    if len(genomes_names) < config.min_num_of_genomes_to_optimize_orthogroups_inference or \
+            len(genomes_names) < genomes_batch_size * 2 or config.always_run_full_orthogroups_inference:
         final_orthogroups_file_path = step_5_full_orthogroups_inference(
             logger, times_logger, config, translated_orfs_dir, all_proteins_fasta_path)
 
