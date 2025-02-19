@@ -130,17 +130,17 @@ class Config:
 def get_configuration():
     parser = argparse.ArgumentParser()
     parser.add_argument('--args_json_path', help='path to a json file that contains values for arguments which will '
-                                                 'override the default values. Optional.')
+                                                 'override the default values. Optional.', default='')
     parser.add_argument('--run_dir', help='path to a directory where the pipeline will be run. Should contain a zip of'
-                                          'the genomes. Mutually exclusive with --contigs_dir.')
+                                          'the genomes. Mutually exclusive with --contigs_dir.', default='')
     parser.add_argument('--contigs_dir',
                         help='path to a folder with the genomic sequences. This folder may be zipped, as well the files'
-                             ' in it. Mutually exclusive with --run_dir.')
+                             ' in it. Mutually exclusive with --run_dir.', default='')
     parser.add_argument('--output_dir', help='relative path of directory where the output files will be written to',
                         default='outputs')
-    parser.add_argument('--email',
+    parser.add_argument('--email', default='',
                         help='A notification will be sent once the pipeline is done to this email. Optional.')
-    parser.add_argument('--job_name', help='Optional job name.')
+    parser.add_argument('--job_name', help='Optional job name.', default='')
     parser.add_argument('--identity_cutoff', type=float, default=consts.DEFAULT_IDENTITY_CUTOFF,
                         help='minimum required percent of identity level (lower values will be filtered out)')
     parser.add_argument('--coverage_cutoff', type=float, default=consts.DEFAULT_COVERAGE_CUTOFF,
@@ -157,7 +157,7 @@ def get_configuration():
                              'should be considered as a core gene.')
     parser.add_argument('--bootstrap', type=str_to_bool, default=False,
                         help='whether or not to apply bootstrap procedure over the reconstructed species tree.')
-    parser.add_argument('--outgroup',
+    parser.add_argument('--outgroup', default='',
                         help='The species name used to to root the phylogenetic tree, or empty string to leave unrooted.')
     parser.add_argument('--filter_out_plasmids', type=str_to_bool, default=False,
                         help='whether or not to filter out plasmids from the input files')
@@ -174,7 +174,7 @@ def get_configuration():
                         default=consts.SLURM_PARTITION)
     parser.add_argument('--account_name', help='The slurm account to submit jobs to',
                         default=consts.SLURM_ACCOUNT)
-    parser.add_argument('--node_name', help='The node name to submit jobs to')
+    parser.add_argument('--node_name', help='The node name to submit jobs to', default='')
     parser.add_argument('--step_to_complete', help='The final step to execute',
                         choices=[*PIPELINE_STEPS, ''], default='')
     parser.add_argument('--only_calc_ogs', type=str_to_bool, default=False,
@@ -205,9 +205,7 @@ def get_configuration():
 
     # Override arguments with args_json_path content
     if args.args_json_path:
-        with open(args.args_json_path, 'r') as args_json_file:
-            args_json = json.load(args_json_file)
-            args.__dict__.update(args_json)
+        update_args_from_json(args)
 
     # Validate arguments
     validate_arguments(args)
@@ -279,6 +277,21 @@ def get_configuration():
     config.to_csv(output_dir / 'config.csv')
 
     return logger, times_logger, config
+
+
+def update_args_from_json(args):
+    with open(args.args_json_path, 'r') as args_json_file:
+        args_json = json.load(args_json_file)
+
+        for key, value in args_json.items():
+            if key not in args.__dict__:
+                raise ValueError(f'key {key} in json file {args.args_json_path} is not a valid argument')
+
+            if type(args.__dict__[key]) == bool:
+                args.__dict__[key] = str_to_bool(value)
+            else:
+                arg_type = type(args.__dict__[key])
+                args.__dict__[key] = arg_type(value)
 
 
 def validate_arguments(args):
