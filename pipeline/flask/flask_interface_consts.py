@@ -144,7 +144,9 @@ sleep 30
 
 echo "Job ID: $SLURM_JOB_ID"
 echo "Running on nodes: $SLURM_JOB_NODELIST"
+echo "Memory per node: $SLURM_MEM_PER_NODE MB"
 echo "Allocated CPUs: $SLURM_JOB_CPUS_PER_NODE"
+echo "Job name: $SLURM_JOB_NAME"
 
 export HOME={WEBSERVER_PROJECT_ROOT_DIR}
 source {WEBSERVER_PROJECT_ROOT_DIR}/miniconda3/etc/profile.d/conda.sh
