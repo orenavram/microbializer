@@ -163,20 +163,20 @@ class State(Enum):
 
 
 class EMAIL_CONSTS:
-    def create_title(state, job_name):
-        if state == State.Finished:
+    def create_title(state: State, job_name):
+        if state.value == State.Finished.value:
             if job_name:
                 return f'Microbializer {job_name} - Job Finished'
             return f'Microbializer - Job Finished'
-        elif state == State.Crashed:
+        elif state.value == State.Crashed.value:
             if job_name:
                 return f'Microbializer {job_name} - Job Crashed'
             return f'Microbializer - Job Crashed'
-        elif state == State.Init:
+        elif state.value == State.Init.value:
             if job_name:
                 return f'Microbializer {job_name} - Job Initialized'
             return f'Microbializer - Job Initialized'
-        elif state == State.Running:
+        elif state.value == State.Running.value:
             if job_name:
                 return f'Microbializer {job_name} - Job Running'
             return f'Microbializer - Job Running'

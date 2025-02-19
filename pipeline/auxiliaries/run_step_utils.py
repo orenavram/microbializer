@@ -204,7 +204,7 @@ def submit_mini_batch(logger, config, script_path, mini_batch_parameters_list, l
     # PREPARING RELEVANT COMMANDS
     if environment_variables_to_change_before_script and config.use_job_manager:
         for key, value in environment_variables_to_change_before_script.items():
-            shell_cmds_as_str += f'{key}={value}\n'
+            shell_cmds_as_str += f'export {key}={value}\n'
 
     error_file_path = alternative_error_file if alternative_error_file else config.error_file_path
     for params in mini_batch_parameters_list:

@@ -75,6 +75,7 @@ def submit_clean_old_user_results_job(logger, config):
 
 def send_email_in_pipeline_end(logger, config, state):
     if not config.send_email:
+        logger.info('Not sending email since config.send_email is False')
         return
 
     email_addresses = [SharedConsts.OWNER_EMAIL]
@@ -84,11 +85,13 @@ def send_email_in_pipeline_end(logger, config, state):
     else:
         logger.warning(f'process_id = {config.run_number} email_address is empty, state = {state}, job_name = {config.job_name}')
 
+    logger.info(f'Sending email to {email_addresses} with state {state} and job_name {config.job_name}')
+
     # sends mail once the job finished or crashes
-    if state == SharedConsts.State.Finished:
+    if state.value == SharedConsts.State.Finished.value:
         send_email(logger, SharedConsts.EMAIL_CONSTS.create_title(state, config.job_name),
                    SharedConsts.EMAIL_CONSTS.CONTENT_PROCESS_FINISHED.format(process_id=config.run_number), email_addresses)
-    elif state == SharedConsts.State.Crashed:
+    elif state.value == SharedConsts.State.Crashed.value:
         send_email(logger, SharedConsts.EMAIL_CONSTS.create_title(state, config.job_name),
                    SharedConsts.EMAIL_CONSTS.CONTENT_PROCESS_CRASHED.format(process_id=config.run_number), email_addresses)
 
