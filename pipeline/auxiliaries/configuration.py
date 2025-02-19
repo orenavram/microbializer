@@ -176,7 +176,7 @@ def get_configuration():
                         default=consts.SLURM_ACCOUNT)
     parser.add_argument('--node_name', help='The node name to submit jobs to')
     parser.add_argument('--step_to_complete', help='The final step to execute',
-                        choices=[*PIPELINE_STEPS, ''])
+                        choices=[*PIPELINE_STEPS, ''], default='')
     parser.add_argument('--only_calc_ogs', type=str_to_bool, default=False,
                         help='Do only the necessary steps to calculate OGs')
     parser.add_argument('--bypass_number_of_genomes_limit', type=str_to_bool, default=False,

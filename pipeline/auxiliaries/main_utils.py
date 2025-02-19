@@ -168,7 +168,7 @@ def define_intervals(start, end, number_of_intervals):
 
 
 def zip_results(logger, config):
-    if config.step_to_complete and not config.only_calc_ogs and not config.do_not_copy_outputs_to_final_results_dir:
+    if not config.step_to_complete and not config.only_calc_ogs and not config.do_not_copy_outputs_to_final_results_dir:
         logger.info('Zipping results folder...')
         shutil.make_archive(config.final_output_dir, 'zip', config.run_dir, config.final_output_dir_name)
         logger.info(f'Zipped results folder to {config.final_output_dir}.zip')
