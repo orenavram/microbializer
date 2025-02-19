@@ -62,7 +62,7 @@ def submit_clean_old_user_results_job(logger, config):
             logger.info('No need to run a clean old user results job since the last run was less than a day ago.')
             return
 
-    logger.info('Submitting a job to clean old user results...')
+    logger.info('Submitting a job to clean old user results since the last one was more than a day ago...')
     tmp_dir = consts.CLEAN_JOBS_LOGS_DIR / now.strftime(datetime_format)
     tmp_dir.mkdir(parents=True, exist_ok=True)
     clean_old_jobs_error_file_path = tmp_dir / 'error.txt'
