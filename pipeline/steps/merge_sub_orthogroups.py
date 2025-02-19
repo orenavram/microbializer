@@ -11,7 +11,7 @@ from pipeline.auxiliaries.run_step_utils import add_default_step_args, run_step
 
 
 def merge_sub_orthogroups(logger, pseudo_orthogroups_file_path, sub_orthogroups_dir_path, output_path):
-    pseudo_orthogroups_df = pd.read_csv(pseudo_orthogroups_file_path)
+    pseudo_orthogroups_df = pd.read_csv(pseudo_orthogroups_file_path, dtype=str)
 
     for sub_orthogroups_file_path in sub_orthogroups_dir_path.iterdir():
         batch_id = sub_orthogroups_file_path.stem.split('_')[-1]

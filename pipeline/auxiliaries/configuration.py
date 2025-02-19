@@ -86,21 +86,22 @@ class Config:
     clean_old_job_directories: bool
 
     # cpus, memory, time
-    job_default_memory: str
+    job_default_memory_gb: int
     mmseqs_big_dataset_cpus: int
-    mmseqs_big_dataset_memory: str
+    mmseqs_big_dataset_memory_gb: int
     mmseqs_time_limit: str
     phylogeny_cpus: int
-    phylogeny_memory: str
+    phylogeny_memory_gb: int
     kegg_cpus: int
-    kegg_memory: str
+    kegg_memory_gb: int
     codon_bias_cpus: int
+    codon_bias_memory: int
     ani_cpus: int
-    ani_memory: str
-    orthoxml_memory: str
+    ani_memory_gb: int
+    orthoxml_memory_gb: int
     phylogeny_time_limit: str
     infer_orthogroups_time_limit: str
-    merge_sub_orthogroups_memory: str
+    merge_sub_orthogroups_memory_gb: int
 
     def to_csv(self, path: Path):
         config_df = pd.DataFrame(list(asdict(self).items()), columns=['key', 'value'])
@@ -257,21 +258,22 @@ def get_configuration():
                     clean_intermediate_outputs=args.clean_intermediate_outputs,
                     clean_old_job_directories=consts.ENV == 'lsweb' and CLEAN_OLD_JOBS_DIRECTORIES_FROM_PIPELINE,
 
-                    job_default_memory=consts.JOB_DEFAULT_MEMORY_GB,
+                    job_default_memory_gb=consts.JOB_DEFAULT_MEMORY_GB,
                     mmseqs_big_dataset_cpus=min(consts.MMSEQS_BIG_DATASET_CPUS, args.max_parallel_jobs),
-                    mmseqs_big_dataset_memory=consts.MMSEQS_BIG_DATASET_MEMORY_GB,
+                    mmseqs_big_dataset_memory_gb=consts.MMSEQS_BIG_DATASET_MEMORY_GB,
                     mmseqs_time_limit=consts.MMSEQS_TIME_LIMIT,
                     phylogeny_cpus=min(consts.PHYLOGENY_CPUS, args.max_parallel_jobs),
-                    phylogeny_memory=consts.PHYLOGENY_MEMORY_GB,
+                    phylogeny_memory_gb=consts.PHYLOGENY_MEMORY_GB,
                     phylogeny_time_limit=consts.PHYLOGENY_TIME_LIMIT,
                     kegg_cpus=min(consts.KEGG_CPUS, args.max_parallel_jobs),
-                    kegg_memory=consts.KEGG_MEMORY_GB,
+                    kegg_memory_gb=consts.KEGG_MEMORY_GB,
                     codon_bias_cpus=min(consts.CODON_BIAS_CPUS, args.max_parallel_jobs),
+                    codon_bias_memory=consts.CODON_BIAS_MEMORY_GB,
                     ani_cpus=min(consts.ANI_CPUS, args.max_parallel_jobs),
-                    ani_memory=consts.ANI_MEMORY_GB,
-                    orthoxml_memory=consts.ORTHOXML_MEMORY_GB,
+                    ani_memory_gb=consts.ANI_MEMORY_GB,
+                    orthoxml_memory_gb=consts.ORTHOXML_MEMORY_GB,
                     infer_orthogroups_time_limit=consts.INFER_ORTHOGROUPS_TIME_LIMIT,
-                    merge_sub_orthogroups_memory=consts.MERGE_SUB_ORTHOGROUPS_MEMORY_GB
+                    merge_sub_orthogroups_memory_gb=consts.MERGE_SUB_ORTHOGROUPS_MEMORY_GB
                     )
 
     config.to_csv(output_dir / 'config.csv')

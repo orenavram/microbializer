@@ -162,7 +162,7 @@ def create_phyletic_pattern(logger, orthogroups_df, output_dir):
 
 
 def create_orthogroups_variations(logger, orthologs_table_path, output_dir, qfo_benchmark):
-    orthogroups_df = pd.read_csv(orthologs_table_path)
+    orthogroups_df = pd.read_csv(orthologs_table_path, dtype=str)
     create_phyletic_pattern(logger, orthogroups_df, output_dir)
     build_orthoxml_and_tsv_output(logger, orthogroups_df, output_dir, qfo_benchmark)
 

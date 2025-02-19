@@ -330,7 +330,7 @@ def run_unified_mmseqs(logger, times_logger, config, base_step_number, all_prote
 
         submit_mini_batch(logger, config, script_path, [params], pipeline_step_tmp_dir,
                           'mmseqs', num_of_cpus=config.mmseqs_big_dataset_cpus,
-                          memory=config.mmseqs_big_dataset_memory,
+                          memory=config.mmseqs_big_dataset_memory_gb,
                           time_in_hours=config.mmseqs_time_limit)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, 1,
@@ -357,7 +357,7 @@ def run_unified_mmseqs(logger, times_logger, config, base_step_number, all_prote
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
     m8_output_size_in_gb = get_directory_size_in_gb(m8_output_path)
-    m8_output_parsing_memory = str(max(int(config.job_default_memory), math.ceil(m8_output_size_in_gb * 10)))
+    m8_output_parsing_memory = str(max(config.job_default_memory_gb, math.ceil(m8_output_size_in_gb * 10)))
 
     # 2.	extract_rbh_hits.py
     step_number = f'{base_step_number}_2'

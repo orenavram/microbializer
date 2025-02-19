@@ -108,7 +108,7 @@ def remove_non_core_genes(genome_name_to_gene_name_to_location, genome_name_to_g
 def remove_paralogs(orthologs_table_path, genome_names, no_paralogs_path):
     # Create OG table withhout paralogs
 
-    orthologs_df = pd.read_csv(orthologs_table_path)
+    orthologs_df = pd.read_csv(orthologs_table_path, dtype=str)
 
     # Remove all rows that have only 1 strain in them (which are orphan genes that have single or multiple copies
     # in the same genome). Those rows will have not-nan values in 2 columns (the OG column and the strain column)

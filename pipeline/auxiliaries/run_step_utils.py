@@ -226,7 +226,7 @@ def submit_mini_batch(logger, config, script_path, mini_batch_parameters_list, l
         cmds_path.chmod(current_permissions | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
         if memory is None:
-            memory = config.job_default_memory
+            memory = config.job_default_memory_gb
 
         submit_cmds_from_file_to_q(logger, job_name, cmds_path, logs_dir, config.queue_name, str(num_of_cpus),
                                    config.account_name, memory, time_in_hours, config.node_name)

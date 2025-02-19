@@ -4,6 +4,7 @@ import shutil
 import os
 import logging
 import pandas as pd
+import math
 
 from . import consts
 
@@ -74,3 +75,10 @@ def get_directory_size_in_gb(directory):
     # Convert bytes to gigabytes and round up
     size_in_gb = total_size / (1024 ** 3)
     return size_in_gb
+
+
+def get_required_memory_gb_to_load_csv(csv_path: Path):
+    csv_size_bytes = csv_path.stat().st_size
+    requited_memory_bytes = csv_size_bytes * 10
+    requited_memory_gb = math.ceil(requited_memory_bytes / (1024 ** 3))
+    return requited_memory_gb

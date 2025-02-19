@@ -18,6 +18,8 @@ def extract_gene_names_from_fasta(proteins_file_path):
 
 
 def extract_orphan_proteins(logger, strain_name, orphan_orthogroups, output_dir):
+    logger.info(f'Extracting orphan genes of {strain_name}...')
+
     orphan_orthogroups_of_strain = orphan_orthogroups[strain_name].dropna()
 
     orphan_orthogroups_with_paralogs = orphan_orthogroups_of_strain[orphan_orthogroups_of_strain.str.contains(';')]
@@ -44,7 +46,9 @@ def extract_orphan_proteins(logger, strain_name, orphan_orthogroups, output_dir)
 
 def extract_orphan_proteins_of_all_strains(logger, job_input_path, orthogroups_file, output_dir):
     # Here we start from orthogroups_df that already contains orthogroups for all orphan genes.
-    orthogroups_df = pd.read_csv(orthogroups_file)
+    orthogroups_df = pd.read_csv(orthogroups_file, dtype=str)
+    logger.info(f'Read orthogroups file from {orthogroups_file} into memory')
+
     orthogroups_df.drop(columns=['OG_name'], inplace=True)
     orphan_orthogroups = orthogroups_df[orthogroups_df.count(axis=1) == 1]
 
