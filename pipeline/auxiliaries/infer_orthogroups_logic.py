@@ -59,44 +59,46 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
         start_time = time.time()
 
         scores_statistics_file = normalized_hits_output_dir / 'scores_stats.json'
-        scores_normalize_coefficients = aggregate_mmseqs_scores(
+        scores_normalize_coefficients = aggregate_mmseqs_scores(logger,
             orthologs_scores_statistics_dir, paralogs_scores_statistics_dir, scores_statistics_file, skip_paralogs)
 
-        job_index_to_hits_files_and_coefficients = defaultdict(list)
+        if scores_normalize_coefficients is not None:
+            job_index_to_hits_files_and_coefficients = defaultdict(list)
 
-        for i, hits_file in enumerate(orthologs_output_dir.glob('*.m8')):
-            job_index = i % config.max_parallel_jobs
-            strains_pair = hits_file.stem
-            job_index_to_hits_files_and_coefficients[job_index].append(
-                (str(hits_file), scores_normalize_coefficients[strains_pair]))
-
-        if not skip_paralogs:
-            for i, hits_file in enumerate(paralogs_output_dir.glob('*.m8_filtered')):
+            for i, hits_file in enumerate(orthologs_output_dir.glob('*.m8')):
                 job_index = i % config.max_parallel_jobs
                 strains_pair = hits_file.stem
                 job_index_to_hits_files_and_coefficients[job_index].append(
                     (str(hits_file), scores_normalize_coefficients[strains_pair]))
 
-        all_cmds_params = []
-        jobs_inputs_dir = normalized_hits_tmp_dir / 'jobs_inputs'
-        jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
-        for job_index, job_input_info in job_index_to_hits_files_and_coefficients.items():
-            job_input_path = jobs_inputs_dir / f'{job_index}.txt'
-            with open(job_input_path, 'w') as f:
-                for hits_file, scores_normalize_coefficient in job_input_info:
-                    f.write(f'{hits_file}\t{scores_normalize_coefficient}\n')
+            if not skip_paralogs:
+                for i, hits_file in enumerate(paralogs_output_dir.glob('*.m8_filtered')):
+                    job_index = i % config.max_parallel_jobs
+                    strains_pair = hits_file.stem
+                    job_index_to_hits_files_and_coefficients[job_index].append(
+                        (str(hits_file), scores_normalize_coefficients[strains_pair]))
 
-            single_cmd_params = [job_input_path, normalized_hits_output_dir, f'--use_parquet {config.use_parquet}']
-            all_cmds_params.append(single_cmd_params)
+            all_cmds_params = []
+            jobs_inputs_dir = normalized_hits_tmp_dir / 'jobs_inputs'
+            jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
+            for job_index, job_input_info in job_index_to_hits_files_and_coefficients.items():
+                job_input_path = jobs_inputs_dir / f'{job_index}.txt'
+                with open(job_input_path, 'w') as f:
+                    for hits_file, scores_normalize_coefficient in job_input_info:
+                        f.write(f'{hits_file}\t{scores_normalize_coefficient}\n')
 
-        step_pre_processing_time = timedelta(seconds=int(time.time() - start_time))
-        times_logger.info(f'Step {step_name} pre-processing took {step_pre_processing_time}.')
+                single_cmd_params = [job_input_path, normalized_hits_output_dir, f'--use_parquet {config.use_parquet}']
+                all_cmds_params.append(single_cmd_params)
 
-        num_of_batches = submit_batch(logger, config, script_path, all_cmds_params, normalized_hits_tmp_dir,
-                                      'hits_normalize')
+            step_pre_processing_time = timedelta(seconds=int(time.time() - start_time))
+            times_logger.info(f'Step {step_name} pre-processing took {step_pre_processing_time}.')
 
-        wait_for_results(logger, times_logger, step_name, normalized_hits_tmp_dir, num_of_batches,
-                         config.error_file_path)
+            num_of_batches = submit_batch(logger, config, script_path, all_cmds_params, normalized_hits_tmp_dir,
+                                          'hits_normalize')
+
+            wait_for_results(logger, times_logger, step_name, normalized_hits_tmp_dir, num_of_batches,
+                             config.error_file_path)
+
         write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -115,12 +117,19 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
     done_file_path = config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
         logger.info('Constructing putative orthologs table...')
-        params = [normalized_hits_output_dir,
-                  putative_orthologs_table_path]
-        submit_mini_batch(logger, config, script_path, [params], putative_orthologs_table_tmp_dir,
-                          'putative_table')
-        wait_for_results(logger, times_logger, step_name, putative_orthologs_table_tmp_dir, 1,
-                         config.error_file_path)
+
+        if len(list(normalized_hits_output_dir.glob('*.m8'))) == 0:
+            genomes_names = [f.stem for f in translated_orfs_dir.glob('*.faa')]
+            empty_orthologs_table = pd.DataFrame(columns=['OG_name'] + genomes_names)
+            empty_orthologs_table.to_csv(putative_orthologs_table_path, index=False)
+            logger.info(f'No hits were found. Created an empty orthologs table at {putative_orthologs_table_path}.')
+        else:
+            params = [normalized_hits_output_dir,
+                      putative_orthologs_table_path]
+            submit_mini_batch(logger, config, script_path, [params], putative_orthologs_table_tmp_dir,
+                              'putative_table')
+            wait_for_results(logger, times_logger, step_name, putative_orthologs_table_tmp_dir, 1,
+                             config.error_file_path)
 
         write_done_file(logger, done_file_path)
     else:

@@ -10,7 +10,7 @@ import numpy as np
 from . import consts
 
 
-def aggregate_mmseqs_scores(orthologs_scores_statistics_dir, paralogs_scores_statistics_dir, output_file,
+def aggregate_mmseqs_scores(logger, orthologs_scores_statistics_dir, paralogs_scores_statistics_dir, output_file,
                             skip_paralogs):
     scores_means_per_strains_pair = {}
     scores_total_sum = 0
@@ -31,6 +31,10 @@ def aggregate_mmseqs_scores(orthologs_scores_statistics_dir, paralogs_scores_sta
             scores_means_per_strains_pair[strains_names] = strains_statistics['mean']
             scores_total_sum += strains_statistics['sum']
             scores_total_records += strains_statistics['number of records']
+
+    if scores_total_records == 0:
+        logger.warning('No orthologs or paralogs were found. No scores normalization will be done.')
+        return None
 
     scores_total_mean = scores_total_sum / scores_total_records
     scores_normalize_coefficients = {strains_names: strains_scores_mean / scores_total_mean
