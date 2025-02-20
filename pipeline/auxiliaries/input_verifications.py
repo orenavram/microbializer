@@ -5,6 +5,7 @@ import collections
 import sys
 import subprocess
 from pathlib import Path
+import re
 
 from . import consts
 from .general_utils import remove_path, fail, write_done_file
@@ -21,8 +22,12 @@ ILLEGAL_CHARS_IN_RECORD_IDS = ':;,\'\"'
 
 def record_has_illegal_chars(record_header):
     # Check if the first word in the string (which is the record ID) contains illegal characters
-    record_id = record_header.split(' ')[0]
-    return any(char in ILLEGAL_CHARS_IN_RECORD_IDS for char in record_id)
+    record_id = re.match(r">(\S+)", record_header)
+    if record_id is None:
+        return True
+
+    record_id = record_id.group(1)
+    return any(not char.isascii() or char in ILLEGAL_CHARS_IN_RECORD_IDS for char in record_id)
 
 
 def prepare_and_verify_input_data(logger, config: Config):
