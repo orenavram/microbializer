@@ -87,7 +87,6 @@ def get_W(logger, ORFs_file, hegs_output_dir):
     SeqIO.write(HEGs_records, HEGs_fasta_path, "fasta")  # Write HEGs to a file for logging and debugging
     logger.info(f'Found {len(HEGs_names)} HEGs in {genome_name}, and wrote them to {HEGs_fasta_path}')
 
-    # Find genome codon index of HEGs
     records_were_cleaned = clean_seq_records(HEGs_records)
     if records_were_cleaned:
         HEGs_cleaned_fasta_path = hegs_output_dir / f'{genome_name}_HEGs_cleaned.fa'
@@ -96,6 +95,7 @@ def get_W(logger, ORFs_file, hegs_output_dir):
         logger.warning(f'Non-complete or illegal codons were found in the ORFs of {genome_name}. They were removed,'
                        f'and the cleaned HEGs were written to {HEGs_cleaned_fasta_path}')
 
+    # Find genome codon index of HEGs
     genome_codon_index = CodonAdaptationIndex(HEGs_records)
     logger.info(f'W vector was calculated for {genome_name}')
 
