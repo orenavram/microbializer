@@ -104,8 +104,8 @@ def draw_tree(logger, phylogenetic_tree_path, bootstrap):
 
     logger.info('Drawing the phylogenetic tree. The tree will be saved as PNG and SVG files in the same folder as '
                 'the tree file.')
-    tree.render(str(tree_image_png_path), tree_style=ts)
-    tree.render(str(tree_image_svg_path), tree_style=ts)
+    tree.render(str(tree_image_png_path), tree_style=ts, dpi=600)
+    tree.render(str(tree_image_svg_path), tree_style=ts, dpi=600)
     logger.info(f'The tree was saved as PNG and SVG files in the same folder as the tree file.')
 
 
