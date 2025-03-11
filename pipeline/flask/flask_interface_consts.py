@@ -33,6 +33,9 @@ ALL_OUTPUTS_ZIPPED = WEBSERVER_NAME + "_outputs.zip"
 ERROR_FILE_NAME = "error.txt"
 ERROR_FILE_PATH = ALL_OUTPUTS_DIRECTORY / ERROR_FILE_NAME
 
+# Finished job file (the path is relative to the unique folder of the job)
+FINISHED_JOB_FILE_PATH = "outputs/done/pipeline_finished_successfully.txt"
+
 # Whether to send email when job finished from pipeline or flask
 SEND_EMAIL_WHEN_JOB_FINISHED_FROM_PIPELINE = True  # If True, flask won't send emails. If False, flask will send emails.
 # Whether to clean old jobs directories from pipeline or flask
