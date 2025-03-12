@@ -54,7 +54,7 @@ def get_jobs(account=None, cluster=None, logger=None):
     }
 
     # Sending the GET request to the Slurm REST API
-    response = requests.get(f"{slurmrestd_url}/slurmdb/v0.0.40/jobs", headers=headers, params=params)
+    response = requests.get(f"{slurmrestd_url}/slurmdb/v0.0.41/jobs", headers=headers, params=params)
     # Check if the request was successful
     if response.status_code == 200:
         data = response.json()
