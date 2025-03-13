@@ -34,7 +34,7 @@ ERROR_FILE_NAME = "error.txt"
 ERROR_FILE_PATH = ALL_OUTPUTS_DIRECTORY / ERROR_FILE_NAME
 
 # Finished job file (the path is relative to the unique folder of the job)
-FINISHED_JOB_FILE_PATH = "outputs/done/pipeline_finished_successfully.txt"
+FINISHED_JOB_FILE_PATH = Path("outputs") / "done" / "pipeline_finished_successfully.txt"
 
 # Whether to send email when job finished from pipeline or flask
 SEND_EMAIL_WHEN_JOB_FINISHED_FROM_PIPELINE = True  # If True, flask won't send emails. If False, flask will send emails.
@@ -138,7 +138,6 @@ NUBMER_OF_CPUS_MICROBIALIZER_PROCESSOR_JOB = '1'
 MICROBIALIZER_MAIN_JOB_MEMORY = '8192'  # in MB
 MICROBIALIZER_MAIN_JOB_TIME_LIMIT_IN_HOURS = 168  # 7 days (the max time of pupkoweb)
 MICROBIALIZER_PROCESSOR_JOB_PREFIX = 'MC'
-MICROBIALIZER_PROCESSOR_RESULTS_FILE_NAME = ALL_OUTPUTS_ZIPPED
 INTERVAL_BETWEEN_LISTENER_SAMPLES = 120  # in seconds
 
 MICROBIALIZER_JOB_TEMPLATE = f'''#!/bin/bash

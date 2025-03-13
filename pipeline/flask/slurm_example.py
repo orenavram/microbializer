@@ -30,8 +30,6 @@ def get_api_token(username, api_key):
     Exception: If the request fails with a non-200 status code.
     """
 
-    generate_token_url = 'https://slurmtron.tau.ac.il/slurmapi/generate-token/'
-
     payload = {
         'username': username,
         'api_key': api_key
