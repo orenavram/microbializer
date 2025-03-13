@@ -36,10 +36,10 @@ ERROR_FILE_PATH = ALL_OUTPUTS_DIRECTORY / ERROR_FILE_NAME
 # Finished job file (the path is relative to the unique folder of the job)
 FINISHED_JOB_FILE_PATH = Path("outputs") / "done" / "pipeline_finished_successfully.txt"
 
-# Whether to send email when job finished from pipeline or flask
-SEND_EMAIL_WHEN_JOB_FINISHED_FROM_PIPELINE = True  # If True, flask won't send emails. If False, flask will send emails.
-# Whether to clean old jobs directories from pipeline or flask
-CLEAN_OLD_JOBS_DIRECTORIES_FROM_PIPELINE = True  # If True, flask won't clean old jobs directories. If False, flask will clean old jobs directories.
+# Whether to send email when job finished from pipeline
+SEND_EMAIL_WHEN_JOB_FINISHED_FROM_PIPELINE = True
+# Whether to clean old jobs directories from pipeline
+CLEAN_OLD_JOBS_DIRECTORIES_FROM_PIPELINE = True
 
 # Progress bar file (the path is relative to the unique folder of the job)
 PROGRESSBAR_FILE_NAME = "progressbar.csv"
