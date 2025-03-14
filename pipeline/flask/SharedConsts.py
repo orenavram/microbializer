@@ -15,9 +15,7 @@ class State(Enum):
     Running = 1
     Finished = 2
     Crashed = 3
-    Waiting = 4
     Init = 5
-    Queue = 6
 
 
 class EMAIL_CONSTS:
@@ -30,14 +28,6 @@ class EMAIL_CONSTS:
             if job_name:
                 return f'Microbializer {job_name} - Job Crashed'
             return f'Microbializer - Job Crashed'
-        elif state.value == State.Init.value:
-            if job_name:
-                return f'Microbializer {job_name} - Job Initialized'
-            return f'Microbializer - Job Initialized'
-        elif state.value == State.Running.value:
-            if job_name:
-                return f'Microbializer {job_name} - Job Running'
-            return f'Microbializer - Job Running'
         else:
             return f'unknown state in create_title at EMAIL_CONSTS'
 
@@ -61,29 +51,12 @@ class EMAIL_CONSTS:
 
 
 class UI_CONSTS:
-    static_folder_path = 'gifs/'
     states_gifs_dict = {
         State.Running: {
             "background": "#ffffff",
             "gif_id": "D5GyCFkInbJlu"
         },
-        State.Finished: {
-            "background": "#1674d2",
-            "gif_id": "TvLuZ00OIADoQ"
-        },
-        State.Crashed: {
-            "background": "#1674d2",
-            "gif_id": "TvLuZ00OIADoQ"
-        },
-        State.Waiting: {
-            "background": "#1674d2",
-            "gif_id": "TvLuZ00OIADoQ"
-        },
         State.Init: {
-            "background": "#1674d2",
-            "gif_id": "TvLuZ00OIADoQ"
-        },
-        State.Queue: {
             "background": "#1674d2",
             "gif_id": "TvLuZ00OIADoQ"
         }
@@ -91,11 +64,8 @@ class UI_CONSTS:
 
     states_text_dict = {
         State.Running: "Your process is running...",
-        State.Finished: "Your process finished... Redirecting to results page.",  # TODO is needed??
-        State.Crashed: "Your process failed.\nWe suggest you rerun the process.",  # TODO finish
-        State.Waiting: "We are currently running other processes.\nYour process will start soon.",
-        State.Init: "The process is initialized and will shortly enter the next stage.",
-        State.Queue: "Job is queued",
+        State.Init: "The job is submitted and will soon enter the next stage.\nIt might take a while, "
+                    "depending on the number of other jobs currently running.",
     }
 
     class UI_Errors(Enum):
