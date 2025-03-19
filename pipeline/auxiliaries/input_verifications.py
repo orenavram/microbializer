@@ -75,7 +75,7 @@ def prepare_and_verify_input_data(logger, config: Config):
             fail(logger, error_msg, config.error_file_path)
 
         # must be only after the spaces removal from the species names!!
-        verification_error = verify_fasta_format(logger, config.data_path)
+        verification_error = verify_fasta_format(logger, config.data_path, config.inputs_fasta_type)
         if verification_error:
             remove_path(logger, config.data_path)
             fail(logger, verification_error, config.error_file_path)
@@ -211,7 +211,7 @@ def rename_file(logger, file_path, new_file_name, error_file_path):
         fail(logger, error_msg, error_file_path)
 
 
-def verify_fasta_format(logger, data_path):
+def verify_fasta_format(logger, data_path, inputs_fasta_type):
     Bio.SeqUtils.IUPACData.ambiguous_dna_letters += 'U-'
     legal_chars = set(
         Bio.SeqUtils.IUPACData.ambiguous_dna_letters.lower() + Bio.SeqUtils.IUPACData.ambiguous_dna_letters)
@@ -221,6 +221,7 @@ def verify_fasta_format(logger, data_path):
                    f'files (such as fas or fna).'
         strain_name = file_path.stem
         record_ids = []
+        total_genome_length = 0
         with open(file_path) as f:
             line_number = 0
             try:
@@ -232,7 +233,7 @@ def verify_fasta_format(logger, data_path):
                     return f'Illegal FASTA format. First line in "{file_path.name}" starts with "{line[0]}" instead of ">".'
                 if record_has_illegal_chars(line):
                     return f'Illegal format. First line in "{file_path.name}" contains an illegal character in its ' \
-                           f'first word (one of: {ILLEGAL_CHARS_IN_RECORD_IDS}).'
+                           f'first word (one of: {" ".join(ILLEGAL_CHARS_IN_RECORD_IDS)}).'
 
                 curated_content = f'>{strain_name}:{line[1:]}'
                 record_ids.append(line[1:].split(' ')[0])
@@ -250,7 +251,7 @@ def verify_fasta_format(logger, data_path):
                                    f'Both lines {line_number - 1} and {line_number} start with ">".'
                         elif record_has_illegal_chars(line):
                             return f'Illegal format. Line {line_number} in "{file_path.name}" contains an illegal ' \
-                                   f'character in its first word (one of: {ILLEGAL_CHARS_IN_RECORD_IDS}).'
+                                   f'character in its first word (one of: {" ".join(ILLEGAL_CHARS_IN_RECORD_IDS)}).'
                         else:
                             curated_content += f'>{strain_name}:{line[1:]}\n'
                             record_ids.append(line[1:].split(' ')[0])
@@ -264,6 +265,7 @@ def verify_fasta_format(logger, data_path):
                                 return f'Illegal FASTA format. Line {line_number} in "{file_path.name}" contains ' \
                                        f'illegal DNA character "{c}".'
                         curated_content += f'{line}\n'
+                        total_genome_length += len(line)
 
             except UnicodeDecodeError as e:
                 logger.info(e.args)
@@ -274,6 +276,10 @@ def verify_fasta_format(logger, data_path):
         duplicate_ids = [item for item, count in collections.Counter(record_ids).items() if count > 1]
         if duplicate_ids:
             return f'Illegal FASTA format. "{file_path.name}" contains duplicated record ids: {",".join(duplicate_ids)}.'
+
+        if total_genome_length < consts.MIN_GENOME_LENGTH and inputs_fasta_type == 'genomes':
+            return 'Each FASTA file should contain the genome of a bacterium, hence it must contain at least 20,000 nucleotides. ' \
+                   'Please refer to the Input Specification section in the Overview page for more information.'
 
         # override the old file with the curated content
         with open(file_path, 'w') as f:
