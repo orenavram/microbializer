@@ -5,6 +5,7 @@ WEBSERVER_DOMAIN = 'microbializer.tau.ac.il'
 WEBSERVER_ADDRESS = f'https://{WEBSERVER_DOMAIN}'
 OWNER_EMAIL = 'yairshimony@mail.tau.ac.il'
 
+ALLOWED_EXTENSIONS = ['zip', 'gz']
 USER_FILE_NAME_ZIP = "genomes.zip"  # names of the files to be downloaded
 USER_FILE_NAME_TAR = "genomes.tar.gz"  # names of the files to be downloaded
 
@@ -71,7 +72,7 @@ class UI_CONSTS:
     class UI_Errors(Enum):
         UNKNOWN_PROCESS_ID = 'The provided process id does not exist'
         INVALID_MAIL = 'invalid mail'
-        INVALID_FILE_EXTENTION = f'invalid file extenstion, please upload a file of: {", ".join({"zip", "gz"})}'
+        INVALID_FILE_EXTENTION = f'invalid file extenstion, please upload a file of: {", ".join(ALLOWED_EXTENSIONS)}'
         CORRUPTED_FILE = f'please upload a valid fasta file, the file you uploaded is corrupted'
         INVALID_FILES_NUMBER = f'please insert one or two files'
         HISTOGRAM_DATA_IS_NULL = f'cannot find the data for histogram, make sure the process id is correct and finished'
