@@ -254,7 +254,9 @@ def get_configuration():
                     verbose=args.verbose,
 
                     clean_intermediate_outputs=args.clean_intermediate_outputs,
-                    clean_old_job_directories=consts.ENV == 'lsweb' and CLEAN_OLD_JOBS_DIRECTORIES_FROM_PIPELINE,
+                    clean_old_job_directories=consts.ENV == 'lsweb' and CLEAN_OLD_JOBS_DIRECTORIES_FROM_PIPELINE and
+                               not args.step_to_complete and not args.only_calc_ogs and
+                               not args.do_not_copy_outputs_to_final_results_dir,
 
                     job_default_memory_gb=consts.JOB_DEFAULT_MEMORY_GB,
                     mmseqs_big_dataset_cpus=min(consts.MMSEQS_BIG_DATASET_CPUS, args.max_parallel_jobs),
