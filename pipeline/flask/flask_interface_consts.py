@@ -156,7 +156,7 @@ export PATH=$CONDA_PREFIX/bin:$PATH
 
 echo "PATH: $PATH"
 
-python "{WEBSERVER_PROJECT_ROOT_DIR}/pipeline/main.py" --{ARGS_JSON_PATH_KEY} {{args_json_path}} --account_name {MICROBIALIZER_PROCESSOR_JOB_ACCOUNT_NAME} --queue_name {MICROBIALIZER_PROCESSOR_JOB_QUEUE_NAME}
+python "{WEBSERVER_PROJECT_ROOT_DIR}/pipeline/main.py" --{ARGS_JSON_PATH_KEY} {{args_json_path}} --account_name {MICROBIALIZER_PROCESSOR_JOB_ACCOUNT_NAME} --queue_name {MICROBIALIZER_PROCESSOR_JOB_QUEUE_NAME} --clean_intermediate_outputs True
 '''
 
 MICROBIALIZER_JOB_HEADER_TEMPLATE = f'''
