@@ -1,4 +1,5 @@
 # M1CR0B1AL1Z3R<br>https://microbializer.tau.ac.il <img align="right" src="html/pics/logo.gif" width="134" height="100">  <br>
+# NOTICE:  Due to university-level cybersecurity measures, the website will not be accessible from outside Israel between April 6th and April 9th 2025.
 
 A pipeline for analyzing bacterial genomic sequences. Easily.
 
