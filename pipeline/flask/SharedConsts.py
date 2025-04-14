@@ -65,8 +65,8 @@ class UI_CONSTS:
 
     states_text_dict = {
         State.Running: "Your process is running...",
-        State.Init: "The job is submitted and will soon enter the next stage.\nIt might take a while, "
-                    "depending on the number of other jobs currently running.",
+        State.Init: "The job is pending to be submitted and will soon enter the next stage. It might take a while, "
+                    "depending on the number of other jobs currently running. You can refresh the window to check the status.",
     }
 
     class UI_Errors(Enum):
