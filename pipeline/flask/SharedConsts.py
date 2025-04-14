@@ -84,7 +84,7 @@ class UI_CONSTS:
 
     ERROR_CONTACT_INFO = f'For more information, or any other inquiries, please contact {OWNER_EMAIL}'
 
-    PROCESS_INFO_KR = f"We are processing your request. This may take an hour for a small number of genomes and up to several days for a large one. This link is valid for {TIME_TO_KEEP_PROCSES_IDS_FOLDERS} days. if an email address was provided, a link will be sent upon analysis completion."
+    PROCESS_INFO_KR = f"We are processing your request. This may take an hour for a small number of genomes and up to several days for a large one. If an email address was provided, a link to the results will be sent upon analysis completion. Otherwise, you can see the results through the current URL when the analysis is finished. The results will be available for {TIME_TO_KEEP_PROCSES_IDS_FOLDERS} days."
 
     TEXT_TO_RELOAD_HTML = "update"  # empty string not allowed! will cause massive bug!
     FETCH_UPDATE_INTERVAL_HTML_SEC = 15  # should be greater than 5 (keep-alive timeout mod_wsgi).
