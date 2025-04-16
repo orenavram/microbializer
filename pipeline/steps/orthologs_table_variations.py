@@ -5,6 +5,11 @@ import sys
 import pandas as pd
 import re
 from ete3 import orthoxml
+import seaborn as sns
+import matplotlib.pyplot as plt
+from scipy.cluster.hierarchy import linkage
+from scipy.spatial.distance import pdist
+import numpy as np
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent.parent))
@@ -161,9 +166,64 @@ def create_phyletic_pattern(logger, orthogroups_df, output_dir):
     logger.info(f'Created phyletic pattern at {phyletic_patterns_path}')
 
 
+def compute_figsize(n_rows, n_cols, max_width=30, max_height=20, min_width=8, min_height=6):
+    # Logarithmic scaling with caps
+    width = min(max(min_width, np.log10(n_cols) * 5), max_width)
+    height = min(max(min_height, np.log10(n_rows) * 2.5), max_height)
+    return width, height
+
+
+def compute_fontsize(n_rows, min_font=1, max_font=10):
+    return max(min_font, min(max_font, 200 / n_rows))  # smaller than before
+
+
+def plot_presence_absence_matrix(logger, orthogroups_df, output_dir):
+    map_png_path = output_dir / 'presence_absence_map.png'
+    map_svg_path = output_dir / 'presence_absence_map.svg'
+
+    try:
+        # Transpose to make rows = strains, columns = orthogroups
+        orthogroups_df = orthogroups_df.set_index('OG_name')
+        binary_df = orthogroups_df.notna().astype(int).T
+
+        # Hierarchical clustering linkage (you can try different metrics/methods)
+        linkage_matrix = linkage(pdist(binary_df, metric='hamming'), method='average')
+
+        # Plot with seaborn's clustermap (just cluster rows, not columns)
+        g = sns.clustermap(
+            binary_df,
+            row_linkage=linkage_matrix,
+            col_cluster=False,  # disable clustering on orthogroups
+            cmap="Blues",  # black = presence, white = absence (or reverse)
+            figsize=compute_figsize(*binary_df.shape),
+            xticklabels=False,
+            yticklabels=True
+        )
+
+        # Apply smaller font size to y-axis labels
+        g.ax_heatmap.tick_params(axis='y', labelsize=compute_fontsize(binary_df.shape[0]))
+
+        # Remove the x-axis label/title and color legend
+        g.ax_heatmap.set_xlabel("")  # remove x-axis label
+        g.ax_heatmap.set_title("")  # just in case a title sneaks in
+        g.cax.set_visible(False)
+
+        g.fig.subplots_adjust(top=0.90)
+
+        plt.tight_layout()
+        g.savefig(map_png_path, dpi=600, bbox_inches='tight')
+        g.savefig(map_svg_path, dpi=600, bbox_inches='tight')
+        plt.close()
+    except Exception as e:
+        logger.exception(f"Error creating presence/absence map: {e}")
+
+    logger.info(f'Created presence/absence map at {map_png_path} and {map_svg_path}')
+
+
 def create_orthogroups_variations(logger, orthologs_table_path, output_dir, qfo_benchmark):
     orthogroups_df = pd.read_csv(orthologs_table_path, dtype=str)
     create_phyletic_pattern(logger, orthogroups_df, output_dir)
+    plot_presence_absence_matrix(logger, orthogroups_df, output_dir)
     build_orthoxml_and_tsv_output(logger, orthogroups_df, output_dir, qfo_benchmark)
 
 

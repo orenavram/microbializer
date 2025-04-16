@@ -152,8 +152,8 @@ def split_ogs_to_jobs_inputs_files_by_og_sizes(orthogroups_df, step_tmp_dir, max
 def count_and_plot_orthogroups_sizes(final_orthogroups_file_path, group_sizes_path):
     final_orthologs_table_df = pd.read_csv(final_orthogroups_file_path, dtype=str)
     orthogroups_sizes_df = count_strains_and_genes_in_ogs(final_orthologs_table_df)
-    orthogroups_sizes_df.rename(columns={'strains_count': 'OG size (number of genomes)',
-                                         'genes_count': 'OG size (total number of genes)'}, inplace=True)
+    orthogroups_sizes_df = orthogroups_sizes_df.rename(columns={'strains_count': 'OG size (number of genomes)',
+                                                                'genes_count': 'OG size (total number of genes)'})
     orthogroups_sizes_df.to_csv(group_sizes_path / 'groups_sizes.csv', index=False)
 
     group_sizes = orthogroups_sizes_df.set_index('OG_name')['OG size (number of genomes)']
