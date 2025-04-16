@@ -110,12 +110,18 @@ def combine_orphan_genes_stats(orphan_genes_dir, output_dir):
                            'Orphan genes count per Genome')
 
 
-def split_ogs_to_jobs_inputs_files_by_og_sizes(orthogroups_df, step_tmp_dir, max_parallel_jobs):
-    orthogroups_df['strains_count'] = orthogroups_df.notna().sum(axis=1) - 1
+def count_strains_and_genes_in_ogs(orthogroups_df):
+    orthogroups_df['strains_count'] = orthogroups_df.count(axis=1) - 1
     orthogroups_df['paralogs_count'] = orthogroups_df.apply(
         lambda row: sum(genes.count(';') for genes in row[1:-1] if pd.notna(genes)), axis=1)
     orthogroups_df['genes_count'] = orthogroups_df['strains_count'] + orthogroups_df['paralogs_count']
-    ogs_genes_count_df = orthogroups_df[['OG_name', 'genes_count']].sort_values(by='genes_count', ascending=False)
+
+    return orthogroups_df[['OG_name', 'strains_count', 'genes_count']]
+
+
+def split_ogs_to_jobs_inputs_files_by_og_sizes(orthogroups_df, step_tmp_dir, max_parallel_jobs):
+    orthogroups_sizes_df = count_strains_and_genes_in_ogs(orthogroups_df)
+    ogs_genes_count_df = orthogroups_sizes_df[['OG_name', 'genes_count']].sort_values(by='genes_count', ascending=False)
 
     job_index_to_ogs = {i: [] for i in range(max_parallel_jobs)}
     job_index_to_genes_count = {i: 0 for i in range(max_parallel_jobs)}
@@ -141,3 +147,22 @@ def split_ogs_to_jobs_inputs_files_by_og_sizes(orthogroups_df, step_tmp_dir, max
     orthogroups_df.drop(columns=['strains_count', 'paralogs_count', 'genes_count'], inplace=True)
 
     return job_paths
+
+
+def count_and_plot_orthogroups_sizes(final_orthogroups_file_path, group_sizes_path):
+    final_orthologs_table_df = pd.read_csv(final_orthogroups_file_path, dtype=str)
+    orthogroups_sizes_df = count_strains_and_genes_in_ogs(final_orthologs_table_df)
+    orthogroups_sizes_df.rename(columns={'strains_count': 'OG size (number of genomes)',
+                                         'genes_count': 'OG size (total number of genes)'}, inplace=True)
+    orthogroups_sizes_df.to_csv(group_sizes_path / 'groups_sizes.csv', index=False)
+
+    group_sizes = orthogroups_sizes_df.set_index('OG_name')['OG size (number of genomes)']
+    sns.histplot(x=group_sizes, discrete=True)
+    if len(np.unique(group_sizes)) < 10:
+        plt.xticks(np.unique(group_sizes))
+    plt.title('Orthogroups sizes distribution', fontsize=20, loc='center', wrap=True)
+    plt.xlabel('OG size (number of genomes)', fontsize=15)
+    plt.ylabel('Count of OGs of each OG size', fontsize=15)
+    plt.tight_layout()
+    plt.savefig(group_sizes_path / 'groups_sizes.png', dpi=600)
+    plt.clf()

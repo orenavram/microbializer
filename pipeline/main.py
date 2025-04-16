@@ -23,7 +23,7 @@ from auxiliaries.main_utils import send_email_in_pipeline_end, submit_clean_fold
     calc_genomes_batch_size, initialize_progressbar
 from auxiliaries.run_step_utils import wait_for_results, prepare_directories, submit_mini_batch, submit_batch
 from auxiliaries.logic_utils import (plot_genomes_histogram, combine_orphan_genes_stats,
-                                     split_ogs_to_jobs_inputs_files_by_og_sizes)
+                                     split_ogs_to_jobs_inputs_files_by_og_sizes, count_and_plot_orthogroups_sizes)
 
 from auxiliaries.infer_orthogroups_logic import infer_orthogroups
 from flask.SharedConsts import State
@@ -536,20 +536,7 @@ def step_7_orthologs_table_variations(logger, times_logger, config, final_orthog
         logger.info('Collecting orthogroups sizes...')
         start_time = time.time()
 
-        final_orthologs_table_df = pd.read_csv(final_orthogroups_file_path, index_col='OG_name', dtype=str)
-        group_sizes = final_orthologs_table_df.apply(lambda row: row.count(), axis=1)
-        group_sizes.name = 'OG size (number of genomes)'
-        group_sizes.to_csv(group_sizes_path / 'groups_sizes.csv')
-
-        sns.histplot(x=group_sizes, discrete=True)
-        if len(np.unique(group_sizes)) < 10:
-            plt.xticks(np.unique(group_sizes))
-        plt.title('Orthogroups sizes distribution', fontsize=20, loc='center', wrap=True)
-        plt.xlabel('OG size (number of genomes)', fontsize=15)
-        plt.ylabel('Count of OGs of each OG size', fontsize=15)
-        plt.tight_layout()
-        plt.savefig(group_sizes_path / 'groups_sizes.png', dpi=600)
-        plt.clf()
+        count_and_plot_orthogroups_sizes(final_orthogroups_file_path, group_sizes_path)
 
         step_time = timedelta(seconds=int(time.time() - start_time))
         times_logger.info(f'Step {step_name} took {step_time}.')
