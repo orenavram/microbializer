@@ -75,9 +75,9 @@ def plot_genomes_histogram(data, output_dir, output_file_name, title, xlabel):
     output_df.to_csv(output_dir / f'{output_file_name}.csv')
 
     sns.histplot(output_df, x=title, kde=True)
-    plt.title(f'Distribution of {title}', fontsize=20, loc='center', wrap=True)
-    plt.xlabel(xlabel, fontsize=15)
-    plt.ylabel('Genomes count', fontsize=15)
+    plt.title(f'Distribution of {title}', fontsize=25, loc='center', wrap=True)
+    plt.xlabel(xlabel, fontsize=20)
+    plt.ylabel('Genomes count', fontsize=20)
     plt.gca().yaxis.set_major_locator(MaxNLocator(integer=True))  # make y-axis integer
     plt.tight_layout()
     plt.savefig(output_dir / f'{output_file_name}.png', dpi=600)
@@ -160,9 +160,9 @@ def count_and_plot_orthogroups_sizes(final_orthogroups_file_path, group_sizes_pa
     sns.histplot(x=group_sizes, discrete=True)
     if len(np.unique(group_sizes)) < 10:
         plt.xticks(np.unique(group_sizes))
-    plt.title('Orthogroups sizes distribution', fontsize=20, loc='center', wrap=True)
-    plt.xlabel('OG size (number of genomes)', fontsize=15)
-    plt.ylabel('Count of OGs of each OG size', fontsize=15)
+    plt.title('Orthogroups sizes distribution', fontsize=25, loc='center', wrap=True)
+    plt.xlabel('OG size (number of genomes)', fontsize=20)
+    plt.ylabel('Count of OGs of each OG size', fontsize=20)
     plt.tight_layout()
     plt.savefig(group_sizes_path / 'groups_sizes.png', dpi=600)
     plt.clf()
