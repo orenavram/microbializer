@@ -99,6 +99,7 @@ class Config:
     ani_cpus: int
     ani_memory_gb: int
     orthoxml_memory_gb: int
+    orthogroups_visualizations_memory_gb: int
     phylogeny_time_limit: str
     infer_orthogroups_time_limit: str
     merge_sub_orthogroups_memory_gb: int
@@ -272,6 +273,7 @@ def get_configuration():
                     ani_cpus=min(consts.ANI_CPUS, args.max_parallel_jobs),
                     ani_memory_gb=consts.ANI_MEMORY_GB,
                     orthoxml_memory_gb=consts.ORTHOXML_MEMORY_GB,
+                    orthogroups_visualizations_memory_gb=consts.ORTHOGROUPS_VISUALIZATIONS_MEMORY_GB,
                     infer_orthogroups_time_limit=consts.INFER_ORTHOGROUPS_TIME_LIMIT,
                     merge_sub_orthogroups_memory_gb=consts.MERGE_SUB_ORTHOGROUPS_MEMORY_GB
                     )

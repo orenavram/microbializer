@@ -6,7 +6,7 @@ import logging
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent.parent))
 
-from pipeline.steps.orthologs_table_variations import plot_presence_absence_matrix, cluster_strains_by_orthogroups
+from pipeline.steps.orthogroups_visualizations import plot_presence_absence_matrix, cluster_strains_by_orthogroups
 from pipeline.auxiliaries.consts import PROJECT_ROOT_DIR
 
 OG_PATH_40 = PROJECT_ROOT_DIR / 'gallery' / 'chlamydia_run_b' / 'M1CR0B1AL1Z3R_outputs' / '05a_orthogroups' / 'orthogroups.csv'

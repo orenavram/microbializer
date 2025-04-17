@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import logging
 
-from pipeline.steps.orthologs_table_variations import build_orthoxml_and_tsv_output
+from pipeline.steps.orthogroups_visualizations import build_orthoxml_and_tsv_output
 
 
 ORTHOGROUPS_PATH = r"C:\Users\TalPNB22\Downloads\orthogroups.csv"

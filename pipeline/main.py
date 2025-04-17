@@ -498,29 +498,24 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
 
 
 def step_7_orthologs_table_variations(logger, times_logger, config, final_orthogroups_file_path):
-    # 07_1.	orthologs_table_variations.py
-    # Input: (1) path to the orthologs table (2) path to the orphan genes directory.
-    # Output: build variations of the orthologs table.
+    # 07_1.	create_orthoxml.py
     step_number = '07_1'
     logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_orthogroups_variations'
-    script_path = consts.SRC_DIR / 'steps' / 'orthologs_table_variations.py'
-    orthogroups_variations_dir_path, pipeline_step_tmp_dir = prepare_directories(logger, config.steps_results_dir,
-                                                                                 config.tmp_dir, step_name)
+    step_name = f'{step_number}_orthoxml'
+    script_path = consts.SRC_DIR / 'steps' / 'create_orthoxml.py'
+    orthoxml_dir_path, orthoxml_tmp_dir = prepare_directories(logger, config.steps_results_dir, config.tmp_dir, step_name)
     done_file_path = config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
-        logger.info('Adding orthogroups variations...')
+        logger.info('Creating orthoxml...')
 
-        params = [final_orthogroups_file_path, orthogroups_variations_dir_path,
-                  f'--qfo_benchmark {config.qfo_benchmark}']
+        params = [final_orthogroups_file_path, orthoxml_dir_path, f'--qfo_benchmark {config.qfo_benchmark}']
 
-        submit_mini_batch(logger, config, script_path, [params], pipeline_step_tmp_dir,
-                          'orthologs_table_variations', memory=config.orthoxml_memory_gb)
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
-                         1, config.error_file_path)
+        submit_mini_batch(logger, config, script_path, [params], orthoxml_tmp_dir,
+                          'orthoxml', memory=config.orthoxml_memory_gb)
+        wait_for_results(logger, times_logger, step_name, orthoxml_tmp_dir, 1, config.error_file_path)
 
         if not config.do_not_copy_outputs_to_final_results_dir:
-            add_results_to_final_dir(logger, orthogroups_variations_dir_path, config.final_output_dir)
+            add_results_to_final_dir(logger, orthoxml_dir_path, config.final_output_dir)
         write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -543,6 +538,29 @@ def step_7_orthologs_table_variations(logger, times_logger, config, final_orthog
 
         if not config.do_not_copy_outputs_to_final_results_dir:
             add_results_to_final_dir(logger, group_sizes_path, config.final_output_dir)
+        write_done_file(logger, done_file_path)
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+    # 07_3.	orthogroups_visualizations.py
+    step_number = '07_3'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_orthogroups_visualizations'
+    script_path = consts.SRC_DIR / 'steps' / 'orthogroups_visualizations.py'
+    visualizations_dir_path, visualizations_tmp_dir = prepare_directories(logger, config.steps_results_dir,
+                                                                          config.tmp_dir, step_name)
+    done_file_path = config.done_files_dir / f'{step_name}.txt'
+    if not done_file_path.exists():
+        logger.info('Creating orthogroups visualizations...')
+
+        params = [final_orthogroups_file_path, visualizations_dir_path]
+
+        submit_mini_batch(logger, config, script_path, [params], visualizations_tmp_dir,
+                          'orthography_visualizations', memory=config.orthogroups_visualizations_memory_gb)
+        wait_for_results(logger, times_logger, step_name, visualizations_tmp_dir, 1, config.error_file_path)
+
+        if not config.do_not_copy_outputs_to_final_results_dir:
+            add_results_to_final_dir(logger, visualizations_dir_path, config.final_output_dir)
         write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
