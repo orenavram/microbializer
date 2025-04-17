@@ -248,7 +248,7 @@ def step_3_analyze_genome_completeness(logger, times_logger, config, translated_
                 genomes_completeness_scores[genome_dir.name] = float(fp.read().strip())
 
         plot_genomes_histogram(genomes_completeness_scores, genome_completeness_dir_path, 'genomes_completeness',
-                               'Genome BUSCO completeness score', 'Genome BUSCO completeness score per genome')
+                               'Genome BUSCO completeness score', 'Genome BUSCO completeness score')
 
         aggregation_time = timedelta(seconds=int(time.time() - start_time))
         times_logger.info(f'Step {step_name} post-processing took {aggregation_time}.')
@@ -556,7 +556,7 @@ def step_7_orthologs_table_variations(logger, times_logger, config, final_orthog
         params = [final_orthogroups_file_path, visualizations_dir_path]
 
         submit_mini_batch(logger, config, script_path, [params], visualizations_tmp_dir,
-                          'orthography_visualizations', memory=config.orthogroups_visualizations_memory_gb)
+                          'orthogroups_visualizations', memory=config.orthogroups_visualizations_memory_gb)
         wait_for_results(logger, times_logger, step_name, visualizations_tmp_dir, 1, config.error_file_path)
 
         if not config.do_not_copy_outputs_to_final_results_dir:

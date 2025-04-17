@@ -135,7 +135,7 @@ def cluster_strains_by_orthogroups(logger, binary_df, output_dir):
             legend='full'
         )
 
-        plt.title("Clustering of Strains by Orthogroups presence/absence pattern", fontsize=18)
+        plt.title("Clustering of Strains by Orthogroups presence/absence pattern", fontsize=20)
         plt.xlabel("UMAP-1")
         plt.ylabel("UMAP-2")
         plt.legend(title="Cluster", bbox_to_anchor=(1.05, 1), loc='upper left')
