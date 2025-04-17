@@ -92,7 +92,11 @@ def draw_tree(logger, phylogenetic_tree_path, bootstrap, outgroup):
     if outgroup:
         tree.set_outgroup(outgroup)
         tree.write(outfile=str(phylogenetic_tree_path))
-        logger.info(f'The following outgroup was provided: {outgroup}. Rooted tree was saved to {phylogenetic_tree_path}')
+        logger.info(
+            f'The following outgroup was provided: {outgroup}. Rooted tree was saved to {phylogenetic_tree_path}')
+    else:
+        tree.set_outgroup(tree.get_midpoint_outgroup())
+        logger.info('No outgroup was provided. The tree was rooted using the midpoint method for drawing.')
 
     ts = TreeStyle()
     ts.show_leaf_name = True
