@@ -873,8 +873,7 @@ def step_12_orthogroups_annotations(logger, times_logger, config, orfs_dir,
             orfs_dir,
             orthologs_dna_sequences_dir_path,
             codon_bias_output_dir_path,
-            cai_table_path,
-            codon_bias_tmp_dir
+            cai_table_path
         ]
         submit_mini_batch(logger, config, script_path, [params], codon_bias_tmp_dir,
                           'codon_bias', num_of_cpus=config.codon_bias_cpus, memory=config.codon_bias_memory)

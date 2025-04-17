@@ -266,9 +266,8 @@ if __name__ == '__main__':
     parser.add_argument('OG_dir', type=Path, help='path to input Orthologous group directory')
     parser.add_argument('output_dir', type=Path, help='path to output directory')
     parser.add_argument('cai_table_path', type=Path, help='path to the output CAI table of all OGs')
-    parser.add_argument('tmp_dir', type=Path, help='path to tmp directory')
     add_default_step_args(parser)
     args = parser.parse_args()
 
-    run_step(args, analyze_codon_bias, args.ORF_dir, args.OG_dir, args.output_dir, args.cai_table_path, args.tmp_dir,
-             args.cpus)
+    run_step(args, analyze_codon_bias, args.ORF_dir, args.OG_dir, args.output_dir, args.cai_table_path,
+             args.logs_dir, args.cpus)

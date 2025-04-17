@@ -10,6 +10,8 @@ import matplotlib.pyplot as plt
 from scipy.cluster.hierarchy import linkage
 from scipy.spatial.distance import pdist
 import numpy as np
+import umap
+from sklearn.cluster import HDBSCAN
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent.parent))
@@ -166,26 +168,20 @@ def create_phyletic_pattern(logger, orthogroups_df, output_dir):
     logger.info(f'Created phyletic pattern at {phyletic_patterns_path}')
 
 
-def compute_figsize(n_rows, n_cols, max_width=30, max_height=20, min_width=8, min_height=6):
-    # Logarithmic scaling with caps
-    width = min(max(min_width, np.log10(n_cols) * 5), max_width)
-    height = min(max(min_height, np.log10(n_rows) * 2.5), max_height)
-    return width, height
+def plot_presence_absence_matrix(logger, binary_df, output_dir):
+    def compute_figsize(n_rows, n_cols, max_width=30, max_height=20, min_width=8, min_height=6):
+        # Logarithmic scaling with caps
+        width = min(max(min_width, np.log10(n_cols) * 5), max_width)
+        height = min(max(min_height, np.log10(n_rows) * 2.5), max_height)
+        return width, height
 
+    def compute_fontsize(n_rows, min_font=1, max_font=10):
+        return max(min_font, min(max_font, 200 / n_rows))  # smaller than before
 
-def compute_fontsize(n_rows, min_font=1, max_font=10):
-    return max(min_font, min(max_font, 200 / n_rows))  # smaller than before
-
-
-def plot_presence_absence_matrix(logger, orthogroups_df, output_dir):
-    map_png_path = output_dir / 'presence_absence_map.png'
-    map_svg_path = output_dir / 'presence_absence_map.svg'
+    map_png_path = output_dir / 'phyletic_pattern.png'
+    map_svg_path = output_dir / 'phyletic_pattern.svg'
 
     try:
-        # Transpose to make rows = strains, columns = orthogroups
-        orthogroups_df = orthogroups_df.set_index('OG_name')
-        binary_df = orthogroups_df.notna().astype(int).T
-
         # Hierarchical clustering linkage (you can try different metrics/methods)
         linkage_matrix = linkage(pdist(binary_df, metric='hamming'), method='average')
 
@@ -214,16 +210,98 @@ def plot_presence_absence_matrix(logger, orthogroups_df, output_dir):
         g.savefig(map_png_path, dpi=600, bbox_inches='tight')
         g.savefig(map_svg_path, dpi=600, bbox_inches='tight')
         plt.close()
+
+        logger.info(f'Created presence/absence map at {map_png_path} and {map_svg_path}')
     except Exception as e:
         logger.exception(f"Error creating presence/absence map: {e}")
 
-    logger.info(f'Created presence/absence map at {map_png_path} and {map_svg_path}')
+
+def cluster_strains_by_orthogroups(logger, binary_df, output_dir):
+    n_strains = binary_df.shape[0]
+
+    if n_strains < 30:
+        logger.info("Not enough strains to run umap+strains clustering, skipping.")
+        return
+
+    def compute_figsize(n, base=10, scale=0.015, max_size=30):
+        side = min(base + n * scale, max_size)
+        return side, side
+
+    strains_cluster_csv_path = output_dir / 'strain_cluster_mapping.csv'
+    strains_clusters_png_path = output_dir / 'strain_clusters_by_orthogroups.png'
+    strains_clusters_svg_path = output_dir / 'strain_clusters_by_orthogroups.svg'
+
+    try:
+        # Step 1: UMAP dimensionality reduction (good with Hamming distance for binary data)
+        reducer = umap.UMAP(n_neighbors=15, min_dist=0.1, metric='hamming', random_state=42, n_jobs=1)
+        embedding = reducer.fit_transform(binary_df)
+
+        # Step 2: HDBSCAN clustering (no need to specify number of clusters)
+        min_cluster_size = max(5, int(n_strains * 0.01))  # Dynamically set min_cluster_size
+        clusterer = HDBSCAN(min_cluster_size=min_cluster_size, metric='hamming')
+        labels = clusterer.fit_predict(binary_df)
+
+        # 3. Save strain-cluster mapping to CSV
+        strain_cluster_df = pd.DataFrame({
+            'strain': binary_df.index,
+            'cluster': labels
+        })
+        strain_cluster_df.to_csv(strains_cluster_csv_path, index=False)
+
+        # 4. Build color palette with unique color for -1
+        unique_labels = np.unique(labels)
+        n_clusters = len(unique_labels) - (1 if -1 in unique_labels else 0)
+        base_palette = sns.color_palette("husl", n_colors=max(10, n_clusters))
+
+        # Define palette: normal clusters get colors, noise gets gray
+        palette = {}
+        color_idx = 0
+        for label in unique_labels:
+            if label == -1:
+                palette[label] = (0.6, 0.6, 0.6)  # gray for noise
+            else:
+                palette[label] = base_palette[color_idx]
+                color_idx += 1
+
+        # Step 5: Plot
+        plt.figure(figsize=compute_figsize(n_strains))
+        sns.scatterplot(
+            x=embedding[:, 0],
+            y=embedding[:, 1],
+            hue=labels,
+            palette=palette,
+            s=50,
+            legend='full'
+        )
+
+        plt.title("UMAP + HDBSCAN Clustering of Strains By Orthogroups", fontsize=18)
+        plt.xlabel("UMAP-1")
+        plt.ylabel("UMAP-2")
+        plt.legend(title="Cluster", bbox_to_anchor=(1.05, 1), loc='upper left')
+        plt.tight_layout()
+
+        # Save
+        plt.savefig(strains_clusters_png_path, dpi=600)
+        plt.savefig(strains_clusters_svg_path)
+        plt.close()
+
+        logger.info(f'Created strains clusters by orthogroups at {strains_clusters_png_path} and {strains_clusters_svg_path}')
+    except Exception as e:
+        logger.exception(f"Error creating strains clusters by orthogroups: {e}")
 
 
 def create_orthogroups_variations(logger, orthologs_table_path, output_dir, qfo_benchmark):
     orthogroups_df = pd.read_csv(orthologs_table_path, dtype=str)
     create_phyletic_pattern(logger, orthogroups_df, output_dir)
-    plot_presence_absence_matrix(logger, orthogroups_df, output_dir)
+
+    # Transpose to make rows = strains, columns = orthogroups
+    binary_df = orthogroups_df.set_index('OG_name').notna().astype(int).T
+    plot_presence_absence_matrix(logger, binary_df, output_dir)
+
+    strain_clusters_dir = output_dir / 'strain_clusters'
+    strain_clusters_dir.mkdir(parents=True, exist_ok=True)
+    cluster_strains_by_orthogroups(logger, binary_df, strain_clusters_dir)
+
     build_orthoxml_and_tsv_output(logger, orthogroups_df, output_dir, qfo_benchmark)
 
 

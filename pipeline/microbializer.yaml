@@ -25,3 +25,4 @@ dependencies:
   - pyarrow=16.1.0
   - networkx=3.1
   - pympler=1.1
+  - umap-learn=0.5.6
