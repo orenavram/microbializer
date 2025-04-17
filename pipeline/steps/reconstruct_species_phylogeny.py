@@ -56,15 +56,11 @@ def RAxML_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num_
             f.write(info)
 
 
-def iqtree_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num_of_cpus, outgroup,
-                       bootstrap, seed):
+def iqtree_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num_of_cpus, bootstrap, seed):
     search_prefix = tmp_folder / 'species_tree'
     tree_output = search_prefix.with_suffix('.treefile')
 
     cmd = f"iqtree -s {msa_path} -m WAG+G -seed {seed} -pre {search_prefix} -T {num_of_cpus}"
-    if outgroup:
-        logger.info(f'The following outgroup was provided: {outgroup}')
-        cmd += ' ' + f'-o {outgroup}'
     if bootstrap:
         logger.info(f'{consts.NUMBER_OF_IQTREE_BOOTSTRAP_ITERATIONS} bootstrap iterations are going to be done')
         cmd += f' -B {consts.NUMBER_OF_IQTREE_BOOTSTRAP_ITERATIONS}'
@@ -73,11 +69,12 @@ def iqtree_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num
     subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
     logger.info(f'IQTree finished successfully. The tree was saved to {tree_output}')
 
-    if tree_output.exists():
-        logger.info(f'Copying result {tree_output} to {phylogenetic_tree_path}')
-        shutil.copy(tree_output, phylogenetic_tree_path)
-    else:
+    if not tree_output.exists():
         logger.fatal(f'TREE WAS NOT GENERATED!!')
+        raise Exception('Tree was not generated')
+
+    logger.info(f'Copying result {tree_output} to {phylogenetic_tree_path}')
+    shutil.copy(tree_output, phylogenetic_tree_path)
 
 
 def fasttree_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num_of_cpus, outgroup,
@@ -88,9 +85,14 @@ def fasttree_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, n
     subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
 
 
-def draw_tree(logger, phylogenetic_tree_path, bootstrap):
+def draw_tree(logger, phylogenetic_tree_path, bootstrap, outgroup):
     with open(phylogenetic_tree_path, "r") as f:
         tree = Tree(f.readline().strip())
+
+    if outgroup:
+        tree.set_outgroup(outgroup)
+        tree.write(outfile=str(phylogenetic_tree_path))
+        logger.info(f'The following outgroup was provided: {outgroup}. Rooted tree was saved to {phylogenetic_tree_path}')
 
     ts = TreeStyle()
     ts.show_leaf_name = True
@@ -120,13 +122,12 @@ def generate_phylogenetic_tree(logger, msa_path, phylogenetic_tree_path, tmp_fol
             RAxML_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num_of_cpus, outgroup,
                               bootstrap, seed)
         elif tree_search_software == 'iqtree':
-            iqtree_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num_of_cpus, outgroup,
-                               bootstrap, seed)
+            iqtree_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num_of_cpus, bootstrap, seed)
         elif tree_search_software == 'fasttree':
             fasttree_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num_of_cpus, outgroup,
                                  bootstrap, seed)
 
-    draw_tree(logger, phylogenetic_tree_path, bootstrap)
+    draw_tree(logger, phylogenetic_tree_path, bootstrap, outgroup)
 
 
 if __name__ == '__main__':
