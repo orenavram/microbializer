@@ -1,0 +1,24 @@
+# Sequence scores
+# ---------------
+#
+# name                  bits   E-value   n   exp  bias    description
+# ------------------- ------ --------- --- ----- -----    ---------------------
+genome_ORFs:CTO_0562    52.7   1.3e-15   2   2.4   5.1    <unknown description> # START # END # 1 #
+
+# Domain scores
+# -------------
+#
+#  name                 bits   E-value   hit  bias env-st env-en ali-st ali-en hmm-st hmm-en     description
+# ------------------- ------ --------- ----- ----- ------ ------ ------ ------ ------ ------      ---------------------
+genome_ORFs:CTO_0562    38.4   3.7e-11     2   1.0     79    118     86    118     18     50     <unknown description> # START # END # 1 #
+genome_ORFs:CTO_0562    16.1   0.00036     1   0.2     41     68     41     65      1     21     <unknown description> # START # END # 1 #
+#
+# Program:         hmmsearch
+# Version:         3.3.2 (Nov 2020)
+# Pipeline mode:   SEARCH
+# Query file:      /home/ai_center/ai_users/yairshimony/microbializer/pipeline/data/busco_hmms/POG091H01SD.hmm
+# Target file:     /home/ai_center/ai_users/yairshimony/microbializer_runs/1_genome_no_paralogs/outputs/steps_results/02_1_orfs/orfs_translated/genome_ORFs.faa
+# Option settings: hmmsearch -o /dev/null --pfamtblout /home/ai_center/ai_users/yairshimony/microbializer_runs/1_genome_no_paralogs/outputs/tmp/03_genomes_completeness/individual_proteomes_outputs/genome_ORFs/POG091H01SD.txt --noali -E 0.1 /home/ai_center/ai_users/yairshimony/microbializer/pipeline/data/busco_hmms/POG091H01SD.hmm /home/ai_center/ai_users/yairshimony/microbializer_runs/1_genome_no_paralogs/outputs/steps_results/02_1_orfs/orfs_translated/genome_ORFs.faa 
+# Current dir:     /home/ai_center/ai_users/yairshimony/microbializer_runs/1_genome_no_paralogs
+# Date:            Fri Apr 18 22:49:42 2025
+# [ok]

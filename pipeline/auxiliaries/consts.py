@@ -141,8 +141,7 @@ OUTPUTS_DIRECTORIES_MAP = {
     '06_12_orphan_genes_from_orthogroups': '04_orphan_genes',  # approximate_orthogroups_inference
     '06_13_orthogroups_final': '05a_orthogroups',  # approximate_orthogroups_inference
     '07_1_orthoxml': '05a_orthogroups',
-    '07_2_orthogroups_sizes': '05b_orthogroups_sizes',
-    '07_3_orthogroups_visualizations': '05c_orthogroups_visualizations',
+    '07_2_orthogroups_visualizations': '05b_orthogroups_visualizations',
     'orthogroups_dna': '06a_orthogroups_dna',
     'orthogroups_aa': '06b_orthogroups_aa',
     'orthogroups_aa_msa': '06c_orthogroups_aa_msa',

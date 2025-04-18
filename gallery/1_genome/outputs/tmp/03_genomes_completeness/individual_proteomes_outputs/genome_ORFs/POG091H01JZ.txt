@@ -1,0 +1,46 @@
+# Sequence scores
+# ---------------
+#
+# name                  bits   E-value   n   exp  bias    description
+# ------------------- ------ --------- --- ----- -----    ---------------------
+genome_ORFs:CTO_0229   524.1  2.1e-158   7   8.1   9.1    <unknown description> # START # END # 1 #
+genome_ORFs:CTO_0324    80.0   7.8e-24   6   5.7   2.3    <unknown description> # START # END # 1 #
+genome_ORFs:CTO_0099    53.1   1.1e-15   5   3.9   6.5    <unknown description> # START # END # 1 #
+genome_ORFs:CTO_0034    37.7   5.1e-11   1   1.8   0.1    <unknown description> # START # END # 1 #
+genome_ORFs:CTO_0496    12.7     0.002   1   1.2   0.0    <unknown description> # START # END # 1 #
+
+# Domain scores
+# -------------
+#
+#  name                 bits   E-value   hit  bias env-st env-en ali-st ali-en hmm-st hmm-en     description
+# ------------------- ------ --------- ----- ----- ------ ------ ------ ------ ------ ------      ---------------------
+genome_ORFs:CTO_0229   338.7  3.2e-102     1   0.1      8    366      8    362      1    286     <unknown description> # START # END # 1 #
+genome_ORFs:CTO_0229    57.6   4.7e-17     4   0.0    505    580    511    565    340    387     <unknown description> # START # END # 1 #
+genome_ORFs:CTO_0229    42.3   2.1e-12     2   0.0    378    445    392    425    279    312     <unknown description> # START # END # 1 #
+genome_ORFs:CTO_0034    36.3   1.4e-10     1   0.1      1    126      5     99     14    101     <unknown description> # START # END # 1 #
+genome_ORFs:CTO_0099    24.9   3.9e-07     1   0.0     32    113     51     98     22     69     <unknown description> # START # END # 1 #
+genome_ORFs:CTO_0229    24.4   5.8e-07     3   0.0    471    503    476    498    322    344     <unknown description> # START # END # 1 #
+genome_ORFs:CTO_0324    21.3   4.8e-06     1   0.0     30    101     37     91     13     66     <unknown description> # START # END # 1 #
+genome_ORFs:CTO_0099    20.5   8.6e-06     3   0.1    448    485    450    470    292    312     <unknown description> # START # END # 1 #
+genome_ORFs:CTO_0229    20.3   9.9e-06     5   0.0    596    643    600    632    385    414     <unknown description> # START # END # 1 #
+genome_ORFs:CTO_0229    18.8   2.8e-05     7   0.0    749    814    757    814    475    530     <unknown description> # START # END # 1 #
+genome_ORFs:CTO_0324    17.8   5.7e-05     3   0.0    208    306    214    300    185    282     <unknown description> # START # END # 1 #
+genome_ORFs:CTO_0324    15.0   0.00038     4   0.1    379    432    400    423    290    313     <unknown description> # START # END # 1 #
+genome_ORFs:CTO_0229    13.9   0.00083     6   0.0    649    742    653    736    406    475     <unknown description> # START # END # 1 #
+genome_ORFs:CTO_0496    12.1     0.003     1   0.0    109    230    128    156     27     55     <unknown description> # START # END # 1 #
+genome_ORFs:CTO_0324    11.8    0.0037     2   0.0    117    213    126    206     78    149     <unknown description> # START # END # 1 #
+genome_ORFs:CTO_0099     8.8      0.03     4   0.0    562    646    571    623    368    411     <unknown description> # START # END # 1 #
+genome_ORFs:CTO_0324     8.0     0.051     5   0.0    555    621    562    596    384    415     <unknown description> # START # END # 1 #
+genome_ORFs:CTO_0324    -2.5        80     6   0.0    705    755    714    743    449    478     <unknown description> # START # END # 1 #
+genome_ORFs:CTO_0099    -3.7   1.8e+02     5   0.0    740    771    750    769    456    475     <unknown description> # START # END # 1 #
+genome_ORFs:CTO_0099    -4.3   2.8e+02     2   0.1    145    182    152    176     98    121     <unknown description> # START # END # 1 #
+#
+# Program:         hmmsearch
+# Version:         3.3.2 (Nov 2020)
+# Pipeline mode:   SEARCH
+# Query file:      /home/ai_center/ai_users/yairshimony/microbializer/pipeline/data/busco_hmms/POG091H01JZ.hmm
+# Target file:     /home/ai_center/ai_users/yairshimony/microbializer_runs/1_genome_no_paralogs/outputs/steps_results/02_1_orfs/orfs_translated/genome_ORFs.faa
+# Option settings: hmmsearch -o /dev/null --pfamtblout /home/ai_center/ai_users/yairshimony/microbializer_runs/1_genome_no_paralogs/outputs/tmp/03_genomes_completeness/individual_proteomes_outputs/genome_ORFs/POG091H01JZ.txt --noali -E 0.1 /home/ai_center/ai_users/yairshimony/microbializer/pipeline/data/busco_hmms/POG091H01JZ.hmm /home/ai_center/ai_users/yairshimony/microbializer_runs/1_genome_no_paralogs/outputs/steps_results/02_1_orfs/orfs_translated/genome_ORFs.faa 
+# Current dir:     /home/ai_center/ai_users/yairshimony/microbializer_runs/1_genome_no_paralogs
+# Date:            Fri Apr 18 22:49:41 2025
+# [ok]

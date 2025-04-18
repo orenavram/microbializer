@@ -1,0 +1,31 @@
+# Sequence scores
+# ---------------
+#
+# name                  bits   E-value   n   exp  bias    description
+# ------------------- ------ --------- --- ----- -----    ---------------------
+genome_ORFs:CTO_0297   206.1   4.1e-62   1   2.2   0.3    <unknown description> # START # END # 1 #
+genome_ORFs:CTO_0272   155.5   1.1e-46   1   2.5   0.1    <unknown description> # START # END # 1 #
+genome_ORFs:CTO_0044    14.7   0.00096   2   1.9   0.0    <unknown description> # START # END # 1 #
+genome_ORFs:CTO_0894    14.1    0.0014   2   1.7   0.0    <unknown description> # START # END # 1 #
+
+# Domain scores
+# -------------
+#
+#  name                 bits   E-value   hit  bias env-st env-en ali-st ali-en hmm-st hmm-en     description
+# ------------------- ------ --------- ----- ----- ------ ------ ------ ------ ------ ------      ---------------------
+genome_ORFs:CTO_0297   202.6   4.7e-61     1   0.3    138    457    144    457     20    270     <unknown description> # START # END # 1 #
+genome_ORFs:CTO_0272   150.2   4.5e-45     1   0.1     85    421     87    420      4    269     <unknown description> # START # END # 1 #
+genome_ORFs:CTO_0894    13.0    0.0032     1   0.0     42    131     85    124     50     89     <unknown description> # START # END # 1 #
+genome_ORFs:CTO_0044    12.3    0.0051     1   0.0     37    133     53    115     50    114     <unknown description> # START # END # 1 #
+genome_ORFs:CTO_0044    -0.2        33     2   0.0    163    264    239    261    230    252     <unknown description> # START # END # 1 #
+genome_ORFs:CTO_0894    -3.7     4e+02     2   0.0    217    267    221    262     37     80     <unknown description> # START # END # 1 #
+#
+# Program:         hmmsearch
+# Version:         3.3.2 (Nov 2020)
+# Pipeline mode:   SEARCH
+# Query file:      /home/ai_center/ai_users/yairshimony/microbializer/pipeline/data/busco_hmms/POG091H02FF.hmm
+# Target file:     /home/ai_center/ai_users/yairshimony/microbializer_runs/1_genome_no_paralogs/outputs/steps_results/02_1_orfs/orfs_translated/genome_ORFs.faa
+# Option settings: hmmsearch -o /dev/null --pfamtblout /home/ai_center/ai_users/yairshimony/microbializer_runs/1_genome_no_paralogs/outputs/tmp/03_genomes_completeness/individual_proteomes_outputs/genome_ORFs/POG091H02FF.txt --noali -E 0.1 /home/ai_center/ai_users/yairshimony/microbializer/pipeline/data/busco_hmms/POG091H02FF.hmm /home/ai_center/ai_users/yairshimony/microbializer_runs/1_genome_no_paralogs/outputs/steps_results/02_1_orfs/orfs_translated/genome_ORFs.faa 
+# Current dir:     /home/ai_center/ai_users/yairshimony/microbializer_runs/1_genome_no_paralogs
+# Date:            Fri Apr 18 22:49:44 2025
+# [ok]

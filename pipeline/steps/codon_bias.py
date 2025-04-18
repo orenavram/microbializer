@@ -102,14 +102,23 @@ def get_W(logger, ORFs_file, hegs_output_dir):
     return genome_name, genome_codon_index
 
 
-def visualize_Ws_with_PCA(W_vectors, output_dir, logger):
+def visualize_Ws_with_PCA(W_vectors_df, output_dir, logger):
     """
     output: 2D vectors (reduced with PCA) clustered with Kmeans
     """
+    w_vectors_pca_plot_path = output_dir / 'Relative_Adaptiveness_scatter_plot.png'
+    point_labels_path = output_dir / 'Relative_Adaptiveness_scatter_plot_clusters.csv'
+
+    if len(W_vectors_df) < 4:
+        logger.info(f"Not enough genomes to perform PCA clustering. Number of genomes: {len(W_vectors_df)}")
+        open(w_vectors_pca_plot_path, 'w').close()
+        open(point_labels_path, 'w').close()
+        return
+
     start_time = time.time()
 
     # Perform K-means clustering
-    genome_count = len(W_vectors)
+    genome_count = len(W_vectors_df)
     if genome_count > 75:
         n_clusters = 5
     elif genome_count > 30:
@@ -117,11 +126,11 @@ def visualize_Ws_with_PCA(W_vectors, output_dir, logger):
     else:
         n_clusters = 3
     kmeans = KMeans(n_clusters=n_clusters, n_init='auto', random_state=42)
-    cluster_labels = kmeans.fit_predict(W_vectors.values)
+    cluster_labels = kmeans.fit_predict(W_vectors_df.values)
 
     # Perform PCA dimensionality reduction
     pca = PCA(n_components=2)
-    Ws_values_reduced = pca.fit_transform(W_vectors.values)
+    Ws_values_reduced = pca.fit_transform(W_vectors_df.values)
     explained_variance_ratio = pca.explained_variance_ratio_ * 100
 
     # Normalize cluster values for consistent colormap
@@ -146,14 +155,12 @@ def visualize_Ws_with_PCA(W_vectors, output_dir, logger):
 
     # Save plot to output_dir
     plt.tight_layout()
-    w_vectors_pca_plot_path = output_dir / 'Relative_Adaptiveness_scatter_plot.png'
     plt.savefig(w_vectors_pca_plot_path, dpi=600)
     logger.info(f'PCA plot of w_vectors was saved to {w_vectors_pca_plot_path}')
     plt.close()
 
     # Save point labels and coordinates to file
-    point_labels_df = pd.DataFrame({'Genome': W_vectors.index, 'X': x, 'Y': y, 'Cluster': cluster_labels + 1})
-    point_labels_path = output_dir / 'Relative_Adaptiveness_scatter_plot_clusters.csv'
+    point_labels_df = pd.DataFrame({'Genome': W_vectors_df.index, 'X': x, 'Y': y, 'Cluster': cluster_labels + 1})
     point_labels_df.to_csv(point_labels_path, index=False)
     logger.info(f'Point labels and coordinates were saved to {point_labels_path}')
 
@@ -232,8 +239,7 @@ def analyze_codon_bias(logger, ORF_dir, OG_dir, output_dir, cai_table_path, tmp_
     logger.info(f"W vectors were calculated successfully and written to {genomes_W_vectors_path}")
 
     # 2. Visualize W vectors with PCA
-    if len(genomes_W_vectors_df) >= 4:
-        visualize_Ws_with_PCA(genomes_W_vectors_df, output_dir, logger)
+    visualize_Ws_with_PCA(genomes_W_vectors_df, output_dir, logger)
 
     # 3. Calculate CAI for each OG
     logger.info("Calculating CAI for each OG...")
@@ -252,8 +258,14 @@ def analyze_codon_bias(logger, ORF_dir, OG_dir, output_dir, cai_table_path, tmp_
             og_name_to_cai_info[og_name] = cai_info
 
     ogs_cai_info_df = pd.DataFrame.from_dict(og_name_to_cai_info, orient='index')
-    ogs_cai_info_df.sort_values("CAI_mean", ascending=False, inplace=True)
-    ogs_cai_info_df.to_csv(cai_table_path, index_label='OG_name')
+
+    # Sort ogs_cai_info_df by OG_name
+    ogs_cai_info_df.reset_index(inplace=True, names='OG_name')
+    ogs_cai_info_df['OG_number'] = ogs_cai_info_df['OG_name'].str.extract(r'OG_(\d+)').astype(int)
+    ogs_cai_info_df.sort_values('OG_number', ascending=True, inplace=True)
+    ogs_cai_info_df.drop(columns=['OG_number'], inplace=True)
+
+    ogs_cai_info_df.to_csv(cai_table_path, index=False)
     logger.info(f"CAI values for all OGs were calculated successfully and written to {cai_table_path}")
 
     # 4. Aggregate CAI data

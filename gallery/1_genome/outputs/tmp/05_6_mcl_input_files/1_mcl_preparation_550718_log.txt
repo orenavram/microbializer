@@ -1,0 +1,10 @@
+2025-04-18 22:51:31,231 INFO run_step_utils.py:318 Starting command is: /home/ai_center/ai_users/yairshimony/microbializer/pipeline/steps/prepare_og_for_mcl.py /home/ai_center/ai_users/yairshimony/microbializer_runs/1_genome_no_paralogs/outputs/steps_results/05_4_normalize_scores /home/ai_center/ai_users/yairshimony/microbializer_runs/1_genome_no_paralogs/outputs/steps_results/05_5_putative_table/putative_orthologs_table.csv /home/ai_center/ai_users/yairshimony/microbializer_runs/1_genome_no_paralogs/outputs/tmp/05_6_mcl_input_files/jobs_inputs/1.txt /home/ai_center/ai_users/yairshimony/microbializer_runs/1_genome_no_paralogs/outputs/steps_results/05_6_mcl_input_files -v False --logs_dir /home/ai_center/ai_users/yairshimony/microbializer_runs/1_genome_no_paralogs/outputs/tmp/05_6_mcl_input_files --error_file_path /home/ai_center/ai_users/yairshimony/microbializer_runs/1_genome_no_paralogs/M1CR0B1AL1Z3R_outputs/error.txt --job_name 1_mcl_preparation --use_job_manager True --cpus 1
+2025-04-18 22:51:31,236 INFO prepare_og_for_mcl.py:45 Aggregating all genes from the specified 1 putative OGs...
+2025-04-18 22:51:31,241 INFO prepare_og_for_mcl.py:58 All relevant genes were aggregated successfully. Number of relevant genes is 2.
+2025-04-18 22:51:31,241 INFO prepare_og_for_mcl.py:60 Loading relevant hits scores to memory...
+2025-04-18 22:51:31,243 INFO prepare_og_for_mcl.py:62 All relevant hits were loaded successfully.
+2025-04-18 22:51:31,243 INFO prepare_og_for_mcl.py:64 Preparing input files for MCL...
+2025-04-18 22:51:31,244 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/1_genome_no_paralogs/outputs/steps_results/05_6_mcl_input_files/OG_1.mcl_input
+2025-04-18 22:51:31,244 INFO prepare_og_for_mcl.py:83 Input files for MCL were written successfully.
+   RunTime=00:00:01 TimeLimit=5-00:00:00 TimeMin=N/A
+   NumNodes=1 NumCPUs=1 NumTasks=1 CPUs/Task=1 ReqB:S:C:T=0:0:*:*

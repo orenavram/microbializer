@@ -147,22 +147,3 @@ def split_ogs_to_jobs_inputs_files_by_og_sizes(orthogroups_df, step_tmp_dir, max
     orthogroups_df.drop(columns=['strains_count', 'paralogs_count', 'genes_count'], inplace=True)
 
     return job_paths
-
-
-def count_and_plot_orthogroups_sizes(final_orthogroups_file_path, group_sizes_path):
-    final_orthologs_table_df = pd.read_csv(final_orthogroups_file_path, dtype=str)
-    orthogroups_sizes_df = count_strains_and_genes_in_ogs(final_orthologs_table_df)
-    orthogroups_sizes_df = orthogroups_sizes_df.rename(columns={'strains_count': 'OG size (number of genomes)',
-                                                                'genes_count': 'OG size (total number of genes)'})
-    orthogroups_sizes_df.to_csv(group_sizes_path / 'groups_sizes.csv', index=False)
-
-    group_sizes = orthogroups_sizes_df.set_index('OG_name')['OG size (number of genomes)']
-    sns.histplot(x=group_sizes, discrete=True)
-    if len(np.unique(group_sizes)) < 10:
-        plt.xticks(np.unique(group_sizes))
-    plt.title('Orthogroups sizes distribution', fontsize=25, loc='center', wrap=True)
-    plt.xlabel('OG size (number of genomes)', fontsize=20)
-    plt.ylabel('Count of OGs of each OG size', fontsize=20)
-    plt.tight_layout()
-    plt.savefig(group_sizes_path / 'groups_sizes.png', dpi=600)
-    plt.clf()

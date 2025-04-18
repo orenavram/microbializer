@@ -60,10 +60,11 @@ ORPHAN_GENES_HISTOGRAM = ALL_OUTPUTS_DIRECTORY / '04_orphan_genes' / 'orphan_gen
 OG_TABLE = ALL_OUTPUTS_DIRECTORY / '05a_orthogroups' / 'orthogroups.csv'
 OG_TABLE_ANNOTATED = ALL_OUTPUTS_DIRECTORY / '05a_orthogroups' / 'orthogroups_annotated.csv'
 OG_TABLE_ORTHOXML = ALL_OUTPUTS_DIRECTORY / '05a_orthogroups' / 'orthogroups.orthoxml'
-OG_SIZE_HISTOGRAM = ALL_OUTPUTS_DIRECTORY / '05b_orthogroups_sizes' / 'groups_sizes.png'
-PHYLETIC_PATTERN = ALL_OUTPUTS_DIRECTORY / '05c_orthogroups_visualizations' / 'phyletic_pattern.fas'
-PHYLETIC_PATTERN_PNG = ALL_OUTPUTS_DIRECTORY / '05c_orthogroups_visualizations' / 'phyletic_pattern.png'
-STRAIN_CLUSTERS_PNG = ALL_OUTPUTS_DIRECTORY / '05c_orthogroups_visualizations' / 'strain_clusters_by_orthogroups.png'
+OG_SIZE_HISTOGRAM = ALL_OUTPUTS_DIRECTORY / '05b_orthogroups_visualizations' / 'orthogroups_sizes.png'
+PHYLETIC_PATTERN = ALL_OUTPUTS_DIRECTORY / '05b_orthogroups_visualizations' / 'phyletic_pattern.fas'
+PHYLETIC_PATTERN_PNG = ALL_OUTPUTS_DIRECTORY / '05b_orthogroups_visualizations' / 'phyletic_pattern.png'
+STRAIN_CLUSTERS_PNG = ALL_OUTPUTS_DIRECTORY / '05b_orthogroups_visualizations' / 'strain_clusters_by_orthogroups.png'
+STRAIN_CLUSTERS_CSV = ALL_OUTPUTS_DIRECTORY / '05b_orthogroups_visualizations' / 'strain_cluster_mapping.csv'
 
 CORE_PROTEOME = ALL_OUTPUTS_DIRECTORY / '07a_aligned_core_proteome' / 'aligned_core_proteome.fas'
 CORE_GENOME = ALL_OUTPUTS_DIRECTORY / '07b_aligned_core_genome' / 'aligned_core_genome.fas'
@@ -91,7 +92,7 @@ DATA_2_VIEW_IN_HISTOGRAM = {
     TITLE_HISTOGRAM_ORPHAN_GENES_COUNT: ORPHAN_GENES_PER_GENOME
 }
 
-OG_TABLE_PATH_FOR_RESULTS_PAGE = INTERMEDIATE_OUTPUTS_DIRECTORY / 'tmp' / '07_3_orthogroups_visualizations' / 'orthogroups_results_page.csv'
+OG_TABLE_PATH_FOR_RESULTS_PAGE = INTERMEDIATE_OUTPUTS_DIRECTORY / 'tmp' / '07_2_orthogroups_visualizations' / 'orthogroups_results_page.csv'
 
 PATHS_TO_DOWNLOAD = {
     "General": {
@@ -116,9 +117,10 @@ PATHS_TO_DOWNLOAD = {
         "Orthogroups_(csv)": (OG_TABLE, "Can also be found in 05a_orthogroups directory in the 'All outputs (zip)' file"),
         "Orthogroups_annotated_(csv)": (OG_TABLE_ANNOTATED, "Can also be found in 05a_orthogroups directory in the 'All outputs (zip)' file"),
         "Orthogroups_(OrthoXML)": (OG_TABLE_ORTHOXML, "Can also be found in 05a_orthogroups directory in the 'All outputs (zip)' file"),
-        "Orthogroups_sizes_histogram": (OG_SIZE_HISTOGRAM, "Can also be found in 05b_orthogroups_sizes directory in the 'All outputs (zip)' file"),
-        "Phyletic_pattern": (PHYLETIC_PATTERN, "Can also be found in 05c_orthogroups_visualizations directory in the 'All outputs (zip)' file"),
+        "Orthogroups_sizes_histogram": (OG_SIZE_HISTOGRAM, "Can also be found in 05c_orthogroups_sizes directory in the 'All outputs (zip)' file"),
+        "Phyletic_pattern_(FASTA)": (PHYLETIC_PATTERN, "Can also be found in 05c_orthogroups_visualizations directory in the 'All outputs (zip)' file"),
         "Phyletic_pattern_(png)": (PHYLETIC_PATTERN_PNG, "Can also be found in 05c_orthogroups_visualizations directory in the 'All outputs (zip)' file"),
+        "Strain_clusters_by_orthogroups_(csv)": (STRAIN_CLUSTERS_CSV, "Can also be found in 05c_orthogroups_visualizations directory in the 'All outputs (zip)' file"),
         "Strain_clusters_by_orthogroups_(png)": (STRAIN_CLUSTERS_PNG, "Can also be found in 05c_orthogroups_visualizations directory in the 'All outputs (zip)' file"),
     },
     "Core genome": {

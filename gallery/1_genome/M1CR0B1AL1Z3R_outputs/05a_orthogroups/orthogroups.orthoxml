@@ -1,0 +1,26 @@
+<orthoXML xmlns="http://orthoXML.org/2011/" origin="Microbializer" version="0.300000" originVersion="1">
+    <species name="genome_ORFs">
+        <database>
+            <genes>
+                <gene protId="genome_ORFs:CTO_0120" id="1"/>
+                <gene protId="genome_ORFs:CTO_0308" id="2"/>
+                <gene protId="genome_ORFs:CTO_0448" id="3"/>
+                <gene protId="genome_ORFs:CTO_0449" id="4"/>
+            </genes>
+        </database>
+    </species>
+    <groups>
+        <orthologGroup id="OG_0">
+            <paralogGroup>
+                <geneRef id="1"/>
+                <geneRef id="2"/>
+            </paralogGroup>
+        </orthologGroup>
+        <orthologGroup id="OG_1">
+            <paralogGroup>
+                <geneRef id="3"/>
+                <geneRef id="4"/>
+            </paralogGroup>
+        </orthologGroup>
+    </groups>
+</orthoXML>

@@ -1,0 +1,1 @@
+/home/ai_center/ai_users/yairshimony/microbializer_runs/1_genome_no_paralogs/outputs/steps_results/05_3_mmseqs_paralogs/genome_ORFs_vs_genome_ORFs.m8_filtered	1.0

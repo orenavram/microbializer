@@ -1,0 +1,5 @@
+source /home/ai_center/ai_users/yairshimony/miniconda/etc/profile.d/conda.sh
+conda activate /home/ai_center/ai_users/yairshimony/miniconda/envs/microbializer
+export PATH=$CONDA_PREFIX/bin:$PATH
+python /home/ai_center/ai_users/yairshimony/microbializer/pipeline/steps/orthogroups_visualizations.py /home/ai_center/ai_users/yairshimony/microbializer_runs/1_genome_no_paralogs/outputs/steps_results/05_10_orthogroups_final/orthogroups.csv /home/ai_center/ai_users/yairshimony/microbializer_runs/1_genome_no_paralogs/outputs/steps_results/07_2_orthogroups_visualizations -v False --logs_dir /home/ai_center/ai_users/yairshimony/microbializer_runs/1_genome_no_paralogs/outputs/tmp/07_2_orthogroups_visualizations --error_file_path /home/ai_center/ai_users/yairshimony/microbializer_runs/1_genome_no_paralogs/M1CR0B1AL1Z3R_outputs/error.txt --job_name orthogroups_visualizations --use_job_manager True --cpus 1
+touch /home/ai_center/ai_users/yairshimony/microbializer_runs/1_genome_no_paralogs/outputs/tmp/07_2_orthogroups_visualizations/orthogroups_visualizations.done

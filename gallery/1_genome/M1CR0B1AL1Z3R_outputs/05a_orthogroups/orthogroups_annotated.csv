@@ -1,0 +1,3 @@
+OG_name,OG size (number of genomes),OG size (total number of genes),CAI_mean,knum,knum_description,genome_ORFs
+OG_0,1,2,0.68,K03695,"K03695 (ATP-dependent Clp protease ATP-binding subunit ClpB, https://www.genome.jp/entry/K03695)",genome_ORFs:CTO_0120;genome_ORFs:CTO_0308
+OG_1,1,2,0.636,,,genome_ORFs:CTO_0448;genome_ORFs:CTO_0449

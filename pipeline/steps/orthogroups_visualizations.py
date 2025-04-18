@@ -14,6 +14,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent.parent))
 
 from pipeline.auxiliaries.run_step_utils import add_default_step_args, run_step
+from pipeline.auxiliaries.logic_utils import count_strains_and_genes_in_ogs
 
 
 def create_phyletic_pattern(logger, orthogroups_df, output_dir):
@@ -43,17 +44,23 @@ def plot_presence_absence_matrix(logger, binary_df, output_dir):
     map_svg_path = output_dir / 'phyletic_pattern.svg'
 
     try:
-        # Hierarchical clustering linkage (you can try different metrics/methods)
-        linkage_matrix = linkage(pdist(binary_df, metric='hamming'), method='average')
+        if binary_df.shape[0] < 3:
+            logger.info("Not enough strains to run clustering. Will produce heatmap instead.")
+            linkage_matrix = None
+            row_cluster = False
+        else:
+            # Hierarchical clustering linkage
+            linkage_matrix = linkage(pdist(binary_df, metric='hamming'), method='average')
+            row_cluster = True
 
         # Plot with seaborn's clustermap (just cluster rows, not columns)
         g = sns.clustermap(
             binary_df,
             row_linkage=linkage_matrix,
+            row_cluster=row_cluster,
             col_cluster=False,  # disable clustering on orthogroups
             cmap="Blues",  # black = presence, white = absence (or reverse)
             figsize=compute_figsize(*binary_df.shape),
-            xticklabels=False,
             yticklabels=True
         )
 
@@ -78,12 +85,6 @@ def plot_presence_absence_matrix(logger, binary_df, output_dir):
 
 
 def cluster_strains_by_orthogroups(logger, binary_df, output_dir):
-    n_strains = binary_df.shape[0]
-
-    if n_strains < 30:
-        logger.info("Not enough strains to run umap+strains clustering, skipping.")
-        return
-
     def compute_figsize(n, base=10, scale=0.015, max_size=30):
         side = min(base + n * scale, max_size)
         return side, side
@@ -91,6 +92,13 @@ def cluster_strains_by_orthogroups(logger, binary_df, output_dir):
     strains_cluster_csv_path = output_dir / 'strain_cluster_mapping.csv'
     strains_clusters_png_path = output_dir / 'strain_clusters_by_orthogroups.png'
     strains_clusters_svg_path = output_dir / 'strain_clusters_by_orthogroups.svg'
+
+    n_strains = binary_df.shape[0]
+    if n_strains < 30:
+        logger.info("Not enough strains to run umap and strains clustering, skipping.")
+        open(strains_cluster_csv_path, 'w').close()
+        open(strains_clusters_png_path, 'w').close()
+        return
 
     try:
         # Step 1: UMAP dimensionality reduction (good with Hamming distance for binary data)
@@ -151,6 +159,27 @@ def cluster_strains_by_orthogroups(logger, binary_df, output_dir):
         logger.exception(f"Error creating strains clusters by orthogroups: {e}")
 
 
+def count_and_plot_orthogroups_sizes(logger, final_orthogroups_file_path, output_dir):
+    final_orthologs_table_df = pd.read_csv(final_orthogroups_file_path, dtype=str)
+    orthogroups_sizes_df = count_strains_and_genes_in_ogs(final_orthologs_table_df)
+    orthogroups_sizes_df = orthogroups_sizes_df.rename(columns={'strains_count': 'OG size (number of genomes)',
+                                                                'genes_count': 'OG size (total number of genes)'})
+    orthogroups_sizes_df.to_csv(output_dir / 'orthogroups_sizes.csv', index=False)
+    logger.info(f'Created orthogroups sizes table at {output_dir / "orthogroups_sizes.csv"}')
+
+    group_sizes = orthogroups_sizes_df.set_index('OG_name')['OG size (number of genomes)']
+    sns.histplot(x=group_sizes, discrete=True)
+    if len(np.unique(group_sizes)) < 10:
+        plt.xticks(np.unique(group_sizes))
+    plt.title('Orthogroups sizes distribution', fontsize=25, loc='center', wrap=True)
+    plt.xlabel('OG size (number of genomes)', fontsize=20)
+    plt.ylabel('Count of OGs of each OG size', fontsize=20)
+    plt.tight_layout()
+    plt.savefig(output_dir / 'orthogroups_sizes.png', dpi=600)
+    plt.clf()
+    logger.info(f'Created orthogroups sizes histogram at {output_dir / "orthogroups_sizes.png"}')
+
+
 def create_simplified_orthogroups_table_for_results_page(logger, orthogroups_df, output_dir):
     orthogroups_df = orthogroups_df.set_index('OG_name')
 
@@ -158,18 +187,21 @@ def create_simplified_orthogroups_table_for_results_page(logger, orthogroups_df,
     converted_df = pd.DataFrame(0, index=orthogroups_df.index, columns=orthogroups_df.columns)
 
     not_nan_mask = orthogroups_df.notna()
-    semicolon_mask = orthogroups_df.astype(str).str.contains(';', na=False)
+    semicolon_mask = orthogroups_df.apply(lambda col: col.str.contains(';', na=False))
 
     converted_df[not_nan_mask] = 1
     converted_df[semicolon_mask] = 2
 
-    simplified_orthogroups_path = output_dir / 'orthogroups_results_page.csv'
-    converted_df.to_csv(simplified_orthogroups_path)
-    logger.info(f'Created simplified orthogroups table for results page at {simplified_orthogroups_path}')
+    results_page_orthogroups_path = output_dir / 'orthogroups_results_page.csv'
+    converted_df.to_csv(results_page_orthogroups_path)
+    logger.info(f'Created simplified orthogroups table for results page at {results_page_orthogroups_path}')
 
 
 def create_orthogroups_visualizations(logger, orthologs_table_path, output_dir, tmp_dir):
+    count_and_plot_orthogroups_sizes(logger, orthologs_table_path, output_dir)
+
     orthogroups_df = pd.read_csv(orthologs_table_path, dtype=str)
+    create_simplified_orthogroups_table_for_results_page(logger, orthogroups_df, tmp_dir)
     create_phyletic_pattern(logger, orthogroups_df, output_dir)
 
     # Transpose to make rows = strains, columns = orthogroups
@@ -177,8 +209,6 @@ def create_orthogroups_visualizations(logger, orthologs_table_path, output_dir, 
     plot_presence_absence_matrix(logger, binary_df, output_dir)
 
     cluster_strains_by_orthogroups(logger, binary_df, output_dir)
-
-    create_simplified_orthogroups_table_for_results_page(logger, orthogroups_df, tmp_dir)
 
 
 if __name__ == '__main__':

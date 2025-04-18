@@ -23,7 +23,7 @@ from auxiliaries.main_utils import send_email_in_pipeline_end, submit_clean_fold
     calc_genomes_batch_size, initialize_progressbar
 from auxiliaries.run_step_utils import wait_for_results, prepare_directories, submit_mini_batch, submit_batch
 from auxiliaries.logic_utils import (plot_genomes_histogram, combine_orphan_genes_stats,
-                                     split_ogs_to_jobs_inputs_files_by_og_sizes, count_and_plot_orthogroups_sizes)
+                                     split_ogs_to_jobs_inputs_files_by_og_sizes)
 
 from auxiliaries.infer_orthogroups_logic import infer_orthogroups
 from flask.SharedConsts import State
@@ -520,30 +520,8 @@ def step_7_orthologs_table_variations(logger, times_logger, config, final_orthog
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    # 07_2.	extract_groups_sizes_frequency
+    # 07_2.	orthogroups_visualizations.py
     step_number = '07_2'
-    logger.info(f'Step {step_number}: {"_" * 100}')
-    step_name = f'{step_number}_orthogroups_sizes'
-    group_sizes_path, pipeline_step_tmp_dir = prepare_directories(logger, config.steps_results_dir, config.tmp_dir,
-                                                                  step_name)
-    done_file_path = config.done_files_dir / f'{step_name}.txt'
-    if not done_file_path.exists():
-        logger.info('Collecting orthogroups sizes...')
-        start_time = time.time()
-
-        count_and_plot_orthogroups_sizes(final_orthogroups_file_path, group_sizes_path)
-
-        step_time = timedelta(seconds=int(time.time() - start_time))
-        times_logger.info(f'Step {step_name} took {step_time}.')
-
-        if not config.do_not_copy_outputs_to_final_results_dir:
-            add_results_to_final_dir(logger, group_sizes_path, config.final_output_dir)
-        write_done_file(logger, done_file_path)
-    else:
-        logger.info(f'done file {done_file_path} already exists. Skipping step...')
-
-    # 07_3.	orthogroups_visualizations.py
-    step_number = '07_3'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orthogroups_visualizations'
     script_path = consts.SRC_DIR / 'steps' / 'orthogroups_visualizations.py'
@@ -564,6 +542,8 @@ def step_7_orthologs_table_variations(logger, times_logger, config, final_orthog
         write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+    return visualizations_dir_path
 
 
 def step_8_build_orthologous_groups_fastas(logger, times_logger, config, all_orfs_fasta_path,
@@ -822,6 +802,8 @@ def step_11_phylogeny(logger, times_logger, config, aligned_core_proteome_file_p
         if len(genomes_names) < 3 or core_proteome_length == 0:
             logger.info('Skipping phylogeny reconstruction because there are less than 3 genomes or no core proteome')
             open(output_tree_path, 'w').close()
+            output_tree_image_path = output_tree_path.with_suffix('.png')
+            open(output_tree_image_path, 'w').close()
         else:
             logger.info('Reconstructing species phylogeny...')
 
@@ -872,7 +854,8 @@ def step_11_phylogeny(logger, times_logger, config, aligned_core_proteome_file_p
 
 def step_12_orthogroups_annotations(logger, times_logger, config, orfs_dir,
                                     orthologs_dna_sequences_dir_path, ogs_aa_sequences_dir_path,
-                                    ogs_aa_consensus_dir_path, final_orthologs_table_file_path):
+                                    ogs_aa_consensus_dir_path, final_orthologs_table_file_path,
+                                    orthogroups_visualizations_dir_path):
     # 12_1.  codon_bias.py
     # Input: ORF dir and OG dir
     # Output: W_vector for each genome, CAI for each OG
@@ -960,6 +943,9 @@ def step_12_orthogroups_annotations(logger, times_logger, config, orfs_dir,
             cai_df = pd.read_csv(cai_table_path)[['OG_name', 'CAI_mean']]
             final_orthologs_df = pd.merge(cai_df, final_orthologs_df, on='OG_name')
 
+        orthogroups_sizes_df = pd.read_csv(orthogroups_visualizations_dir_path / 'orthogroups_sizes.csv')
+        final_orthologs_df = pd.merge(orthogroups_sizes_df, final_orthologs_df, on='OG_name')
+
         final_orthologs_table_annotated_path = output_dir_path / 'orthogroups_annotated.csv'
         final_orthologs_df.to_csv(final_orthologs_table_annotated_path, index=False)
         logger.info(f'Final orthologs table with annotations saved to {final_orthologs_table_annotated_path}')
@@ -1023,7 +1009,8 @@ def run_main_pipeline(logger, times_logger, config):
     update_progressbar(config.progressbar_file_path, 'Infer orthogroups')
     update_progressbar(config.progressbar_file_path, 'Find orphan genes')
 
-    step_7_orthologs_table_variations(logger, times_logger, config, final_orthogroups_file_path)
+    orthogroups_visualizations_dir_path = step_7_orthologs_table_variations(logger, times_logger, config,
+                                                                            final_orthogroups_file_path)
 
     if config.step_to_complete == '7':
         logger.info("Step 7 completed.")
@@ -1061,7 +1048,8 @@ def run_main_pipeline(logger, times_logger, config):
         return
 
     step_12_orthogroups_annotations(logger, times_logger, config, orfs_dir, ogs_dna_sequences_path,
-                                    ogs_aa_sequences_path, ogs_aa_consensus_dir_path, final_orthogroups_file_path)
+                                    ogs_aa_sequences_path, ogs_aa_consensus_dir_path, final_orthogroups_file_path,
+                                    orthogroups_visualizations_dir_path)
 
     if config.step_to_complete == '12':
         logger.info("Step 12 completed.")
