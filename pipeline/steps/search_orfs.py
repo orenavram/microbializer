@@ -58,7 +58,7 @@ def extract_orfs_statistics(logger, orf_path, orfs_statistics_dir):
 
     orfs_statistics = {}
     orfs_statistics['orfs_count'] = orfs_count
-    orfs_statistics['gc_content'] = total_num_of_GC / total_num_of_nucleotides
+    orfs_statistics['gc_content'] = (total_num_of_GC / total_num_of_nucleotides) * 100
 
     genome_name = orf_path.stem
     orfs_statistics_file_name = f'{genome_name}.json'
