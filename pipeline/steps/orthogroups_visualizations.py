@@ -151,7 +151,24 @@ def cluster_strains_by_orthogroups(logger, binary_df, output_dir):
         logger.exception(f"Error creating strains clusters by orthogroups: {e}")
 
 
-def create_orthogroups_visualizations(logger, orthologs_table_path, output_dir):
+def create_simplified_orthogroups_table_for_results_page(logger, orthogroups_df, output_dir):
+    orthogroups_df = orthogroups_df.set_index('OG_name')
+
+    # Start with a new DataFrame with the same shape as the original, filled with 0.
+    converted_df = pd.DataFrame(0, index=orthogroups_df.index, columns=orthogroups_df.columns)
+
+    not_nan_mask = orthogroups_df.notna()
+    semicolon_mask = orthogroups_df.astype(str).str.contains(';', na=False)
+
+    converted_df[not_nan_mask] = 1
+    converted_df[semicolon_mask] = 2
+
+    simplified_orthogroups_path = output_dir / 'orthogroups_results_page.csv'
+    converted_df.to_csv(simplified_orthogroups_path)
+    logger.info(f'Created simplified orthogroups table for results page at {simplified_orthogroups_path}')
+
+
+def create_orthogroups_visualizations(logger, orthologs_table_path, output_dir, tmp_dir):
     orthogroups_df = pd.read_csv(orthologs_table_path, dtype=str)
     create_phyletic_pattern(logger, orthogroups_df, output_dir)
 
@@ -161,6 +178,8 @@ def create_orthogroups_visualizations(logger, orthologs_table_path, output_dir):
 
     cluster_strains_by_orthogroups(logger, binary_df, output_dir)
 
+    create_simplified_orthogroups_table_for_results_page(logger, orthogroups_df, tmp_dir)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -169,4 +188,4 @@ if __name__ == '__main__':
     add_default_step_args(parser)
     args = parser.parse_args()
 
-    run_step(args, create_orthogroups_visualizations, args.orthologs_table_path, args.output_dir)
+    run_step(args, create_orthogroups_visualizations, args.orthologs_table_path, args.output_dir, args.logs_dir)

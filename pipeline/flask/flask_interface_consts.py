@@ -28,6 +28,7 @@ INPUTS_GENOMES_ZIPPED = "genomes.zip"
 # Output files (the paths are relative to the unique folder of the job)
 ALL_OUTPUTS_DIRECTORY = Path(WEBSERVER_NAME + "_outputs")
 ALL_OUTPUTS_ZIPPED = WEBSERVER_NAME + "_outputs.zip"
+INTERMEDIATE_OUTPUTS_DIRECTORY = Path("outputs")
 
 # Error description file (the path is relative to the unique folder of the job)
 ERROR_FILE_NAME = "error.txt"
@@ -90,6 +91,8 @@ DATA_2_VIEW_IN_HISTOGRAM = {
     TITLE_HISTOGRAM_ORPHAN_GENES_COUNT: ORPHAN_GENES_PER_GENOME
 }
 
+OG_TABLE_PATH_FOR_RESULTS_PAGE = INTERMEDIATE_OUTPUTS_DIRECTORY / 'tmp' / '07_3_orthogroups_visualizations' / 'orthogroups_results_page.csv'
+
 PATHS_TO_DOWNLOAD = {
     "General": {
         "Inputs_(zip)": (INPUTS_GENOMES_ZIPPED, "The input genomes in a zip file"),
@@ -106,8 +109,8 @@ PATHS_TO_DOWNLOAD = {
         "GC_content_histogram": (GC_CONTENT_HISTOGRAM, "Can also be found in 02b_orfs_plots directory in the 'All outputs (zip)' file"),
         "Genome_completeness_score_(BUSCO)_per_genome": (GENOME_COMPLETENESS_PER_GENOME, "Can also be found in 03_genomes_completeness directory in the 'All outputs (zip)' file"),
         "Genome_completeness_score_(BUSCO)_histogram": (GENOME_COMPLETENESS_HISTOGRAM, "Can also be found in 03_genomes_completeness directory in the 'All outputs (zip)' file"),
-        "Orphan_genes_per_genome": (ORPHAN_GENES_PER_GENOME, "Can also be found in 04_orphan_genes directory in the 'All outputs (zip)' file"),
-        "Orphan_genes_histogram": (ORPHAN_GENES_HISTOGRAM, "Can also be found in 04_orphan_genes directory in the 'All outputs (zip)' file"),
+        "Orphan_genes_count_per_genome": (ORPHAN_GENES_PER_GENOME, "Can also be found in 04_orphan_genes directory in the 'All outputs (zip)' file"),
+        "Orphan_genes_count_histogram": (ORPHAN_GENES_HISTOGRAM, "Can also be found in 04_orphan_genes directory in the 'All outputs (zip)' file"),
     },
     "Orthogroups": {
         "Orthogroups_(csv)": (OG_TABLE, "Can also be found in 05a_orthogroups directory in the 'All outputs (zip)' file"),
