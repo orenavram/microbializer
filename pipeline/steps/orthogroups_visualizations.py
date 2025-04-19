@@ -44,7 +44,10 @@ def plot_presence_absence_matrix(logger, binary_df, output_dir):
     map_svg_path = output_dir / 'phyletic_pattern.svg'
 
     try:
-        if binary_df.shape[0] < 3:
+        n_genomes = binary_df.shape[0]
+        n_orthogroups = binary_df.shape[1]
+
+        if n_genomes < 3:
             logger.info("Not enough strains to run clustering. Will produce heatmap instead.")
             linkage_matrix = None
             row_cluster = False
@@ -60,19 +63,13 @@ def plot_presence_absence_matrix(logger, binary_df, output_dir):
             row_cluster=row_cluster,
             col_cluster=False,  # disable clustering on orthogroups
             cmap="Blues",  # black = presence, white = absence (or reverse)
-            figsize=compute_figsize(*binary_df.shape),
-            yticklabels=True
+            figsize=compute_figsize(n_genomes, n_orthogroups),
         )
 
-        # Apply smaller font size to y-axis labels
-        g.ax_heatmap.tick_params(axis='y', labelsize=compute_fontsize(binary_df.shape[0]))
-
-        # Remove the x-axis label/title and color legend
+        # Remove the x-axis label, title and color legend
         g.ax_heatmap.set_xlabel("")  # remove x-axis label
         g.ax_heatmap.set_title("")  # just in case a title sneaks in
         g.cax.set_visible(False)
-
-        g.fig.subplots_adjust(top=0.90)
 
         plt.tight_layout()
         g.savefig(map_png_path, dpi=600, bbox_inches='tight')
@@ -206,8 +203,8 @@ def create_orthogroups_visualizations(logger, orthologs_table_path, output_dir, 
 
     # Transpose to make rows = strains, columns = orthogroups
     binary_df = orthogroups_df.set_index('OG_name').notna().astype(int).T
-    plot_presence_absence_matrix(logger, binary_df, output_dir)
 
+    plot_presence_absence_matrix(logger, binary_df, output_dir)
     cluster_strains_by_orthogroups(logger, binary_df, output_dir)
 
 

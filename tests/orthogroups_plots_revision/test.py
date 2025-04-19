@@ -23,7 +23,7 @@ def main():
     binary_df = orthogroups_df.set_index('OG_name').notna().astype(int).T
     # plot_presence_absence_matrix(logger, orthogroups_df, SCRIPT_DIR)
 
-    cluster_strains_by_orthogroups(logger, binary_df, SCRIPT_DIR)
+    plot_presence_absence_matrix(logger, binary_df, SCRIPT_DIR)
 
 
 if __name__ == "__main__":
