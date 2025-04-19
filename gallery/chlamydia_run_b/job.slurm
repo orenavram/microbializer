@@ -1,27 +1,25 @@
 #!/bin/bash
 
 #SBATCH --job-name=microbializer
-#SBATCH --account=pupkoweb-users
-#SBATCH --partition=pupkoweb
+#SBATCH --account=gpu-research
+#SBATCH --partition=killable
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=4096
-#SBATCH --time=168:00:00
-#SBATCH --output=/lsweb/pupko/microbializer/user_results/a026a9ee-5a8d-40c3-a298-10ce92ddddab/main_%j.out
-#SBATCH --error=/lsweb/pupko/microbializer/user_results/a026a9ee-5a8d-40c3-a298-10ce92ddddab/main_%j.err
+#SBATCH --mem=8192
+#SBATCH --time=12:00:00
+#SBATCH --output=/home/ai_center/ai_users/yairshimony/microbializer/gallery/chlamydia_run_b/main_%j.out
+#SBATCH --error=/home/ai_center/ai_users/yairshimony/microbializer/gallery/chlamydia_run_b/main_%j.err
 
-
-sleep 120
 
 echo "Job ID: $SLURM_JOB_ID"
 echo "Running on nodes: $SLURM_JOB_NODELIST"
 echo "Allocated CPUs: $SLURM_JOB_CPUS_PER_NODE"
 
-export HOME=/lsweb/pupko/microbializer
-source /lsweb/pupko/microbializer/miniconda3/etc/profile.d/conda.sh
-conda activate /lsweb/pupko/microbializer/miniconda3/envs/microbializer
+export HOME=/home/ai_center/ai_users/yairshimony
+source ~/miniconda/etc/profile.d/conda.sh
+conda activate microbializer
 export PATH=$CONDA_PREFIX/bin:$PATH
 
 echo "PATH: $PATH"
 
-python "/lsweb/pupko/microbializer/pipeline/main.py" --args_json_path /lsweb/pupko/microbializer/user_results/a026a9ee-5a8d-40c3-a298-10ce92ddddab/input_parameters.json --account_name pupkoweb-users --queue_name pupkoweb
+python ~/microbializer/pipeline/main.py --args_json_path ~/microbializer/gallery/chlamydia_run_b/input_parameters.json

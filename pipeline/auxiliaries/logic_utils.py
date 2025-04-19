@@ -71,6 +71,7 @@ def plot_genomes_histogram(data, output_dir, output_file_name, title, xlabel):
         json.dump(data, fp)
 
     output_df = pd.DataFrame.from_dict(data, orient='index', columns=[title])
+    output_df = output_df.sort_index()
     output_df.index.name = 'Genome'
     output_df.to_csv(output_dir / f'{output_file_name}.csv')
 
@@ -103,6 +104,7 @@ def combine_orphan_genes_stats(orphan_genes_dir, output_dir):
         all_stat_dfs.append(df)
 
     combined_df = pd.concat(all_stat_dfs)
+    combined_df.index.name = 'Genome'
     combined_df.to_csv(output_dir / 'orphans_genes_stats.csv')
 
     number_of_orphans_per_file = combined_df['Total orphans count'].to_dict()

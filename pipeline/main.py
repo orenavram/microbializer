@@ -249,7 +249,7 @@ def step_3_analyze_genome_completeness(logger, times_logger, config, translated_
 
         plot_genomes_histogram(genomes_completeness_scores, genome_completeness_dir_path, 'genomes_completeness',
                                'Genome BUSCO completeness score', 'Genome BUSCO completeness score')
-        
+
         shutil.rmtree(genomes_output_dir_path, ignore_errors=True)
 
         aggregation_time = timedelta(seconds=int(time.time() - start_time))
