@@ -1,0 +1,24 @@
+# Sequence scores
+# ---------------
+#
+# name                                             bits   E-value   n   exp  bias    description
+#                            ------------------- ------ --------- --- ----- -----    ---------------------
+Ecoli_UMN026:gi|218703261|ref|NC_011751.1|_3528    57.7   2.8e-16   2   3.4  12.5    # 3786196 # 3786507 # -1 # ID=1_3528;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.478
+
+# Domain scores
+# -------------
+#
+#  name                                            bits   E-value   hit  bias env-st env-en ali-st ali-en hmm-st hmm-en     description
+#                            ------------------- ------ --------- ----- ----- ------ ------ ------ ------ ------ ------      ---------------------
+Ecoli_UMN026:gi|218703261|ref|NC_011751.1|_3528    32.2   2.6e-08     1   0.1      1     43      1     26      1     26     # 3786196 # 3786507 # -1 # ID=1_3528;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.478
+Ecoli_UMN026:gi|218703261|ref|NC_011751.1|_3528    22.7   2.3e-05     2   9.4     36    103     47    103     31     73     # 3786196 # 3786507 # -1 # ID=1_3528;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.478
+#
+# Program:         hmmsearch
+# Version:         3.3.2 (Nov 2020)
+# Pipeline mode:   SEARCH
+# Query file:      /home/ai_center/ai_users/yairshimony/microbializer/pipeline/data/busco_hmms/POG091H02LM.hmm
+# Target file:     /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_translated/Ecoli_UMN026.faa
+# Option settings: hmmsearch -o /dev/null --pfamtblout /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/03_genomes_completeness/individual_proteomes_outputs/Ecoli_UMN026/POG091H02LM.txt --noali -E 0.1 /home/ai_center/ai_users/yairshimony/microbializer/pipeline/data/busco_hmms/POG091H02LM.hmm /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_translated/Ecoli_UMN026.faa 
+# Current dir:     /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes
+# Date:            Sat Apr 19 01:54:17 2025
+# [ok]

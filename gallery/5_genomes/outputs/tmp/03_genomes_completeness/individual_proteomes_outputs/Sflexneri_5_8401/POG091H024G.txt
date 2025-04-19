@@ -1,0 +1,27 @@
+# Sequence scores
+# ---------------
+#
+# name                                                 bits   E-value   n   exp  bias    description
+#                                ------------------- ------ --------- --- ----- -----    ---------------------
+Sflexneri_5_8401:gi|110804074|ref|NC_008258.1|_2647   559.7  1.6e-168   2   3.4   0.4    # 2519164 # 2521179 # -1 # ID=1_2647;partial=00;start_type=ATG;rbs_motif=None;rbs_spacer=None;gc_cont=0.542
+Sflexneri_5_8401:gi|110804074|ref|NC_008258.1|_4123   142.9   3.5e-42   2   2.5   0.0    # 3986900 # 3988582 # 1 # ID=1_4123;partial=00;start_type=ATG;rbs_motif=GGAGG;rbs_spacer=5-10bp;gc_cont=0.528
+
+# Domain scores
+# -------------
+#
+#  name                                                bits   E-value   hit  bias env-st env-en ali-st ali-en hmm-st hmm-en     description
+#                                ------------------- ------ --------- ----- ----- ------ ------ ------ ------ ------ ------      ---------------------
+Sflexneri_5_8401:gi|110804074|ref|NC_008258.1|_2647   329.9   7.4e-99     2   1.2    261    669    277    668    197    501     # 2519164 # 2521179 # -1 # ID=1_2647;partial=00;start_type=ATG;rbs_motif=None;rbs_spacer=None;gc_cont=0.542
+Sflexneri_5_8401:gi|110804074|ref|NC_008258.1|_2647   222.9   2.1e-66     1   0.0      6    232      7    227      2    191     # 2519164 # 2521179 # -1 # ID=1_2647;partial=00;start_type=ATG;rbs_motif=None;rbs_spacer=None;gc_cont=0.542
+Sflexneri_5_8401:gi|110804074|ref|NC_008258.1|_4123    77.2     3e-22     1   0.0     32    234     32    225      1    191     # 3986900 # 3988582 # 1 # ID=1_4123;partial=00;start_type=ATG;rbs_motif=GGAGG;rbs_spacer=5-10bp;gc_cont=0.528
+Sflexneri_5_8401:gi|110804074|ref|NC_008258.1|_4123    63.1   5.4e-18     2   0.0    263    555    269    501    198    402     # 3986900 # 3988582 # 1 # ID=1_4123;partial=00;start_type=ATG;rbs_motif=GGAGG;rbs_spacer=5-10bp;gc_cont=0.528
+#
+# Program:         hmmsearch
+# Version:         3.3.2 (Nov 2020)
+# Pipeline mode:   SEARCH
+# Query file:      /home/ai_center/ai_users/yairshimony/microbializer/pipeline/data/busco_hmms/POG091H024G.hmm
+# Target file:     /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_translated/Sflexneri_5_8401.faa
+# Option settings: hmmsearch -o /dev/null --pfamtblout /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/03_genomes_completeness/individual_proteomes_outputs/Sflexneri_5_8401/POG091H024G.txt --noali -E 0.1 /home/ai_center/ai_users/yairshimony/microbializer/pipeline/data/busco_hmms/POG091H024G.hmm /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_translated/Sflexneri_5_8401.faa 
+# Current dir:     /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes
+# Date:            Sat Apr 19 01:54:14 2025
+# [ok]

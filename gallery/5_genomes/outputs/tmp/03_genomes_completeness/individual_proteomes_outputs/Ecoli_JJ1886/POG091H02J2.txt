@@ -1,0 +1,24 @@
+# Sequence scores
+# ---------------
+#
+# name                                             bits   E-value   n   exp  bias    description
+#                            ------------------- ------ --------- --- ----- -----    ---------------------
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_3596    36.6   8.2e-10   2   2.7   5.3    # 3789263 # 3789454 # -1 # ID=1_3596;partial=00;start_type=ATG;rbs_motif=None;rbs_spacer=None;gc_cont=0.531
+
+# Domain scores
+# -------------
+#
+#  name                                            bits   E-value   hit  bias env-st env-en ali-st ali-en hmm-st hmm-en     description
+#                            ------------------- ------ --------- ----- ----- ------ ------ ------ ------ ------ ------      ---------------------
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_3596    36.6   8.2e-10     2   5.3     23     60     25     60      3     34     # 3789263 # 3789454 # -1 # ID=1_3596;partial=00;start_type=ATG;rbs_motif=None;rbs_spacer=None;gc_cont=0.531
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_3596    -2.2   1.1e+03     1   0.3     13     22     17     21      2      6     # 3789263 # 3789454 # -1 # ID=1_3596;partial=00;start_type=ATG;rbs_motif=None;rbs_spacer=None;gc_cont=0.531
+#
+# Program:         hmmsearch
+# Version:         3.3.2 (Nov 2020)
+# Pipeline mode:   SEARCH
+# Query file:      /home/ai_center/ai_users/yairshimony/microbializer/pipeline/data/busco_hmms/POG091H02J2.hmm
+# Target file:     /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_translated/Ecoli_JJ1886.faa
+# Option settings: hmmsearch -o /dev/null --pfamtblout /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/03_genomes_completeness/individual_proteomes_outputs/Ecoli_JJ1886/POG091H02J2.txt --noali -E 0.1 /home/ai_center/ai_users/yairshimony/microbializer/pipeline/data/busco_hmms/POG091H02J2.hmm /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_translated/Ecoli_JJ1886.faa 
+# Current dir:     /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes
+# Date:            Sat Apr 19 01:54:16 2025
+# [ok]

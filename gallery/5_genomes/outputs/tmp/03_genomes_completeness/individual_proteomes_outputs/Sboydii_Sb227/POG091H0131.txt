@@ -1,0 +1,24 @@
+# Sequence scores
+# ---------------
+#
+# name                                            bits   E-value   n   exp  bias    description
+#                           ------------------- ------ --------- --- ----- -----    ---------------------
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_163   142.7   2.3e-42   2   3.9  19.7    # 182563 # 183915 # 1 # ID=1_163;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.506
+
+# Domain scores
+# -------------
+#
+#  name                                           bits   E-value   hit  bias env-st env-en ali-st ali-en hmm-st hmm-en     description
+#                           ------------------- ------ --------- ----- ----- ------ ------ ------ ------ ------ ------      ---------------------
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_163    71.8   1.3e-20     1   9.9      8    143      9    120      2     87     # 182563 # 183915 # 1 # ID=1_163;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.506
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_163    71.7   1.5e-20     2   2.2    335    450    357    450    101    181     # 182563 # 183915 # 1 # ID=1_163;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.506
+#
+# Program:         hmmsearch
+# Version:         3.3.2 (Nov 2020)
+# Pipeline mode:   SEARCH
+# Query file:      /home/ai_center/ai_users/yairshimony/microbializer/pipeline/data/busco_hmms/POG091H0131.hmm
+# Target file:     /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_translated/Sboydii_Sb227.faa
+# Option settings: hmmsearch -o /dev/null --pfamtblout /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/03_genomes_completeness/individual_proteomes_outputs/Sboydii_Sb227/POG091H0131.txt --noali -E 0.1 /home/ai_center/ai_users/yairshimony/microbializer/pipeline/data/busco_hmms/POG091H0131.hmm /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_translated/Sboydii_Sb227.faa 
+# Current dir:     /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes
+# Date:            Sat Apr 19 01:54:12 2025
+# [ok]

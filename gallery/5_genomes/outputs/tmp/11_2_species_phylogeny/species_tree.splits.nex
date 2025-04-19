@@ -1,0 +1,27 @@
+#nexus
+
+BEGIN Taxa;
+DIMENSIONS ntax=5;
+TAXLABELS
+[1] 'Ecoli_APEC_O1'
+[2] 'Ecoli_JJ1886'
+[3] 'Ecoli_UMN026'
+[4] 'Sboydii_Sb227'
+[5] 'Sflexneri_5_8401'
+;
+END; [Taxa]
+
+BEGIN Splits;
+DIMENSIONS ntax=5 nsplits=7;
+FORMAT labels=no weights=yes confidences=no intervals=no;
+MATRIX
+	100	 2,
+	100	 3,
+	100	 4,
+	100	 5,
+	100	 4 5,
+	100	 1 2,
+	100	 1,
+;
+END; [Splits]
+

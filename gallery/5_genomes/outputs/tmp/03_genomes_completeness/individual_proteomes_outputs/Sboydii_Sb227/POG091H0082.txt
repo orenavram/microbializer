@@ -1,0 +1,48 @@
+# Sequence scores
+# ---------------
+#
+# name                                             bits   E-value   n   exp  bias    description
+#                            ------------------- ------ --------- --- ----- -----    ---------------------
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_70     214.6   3.1e-64   4   5.4  19.7    # 81169 # 82656 # 1 # ID=1_70;partial=00;start_type=GTG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.563
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_76      40.4   4.5e-11   3   3.1   0.3    # 88768 # 90243 # 1 # ID=1_76;partial=00;start_type=ATG;rbs_motif=3Base/5BMM;rbs_spacer=13-15bp;gc_cont=0.545
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_73      36.2   8.7e-10   2   2.2   1.1    # 85090 # 86406 # 1 # ID=1_73;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.554
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_2491    20.0   7.8e-05   4   3.6   0.0    # 2340569 # 2341837 # -1 # ID=1_2491;partial=00;start_type=ATG;rbs_motif=None;rbs_spacer=None;gc_cont=0.559
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_4398    16.5   0.00085   4   3.5   7.9    # 4265226 # 4266599 # -1 # ID=1_4398;partial=00;start_type=ATG;rbs_motif=AGGA;rbs_spacer=5-10bp;gc_cont=0.553
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_71      15.4     0.002   4   3.2   3.0    # 82653 # 84011 # 1 # ID=1_71;partial=00;start_type=ATG;rbs_motif=GGxGG;rbs_spacer=5-10bp;gc_cont=0.551
+
+# Domain scores
+# -------------
+#
+#  name                                            bits   E-value   hit  bias env-st env-en ali-st ali-en hmm-st hmm-en     description
+#                            ------------------- ------ --------- ----- ----- ------ ------ ------ ------ ------ ------      ---------------------
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_70     122.1   5.2e-36     4   0.1    330    472    339    472    154    261     # 81169 # 82656 # 1 # ID=1_70;partial=00;start_type=GTG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.563
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_70      80.7   2.3e-23     2   6.3     95    241    108    224     42    135     # 81169 # 82656 # 1 # ID=1_70;partial=00;start_type=GTG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.563
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_76      34.0     4e-09     1   0.1     94    228    117    218     40    140     # 88768 # 90243 # 1 # ID=1_76;partial=00;start_type=ATG;rbs_motif=3Base/5BMM;rbs_spacer=13-15bp;gc_cont=0.545
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_73      31.3   2.7e-08     1   0.1     66    219     82    202     20    136     # 85090 # 86406 # 1 # ID=1_73;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.554
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_71       8.9      0.19     2   0.0     86    207     96    132     39     74     # 82653 # 84011 # 1 # ID=1_71;partial=00;start_type=ATG;rbs_motif=GGxGG;rbs_spacer=5-10bp;gc_cont=0.551
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_4398     8.7      0.22     1   0.0     94    130    105    124     45     64     # 4265226 # 4266599 # -1 # ID=1_4398;partial=00;start_type=ATG;rbs_motif=AGGA;rbs_spacer=5-10bp;gc_cont=0.553
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_70       6.7      0.88     1   0.1     25     73     32     68      8     36     # 81169 # 82656 # 1 # ID=1_70;partial=00;start_type=GTG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.563
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_2491     5.7       1.7     3   0.0    271    348    281    337    149    195     # 2340569 # 2341837 # -1 # ID=1_2491;partial=00;start_type=ATG;rbs_motif=None;rbs_spacer=None;gc_cont=0.559
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_4398     5.5         2     4   0.0    321    350    324    348    160    184     # 4265226 # 4266599 # -1 # ID=1_4398;partial=00;start_type=ATG;rbs_motif=AGGA;rbs_spacer=5-10bp;gc_cont=0.553
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_70       5.5         2     3   0.2    300    323    302    319    138    155     # 81169 # 82656 # 1 # ID=1_70;partial=00;start_type=GTG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.563
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_2491     5.4       2.1     1   0.0     40    100     51     93     45     86     # 2340569 # 2341837 # -1 # ID=1_2491;partial=00;start_type=ATG;rbs_motif=None;rbs_spacer=None;gc_cont=0.559
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_71       5.3       2.3     3   0.0    269    307    274    292    136    154     # 82653 # 84011 # 1 # ID=1_71;partial=00;start_type=ATG;rbs_motif=GGxGG;rbs_spacer=5-10bp;gc_cont=0.551
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_4398     5.3       2.4     3   0.2    266    318    274    303    138    171     # 4265226 # 4266599 # -1 # ID=1_4398;partial=00;start_type=ATG;rbs_motif=AGGA;rbs_spacer=5-10bp;gc_cont=0.553
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_2491     3.9       6.2     2   0.0    121    197    135    192     86    137     # 2340569 # 2341837 # -1 # ID=1_2491;partial=00;start_type=ATG;rbs_motif=None;rbs_spacer=None;gc_cont=0.559
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_73       3.4       8.5     2   0.1    255    283    262    280    137    155     # 85090 # 86406 # 1 # ID=1_73;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.554
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_76       1.8        26     2   0.0    271    306    287    304    138    155     # 88768 # 90243 # 1 # ID=1_76;partial=00;start_type=ATG;rbs_motif=3Base/5BMM;rbs_spacer=13-15bp;gc_cont=0.545
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_76      -0.1     1e+02     3   0.0    329    375    347    367    161    181     # 88768 # 90243 # 1 # ID=1_76;partial=00;start_type=ATG;rbs_motif=3Base/5BMM;rbs_spacer=13-15bp;gc_cont=0.545
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_71      -1.4   2.4e+02     1   0.0     39     75     45     69     11     35     # 82653 # 84011 # 1 # ID=1_71;partial=00;start_type=ATG;rbs_motif=GGxGG;rbs_spacer=5-10bp;gc_cont=0.551
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_2491    -1.7   3.2e+02     4   0.0    377    407    390    405    242    257     # 2340569 # 2341837 # -1 # ID=1_2491;partial=00;start_type=ATG;rbs_motif=None;rbs_spacer=None;gc_cont=0.559
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_4398    -3.4     1e+03     2   0.3    179    208    182    205    114    137     # 4265226 # 4266599 # -1 # ID=1_4398;partial=00;start_type=ATG;rbs_motif=AGGA;rbs_spacer=5-10bp;gc_cont=0.553
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_71      -4.1   1.7e+03     4   0.1    370    396    376    394    240    257     # 82653 # 84011 # 1 # ID=1_71;partial=00;start_type=ATG;rbs_motif=GGxGG;rbs_spacer=5-10bp;gc_cont=0.551
+#
+# Program:         hmmsearch
+# Version:         3.3.2 (Nov 2020)
+# Pipeline mode:   SEARCH
+# Query file:      /home/ai_center/ai_users/yairshimony/microbializer/pipeline/data/busco_hmms/POG091H0082.hmm
+# Target file:     /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_translated/Sboydii_Sb227.faa
+# Option settings: hmmsearch -o /dev/null --pfamtblout /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/03_genomes_completeness/individual_proteomes_outputs/Sboydii_Sb227/POG091H0082.txt --noali -E 0.1 /home/ai_center/ai_users/yairshimony/microbializer/pipeline/data/busco_hmms/POG091H0082.hmm /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_translated/Sboydii_Sb227.faa 
+# Current dir:     /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes
+# Date:            Sat Apr 19 01:54:10 2025
+# [ok]

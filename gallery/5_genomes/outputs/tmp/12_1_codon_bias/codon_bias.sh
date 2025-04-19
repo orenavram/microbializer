@@ -1,0 +1,5 @@
+source /home/ai_center/ai_users/yairshimony/miniconda/etc/profile.d/conda.sh
+conda activate /home/ai_center/ai_users/yairshimony/miniconda/envs/microbializer
+export PATH=$CONDA_PREFIX/bin:$PATH
+python /home/ai_center/ai_users/yairshimony/microbializer/pipeline/steps/codon_bias.py /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_sequences /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/08_1_orthogroups_fasta/orthogroups_dna /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/12_1_codon_bias /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/12_1_codon_bias/CAI_table.csv -v False --logs_dir /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/12_1_codon_bias --error_file_path /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs/error.txt --job_name codon_bias --use_job_manager True --cpus 20
+touch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/12_1_codon_bias/codon_bias.done

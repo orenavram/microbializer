@@ -1,0 +1,26 @@
+# Sequence scores
+# ---------------
+#
+# name                                             bits   E-value   n   exp  bias    description
+#                            ------------------- ------ --------- --- ----- -----    ---------------------
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_4503   274.9   1.4e-82   4   6.0   9.0    # 4799547 # 4800845 # 1 # ID=1_4503;partial=00;start_type=ATG;rbs_motif=None;rbs_spacer=None;gc_cont=0.538
+
+# Domain scores
+# -------------
+#
+#  name                                            bits   E-value   hit  bias env-st env-en ali-st ali-en hmm-st hmm-en     description
+#                            ------------------- ------ --------- ----- ----- ------ ------ ------ ------ ------ ------      ---------------------
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_4503   126.3   3.2e-37     3   0.8    178    365    192    351     86    213     # 4799547 # 4800845 # 1 # ID=1_4503;partial=00;start_type=ATG;rbs_motif=None;rbs_spacer=None;gc_cont=0.538
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_4503    75.2   1.2e-21     1   0.8      5     92      5     76      1     60     # 4799547 # 4800845 # 1 # ID=1_4503;partial=00;start_type=ATG;rbs_motif=None;rbs_spacer=None;gc_cont=0.538
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_4503    34.8   2.5e-09     2   0.0     87    167     95    156     58    106     # 4799547 # 4800845 # 1 # ID=1_4503;partial=00;start_type=ATG;rbs_motif=None;rbs_spacer=None;gc_cont=0.538
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_4503    32.6   1.2e-08     4   0.0    367    424    370    424    212    259     # 4799547 # 4800845 # 1 # ID=1_4503;partial=00;start_type=ATG;rbs_motif=None;rbs_spacer=None;gc_cont=0.538
+#
+# Program:         hmmsearch
+# Version:         3.3.2 (Nov 2020)
+# Pipeline mode:   SEARCH
+# Query file:      /home/ai_center/ai_users/yairshimony/microbializer/pipeline/data/busco_hmms/POG091H01G9.hmm
+# Target file:     /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_translated/Ecoli_JJ1886.faa
+# Option settings: hmmsearch -o /dev/null --pfamtblout /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/03_genomes_completeness/individual_proteomes_outputs/Ecoli_JJ1886/POG091H01G9.txt --noali -E 0.1 /home/ai_center/ai_users/yairshimony/microbializer/pipeline/data/busco_hmms/POG091H01G9.hmm /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_translated/Ecoli_JJ1886.faa 
+# Current dir:     /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes
+# Date:            Sat Apr 19 01:54:13 2025
+# [ok]

@@ -1,0 +1,1 @@
+/home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_2_mmseqs_rbh/Ecoli_JJ1886_vs_Ecoli_UMN026.m8	1.2150192915722289

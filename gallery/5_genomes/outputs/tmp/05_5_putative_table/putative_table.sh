@@ -1,0 +1,5 @@
+source /home/ai_center/ai_users/yairshimony/miniconda/etc/profile.d/conda.sh
+conda activate /home/ai_center/ai_users/yairshimony/miniconda/envs/microbializer
+export PATH=$CONDA_PREFIX/bin:$PATH
+python /home/ai_center/ai_users/yairshimony/microbializer/pipeline/steps/construct_putative_orthologs_table.py /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_4_normalize_scores /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_5_putative_table/putative_orthologs_table.csv -v False --logs_dir /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_5_putative_table --error_file_path /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs/error.txt --job_name putative_table --use_job_manager True --cpus 1
+touch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_5_putative_table/putative_table.done

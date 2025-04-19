@@ -1,0 +1,5 @@
+source /home/ai_center/ai_users/yairshimony/miniconda/etc/profile.d/conda.sh
+conda activate /home/ai_center/ai_users/yairshimony/miniconda/envs/microbializer
+export PATH=$CONDA_PREFIX/bin:$PATH
+python /home/ai_center/ai_users/yairshimony/microbializer/pipeline/steps/mmseqs_v4/mmseqs2_create_db.py /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_1_mmseqs_dbs/job_inputs/2.txt /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_translated /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_1_mmseqs_dbs -v False --logs_dir /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_1_mmseqs_dbs --error_file_path /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs/error.txt --job_name 2_mmseqs_dbs --use_job_manager True --cpus 1
+touch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_1_mmseqs_dbs/2_mmseqs_dbs.done

@@ -1,0 +1,5 @@
+source /home/ai_center/ai_users/yairshimony/miniconda/etc/profile.d/conda.sh
+conda activate /home/ai_center/ai_users/yairshimony/miniconda/envs/microbializer
+export PATH=$CONDA_PREFIX/bin:$PATH
+python /home/ai_center/ai_users/yairshimony/microbializer/pipeline/steps/extract_orphan_genes.py /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_9_orphan_genes/job_inputs/0.txt /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_8_verified_table/orthogroups.csv /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_9_orphan_genes/orphans_lists_per_genome -v False --logs_dir /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_9_orphan_genes --error_file_path /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs/error.txt --job_name 0_extract_orphans --use_job_manager True --cpus 1
+touch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_9_orphan_genes/0_extract_orphans.done

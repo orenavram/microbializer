@@ -1,0 +1,35 @@
+2025-04-19 01:54:04,848 INFO run_step_utils.py:64 Step 02_1_orfs took 0:00:30. There were 5 jobs and cumulatively they took 0:01:02 wallclock time (times 1 cpus used per job = 0:01:02 wallclock time). 
+2025-04-19 01:54:07,707 INFO main.py:159 Step 02_2_orfs_plots took 0:00:02.
+2025-04-19 01:54:08,152 INFO main.py:189 Step 02_3_concat_orfs took 0:00:00.
+2025-04-19 01:54:28,942 INFO run_step_utils.py:64 Step 03_genomes_completeness took 0:00:20. There were 5 jobs and cumulatively they took 0:00:45 wallclock time (times 1 cpus used per job = 0:00:45 wallclock time). 
+2025-04-19 01:54:29,941 INFO main.py:254 Step 03_genomes_completeness post-processing took 0:00:00.
+2025-04-19 01:54:50,768 INFO run_step_utils.py:64 Step 05_1_mmseqs_dbs took 0:00:20. There were 5 jobs and cumulatively they took 0:00:15 wallclock time (times 1 cpus used per job = 0:00:15 wallclock time). 
+2025-04-19 01:56:02,349 INFO run_step_utils.py:64 Step 05_2_mmseqs_rbh took 0:01:10. There were 10 jobs and cumulatively they took 0:08:28 wallclock time (times 1 cpus used per job = 0:08:28 wallclock time). 
+2025-04-19 01:56:43,153 INFO run_step_utils.py:64 Step 05_3_mmseqs_paralogs took 0:00:40. There were 5 jobs and cumulatively they took 0:02:07 wallclock time (times 1 cpus used per job = 0:02:07 wallclock time). 
+2025-04-19 01:56:43,230 INFO infer_orthogroups_logic.py:94 Step 05_4_normalize_scores pre-processing took 0:00:00.
+2025-04-19 01:57:04,713 INFO run_step_utils.py:64 Step 05_4_normalize_scores took 0:00:20. There were 10 jobs and cumulatively they took 0:00:12 wallclock time (times 1 cpus used per job = 0:00:12 wallclock time). 
+2025-04-19 01:57:24,801 INFO run_step_utils.py:64 Step 05_5_putative_table took 0:00:20. There were 1 jobs and cumulatively they took 0:00:02 wallclock time (times 1 cpus used per job = 0:00:02 wallclock time). 
+2025-04-19 01:57:25,542 INFO infer_orthogroups_logic.py:161 Step 05_6_mcl_input_files pre-processing time took 0:00:00.
+2025-04-19 01:57:53,178 INFO run_step_utils.py:64 Step 05_6_mcl_input_files took 0:00:20. There were 50 jobs and cumulatively they took 0:02:20 wallclock time (times 1 cpus used per job = 0:02:20 wallclock time). 
+2025-04-19 01:57:53,845 INFO infer_orthogroups_logic.py:200 Step 05_7_mcl_analysis pre-processing time took 0:00:00.
+2025-04-19 01:58:22,508 INFO run_step_utils.py:64 Step 05_7_mcl_analysis took 0:00:20. There were 50 jobs and cumulatively they took 0:04:23 wallclock time (times 1 cpus used per job = 0:04:23 wallclock time). 
+2025-04-19 01:58:42,597 INFO run_step_utils.py:64 Step 05_8_verified_table took 0:00:20. There were 1 jobs and cumulatively they took 0:00:04 wallclock time (times 1 cpus used per job = 0:00:04 wallclock time). 
+2025-04-19 01:59:03,387 INFO run_step_utils.py:64 Step 05_9_orphan_genes took 0:00:20. There were 5 jobs and cumulatively they took 0:00:10 wallclock time (times 1 cpus used per job = 0:00:10 wallclock time). 
+2025-04-19 01:59:04,297 INFO infer_orthogroups_logic.py:277 Step 05_9_orphan_genes post-processing took 0:00:00.
+2025-04-19 01:59:24,549 INFO run_step_utils.py:64 Step 07_1_orthoxml took 0:00:20. There were 1 jobs and cumulatively they took 0:00:05 wallclock time (times 1 cpus used per job = 0:00:05 wallclock time). 
+2025-04-19 01:59:54,823 INFO run_step_utils.py:64 Step 07_2_orthogroups_visualizations took 0:00:30. There were 1 jobs and cumulatively they took 0:00:18 wallclock time (times 1 cpus used per job = 0:00:18 wallclock time). 
+2025-04-19 01:59:55,851 INFO main.py:598 Step 08_1_orthogroups_fasta pre-processing time took 0:00:00.
+2025-04-19 02:01:54,819 INFO run_step_utils.py:64 Step 08_1_orthogroups_fasta took 0:01:50. There were 50 jobs and cumulatively they took 1:02:17 wallclock time (times 1 cpus used per job = 1:02:17 wallclock time). 
+2025-04-19 02:04:10,515 INFO run_step_utils.py:64 Step 09_1_aligned_core_proteome took 0:00:20. There were 1 jobs and cumulatively they took 0:00:07 wallclock time (times 1 cpus used per job = 0:00:07 wallclock time). 
+2025-04-19 02:04:20,729 INFO run_step_utils.py:64 Step 09_2_aligned_core_genome took 0:00:10. There were 1 jobs and cumulatively they took 0:00:11 wallclock time (times 1 cpus used per job = 0:00:11 wallclock time). 
+2025-04-19 02:04:31,172 INFO run_step_utils.py:64 Step 09_3_aligned_core_proteome_reduced took 0:00:10. There were 1 jobs and cumulatively they took 0:00:04 wallclock time (times 1 cpus used per job = 0:00:04 wallclock time). 
+2025-04-19 02:04:51,278 INFO run_step_utils.py:64 Step 10_genome_numeric_representation took 0:00:20. There were 1 jobs and cumulatively they took 0:00:01 wallclock time (times 1 cpus used per job = 0:00:01 wallclock time). 
+2025-04-19 02:05:22,208 INFO run_step_utils.py:64 Step 11_2_species_phylogeny took 0:00:30. There were 1 jobs and cumulatively they took 0:00:11 wallclock time (times 20 cpus used per job = 0:03:40 wallclock time). 
+2025-04-19 02:05:32,297 INFO run_step_utils.py:64 Step 11_1_ani took 0:00:10. There were 1 jobs and cumulatively they took 0:00:22 wallclock time (times 20 cpus used per job = 0:07:20 wallclock time). 
+2025-04-19 02:06:02,537 INFO run_step_utils.py:64 Step 12_1_codon_bias took 0:00:30. There were 1 jobs and cumulatively they took 0:00:13 wallclock time (times 20 cpus used per job = 0:04:20 wallclock time). 
+2025-04-19 02:13:53,113 INFO run_step_utils.py:64 Step 12_2_kegg took 0:07:50. There were 1 jobs and cumulatively they took 0:08:07 wallclock time (times 20 cpus used per job = 2:42:20 wallclock time). 
+2025-04-19 02:13:53,220 INFO main.py:954 Step 12_3_orthogroups_annotations took 0:00:00.
+2025-04-19 02:14:27,703 INFO main.py:1090 Total pipeline time: 0:20:56. Done
+2025-04-19 02:55:09,238 INFO run_step_utils.py:64 Step 02_1_orfs took 0:00:30. There were 5 jobs and cumulatively they took 0:00:48 wallclock time (times 1 cpus used per job = 0:00:48 wallclock time). 
+2025-04-19 02:55:11,801 INFO main.py:159 Step 02_2_orfs_plots took 0:00:01.
+2025-04-19 02:55:49,706 INFO main.py:1090 Total pipeline time: 0:01:11. Done

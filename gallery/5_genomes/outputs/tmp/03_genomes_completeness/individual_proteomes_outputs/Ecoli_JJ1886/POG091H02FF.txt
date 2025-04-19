@@ -1,0 +1,48 @@
+# Sequence scores
+# ---------------
+#
+# name                                             bits   E-value   n   exp  bias    description
+#                            ------------------- ------ --------- --- ----- -----    ---------------------
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_3998   295.4   1.2e-88   1   1.9   0.4    # 4220917 # 4222320 # -1 # ID=1_3998;partial=00;start_type=GTG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.540
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_2656    29.1   1.9e-07   1   1.2   0.0    # 2787132 # 2787878 # -1 # ID=1_2656;partial=00;start_type=GTG;rbs_motif=GGA/GAG/AGG;rbs_spacer=3-4bp;gc_cont=0.534
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_4790    23.4     1e-05   1   1.6   0.0    # 5088784 # 5089521 # -1 # ID=1_4790;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.511
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_1385    23.0   1.4e-05   1   1.4   0.0    # 1444867 # 1445613 # 1 # ID=1_1385;partial=00;start_type=ATG;rbs_motif=AGxAGG/AGGxGG;rbs_spacer=5-10bp;gc_cont=0.523
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_2183    20.3   9.2e-05   1   1.3   0.0    # 2255846 # 2256538 # -1 # ID=1_2183;partial=00;start_type=ATG;rbs_motif=AGGAG;rbs_spacer=5-10bp;gc_cont=0.508
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_1917    18.3   0.00039   1   1.3   0.0    # 2002472 # 2003482 # -1 # ID=1_1917;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.522
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_852     18.2   0.00041   1   1.5   0.0    # 944586 # 945929 # 1 # ID=1_852;partial=00;start_type=GTG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.535
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_1431    18.1   0.00043   2   1.7   0.1    # 1485115 # 1485861 # 1 # ID=1_1431;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.486
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_2198    18.1   0.00043   2   1.7   0.1    # 2273732 # 2274478 # 1 # ID=1_2198;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.486
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_3002    18.1   0.00043   2   1.7   0.1    # 3162515 # 3163261 # 1 # ID=1_3002;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.486
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_2747    14.3    0.0061   3   2.5   0.0    # 2906191 # 2908764 # -1 # ID=1_2747;partial=00;start_type=ATG;rbs_motif=GGAGG;rbs_spacer=3-4bp;gc_cont=0.511
+
+# Domain scores
+# -------------
+#
+#  name                                            bits   E-value   hit  bias env-st env-en ali-st ali-en hmm-st hmm-en     description
+#                            ------------------- ------ --------- ----- ----- ------ ------ ------ ------ ------ ------      ---------------------
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_3998   293.4   4.8e-88     1   0.4    124    445    128    445     17    270     # 4220917 # 4222320 # -1 # ID=1_3998;partial=00;start_type=GTG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.540
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_2656    28.7   2.5e-07     1   0.0     10    195     18    158     11    143     # 2787132 # 2787878 # -1 # ID=1_2656;partial=00;start_type=GTG;rbs_motif=GGA/GAG/AGG;rbs_spacer=3-4bp;gc_cont=0.534
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_1385    22.4   2.2e-05     1   0.0     63    212    103    183     49    120     # 1444867 # 1445613 # 1 # ID=1_1385;partial=00;start_type=ATG;rbs_motif=AGxAGG/AGGxGG;rbs_spacer=5-10bp;gc_cont=0.523
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_4790    22.1   2.6e-05     1   0.0     97    214    101    149     49     98     # 5088784 # 5089521 # -1 # ID=1_4790;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.511
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_2183    19.9   0.00012     1   0.0     53    176     79    154     25     99     # 2255846 # 2256538 # -1 # ID=1_2183;partial=00;start_type=ATG;rbs_motif=AGGAG;rbs_spacer=5-10bp;gc_cont=0.508
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_1917    17.6   0.00063     1   0.0     23    137     54    119     46    113     # 2002472 # 2003482 # -1 # ID=1_1917;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.522
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_852     17.0   0.00095     1   0.0     37    182     51    168     48    162     # 944586 # 945929 # 1 # ID=1_852;partial=00;start_type=GTG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.535
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_1431    16.6    0.0012     2   0.0     95    176     99    151     48    100     # 1485115 # 1485861 # 1 # ID=1_1431;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.486
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_2198    16.6    0.0012     2   0.0     95    176     99    151     48    100     # 2273732 # 2274478 # 1 # ID=1_2198;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.486
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_3002    16.6    0.0012     2   0.0     95    176     99    151     48    100     # 3162515 # 3163261 # 1 # ID=1_3002;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.486
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_2747    11.3     0.053     3   0.0    598    646    601    640     50     89     # 2906191 # 2908764 # -1 # ID=1_2747;partial=00;start_type=ATG;rbs_motif=GGAGG;rbs_spacer=3-4bp;gc_cont=0.511
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_2747    -1.3   3.7e+02     1   0.0    194    228    200    223     48     71     # 2906191 # 2908764 # -1 # ID=1_2747;partial=00;start_type=ATG;rbs_motif=GGAGG;rbs_spacer=3-4bp;gc_cont=0.511
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_1431    -1.8   5.2e+02     1   0.1     16     74     31     65    157    198     # 1485115 # 1485861 # 1 # ID=1_1431;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.486
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_2198    -1.8   5.2e+02     1   0.1     16     74     31     65    157    198     # 2273732 # 2274478 # 1 # ID=1_2198;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.486
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_3002    -1.8   5.2e+02     1   0.1     16     74     31     65    157    198     # 3162515 # 3163261 # 1 # ID=1_3002;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.486
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_2747    -3.8   2.1e+03     2   0.0    503    559    525    555    198    228     # 2906191 # 2908764 # -1 # ID=1_2747;partial=00;start_type=ATG;rbs_motif=GGAGG;rbs_spacer=3-4bp;gc_cont=0.511
+#
+# Program:         hmmsearch
+# Version:         3.3.2 (Nov 2020)
+# Pipeline mode:   SEARCH
+# Query file:      /home/ai_center/ai_users/yairshimony/microbializer/pipeline/data/busco_hmms/POG091H02FF.hmm
+# Target file:     /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_translated/Ecoli_JJ1886.faa
+# Option settings: hmmsearch -o /dev/null --pfamtblout /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/03_genomes_completeness/individual_proteomes_outputs/Ecoli_JJ1886/POG091H02FF.txt --noali -E 0.1 /home/ai_center/ai_users/yairshimony/microbializer/pipeline/data/busco_hmms/POG091H02FF.hmm /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_translated/Ecoli_JJ1886.faa 
+# Current dir:     /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes
+# Date:            Sat Apr 19 01:54:16 2025
+# [ok]

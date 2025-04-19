@@ -1,0 +1,30 @@
+# Sequence scores
+# ---------------
+#
+# name                                                 bits   E-value   n   exp  bias    description
+#                                ------------------- ------ --------- --- ----- -----    ---------------------
+Sflexneri_5_8401:gi|110804074|ref|NC_008258.1|_93     683.6  4.5e-206   5   5.6  22.7    # 106567 # 109272 # 1 # ID=1_93;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.523
+Sflexneri_5_8401:gi|110804074|ref|NC_008258.1|_4118    13.1     0.006   2   1.4   0.1    # 3980779 # 3982860 # -1 # ID=1_4118;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.570
+
+# Domain scores
+# -------------
+#
+#  name                                                bits   E-value   hit  bias env-st env-en ali-st ali-en hmm-st hmm-en     description
+#                                ------------------- ------ --------- ----- ----- ------ ------ ------ ------ ------ ------      ---------------------
+Sflexneri_5_8401:gi|110804074|ref|NC_008258.1|_93     266.0   1.4e-79     3   1.8    301    522    309    518    205    390     # 106567 # 109272 # 1 # ID=1_93;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.523
+Sflexneri_5_8401:gi|110804074|ref|NC_008258.1|_93     262.6   1.5e-78     1   0.0     20    242     40    230     20    188     # 106567 # 109272 # 1 # ID=1_93;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.523
+Sflexneri_5_8401:gi|110804074|ref|NC_008258.1|_93     129.2   3.9e-38     4   3.9    545    700    550    682    390    504     # 106567 # 109272 # 1 # ID=1_93;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.523
+Sflexneri_5_8401:gi|110804074|ref|NC_008258.1|_93      31.1   2.2e-08     5   0.5    730    821    741    819    478    549     # 106567 # 109272 # 1 # ID=1_93;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.523
+Sflexneri_5_8401:gi|110804074|ref|NC_008258.1|_4118    12.1     0.012     1   0.0    272    356    297    350     77    129     # 3980779 # 3982860 # -1 # ID=1_4118;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.570
+Sflexneri_5_8401:gi|110804074|ref|NC_008258.1|_93       2.8       7.7     2   0.0    259    298    261    279    185    203     # 106567 # 109272 # 1 # ID=1_93;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.523
+Sflexneri_5_8401:gi|110804074|ref|NC_008258.1|_4118    -3.9   8.3e+02     2   0.0    547    589    564    587    394    416     # 3980779 # 3982860 # -1 # ID=1_4118;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.570
+#
+# Program:         hmmsearch
+# Version:         3.3.2 (Nov 2020)
+# Pipeline mode:   SEARCH
+# Query file:      /home/ai_center/ai_users/yairshimony/microbializer/pipeline/data/busco_hmms/POG091H01RS.hmm
+# Target file:     /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_translated/Sflexneri_5_8401.faa
+# Option settings: hmmsearch -o /dev/null --pfamtblout /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/03_genomes_completeness/individual_proteomes_outputs/Sflexneri_5_8401/POG091H01RS.txt --noali -E 0.1 /home/ai_center/ai_users/yairshimony/microbializer/pipeline/data/busco_hmms/POG091H01RS.hmm /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_translated/Sflexneri_5_8401.faa 
+# Current dir:     /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes
+# Date:            Sat Apr 19 01:54:13 2025
+# [ok]

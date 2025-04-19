@@ -1,0 +1,7 @@
+Job ID: 551265
+Running on nodes: rack-iscb-31
+Memory per node: 4096 MB
+Allocated CPUs: 1
+Job name: microbializer
+sys.path is
+['/home/ai_center/ai_users/yairshimony/microbializer/pipeline', '/home/ai_center/ai_users/yairshimony/miniconda/envs/microbializer/lib/python38.zip', '/home/ai_center/ai_users/yairshimony/miniconda/envs/microbializer/lib/python3.8', '/home/ai_center/ai_users/yairshimony/miniconda/envs/microbializer/lib/python3.8/lib-dynload', '/home/ai_center/ai_users/yairshimony/miniconda/envs/microbializer/lib/python3.8/site-packages', '/home/ai_center/ai_users/yairshimony/microbializer', '/home/ai_center/ai_users/yairshimony/microbializer', '/home/ai_center/ai_users/yairshimony/microbializer']

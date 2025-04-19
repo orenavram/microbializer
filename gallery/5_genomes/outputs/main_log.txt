@@ -1,0 +1,782 @@
+2025-04-19 01:53:31,339 INFO configuration.py:349 Namespace(account_name='gpu-research', add_orphan_genes_to_ogs=False, always_run_full_orthogroups_inference=False, args_json_path='/home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/input_parameters.json', bootstrap=True, bypass_number_of_genomes_limit=False, clean_intermediate_outputs=False, contigs_dir='', core_minimal_percentage=100.0, coverage_cutoff=70.0, do_not_copy_outputs_to_final_results_dir=False, e_value_cutoff=0.01, email='test@gmail.com', filter_out_plasmids=False, genomes_batch_size=50, genomes_batch_size_calc_method='min_comparisons', identity_cutoff=40.0, inputs_fasta_type='genomes', job_name='test_5_genomes', kegg_optimization_mode='consensus_of_og', max_number_of_core_ogs_for_phylogeny=1000, max_parallel_jobs=50, min_num_of_genomes_to_optimize_orthogroups_inference=150, node_name='', only_calc_ogs=False, outgroup='', output_dir='outputs', pseudo_genome_mode='first_gene', qfo_benchmark=False, queue_name='cpu-killable', run_dir='/home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/', run_optimized_mmseqs=False, sensitivity=5.7, step_to_complete='', use_job_manager=True, use_parquet=True, verbose=False)
+2025-04-19 01:53:31,340 INFO configuration.py:350 run_dir is: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes
+2025-04-19 01:53:31,340 INFO configuration.py:351 Created output_dir in: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs
+2025-04-19 01:53:31,340 INFO configuration.py:355 Creating final_output_dir is: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs
+2025-04-19 01:53:31,342 INFO configuration.py:362 run_number is 5_genomes
+2025-04-19 01:53:31,342 INFO configuration.py:365 Creating tmp_dir in: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp
+2025-04-19 01:53:31,344 INFO configuration.py:369 Creating done_files_dir in: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done
+2025-04-19 01:53:31,347 INFO configuration.py:373 Creating results_dir in: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results
+2025-04-19 01:53:31,364 INFO input_verifications.py:36 Examining /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/genomes.zip..
+2025-04-19 01:53:31,382 INFO input_verifications.py:109 UnZIPing /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/genomes.zip using shutil.unpack_archive...
+2025-04-19 01:53:32,074 INFO input_verifications.py:111 Succeeded unZIPing /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/genomes.zip to /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/data
+2025-04-19 01:53:32,076 INFO input_verifications.py:139 Updated data_path is: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/data
+2025-04-19 01:53:32,822 INFO input_verifications.py:45 Copied /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/data to /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/inputs
+2025-04-19 01:53:32,825 INFO input_verifications.py:60 Number of genomes to analyze is 5
+2025-04-19 01:53:32,825 INFO input_verifications.py:61 data_path contains the following 5 files: [PosixPath('/home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/inputs/Ecoli_APEC_O1.fna'), PosixPath('/home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/inputs/Ecoli_JJ1886.fna'), PosixPath('/home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/inputs/Ecoli_UMN026.fna'), PosixPath('/home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/inputs/Sboydii_Sb227.fna'), PosixPath('/home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/inputs/Sflexneri_5_8401.fna')]
+2025-04-19 01:53:34,004 INFO general_utils.py:51 /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/00_prepare_and_verify_inputs.txt was generated.
+2025-04-19 01:53:34,049 INFO main.py:87 Step 02_1: ____________________________________________________________________________________________________
+2025-04-19 01:53:34,049 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs
+2025-04-19 01:53:34,050 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/02_1_orfs
+2025-04-19 01:53:34,054 INFO main.py:96 Extracting ORFs...
+2025-04-19 01:53:34,112 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/02_1_orfs/0_search_orfs.slurm 
+2025-04-19 01:53:34,152 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/02_1_orfs/0_search_orfs.slurm submitted successfully
+2025-04-19 01:53:34,265 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/02_1_orfs/1_search_orfs.slurm 
+2025-04-19 01:53:34,294 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/02_1_orfs/1_search_orfs.slurm submitted successfully
+2025-04-19 01:53:34,405 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/02_1_orfs/2_search_orfs.slurm 
+2025-04-19 01:53:34,432 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/02_1_orfs/2_search_orfs.slurm submitted successfully
+2025-04-19 01:53:34,543 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/02_1_orfs/3_search_orfs.slurm 
+2025-04-19 01:53:34,568 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/02_1_orfs/3_search_orfs.slurm submitted successfully
+2025-04-19 01:53:34,680 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/02_1_orfs/4_search_orfs.slurm 
+2025-04-19 01:53:34,708 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/02_1_orfs/4_search_orfs.slurm submitted successfully
+2025-04-19 01:53:34,809 INFO run_step_utils.py:34 Waiting for 02_1_orfs... Continues when 5 results will be in: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/02_1_orfs
+2025-04-19 01:54:04,844 INFO run_step_utils.py:57 Done waiting for: 02_1_orfs (took 0:00:30).
+2025-04-19 01:54:04,850 INFO main_utils.py:103 Copying /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_sequences TO /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs/02a_orfs
+2025-04-19 01:54:05,113 INFO main_utils.py:103 Copying /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_translated TO /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs/02c_translated_orfs
+2025-04-19 01:54:05,609 INFO general_utils.py:51 /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/02_1_orfs.txt was generated.
+2025-04-19 01:54:05,610 INFO main.py:135 Step 02_2: ____________________________________________________________________________________________________
+2025-04-19 01:54:05,610 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_2_orfs_plots
+2025-04-19 01:54:05,612 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/02_2_orfs_plots
+2025-04-19 01:54:05,628 INFO main.py:141 Concatenating orfs counts and gc contents...
+2025-04-19 01:54:07,708 INFO main_utils.py:103 Copying /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_2_orfs_plots TO /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs/02b_orfs_plots
+2025-04-19 01:54:07,742 INFO general_utils.py:51 /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/02_2_orfs_plots.txt was generated.
+2025-04-19 01:54:07,743 INFO main.py:169 Step 02_3: ____________________________________________________________________________________________________
+2025-04-19 01:54:07,743 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_3_concat_orfs
+2025-04-19 01:54:07,744 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/02_3_concat_orfs
+2025-04-19 01:54:07,747 INFO main.py:177 Concatenating ORFs sequences...
+2025-04-19 01:54:07,747 INFO main.py:181 Calling: cat /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_sequences/* > /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_3_concat_orfs/all_orfs.fna
+2025-04-19 01:54:08,004 INFO main.py:185 Calling: cat /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_translated/* > /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_3_concat_orfs/all_proteomes.faa
+2025-04-19 01:54:08,154 INFO general_utils.py:51 /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/02_3_concat_orfs.txt was generated.
+2025-04-19 01:54:08,164 INFO main.py:206 Step 03: ____________________________________________________________________________________________________
+2025-04-19 01:54:08,164 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/03_genomes_completeness
+2025-04-19 01:54:08,166 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/03_genomes_completeness
+2025-04-19 01:54:08,183 INFO main.py:213 Calculating genomes completeness...
+2025-04-19 01:54:08,222 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/03_genomes_completeness/0_genomes_completeness.slurm 
+2025-04-19 01:54:08,250 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/03_genomes_completeness/0_genomes_completeness.slurm submitted successfully
+2025-04-19 01:54:08,364 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/03_genomes_completeness/1_genomes_completeness.slurm 
+2025-04-19 01:54:08,394 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/03_genomes_completeness/1_genomes_completeness.slurm submitted successfully
+2025-04-19 01:54:08,507 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/03_genomes_completeness/2_genomes_completeness.slurm 
+2025-04-19 01:54:08,533 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/03_genomes_completeness/2_genomes_completeness.slurm submitted successfully
+2025-04-19 01:54:08,645 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/03_genomes_completeness/3_genomes_completeness.slurm 
+2025-04-19 01:54:08,671 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/03_genomes_completeness/3_genomes_completeness.slurm submitted successfully
+2025-04-19 01:54:08,783 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/03_genomes_completeness/4_genomes_completeness.slurm 
+2025-04-19 01:54:08,811 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/03_genomes_completeness/4_genomes_completeness.slurm submitted successfully
+2025-04-19 01:54:08,912 INFO run_step_utils.py:34 Waiting for 03_genomes_completeness... Continues when 5 results will be in: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/03_genomes_completeness
+2025-04-19 01:54:28,935 INFO run_step_utils.py:57 Done waiting for: 03_genomes_completeness (took 0:00:20).
+2025-04-19 01:54:29,941 INFO main_utils.py:103 Copying /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/03_genomes_completeness TO /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs/03_genomes_completeness
+2025-04-19 01:54:29,978 INFO general_utils.py:51 /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/03_genomes_completeness.txt was generated.
+2025-04-19 01:54:29,984 INFO main_utils.py:150 Calculated genomes batch size: 3, according to method: min_comparisons and number of genomes: 5
+2025-04-19 01:54:29,984 INFO infer_orthogroups_logic.py:470 Step 05_1: ____________________________________________________________________________________________________
+2025-04-19 01:54:29,985 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_1_mmseqs_dbs
+2025-04-19 01:54:29,986 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_1_mmseqs_dbs
+2025-04-19 01:54:29,991 INFO infer_orthogroups_logic.py:477 Creating mmseqs dbs...
+2025-04-19 01:54:30,051 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_1_mmseqs_dbs/0_mmseqs_dbs.slurm 
+2025-04-19 01:54:30,089 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_1_mmseqs_dbs/0_mmseqs_dbs.slurm submitted successfully
+2025-04-19 01:54:30,200 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_1_mmseqs_dbs/1_mmseqs_dbs.slurm 
+2025-04-19 01:54:30,227 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_1_mmseqs_dbs/1_mmseqs_dbs.slurm submitted successfully
+2025-04-19 01:54:30,338 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_1_mmseqs_dbs/2_mmseqs_dbs.slurm 
+2025-04-19 01:54:30,365 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_1_mmseqs_dbs/2_mmseqs_dbs.slurm submitted successfully
+2025-04-19 01:54:30,475 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_1_mmseqs_dbs/3_mmseqs_dbs.slurm 
+2025-04-19 01:54:30,502 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_1_mmseqs_dbs/3_mmseqs_dbs.slurm submitted successfully
+2025-04-19 01:54:30,613 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_1_mmseqs_dbs/4_mmseqs_dbs.slurm 
+2025-04-19 01:54:30,640 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_1_mmseqs_dbs/4_mmseqs_dbs.slurm submitted successfully
+2025-04-19 01:54:30,741 INFO run_step_utils.py:34 Waiting for 05_1_mmseqs_dbs... Continues when 5 results will be in: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_1_mmseqs_dbs
+2025-04-19 01:54:50,764 INFO run_step_utils.py:57 Done waiting for: 05_1_mmseqs_dbs (took 0:00:20).
+2025-04-19 01:54:50,771 INFO general_utils.py:51 /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/05_1_mmseqs_dbs.txt was generated.
+2025-04-19 01:54:50,771 INFO infer_orthogroups_logic.py:509 Step 05_2: ____________________________________________________________________________________________________
+2025-04-19 01:54:50,771 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_2_mmseqs_rbh
+2025-04-19 01:54:50,774 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_2_mmseqs_rbh
+2025-04-19 01:54:50,781 INFO infer_orthogroups_logic.py:521 Querying all VS all (using mmseqs2)...
+2025-04-19 01:54:50,832 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_2_mmseqs_rbh/0_rbh_analysis.slurm 
+2025-04-19 01:54:50,865 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_2_mmseqs_rbh/0_rbh_analysis.slurm submitted successfully
+2025-04-19 01:54:50,976 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_2_mmseqs_rbh/1_rbh_analysis.slurm 
+2025-04-19 01:54:51,005 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_2_mmseqs_rbh/1_rbh_analysis.slurm submitted successfully
+2025-04-19 01:54:51,118 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_2_mmseqs_rbh/2_rbh_analysis.slurm 
+2025-04-19 01:54:51,149 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_2_mmseqs_rbh/2_rbh_analysis.slurm submitted successfully
+2025-04-19 01:54:51,261 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_2_mmseqs_rbh/3_rbh_analysis.slurm 
+2025-04-19 01:54:51,290 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_2_mmseqs_rbh/3_rbh_analysis.slurm submitted successfully
+2025-04-19 01:54:51,403 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_2_mmseqs_rbh/4_rbh_analysis.slurm 
+2025-04-19 01:54:51,434 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_2_mmseqs_rbh/4_rbh_analysis.slurm submitted successfully
+2025-04-19 01:54:51,549 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_2_mmseqs_rbh/5_rbh_analysis.slurm 
+2025-04-19 01:54:51,581 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_2_mmseqs_rbh/5_rbh_analysis.slurm submitted successfully
+2025-04-19 01:54:51,695 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_2_mmseqs_rbh/6_rbh_analysis.slurm 
+2025-04-19 01:54:51,726 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_2_mmseqs_rbh/6_rbh_analysis.slurm submitted successfully
+2025-04-19 01:54:51,840 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_2_mmseqs_rbh/7_rbh_analysis.slurm 
+2025-04-19 01:54:51,870 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_2_mmseqs_rbh/7_rbh_analysis.slurm submitted successfully
+2025-04-19 01:54:51,983 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_2_mmseqs_rbh/8_rbh_analysis.slurm 
+2025-04-19 01:54:52,014 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_2_mmseqs_rbh/8_rbh_analysis.slurm submitted successfully
+2025-04-19 01:54:52,129 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_2_mmseqs_rbh/9_rbh_analysis.slurm 
+2025-04-19 01:54:52,161 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_2_mmseqs_rbh/9_rbh_analysis.slurm submitted successfully
+2025-04-19 01:54:52,261 INFO run_step_utils.py:34 Waiting for 05_2_mmseqs_rbh... Continues when 10 results will be in: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_2_mmseqs_rbh
+2025-04-19 01:55:42,318 INFO run_step_utils.py:51 	0:00:50 have passed since started waiting (10 - 0 = 10 more files are still missing)
+2025-04-19 01:56:02,341 INFO run_step_utils.py:57 Done waiting for: 05_2_mmseqs_rbh (took 0:01:10).
+2025-04-19 01:56:02,352 INFO general_utils.py:51 /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/05_2_mmseqs_rbh.txt was generated.
+2025-04-19 01:56:02,352 INFO infer_orthogroups_logic.py:569 Step 05_3: ____________________________________________________________________________________________________
+2025-04-19 01:56:02,352 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_3_mmseqs_paralogs
+2025-04-19 01:56:02,354 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_3_mmseqs_paralogs
+2025-04-19 01:56:02,361 INFO infer_orthogroups_logic.py:580 Searching for paralogs in each genome
+2025-04-19 01:56:02,392 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_3_mmseqs_paralogs/0_paralogs_analysis.slurm 
+2025-04-19 01:56:02,429 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_3_mmseqs_paralogs/0_paralogs_analysis.slurm submitted successfully
+2025-04-19 01:56:02,544 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_3_mmseqs_paralogs/1_paralogs_analysis.slurm 
+2025-04-19 01:56:02,570 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_3_mmseqs_paralogs/1_paralogs_analysis.slurm submitted successfully
+2025-04-19 01:56:02,684 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_3_mmseqs_paralogs/2_paralogs_analysis.slurm 
+2025-04-19 01:56:02,713 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_3_mmseqs_paralogs/2_paralogs_analysis.slurm submitted successfully
+2025-04-19 01:56:02,826 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_3_mmseqs_paralogs/3_paralogs_analysis.slurm 
+2025-04-19 01:56:02,856 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_3_mmseqs_paralogs/3_paralogs_analysis.slurm submitted successfully
+2025-04-19 01:56:02,969 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_3_mmseqs_paralogs/4_paralogs_analysis.slurm 
+2025-04-19 01:56:02,997 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_3_mmseqs_paralogs/4_paralogs_analysis.slurm submitted successfully
+2025-04-19 01:56:03,098 INFO run_step_utils.py:34 Waiting for 05_3_mmseqs_paralogs... Continues when 5 results will be in: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_3_mmseqs_paralogs
+2025-04-19 01:56:43,148 INFO run_step_utils.py:57 Done waiting for: 05_3_mmseqs_paralogs (took 0:00:40).
+2025-04-19 01:56:43,155 INFO general_utils.py:51 /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/05_3_mmseqs_paralogs.txt was generated.
+2025-04-19 01:56:43,155 INFO infer_orthogroups_logic.py:52 Step 05_4: ____________________________________________________________________________________________________
+2025-04-19 01:56:43,155 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_4_normalize_scores
+2025-04-19 01:56:43,158 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_4_normalize_scores
+2025-04-19 01:56:43,162 INFO infer_orthogroups_logic.py:58 Start normalizing hits scores...
+2025-04-19 01:56:43,245 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_4_normalize_scores/0_hits_normalize.slurm 
+2025-04-19 01:56:43,274 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_4_normalize_scores/0_hits_normalize.slurm submitted successfully
+2025-04-19 01:56:43,386 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_4_normalize_scores/1_hits_normalize.slurm 
+2025-04-19 01:56:43,414 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_4_normalize_scores/1_hits_normalize.slurm submitted successfully
+2025-04-19 01:56:43,526 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_4_normalize_scores/2_hits_normalize.slurm 
+2025-04-19 01:56:43,553 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_4_normalize_scores/2_hits_normalize.slurm submitted successfully
+2025-04-19 01:56:43,667 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_4_normalize_scores/3_hits_normalize.slurm 
+2025-04-19 01:56:43,698 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_4_normalize_scores/3_hits_normalize.slurm submitted successfully
+2025-04-19 01:56:43,814 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_4_normalize_scores/4_hits_normalize.slurm 
+2025-04-19 01:56:43,852 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_4_normalize_scores/4_hits_normalize.slurm submitted successfully
+2025-04-19 01:56:43,968 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_4_normalize_scores/5_hits_normalize.slurm 
+2025-04-19 01:56:44,002 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_4_normalize_scores/5_hits_normalize.slurm submitted successfully
+2025-04-19 01:56:44,117 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_4_normalize_scores/6_hits_normalize.slurm 
+2025-04-19 01:56:44,148 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_4_normalize_scores/6_hits_normalize.slurm submitted successfully
+2025-04-19 01:56:44,260 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_4_normalize_scores/7_hits_normalize.slurm 
+2025-04-19 01:56:44,292 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_4_normalize_scores/7_hits_normalize.slurm submitted successfully
+2025-04-19 01:56:44,405 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_4_normalize_scores/8_hits_normalize.slurm 
+2025-04-19 01:56:44,436 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_4_normalize_scores/8_hits_normalize.slurm submitted successfully
+2025-04-19 01:56:44,549 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_4_normalize_scores/9_hits_normalize.slurm 
+2025-04-19 01:56:44,576 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_4_normalize_scores/9_hits_normalize.slurm submitted successfully
+2025-04-19 01:56:44,677 INFO run_step_utils.py:34 Waiting for 05_4_normalize_scores... Continues when 10 results will be in: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_4_normalize_scores
+2025-04-19 01:57:04,701 INFO run_step_utils.py:57 Done waiting for: 05_4_normalize_scores (took 0:00:20).
+2025-04-19 01:57:04,718 INFO general_utils.py:51 /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/05_4_normalize_scores.txt was generated.
+2025-04-19 01:57:04,718 INFO infer_orthogroups_logic.py:111 Step 05_5: ____________________________________________________________________________________________________
+2025-04-19 01:57:04,719 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_5_putative_table
+2025-04-19 01:57:04,721 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_5_putative_table
+2025-04-19 01:57:04,724 INFO infer_orthogroups_logic.py:119 Constructing putative orthologs table...
+2025-04-19 01:57:04,742 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_5_putative_table/putative_table.slurm 
+2025-04-19 01:57:04,776 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_5_putative_table/putative_table.slurm submitted successfully
+2025-04-19 01:57:04,776 INFO run_step_utils.py:34 Waiting for 05_5_putative_table... Continues when 1 results will be in: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_5_putative_table
+2025-04-19 01:57:24,799 INFO run_step_utils.py:57 Done waiting for: 05_5_putative_table (took 0:00:20).
+2025-04-19 01:57:24,803 INFO general_utils.py:51 /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/05_5_putative_table.txt was generated.
+2025-04-19 01:57:24,849 INFO infer_orthogroups_logic.py:142 Step 05_6: ____________________________________________________________________________________________________
+2025-04-19 01:57:24,849 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files
+2025-04-19 01:57:24,850 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files
+2025-04-19 01:57:24,856 INFO infer_orthogroups_logic.py:149 Preparing jobs inputs for prepare_og_for_mcl...
+2025-04-19 01:57:25,542 INFO infer_orthogroups_logic.py:159 Done preparing jobs inputs for prepare_og_for_mcl.
+2025-04-19 01:57:25,557 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/0_mcl_preparation.slurm 
+2025-04-19 01:57:25,588 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/0_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:25,701 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/1_mcl_preparation.slurm 
+2025-04-19 01:57:25,733 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/1_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:25,868 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/2_mcl_preparation.slurm 
+2025-04-19 01:57:25,898 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/2_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:26,011 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/3_mcl_preparation.slurm 
+2025-04-19 01:57:26,040 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/3_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:26,161 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/4_mcl_preparation.slurm 
+2025-04-19 01:57:26,191 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/4_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:26,303 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/5_mcl_preparation.slurm 
+2025-04-19 01:57:26,332 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/5_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:26,446 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/6_mcl_preparation.slurm 
+2025-04-19 01:57:26,474 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/6_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:26,588 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/7_mcl_preparation.slurm 
+2025-04-19 01:57:26,618 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/7_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:26,731 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/8_mcl_preparation.slurm 
+2025-04-19 01:57:26,759 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/8_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:26,897 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/9_mcl_preparation.slurm 
+2025-04-19 01:57:26,927 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/9_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:27,040 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/10_mcl_preparation.slurm 
+2025-04-19 01:57:27,069 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/10_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:27,181 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/11_mcl_preparation.slurm 
+2025-04-19 01:57:27,211 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/11_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:27,323 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/12_mcl_preparation.slurm 
+2025-04-19 01:57:27,351 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/12_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:27,463 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/13_mcl_preparation.slurm 
+2025-04-19 01:57:27,491 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/13_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:27,603 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/14_mcl_preparation.slurm 
+2025-04-19 01:57:27,631 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/14_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:27,750 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/15_mcl_preparation.slurm 
+2025-04-19 01:57:27,777 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/15_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:27,889 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/16_mcl_preparation.slurm 
+2025-04-19 01:57:27,915 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/16_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:28,027 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/17_mcl_preparation.slurm 
+2025-04-19 01:57:28,054 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/17_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:28,166 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/18_mcl_preparation.slurm 
+2025-04-19 01:57:28,195 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/18_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:28,308 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/19_mcl_preparation.slurm 
+2025-04-19 01:57:28,335 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/19_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:28,448 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/20_mcl_preparation.slurm 
+2025-04-19 01:57:28,476 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/20_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:28,588 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/21_mcl_preparation.slurm 
+2025-04-19 01:57:28,615 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/21_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:28,757 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/22_mcl_preparation.slurm 
+2025-04-19 01:57:28,786 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/22_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:28,907 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/23_mcl_preparation.slurm 
+2025-04-19 01:57:28,941 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/23_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:29,060 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/24_mcl_preparation.slurm 
+2025-04-19 01:57:29,095 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/24_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:29,222 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/25_mcl_preparation.slurm 
+2025-04-19 01:57:29,277 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/25_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:29,397 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/26_mcl_preparation.slurm 
+2025-04-19 01:57:29,440 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/26_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:29,556 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/27_mcl_preparation.slurm 
+2025-04-19 01:57:29,590 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/27_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:29,706 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/28_mcl_preparation.slurm 
+2025-04-19 01:57:29,740 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/28_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:29,862 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/29_mcl_preparation.slurm 
+2025-04-19 01:57:29,899 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/29_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:30,017 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/30_mcl_preparation.slurm 
+2025-04-19 01:57:30,051 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/30_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:30,170 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/31_mcl_preparation.slurm 
+2025-04-19 01:57:30,210 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/31_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:30,326 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/32_mcl_preparation.slurm 
+2025-04-19 01:57:30,357 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/32_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:30,471 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/33_mcl_preparation.slurm 
+2025-04-19 01:57:30,502 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/33_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:30,615 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/34_mcl_preparation.slurm 
+2025-04-19 01:57:30,647 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/34_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:30,760 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/35_mcl_preparation.slurm 
+2025-04-19 01:57:30,791 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/35_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:30,903 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/36_mcl_preparation.slurm 
+2025-04-19 01:57:30,935 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/36_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:31,048 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/37_mcl_preparation.slurm 
+2025-04-19 01:57:31,080 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/37_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:31,198 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/38_mcl_preparation.slurm 
+2025-04-19 01:57:31,233 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/38_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:31,350 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/39_mcl_preparation.slurm 
+2025-04-19 01:57:31,382 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/39_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:31,499 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/40_mcl_preparation.slurm 
+2025-04-19 01:57:31,533 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/40_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:31,648 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/41_mcl_preparation.slurm 
+2025-04-19 01:57:31,681 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/41_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:31,802 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/42_mcl_preparation.slurm 
+2025-04-19 01:57:31,843 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/42_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:31,962 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/43_mcl_preparation.slurm 
+2025-04-19 01:57:31,995 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/43_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:32,117 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/44_mcl_preparation.slurm 
+2025-04-19 01:57:32,177 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/44_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:32,324 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/45_mcl_preparation.slurm 
+2025-04-19 01:57:32,375 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/45_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:32,494 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/46_mcl_preparation.slurm 
+2025-04-19 01:57:32,529 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/46_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:32,646 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/47_mcl_preparation.slurm 
+2025-04-19 01:57:32,694 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/47_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:32,811 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/48_mcl_preparation.slurm 
+2025-04-19 01:57:32,845 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/48_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:32,962 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/49_mcl_preparation.slurm 
+2025-04-19 01:57:32,997 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/49_mcl_preparation.slurm submitted successfully
+2025-04-19 01:57:33,097 INFO run_step_utils.py:34 Waiting for 05_6_mcl_input_files... Continues when 50 results will be in: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files
+2025-04-19 01:57:53,128 INFO run_step_utils.py:57 Done waiting for: 05_6_mcl_input_files (took 0:00:20).
+2025-04-19 01:57:53,179 INFO general_utils.py:51 /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/05_6_mcl_input_files.txt was generated.
+2025-04-19 01:57:53,179 INFO infer_orthogroups_logic.py:176 Step 05_7: ____________________________________________________________________________________________________
+2025-04-19 01:57:53,180 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_7_mcl_analysis
+2025-04-19 01:57:53,181 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis
+2025-04-19 01:57:53,185 INFO infer_orthogroups_logic.py:185 Executing MCL...
+2025-04-19 01:57:53,845 INFO infer_orthogroups_logic.py:198 Done preparing jobs inputs for mcl_analysis.
+2025-04-19 01:57:53,860 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/0_mcl_execution.slurm 
+2025-04-19 01:57:53,898 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/0_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:54,010 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/1_mcl_execution.slurm 
+2025-04-19 01:57:54,040 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/1_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:54,152 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/2_mcl_execution.slurm 
+2025-04-19 01:57:54,181 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/2_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:54,292 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/3_mcl_execution.slurm 
+2025-04-19 01:57:54,320 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/3_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:54,432 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/4_mcl_execution.slurm 
+2025-04-19 01:57:54,459 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/4_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:54,570 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/5_mcl_execution.slurm 
+2025-04-19 01:57:54,597 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/5_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:54,708 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/6_mcl_execution.slurm 
+2025-04-19 01:57:54,737 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/6_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:54,852 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/7_mcl_execution.slurm 
+2025-04-19 01:57:54,884 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/7_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:54,998 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/8_mcl_execution.slurm 
+2025-04-19 01:57:55,029 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/8_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:55,149 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/9_mcl_execution.slurm 
+2025-04-19 01:57:55,221 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/9_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:55,339 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/10_mcl_execution.slurm 
+2025-04-19 01:57:55,373 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/10_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:55,487 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/11_mcl_execution.slurm 
+2025-04-19 01:57:55,517 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/11_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:55,632 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/12_mcl_execution.slurm 
+2025-04-19 01:57:55,664 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/12_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:55,780 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/13_mcl_execution.slurm 
+2025-04-19 01:57:55,812 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/13_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:55,927 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/14_mcl_execution.slurm 
+2025-04-19 01:57:55,958 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/14_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:56,071 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/15_mcl_execution.slurm 
+2025-04-19 01:57:56,100 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/15_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:56,217 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/16_mcl_execution.slurm 
+2025-04-19 01:57:56,249 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/16_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:56,363 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/17_mcl_execution.slurm 
+2025-04-19 01:57:56,394 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/17_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:56,510 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/18_mcl_execution.slurm 
+2025-04-19 01:57:56,543 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/18_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:56,658 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/19_mcl_execution.slurm 
+2025-04-19 01:57:56,689 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/19_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:56,803 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/20_mcl_execution.slurm 
+2025-04-19 01:57:56,831 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/20_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:56,945 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/21_mcl_execution.slurm 
+2025-04-19 01:57:56,976 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/21_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:57,093 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/22_mcl_execution.slurm 
+2025-04-19 01:57:57,127 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/22_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:57,241 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/23_mcl_execution.slurm 
+2025-04-19 01:57:57,272 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/23_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:57,388 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/24_mcl_execution.slurm 
+2025-04-19 01:57:57,419 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/24_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:57,534 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/25_mcl_execution.slurm 
+2025-04-19 01:57:57,567 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/25_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:57,681 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/26_mcl_execution.slurm 
+2025-04-19 01:57:57,712 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/26_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:57,833 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/27_mcl_execution.slurm 
+2025-04-19 01:57:57,873 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/27_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:57,989 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/28_mcl_execution.slurm 
+2025-04-19 01:57:58,023 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/28_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:58,138 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/29_mcl_execution.slurm 
+2025-04-19 01:57:58,188 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/29_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:58,318 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/30_mcl_execution.slurm 
+2025-04-19 01:57:58,372 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/30_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:58,492 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/31_mcl_execution.slurm 
+2025-04-19 01:57:58,531 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/31_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:58,652 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/32_mcl_execution.slurm 
+2025-04-19 01:57:58,686 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/32_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:58,803 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/33_mcl_execution.slurm 
+2025-04-19 01:57:58,833 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/33_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:58,954 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/34_mcl_execution.slurm 
+2025-04-19 01:57:58,994 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/34_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:59,112 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/35_mcl_execution.slurm 
+2025-04-19 01:57:59,148 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/35_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:59,262 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/36_mcl_execution.slurm 
+2025-04-19 01:57:59,303 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/36_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:59,419 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/37_mcl_execution.slurm 
+2025-04-19 01:57:59,455 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/37_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:59,571 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/38_mcl_execution.slurm 
+2025-04-19 01:57:59,605 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/38_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:59,720 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/39_mcl_execution.slurm 
+2025-04-19 01:57:59,757 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/39_mcl_execution.slurm submitted successfully
+2025-04-19 01:57:59,872 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/40_mcl_execution.slurm 
+2025-04-19 01:57:59,911 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/40_mcl_execution.slurm submitted successfully
+2025-04-19 01:58:00,029 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/41_mcl_execution.slurm 
+2025-04-19 01:58:00,066 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/41_mcl_execution.slurm submitted successfully
+2025-04-19 01:58:00,183 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/42_mcl_execution.slurm 
+2025-04-19 01:58:00,221 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/42_mcl_execution.slurm submitted successfully
+2025-04-19 01:58:00,335 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/43_mcl_execution.slurm 
+2025-04-19 01:58:00,367 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/43_mcl_execution.slurm submitted successfully
+2025-04-19 01:58:00,484 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/44_mcl_execution.slurm 
+2025-04-19 01:58:00,522 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/44_mcl_execution.slurm submitted successfully
+2025-04-19 01:58:00,639 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/45_mcl_execution.slurm 
+2025-04-19 01:58:01,695 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/45_mcl_execution.slurm submitted successfully
+2025-04-19 01:58:01,815 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/46_mcl_execution.slurm 
+2025-04-19 01:58:01,858 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/46_mcl_execution.slurm submitted successfully
+2025-04-19 01:58:01,976 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/47_mcl_execution.slurm 
+2025-04-19 01:58:02,022 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/47_mcl_execution.slurm submitted successfully
+2025-04-19 01:58:02,140 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/48_mcl_execution.slurm 
+2025-04-19 01:58:02,184 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/48_mcl_execution.slurm submitted successfully
+2025-04-19 01:58:02,304 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/49_mcl_execution.slurm 
+2025-04-19 01:58:02,335 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis/49_mcl_execution.slurm submitted successfully
+2025-04-19 01:58:02,436 INFO run_step_utils.py:34 Waiting for 05_7_mcl_analysis... Continues when 50 results will be in: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis
+2025-04-19 01:58:22,463 INFO run_step_utils.py:57 Done waiting for: 05_7_mcl_analysis (took 0:00:20).
+2025-04-19 01:58:22,511 INFO general_utils.py:51 /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/05_7_mcl_analysis.txt was generated.
+2025-04-19 01:58:22,511 INFO infer_orthogroups_logic.py:215 Step 05_8: ____________________________________________________________________________________________________
+2025-04-19 01:58:22,511 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_8_verified_table
+2025-04-19 01:58:22,513 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_8_verified_table
+2025-04-19 01:58:22,517 INFO infer_orthogroups_logic.py:223 Constructing verified orthologs table...
+2025-04-19 01:58:22,532 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_8_verified_table/verified_ortholog_groups.slurm 
+2025-04-19 01:58:22,572 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_8_verified_table/verified_ortholog_groups.slurm submitted successfully
+2025-04-19 01:58:22,572 INFO run_step_utils.py:34 Waiting for 05_8_verified_table... Continues when 1 results will be in: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_8_verified_table
+2025-04-19 01:58:42,595 INFO run_step_utils.py:57 Done waiting for: 05_8_verified_table (took 0:00:20).
+2025-04-19 01:58:42,599 INFO general_utils.py:51 /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/05_8_verified_table.txt was generated.
+2025-04-19 01:58:42,599 INFO infer_orthogroups_logic.py:239 Step 05_9: ____________________________________________________________________________________________________
+2025-04-19 01:58:42,599 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_9_orphan_genes
+2025-04-19 01:58:42,601 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_9_orphan_genes
+2025-04-19 01:58:42,605 INFO infer_orthogroups_logic.py:247 Extracting orphan genes...
+2025-04-19 01:58:42,634 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_9_orphan_genes/0_extract_orphans.slurm 
+2025-04-19 01:58:42,665 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_9_orphan_genes/0_extract_orphans.slurm submitted successfully
+2025-04-19 01:58:42,778 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_9_orphan_genes/1_extract_orphans.slurm 
+2025-04-19 01:58:42,810 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_9_orphan_genes/1_extract_orphans.slurm submitted successfully
+2025-04-19 01:58:42,923 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_9_orphan_genes/2_extract_orphans.slurm 
+2025-04-19 01:58:42,953 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_9_orphan_genes/2_extract_orphans.slurm submitted successfully
+2025-04-19 01:58:43,066 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_9_orphan_genes/3_extract_orphans.slurm 
+2025-04-19 01:58:43,093 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_9_orphan_genes/3_extract_orphans.slurm submitted successfully
+2025-04-19 01:58:43,223 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_9_orphan_genes/4_extract_orphans.slurm 
+2025-04-19 01:58:43,257 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_9_orphan_genes/4_extract_orphans.slurm submitted successfully
+2025-04-19 01:58:43,357 INFO run_step_utils.py:34 Waiting for 05_9_orphan_genes... Continues when 5 results will be in: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_9_orphan_genes
+2025-04-19 01:59:03,381 INFO run_step_utils.py:57 Done waiting for: 05_9_orphan_genes (took 0:00:20).
+2025-04-19 01:59:04,299 INFO general_utils.py:51 /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/05_9_orphan_genes.txt was generated.
+2025-04-19 01:59:04,299 INFO infer_orthogroups_logic.py:285 Step 05_10: ____________________________________________________________________________________________________
+2025-04-19 01:59:04,299 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_10_orthogroups_final
+2025-04-19 01:59:04,300 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_10_orthogroups_final
+2025-04-19 01:59:04,305 INFO infer_orthogroups_logic.py:293 Constructing final orthologs table...
+2025-04-19 01:59:04,318 INFO infer_orthogroups_logic.py:305 add_orphan_genes_to_ogs is False. Skipping adding orphans to orthogroups. Copied /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_8_verified_table/orthogroups.csv to /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_10_orthogroups_final/orthogroups.csv.
+2025-04-19 01:59:04,320 INFO general_utils.py:51 /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/05_10_orthogroups_final.txt was generated.
+2025-04-19 01:59:04,321 INFO main_utils.py:103 Copying /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_9_orphan_genes TO /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs/04_orphan_genes
+2025-04-19 01:59:04,410 INFO main_utils.py:103 Copying /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_10_orthogroups_final TO /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs/05a_orthogroups
+2025-04-19 01:59:04,465 INFO main.py:503 Step 07_1: ____________________________________________________________________________________________________
+2025-04-19 01:59:04,465 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/07_1_orthoxml
+2025-04-19 01:59:04,467 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/07_1_orthoxml
+2025-04-19 01:59:04,470 INFO main.py:509 Creating orthoxml...
+2025-04-19 01:59:04,488 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/07_1_orthoxml/orthoxml.slurm 
+2025-04-19 01:59:04,525 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/07_1_orthoxml/orthoxml.slurm submitted successfully
+2025-04-19 01:59:04,525 INFO run_step_utils.py:34 Waiting for 07_1_orthoxml... Continues when 1 results will be in: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/07_1_orthoxml
+2025-04-19 01:59:24,548 INFO run_step_utils.py:57 Done waiting for: 07_1_orthoxml (took 0:00:20).
+2025-04-19 01:59:24,550 INFO main_utils.py:103 Copying /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/07_1_orthoxml TO /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs/05a_orthogroups
+2025-04-19 01:59:24,723 INFO general_utils.py:51 /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/07_1_orthoxml.txt was generated.
+2025-04-19 01:59:24,724 INFO main.py:525 Step 07_2: ____________________________________________________________________________________________________
+2025-04-19 01:59:24,724 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/07_2_orthogroups_visualizations
+2025-04-19 01:59:24,726 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/07_2_orthogroups_visualizations
+2025-04-19 01:59:24,730 INFO main.py:532 Creating orthogroups visualizations...
+2025-04-19 01:59:24,745 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/07_2_orthogroups_visualizations/orthogroups_visualizations.slurm 
+2025-04-19 01:59:24,786 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/07_2_orthogroups_visualizations/orthogroups_visualizations.slurm submitted successfully
+2025-04-19 01:59:24,787 INFO run_step_utils.py:34 Waiting for 07_2_orthogroups_visualizations... Continues when 1 results will be in: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/07_2_orthogroups_visualizations
+2025-04-19 01:59:54,822 INFO run_step_utils.py:57 Done waiting for: 07_2_orthogroups_visualizations (took 0:00:30).
+2025-04-19 01:59:54,824 INFO main_utils.py:103 Copying /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/07_2_orthogroups_visualizations TO /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs/05b_orthogroups_visualizations
+2025-04-19 01:59:55,105 INFO general_utils.py:51 /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/07_2_orthogroups_visualizations.txt was generated.
+2025-04-19 01:59:55,105 INFO main.py:555 Step 08_1: ____________________________________________________________________________________________________
+2025-04-19 01:59:55,105 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/08_1_orthogroups_fasta
+2025-04-19 01:59:55,108 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta
+2025-04-19 01:59:55,112 INFO main.py:568 Extracting orthologs groups sequences according to final orthologs table...
+2025-04-19 01:59:55,866 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/0_orfs_extraction.slurm 
+2025-04-19 01:59:55,892 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/0_orfs_extraction.slurm submitted successfully
+2025-04-19 01:59:56,006 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/1_orfs_extraction.slurm 
+2025-04-19 01:59:56,039 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/1_orfs_extraction.slurm submitted successfully
+2025-04-19 01:59:56,152 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/2_orfs_extraction.slurm 
+2025-04-19 01:59:56,184 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/2_orfs_extraction.slurm submitted successfully
+2025-04-19 01:59:56,305 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/3_orfs_extraction.slurm 
+2025-04-19 01:59:56,344 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/3_orfs_extraction.slurm submitted successfully
+2025-04-19 01:59:56,458 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/4_orfs_extraction.slurm 
+2025-04-19 01:59:56,485 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/4_orfs_extraction.slurm submitted successfully
+2025-04-19 01:59:56,598 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/5_orfs_extraction.slurm 
+2025-04-19 01:59:56,627 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/5_orfs_extraction.slurm submitted successfully
+2025-04-19 01:59:56,742 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/6_orfs_extraction.slurm 
+2025-04-19 01:59:56,772 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/6_orfs_extraction.slurm submitted successfully
+2025-04-19 01:59:56,905 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/7_orfs_extraction.slurm 
+2025-04-19 01:59:56,936 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/7_orfs_extraction.slurm submitted successfully
+2025-04-19 01:59:57,049 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/8_orfs_extraction.slurm 
+2025-04-19 01:59:57,078 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/8_orfs_extraction.slurm submitted successfully
+2025-04-19 01:59:57,191 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/9_orfs_extraction.slurm 
+2025-04-19 01:59:57,223 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/9_orfs_extraction.slurm submitted successfully
+2025-04-19 01:59:57,338 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/10_orfs_extraction.slurm 
+2025-04-19 01:59:57,371 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/10_orfs_extraction.slurm submitted successfully
+2025-04-19 01:59:57,489 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/11_orfs_extraction.slurm 
+2025-04-19 01:59:57,524 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/11_orfs_extraction.slurm submitted successfully
+2025-04-19 01:59:57,643 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/12_orfs_extraction.slurm 
+2025-04-19 01:59:57,673 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/12_orfs_extraction.slurm submitted successfully
+2025-04-19 01:59:57,790 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/13_orfs_extraction.slurm 
+2025-04-19 01:59:57,820 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/13_orfs_extraction.slurm submitted successfully
+2025-04-19 01:59:57,948 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/14_orfs_extraction.slurm 
+2025-04-19 01:59:57,977 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/14_orfs_extraction.slurm submitted successfully
+2025-04-19 01:59:58,091 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/15_orfs_extraction.slurm 
+2025-04-19 01:59:58,123 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/15_orfs_extraction.slurm submitted successfully
+2025-04-19 01:59:58,239 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/16_orfs_extraction.slurm 
+2025-04-19 01:59:58,269 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/16_orfs_extraction.slurm submitted successfully
+2025-04-19 01:59:58,381 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/17_orfs_extraction.slurm 
+2025-04-19 01:59:58,411 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/17_orfs_extraction.slurm submitted successfully
+2025-04-19 01:59:58,524 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/18_orfs_extraction.slurm 
+2025-04-19 01:59:58,555 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/18_orfs_extraction.slurm submitted successfully
+2025-04-19 01:59:58,668 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/19_orfs_extraction.slurm 
+2025-04-19 01:59:58,698 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/19_orfs_extraction.slurm submitted successfully
+2025-04-19 01:59:58,813 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/20_orfs_extraction.slurm 
+2025-04-19 01:59:58,844 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/20_orfs_extraction.slurm submitted successfully
+2025-04-19 01:59:58,999 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/21_orfs_extraction.slurm 
+2025-04-19 01:59:59,042 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/21_orfs_extraction.slurm submitted successfully
+2025-04-19 01:59:59,168 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/22_orfs_extraction.slurm 
+2025-04-19 01:59:59,204 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/22_orfs_extraction.slurm submitted successfully
+2025-04-19 01:59:59,327 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/23_orfs_extraction.slurm 
+2025-04-19 01:59:59,367 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/23_orfs_extraction.slurm submitted successfully
+2025-04-19 01:59:59,490 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/24_orfs_extraction.slurm 
+2025-04-19 01:59:59,543 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/24_orfs_extraction.slurm submitted successfully
+2025-04-19 01:59:59,661 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/25_orfs_extraction.slurm 
+2025-04-19 01:59:59,695 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/25_orfs_extraction.slurm submitted successfully
+2025-04-19 01:59:59,814 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/26_orfs_extraction.slurm 
+2025-04-19 01:59:59,849 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/26_orfs_extraction.slurm submitted successfully
+2025-04-19 01:59:59,966 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/27_orfs_extraction.slurm 
+2025-04-19 02:00:00,013 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/27_orfs_extraction.slurm submitted successfully
+2025-04-19 02:00:00,131 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/28_orfs_extraction.slurm 
+2025-04-19 02:00:00,170 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/28_orfs_extraction.slurm submitted successfully
+2025-04-19 02:00:00,290 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/29_orfs_extraction.slurm 
+2025-04-19 02:00:00,325 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/29_orfs_extraction.slurm submitted successfully
+2025-04-19 02:00:00,444 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/30_orfs_extraction.slurm 
+2025-04-19 02:00:00,483 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/30_orfs_extraction.slurm submitted successfully
+2025-04-19 02:00:00,601 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/31_orfs_extraction.slurm 
+2025-04-19 02:00:00,644 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/31_orfs_extraction.slurm submitted successfully
+2025-04-19 02:00:00,767 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/32_orfs_extraction.slurm 
+2025-04-19 02:00:00,800 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/32_orfs_extraction.slurm submitted successfully
+2025-04-19 02:00:00,919 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/33_orfs_extraction.slurm 
+2025-04-19 02:00:00,953 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/33_orfs_extraction.slurm submitted successfully
+2025-04-19 02:00:01,077 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/34_orfs_extraction.slurm 
+2025-04-19 02:00:01,136 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/34_orfs_extraction.slurm submitted successfully
+2025-04-19 02:00:01,273 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/35_orfs_extraction.slurm 
+2025-04-19 02:00:01,342 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/35_orfs_extraction.slurm submitted successfully
+2025-04-19 02:00:01,460 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/36_orfs_extraction.slurm 
+2025-04-19 02:00:01,501 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/36_orfs_extraction.slurm submitted successfully
+2025-04-19 02:00:01,622 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/37_orfs_extraction.slurm 
+2025-04-19 02:00:01,870 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/37_orfs_extraction.slurm submitted successfully
+2025-04-19 02:00:02,014 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/38_orfs_extraction.slurm 
+2025-04-19 02:00:02,071 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/38_orfs_extraction.slurm submitted successfully
+2025-04-19 02:00:02,194 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/39_orfs_extraction.slurm 
+2025-04-19 02:00:02,240 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/39_orfs_extraction.slurm submitted successfully
+2025-04-19 02:00:02,361 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/40_orfs_extraction.slurm 
+2025-04-19 02:00:02,418 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/40_orfs_extraction.slurm submitted successfully
+2025-04-19 02:00:02,545 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/41_orfs_extraction.slurm 
+2025-04-19 02:00:02,629 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/41_orfs_extraction.slurm submitted successfully
+2025-04-19 02:00:02,756 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/42_orfs_extraction.slurm 
+2025-04-19 02:00:02,804 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/42_orfs_extraction.slurm submitted successfully
+2025-04-19 02:00:02,927 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/43_orfs_extraction.slurm 
+2025-04-19 02:00:02,974 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/43_orfs_extraction.slurm submitted successfully
+2025-04-19 02:00:03,127 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/44_orfs_extraction.slurm 
+2025-04-19 02:00:03,186 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/44_orfs_extraction.slurm submitted successfully
+2025-04-19 02:00:03,320 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/45_orfs_extraction.slurm 
+2025-04-19 02:00:03,380 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/45_orfs_extraction.slurm submitted successfully
+2025-04-19 02:00:03,503 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/46_orfs_extraction.slurm 
+2025-04-19 02:00:03,546 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/46_orfs_extraction.slurm submitted successfully
+2025-04-19 02:00:03,669 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/47_orfs_extraction.slurm 
+2025-04-19 02:00:03,724 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/47_orfs_extraction.slurm submitted successfully
+2025-04-19 02:00:03,856 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/48_orfs_extraction.slurm 
+2025-04-19 02:00:03,915 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/48_orfs_extraction.slurm submitted successfully
+2025-04-19 02:00:04,060 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/49_orfs_extraction.slurm 
+2025-04-19 02:00:04,104 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta/49_orfs_extraction.slurm submitted successfully
+2025-04-19 02:00:04,205 INFO run_step_utils.py:34 Waiting for 08_1_orthogroups_fasta... Continues when 50 results will be in: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta
+2025-04-19 02:00:54,270 INFO run_step_utils.py:51 	0:00:50 have passed since started waiting (50 - 15 = 35 more files are still missing)
+2025-04-19 02:01:44,325 INFO run_step_utils.py:51 	0:01:40 have passed since started waiting (50 - 31 = 19 more files are still missing)
+2025-04-19 02:01:54,340 INFO run_step_utils.py:57 Done waiting for: 08_1_orthogroups_fasta (took 0:01:50).
+2025-04-19 02:01:54,819 INFO main_utils.py:103 Copying /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/08_1_orthogroups_fasta/orthogroups_dna TO /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs/06a_orthogroups_dna
+2025-04-19 02:02:23,264 INFO main_utils.py:103 Copying /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/08_1_orthogroups_fasta/orthogroups_aa TO /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs/06b_orthogroups_aa
+2025-04-19 02:02:52,755 INFO main_utils.py:103 Copying /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/08_1_orthogroups_fasta/orthogroups_aa_msa TO /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs/06c_orthogroups_aa_msa
+2025-04-19 02:03:23,693 INFO main_utils.py:103 Copying /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/08_1_orthogroups_fasta/orthogroups_induced_dna_msa TO /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs/06d_orthogroups_induced_dna_msa_by_aa_msa
+2025-04-19 02:03:50,280 INFO general_utils.py:51 /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/08_1_orthogroups_fasta.txt was generated.
+2025-04-19 02:03:50,289 INFO main.py:624 Step 09_1: ____________________________________________________________________________________________________
+2025-04-19 02:03:50,289 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/09_1_aligned_core_proteome
+2025-04-19 02:03:50,291 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/09_1_aligned_core_proteome
+2025-04-19 02:03:50,296 INFO main.py:633 Extracting aligned core proteome...
+2025-04-19 02:03:50,318 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/09_1_aligned_core_proteome/core_proteome.slurm 
+2025-04-19 02:03:50,371 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/09_1_aligned_core_proteome/core_proteome.slurm submitted successfully
+2025-04-19 02:03:50,372 INFO main.py:647 Step 09_2: ____________________________________________________________________________________________________
+2025-04-19 02:03:50,372 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/09_2_aligned_core_genome
+2025-04-19 02:03:50,373 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/09_2_aligned_core_genome
+2025-04-19 02:03:50,376 INFO main.py:654 Extracting aligned core genome...
+2025-04-19 02:03:50,389 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/09_2_aligned_core_genome/core_genome.slurm 
+2025-04-19 02:03:50,417 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/09_2_aligned_core_genome/core_genome.slurm submitted successfully
+2025-04-19 02:03:50,417 INFO main.py:670 Step 09_3: ____________________________________________________________________________________________________
+2025-04-19 02:03:50,417 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/09_3_aligned_core_proteome_reduced
+2025-04-19 02:03:50,419 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/09_3_aligned_core_proteome_reduced
+2025-04-19 02:03:50,423 INFO main.py:680 Extracting aligned core proteome for phylogeny reconstruction...
+2025-04-19 02:03:50,434 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/09_3_aligned_core_proteome_reduced/core_proteome.slurm 
+2025-04-19 02:03:50,461 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/09_3_aligned_core_proteome_reduced/core_proteome.slurm submitted successfully
+2025-04-19 02:03:50,461 INFO run_step_utils.py:34 Waiting for 09_1_aligned_core_proteome... Continues when 1 results will be in: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/09_1_aligned_core_proteome
+2025-04-19 02:04:10,485 INFO run_step_utils.py:57 Done waiting for: 09_1_aligned_core_proteome (took 0:00:20).
+2025-04-19 02:04:10,515 INFO main_utils.py:103 Copying /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/09_1_aligned_core_proteome TO /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs/07a_aligned_core_proteome
+2025-04-19 02:04:10,709 INFO general_utils.py:51 /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/09_1_aligned_core_proteome.txt was generated.
+2025-04-19 02:04:10,709 INFO run_step_utils.py:34 Waiting for 09_2_aligned_core_genome... Continues when 1 results will be in: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/09_2_aligned_core_genome
+2025-04-19 02:04:20,721 INFO run_step_utils.py:57 Done waiting for: 09_2_aligned_core_genome (took 0:00:10).
+2025-04-19 02:04:20,729 INFO main_utils.py:103 Copying /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/09_2_aligned_core_genome TO /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs/07b_aligned_core_genome
+2025-04-19 02:04:21,158 INFO general_utils.py:51 /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/09_2_aligned_core_genome.txt was generated.
+2025-04-19 02:04:21,158 INFO run_step_utils.py:34 Waiting for 09_3_aligned_core_proteome_reduced... Continues when 1 results will be in: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/09_3_aligned_core_proteome_reduced
+2025-04-19 02:04:31,169 INFO run_step_utils.py:57 Done waiting for: 09_3_aligned_core_proteome_reduced (took 0:00:10).
+2025-04-19 02:04:31,186 INFO general_utils.py:51 /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/09_3_aligned_core_proteome_reduced.txt was generated.
+2025-04-19 02:04:31,194 INFO main.py:732 Step 10: ____________________________________________________________________________________________________
+2025-04-19 02:04:31,194 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/10_genome_numeric_representation
+2025-04-19 02:04:31,195 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/10_genome_numeric_representation
+2025-04-19 02:04:31,216 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/10_genome_numeric_representation/numeric_representation.slurm 
+2025-04-19 02:04:31,251 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/10_genome_numeric_representation/numeric_representation.slurm submitted successfully
+2025-04-19 02:04:31,251 INFO run_step_utils.py:34 Waiting for 10_genome_numeric_representation... Continues when 1 results will be in: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/10_genome_numeric_representation
+2025-04-19 02:04:51,274 INFO run_step_utils.py:57 Done waiting for: 10_genome_numeric_representation (took 0:00:20).
+2025-04-19 02:04:51,278 INFO main_utils.py:103 Copying /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/10_genome_numeric_representation TO /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs/08_genome_numeric_representation
+2025-04-19 02:04:51,296 INFO general_utils.py:51 /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/10_genome_numeric_representation.txt was generated.
+2025-04-19 02:04:51,301 INFO main.py:769 Step 11_1: ____________________________________________________________________________________________________
+2025-04-19 02:04:51,301 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/11_1_ani
+2025-04-19 02:04:51,303 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/11_1_ani
+2025-04-19 02:04:51,306 INFO main.py:775 Calculating ANI values...
+2025-04-19 02:04:51,333 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/11_1_ani/ANI.slurm 
+2025-04-19 02:04:51,377 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/11_1_ani/ANI.slurm submitted successfully
+2025-04-19 02:04:51,378 INFO main.py:794 Step 11_2: ____________________________________________________________________________________________________
+2025-04-19 02:04:51,378 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/11_2_species_phylogeny
+2025-04-19 02:04:51,379 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/11_2_species_phylogeny
+2025-04-19 02:04:51,382 INFO main.py:808 Reconstructing species phylogeny...
+2025-04-19 02:04:51,496 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/11_2_species_phylogeny/tree_reconstruction.slurm 
+2025-04-19 02:04:51,527 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/11_2_species_phylogeny/tree_reconstruction.slurm submitted successfully
+2025-04-19 02:04:51,528 INFO run_step_utils.py:34 Waiting for 11_2_species_phylogeny... Continues when 1 results will be in: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/11_2_species_phylogeny
+2025-04-19 02:05:22,206 INFO run_step_utils.py:57 Done waiting for: 11_2_species_phylogeny (took 0:00:30).
+2025-04-19 02:05:22,208 INFO main_utils.py:103 Copying /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/11_2_species_phylogeny TO /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs/09_species_phylogeny
+2025-04-19 02:05:22,249 INFO general_utils.py:51 /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/11_2_species_phylogeny.txt was generated.
+2025-04-19 02:05:22,249 INFO run_step_utils.py:34 Waiting for 11_1_ani... Continues when 1 results will be in: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/11_1_ani
+2025-04-19 02:05:32,295 INFO run_step_utils.py:57 Done waiting for: 11_1_ani (took 0:00:10).
+2025-04-19 02:05:32,297 INFO main_utils.py:103 Copying /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/11_1_ani TO /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs/01_ani
+2025-04-19 02:05:32,337 INFO general_utils.py:51 /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/11_1_ani.txt was generated.
+2025-04-19 02:05:32,346 INFO main.py:863 Step 12_1: ____________________________________________________________________________________________________
+2025-04-19 02:05:32,346 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/12_1_codon_bias
+2025-04-19 02:05:32,349 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/12_1_codon_bias
+2025-04-19 02:05:32,353 INFO main.py:871 Analyzing codon bias...
+2025-04-19 02:05:32,378 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/12_1_codon_bias/codon_bias.slurm 
+2025-04-19 02:05:32,413 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/12_1_codon_bias/codon_bias.slurm submitted successfully
+2025-04-19 02:05:32,413 INFO main.py:888 Step 12_2: ____________________________________________________________________________________________________
+2025-04-19 02:05:32,413 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/12_2_kegg
+2025-04-19 02:05:32,415 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/12_2_kegg
+2025-04-19 02:05:32,417 INFO main.py:896 Annotation with KEGG Orthology...
+2025-04-19 02:05:32,429 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/12_2_kegg/kegg.slurm 
+2025-04-19 02:05:32,457 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/12_2_kegg/kegg.slurm submitted successfully
+2025-04-19 02:05:32,458 INFO run_step_utils.py:34 Waiting for 12_1_codon_bias... Continues when 1 results will be in: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/12_1_codon_bias
+2025-04-19 02:06:02,486 INFO run_step_utils.py:57 Done waiting for: 12_1_codon_bias (took 0:00:30).
+2025-04-19 02:06:02,538 INFO main_utils.py:103 Copying /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/12_1_codon_bias TO /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs/10_codon_bias
+2025-04-19 02:06:02,601 INFO general_utils.py:51 /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/12_1_codon_bias.txt was generated.
+2025-04-19 02:06:02,601 INFO run_step_utils.py:34 Waiting for 12_2_kegg... Continues when 1 results will be in: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/12_2_kegg
+2025-04-19 02:06:52,658 INFO run_step_utils.py:51 	0:00:50 have passed since started waiting (1 - 0 = 1 more files are still missing)
+2025-04-19 02:07:42,712 INFO run_step_utils.py:51 	0:01:40 have passed since started waiting (1 - 0 = 1 more files are still missing)
+2025-04-19 02:08:32,767 INFO run_step_utils.py:51 	0:02:30 have passed since started waiting (1 - 0 = 1 more files are still missing)
+2025-04-19 02:09:22,821 INFO run_step_utils.py:51 	0:03:20 have passed since started waiting (1 - 0 = 1 more files are still missing)
+2025-04-19 02:10:12,872 INFO run_step_utils.py:51 	0:04:10 have passed since started waiting (1 - 0 = 1 more files are still missing)
+2025-04-19 02:11:02,929 INFO run_step_utils.py:51 	0:05:00 have passed since started waiting (1 - 0 = 1 more files are still missing)
+2025-04-19 02:11:52,986 INFO run_step_utils.py:51 	0:05:50 have passed since started waiting (1 - 0 = 1 more files are still missing)
+2025-04-19 02:12:43,038 INFO run_step_utils.py:51 	0:06:40 have passed since started waiting (1 - 0 = 1 more files are still missing)
+2025-04-19 02:13:33,086 INFO run_step_utils.py:51 	0:07:30 have passed since started waiting (1 - 0 = 1 more files are still missing)
+2025-04-19 02:13:53,111 INFO run_step_utils.py:57 Done waiting for: 12_2_kegg (took 0:07:50).
+2025-04-19 02:13:53,116 INFO general_utils.py:51 /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/12_2_kegg.txt was generated.
+2025-04-19 02:13:53,116 INFO main.py:928 Step 12_3: ____________________________________________________________________________________________________
+2025-04-19 02:13:53,116 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/12_3_orthogroups_annotations
+2025-04-19 02:13:53,118 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/12_3_orthogroups_annotations
+2025-04-19 02:13:53,122 INFO main.py:933 Adding annotations to orthogroups...
+2025-04-19 02:13:53,220 INFO main.py:951 Final orthologs table with annotations saved to /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/12_3_orthogroups_annotations/orthogroups_annotated.csv
+2025-04-19 02:13:53,220 INFO main_utils.py:103 Copying /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/12_3_orthogroups_annotations TO /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs/05a_orthogroups
+2025-04-19 02:13:53,265 INFO general_utils.py:51 /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/12_3_orthogroups_annotations.txt was generated.
+2025-04-19 02:13:53,273 INFO main_utils.py:175 Zipping results folder...
+2025-04-19 02:14:27,694 INFO main_utils.py:177 Zipped results folder to /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs.zip
+2025-04-19 02:14:27,703 INFO general_utils.py:51 /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/pipeline_finished_successfully.txt was generated.
+2025-04-19 02:14:27,703 INFO main_utils.py:78 Not sending email since config.send_email is False
+2025-04-19 02:54:38,423 INFO configuration.py:349 Namespace(account_name='gpu-research', add_orphan_genes_to_ogs=False, always_run_full_orthogroups_inference=False, args_json_path='/home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/input_parameters.json', bootstrap=True, bypass_number_of_genomes_limit=False, clean_intermediate_outputs=False, contigs_dir='', core_minimal_percentage=100.0, coverage_cutoff=70.0, do_not_copy_outputs_to_final_results_dir=False, e_value_cutoff=0.01, email='test@gmail.com', filter_out_plasmids=False, genomes_batch_size=50, genomes_batch_size_calc_method='min_comparisons', identity_cutoff=40.0, inputs_fasta_type='genomes', job_name='test_5_genomes', kegg_optimization_mode='consensus_of_og', max_number_of_core_ogs_for_phylogeny=1000, max_parallel_jobs=50, min_num_of_genomes_to_optimize_orthogroups_inference=150, node_name='', only_calc_ogs=False, outgroup='', output_dir='outputs', pseudo_genome_mode='first_gene', qfo_benchmark=False, queue_name='cpu-killable', run_dir='/home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/', run_optimized_mmseqs=False, sensitivity=5.7, step_to_complete='', use_job_manager=True, use_parquet=True, verbose=False)
+2025-04-19 02:54:38,424 INFO configuration.py:350 run_dir is: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes
+2025-04-19 02:54:38,424 INFO configuration.py:351 Created output_dir in: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs
+2025-04-19 02:54:38,424 INFO configuration.py:355 Creating final_output_dir is: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs
+2025-04-19 02:54:38,426 INFO configuration.py:362 run_number is 5_genomes
+2025-04-19 02:54:38,426 INFO configuration.py:365 Creating tmp_dir in: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp
+2025-04-19 02:54:38,427 INFO configuration.py:369 Creating done_files_dir in: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done
+2025-04-19 02:54:38,429 INFO configuration.py:373 Creating results_dir in: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results
+2025-04-19 02:54:38,440 INFO input_verifications.py:90 done file /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/00_prepare_and_verify_inputs.txt already exists. Skipping step...
+2025-04-19 02:54:38,445 INFO main.py:87 Step 02_1: ____________________________________________________________________________________________________
+2025-04-19 02:54:38,445 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs
+2025-04-19 02:54:38,449 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/02_1_orfs
+2025-04-19 02:54:38,452 INFO main.py:96 Extracting ORFs...
+2025-04-19 02:54:38,498 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/02_1_orfs/0_search_orfs.slurm 
+2025-04-19 02:54:38,534 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/02_1_orfs/0_search_orfs.slurm submitted successfully
+2025-04-19 02:54:38,645 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/02_1_orfs/1_search_orfs.slurm 
+2025-04-19 02:54:38,673 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/02_1_orfs/1_search_orfs.slurm submitted successfully
+2025-04-19 02:54:38,785 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/02_1_orfs/2_search_orfs.slurm 
+2025-04-19 02:54:38,812 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/02_1_orfs/2_search_orfs.slurm submitted successfully
+2025-04-19 02:54:38,924 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/02_1_orfs/3_search_orfs.slurm 
+2025-04-19 02:54:38,951 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/02_1_orfs/3_search_orfs.slurm submitted successfully
+2025-04-19 02:54:39,063 INFO q_submitter_power.py:78 Submitting: sbatch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/02_1_orfs/4_search_orfs.slurm 
+2025-04-19 02:54:39,096 INFO q_submitter_power.py:80 Job /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/02_1_orfs/4_search_orfs.slurm submitted successfully
+2025-04-19 02:54:39,197 INFO run_step_utils.py:34 Waiting for 02_1_orfs... Continues when 5 results will be in: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/02_1_orfs
+2025-04-19 02:55:09,233 INFO run_step_utils.py:57 Done waiting for: 02_1_orfs (took 0:00:30).
+2025-04-19 02:55:09,238 INFO main_utils.py:103 Copying /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_sequences TO /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs/02a_orfs
+2025-04-19 02:55:09,501 INFO main_utils.py:103 Copying /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_translated TO /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs/02c_translated_orfs
+2025-04-19 02:55:09,963 INFO general_utils.py:51 /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/02_1_orfs.txt was generated.
+2025-04-19 02:55:09,963 INFO main.py:135 Step 02_2: ____________________________________________________________________________________________________
+2025-04-19 02:55:09,963 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_2_orfs_plots
+2025-04-19 02:55:09,965 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/02_2_orfs_plots
+2025-04-19 02:55:09,969 INFO main.py:141 Concatenating orfs counts and gc contents...
+2025-04-19 02:55:11,801 INFO main_utils.py:103 Copying /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_2_orfs_plots TO /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs/02b_orfs_plots
+2025-04-19 02:55:11,852 INFO general_utils.py:51 /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/02_2_orfs_plots.txt was generated.
+2025-04-19 02:55:11,852 INFO main.py:169 Step 02_3: ____________________________________________________________________________________________________
+2025-04-19 02:55:11,852 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_3_concat_orfs
+2025-04-19 02:55:11,853 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/02_3_concat_orfs
+2025-04-19 02:55:11,855 INFO main.py:193 done file /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/02_3_concat_orfs.txt already exists. Skipping step...
+2025-04-19 02:55:11,863 INFO main.py:206 Step 03: ____________________________________________________________________________________________________
+2025-04-19 02:55:11,863 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/03_genomes_completeness
+2025-04-19 02:55:11,865 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/03_genomes_completeness
+2025-04-19 02:55:11,867 INFO main.py:260 done file /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/03_genomes_completeness.txt already exists. Skipping step...
+2025-04-19 02:55:11,871 INFO main_utils.py:150 Calculated genomes batch size: 3, according to method: min_comparisons and number of genomes: 5
+2025-04-19 02:55:11,871 INFO infer_orthogroups_logic.py:470 Step 05_1: ____________________________________________________________________________________________________
+2025-04-19 02:55:11,871 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_1_mmseqs_dbs
+2025-04-19 02:55:11,873 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_1_mmseqs_dbs
+2025-04-19 02:55:11,875 INFO infer_orthogroups_logic.py:505 done file /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/05_1_mmseqs_dbs.txt already exists. Skipping step...
+2025-04-19 02:55:11,875 INFO infer_orthogroups_logic.py:509 Step 05_2: ____________________________________________________________________________________________________
+2025-04-19 02:55:11,875 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_2_mmseqs_rbh
+2025-04-19 02:55:11,877 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_2_mmseqs_rbh
+2025-04-19 02:55:11,911 INFO infer_orthogroups_logic.py:562 done file /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/05_2_mmseqs_rbh.txt already exists. Skipping step...
+2025-04-19 02:55:11,911 INFO infer_orthogroups_logic.py:569 Step 05_3: ____________________________________________________________________________________________________
+2025-04-19 02:55:11,911 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_3_mmseqs_paralogs
+2025-04-19 02:55:11,913 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_3_mmseqs_paralogs
+2025-04-19 02:55:11,938 INFO infer_orthogroups_logic.py:621 done file /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/05_3_mmseqs_paralogs.txt already exists. Skipping step...
+2025-04-19 02:55:11,938 INFO infer_orthogroups_logic.py:52 Step 05_4: ____________________________________________________________________________________________________
+2025-04-19 02:55:11,938 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_4_normalize_scores
+2025-04-19 02:55:11,939 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_4_normalize_scores
+2025-04-19 02:55:11,942 INFO infer_orthogroups_logic.py:104 done file /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/05_4_normalize_scores.txt already exists. Skipping step...
+2025-04-19 02:55:11,942 INFO infer_orthogroups_logic.py:111 Step 05_5: ____________________________________________________________________________________________________
+2025-04-19 02:55:11,942 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_5_putative_table
+2025-04-19 02:55:11,943 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_5_putative_table
+2025-04-19 02:55:11,945 INFO infer_orthogroups_logic.py:136 done file /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/05_5_putative_table.txt already exists. Skipping step...
+2025-04-19 02:55:11,960 INFO infer_orthogroups_logic.py:142 Step 05_6: ____________________________________________________________________________________________________
+2025-04-19 02:55:11,960 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files
+2025-04-19 02:55:11,961 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files
+2025-04-19 02:55:11,963 INFO infer_orthogroups_logic.py:169 done file /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/05_6_mcl_input_files.txt already exists. Skipping step...
+2025-04-19 02:55:11,963 INFO infer_orthogroups_logic.py:176 Step 05_7: ____________________________________________________________________________________________________
+2025-04-19 02:55:11,963 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_7_mcl_analysis
+2025-04-19 02:55:11,964 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_7_mcl_analysis
+2025-04-19 02:55:11,966 INFO infer_orthogroups_logic.py:209 done file /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/05_7_mcl_analysis.txt already exists. Skipping step...
+2025-04-19 02:55:11,966 INFO infer_orthogroups_logic.py:215 Step 05_8: ____________________________________________________________________________________________________
+2025-04-19 02:55:11,966 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_8_verified_table
+2025-04-19 02:55:11,968 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_8_verified_table
+2025-04-19 02:55:11,970 INFO infer_orthogroups_logic.py:235 done file /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/05_8_verified_table.txt already exists. Skipping step...
+2025-04-19 02:55:11,970 INFO infer_orthogroups_logic.py:239 Step 05_9: ____________________________________________________________________________________________________
+2025-04-19 02:55:11,971 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_9_orphan_genes
+2025-04-19 02:55:11,972 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_9_orphan_genes
+2025-04-19 02:55:11,974 INFO infer_orthogroups_logic.py:281 done file /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/05_9_orphan_genes.txt already exists. Skipping step...
+2025-04-19 02:55:11,974 INFO infer_orthogroups_logic.py:285 Step 05_10: ____________________________________________________________________________________________________
+2025-04-19 02:55:11,974 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_10_orthogroups_final
+2025-04-19 02:55:11,975 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_10_orthogroups_final
+2025-04-19 02:55:11,977 INFO infer_orthogroups_logic.py:310 done file /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/05_10_orthogroups_final.txt already exists. Skipping step...
+2025-04-19 02:55:11,977 INFO main_utils.py:103 Copying /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_9_orphan_genes TO /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs/04_orphan_genes
+2025-04-19 02:55:12,054 INFO main_utils.py:103 Copying /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_10_orthogroups_final TO /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs/05a_orthogroups
+2025-04-19 02:55:12,079 INFO main.py:503 Step 07_1: ____________________________________________________________________________________________________
+2025-04-19 02:55:12,079 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/07_1_orthoxml
+2025-04-19 02:55:12,080 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/07_1_orthoxml
+2025-04-19 02:55:12,082 INFO main.py:521 done file /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/07_1_orthoxml.txt already exists. Skipping step...
+2025-04-19 02:55:12,083 INFO main.py:525 Step 07_2: ____________________________________________________________________________________________________
+2025-04-19 02:55:12,083 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/07_2_orthogroups_visualizations
+2025-04-19 02:55:12,084 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/07_2_orthogroups_visualizations
+2025-04-19 02:55:12,086 INFO main.py:544 done file /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/07_2_orthogroups_visualizations.txt already exists. Skipping step...
+2025-04-19 02:55:12,086 INFO main.py:555 Step 08_1: ____________________________________________________________________________________________________
+2025-04-19 02:55:12,086 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/08_1_orthogroups_fasta
+2025-04-19 02:55:12,087 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/08_1_orthogroups_fasta
+2025-04-19 02:55:12,089 INFO main.py:613 done file /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/08_1_orthogroups_fasta.txt already exists. Skipping step...
+2025-04-19 02:55:12,093 INFO main.py:624 Step 09_1: ____________________________________________________________________________________________________
+2025-04-19 02:55:12,093 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/09_1_aligned_core_proteome
+2025-04-19 02:55:12,095 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/09_1_aligned_core_proteome
+2025-04-19 02:55:12,097 INFO main.py:643 done file /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/09_1_aligned_core_proteome.txt already exists. Skipping step...
+2025-04-19 02:55:12,097 INFO main.py:647 Step 09_2: ____________________________________________________________________________________________________
+2025-04-19 02:55:12,097 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/09_2_aligned_core_genome
+2025-04-19 02:55:12,098 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/09_2_aligned_core_genome
+2025-04-19 02:55:12,100 INFO main.py:666 done file /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/09_2_aligned_core_genome.txt already exists. Skipping step...
+2025-04-19 02:55:12,100 INFO main.py:670 Step 09_3: ____________________________________________________________________________________________________
+2025-04-19 02:55:12,101 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/09_3_aligned_core_proteome_reduced
+2025-04-19 02:55:12,115 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/09_3_aligned_core_proteome_reduced
+2025-04-19 02:55:12,117 INFO main.py:693 done file /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/09_3_aligned_core_proteome_reduced.txt already exists. Skipping step...
+2025-04-19 02:55:12,122 INFO main.py:732 Step 10: ____________________________________________________________________________________________________
+2025-04-19 02:55:12,122 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/10_genome_numeric_representation
+2025-04-19 02:55:12,123 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/10_genome_numeric_representation
+2025-04-19 02:55:12,136 INFO main.py:760 done file /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/10_genome_numeric_representation.txt already exists. Skipping step...
+2025-04-19 02:55:12,140 INFO main.py:769 Step 11_1: ____________________________________________________________________________________________________
+2025-04-19 02:55:12,140 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/11_1_ani
+2025-04-19 02:55:12,141 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/11_1_ani
+2025-04-19 02:55:12,144 INFO main.py:790 done file /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/11_1_ani.txt already exists. Skipping step...
+2025-04-19 02:55:12,144 INFO main.py:794 Step 11_2: ____________________________________________________________________________________________________
+2025-04-19 02:55:12,144 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/11_2_species_phylogeny
+2025-04-19 02:55:12,145 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/11_2_species_phylogeny
+2025-04-19 02:55:12,147 INFO main.py:841 done file /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/11_2_species_phylogeny.txt already exists. Skipping step...
+2025-04-19 02:55:12,154 INFO main.py:863 Step 12_1: ____________________________________________________________________________________________________
+2025-04-19 02:55:12,155 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/12_1_codon_bias
+2025-04-19 02:55:12,156 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/12_1_codon_bias
+2025-04-19 02:55:12,158 INFO main.py:883 done file /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/12_1_codon_bias.txt already exists. Skipping step...
+2025-04-19 02:55:12,158 INFO main.py:888 Step 12_2: ____________________________________________________________________________________________________
+2025-04-19 02:55:12,159 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/12_2_kegg
+2025-04-19 02:55:12,160 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/12_2_kegg
+2025-04-19 02:55:12,162 INFO main.py:910 done file /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/12_2_kegg.txt already exists. Skipping step...
+2025-04-19 02:55:12,162 INFO main.py:928 Step 12_3: ____________________________________________________________________________________________________
+2025-04-19 02:55:12,162 INFO run_step_utils.py:173 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/12_3_orthogroups_annotations
+2025-04-19 02:55:12,163 INFO run_step_utils.py:177 Creating /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/12_3_orthogroups_annotations
+2025-04-19 02:55:12,165 INFO main.py:960 done file /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/12_3_orthogroups_annotations.txt already exists. Skipping step...
+2025-04-19 02:55:12,173 INFO main_utils.py:175 Zipping results folder...
+2025-04-19 02:55:49,696 INFO main_utils.py:177 Zipped results folder to /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs.zip
+2025-04-19 02:55:49,706 INFO general_utils.py:51 /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/done/pipeline_finished_successfully.txt was generated.
+2025-04-19 02:55:49,706 INFO main_utils.py:78 Not sending email since config.send_email is False

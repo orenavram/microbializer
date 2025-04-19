@@ -1,0 +1,91 @@
+# Sequence scores
+# ---------------
+#
+# name                                              bits   E-value   n   exp  bias    description
+#                             ------------------- ------ --------- --- ----- -----    ---------------------
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_4557   139.4   4.7e-41   1   1.0   0.0    # 4803121 # 4803582 # 1 # ID=1_4557;partial=00;start_type=ATG;rbs_motif=None;rbs_spacer=None;gc_cont=0.515
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_912     22.4   1.4e-05   2   2.7   0.0    # 1006251 # 1008158 # 1 # ID=1_912;partial=00;start_type=ATG;rbs_motif=AGGA;rbs_spacer=5-10bp;gc_cont=0.521
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_1541    18.2   0.00027   1   1.3   0.0    # 1626193 # 1627851 # -1 # ID=1_1541;partial=00;start_type=ATG;rbs_motif=None;rbs_spacer=None;gc_cont=0.435
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_4714    16.5   0.00087   1   1.2   0.1    # 4978138 # 4979094 # -1 # ID=1_4714;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.545
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_4036    16.4   0.00093   3   2.6   2.5    # 4227443 # 4228948 # 1 # ID=1_4036;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.510
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_3655    15.9    0.0013   1   1.3   0.0    # 3803988 # 3804509 # -1 # ID=1_3655;partial=00;start_type=ATG;rbs_motif=AGxAG;rbs_spacer=5-10bp;gc_cont=0.490
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_3120    15.9    0.0013   1   1.3   0.2    # 3266647 # 3267324 # 1 # ID=1_3120;partial=00;start_type=ATG;rbs_motif=4Base/6BMM;rbs_spacer=13-15bp;gc_cont=0.524
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_2024    15.8    0.0014   1   1.3   0.0    # 2096644 # 2098446 # -1 # ID=1_2024;partial=00;start_type=ATG;rbs_motif=4Base/6BMM;rbs_spacer=13-15bp;gc_cont=0.573
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_4417    15.3    0.0021   1   1.2   0.0    # 4663762 # 4664442 # -1 # ID=1_4417;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.592
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_4620    14.9    0.0028   2   2.2   0.6    # 4865823 # 4867325 # 1 # ID=1_4620;partial=00;start_type=ATG;rbs_motif=GGxGG;rbs_spacer=5-10bp;gc_cont=0.554
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_880     14.5    0.0036   2   1.7   0.1    # 964681 # 965364 # 1 # ID=1_880;partial=00;start_type=ATG;rbs_motif=AGGAG;rbs_spacer=5-10bp;gc_cont=0.537
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_1861    14.5    0.0037   1   1.1   0.0    # 1950575 # 1951330 # 1 # ID=1_1861;partial=00;start_type=ATG;rbs_motif=None;rbs_spacer=None;gc_cont=0.491
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_1764    13.8    0.0058   1   1.3   0.0    # 1853434 # 1854087 # 1 # ID=1_1764;partial=00;start_type=ATG;rbs_motif=AGGA;rbs_spacer=5-10bp;gc_cont=0.524
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_3594    13.5     0.007   1   1.3   0.1    # 3749580 # 3750563 # 1 # ID=1_3594;partial=00;start_type=ATG;rbs_motif=None;rbs_spacer=None;gc_cont=0.542
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_330     13.5    0.0071   3   3.0   0.1    # 371794 # 373278 # 1 # ID=1_330;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.514
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_1913    13.5    0.0074   2   1.7   0.0    # 2002035 # 2002787 # -1 # ID=1_1913;partial=00;start_type=ATG;rbs_motif=AGGAG/GGAGG;rbs_spacer=11-12bp;gc_cont=0.535
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_4151    13.4    0.0077   1   1.2   0.1    # 4360586 # 4361572 # 1 # ID=1_4151;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.486
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_1899    12.7     0.013   2   2.2   1.1    # 1988538 # 1990052 # -1 # ID=1_1899;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.519
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_3726    12.6     0.014   2   1.5   0.1    # 3886753 # 3887466 # -1 # ID=1_3726;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.569
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_3520    12.4     0.016   3   2.9   2.2    # 3692672 # 3694171 # -1 # ID=1_3520;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.453
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_2704    12.4     0.016   2   2.4   0.4    # 2831042 # 2832553 # -1 # ID=1_2704;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.558
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_4418    12.1      0.02   1   1.2   0.0    # 4664553 # 4665311 # -1 # ID=1_4418;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.599
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_719     11.6     0.028   2   2.1   1.6    # 791790 # 793526 # -1 # ID=1_719;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.557
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_3687    11.2     0.036   1   1.2   0.0    # 3843859 # 3845418 # 1 # ID=1_3687;partial=00;start_type=ATG;rbs_motif=AGGA;rbs_spacer=5-10bp;gc_cont=0.549
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_2773    11.2     0.036   1   1.4   0.2    # 2905548 # 2906909 # -1 # ID=1_2773;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.542
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_4408    11.0      0.04   3   2.4   0.6    # 4656114 # 4657646 # -1 # ID=1_4408;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.479
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_3759    10.9     0.043   1   1.3   0.1    # 3917060 # 3917866 # 1 # ID=1_3759;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.572
+
+# Domain scores
+# -------------
+#
+#  name                                             bits   E-value   hit  bias env-st env-en ali-st ali-en hmm-st hmm-en     description
+#                             ------------------- ------ --------- ----- ----- ------ ------ ------ ------ ------ ------      ---------------------
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_4557   139.2   5.1e-41     1   0.0      2    152     18    137     16    126     # 4803121 # 4803582 # 1 # ID=1_4557;partial=00;start_type=ATG;rbs_motif=None;rbs_spacer=None;gc_cont=0.515
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_1541    17.5   0.00045     1   0.0    357    419    370    418     16     57     # 1626193 # 1627851 # -1 # ID=1_1541;partial=00;start_type=ATG;rbs_motif=None;rbs_spacer=None;gc_cont=0.435
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_4714    15.9    0.0014     1   0.1      2     35      5     27     25     47     # 4978138 # 4979094 # -1 # ID=1_4714;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.545
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_3655    15.3    0.0021     1   0.0      1     36      5     31     25     50     # 3803988 # 3804509 # -1 # ID=1_3655;partial=00;start_type=ATG;rbs_motif=AGxAG;rbs_spacer=5-10bp;gc_cont=0.490
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_3120    15.3    0.0021     1   0.2     17     61     24     54     19     49     # 3266647 # 3267324 # 1 # ID=1_3120;partial=00;start_type=ATG;rbs_motif=4Base/6BMM;rbs_spacer=13-15bp;gc_cont=0.524
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_2024    15.1    0.0024     1   0.0    343    402    363    399     22     52     # 2096644 # 2098446 # -1 # ID=1_2024;partial=00;start_type=ATG;rbs_motif=4Base/6BMM;rbs_spacer=13-15bp;gc_cont=0.573
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_4417    14.7    0.0031     1   0.0     13     66     27     58     17     48     # 4663762 # 4664442 # -1 # ID=1_4417;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.592
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_1861    14.1    0.0049     1   0.0     10     62     22     51     16     45     # 1950575 # 1951330 # 1 # ID=1_1861;partial=00;start_type=ATG;rbs_motif=None;rbs_spacer=None;gc_cont=0.491
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_1764    13.0    0.0099     1   0.0      2     58      6     53      8     49     # 1853434 # 1854087 # 1 # ID=1_1764;partial=00;start_type=ATG;rbs_motif=AGGA;rbs_spacer=5-10bp;gc_cont=0.524
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_4151    13.0      0.01     1   0.1    151    290    169    252    294    375     # 4360586 # 4361572 # 1 # ID=1_4151;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.486
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_3594    12.7     0.012     1   0.1     53    108     61    103     12     50     # 3749580 # 3750563 # 1 # ID=1_3594;partial=00;start_type=ATG;rbs_motif=None;rbs_spacer=None;gc_cont=0.542
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_880     12.7     0.013     1   0.0      2     36      6     32     25     50     # 964681 # 965364 # 1 # ID=1_880;partial=00;start_type=ATG;rbs_motif=AGGAG;rbs_spacer=5-10bp;gc_cont=0.537
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_1913    12.0     0.021     1   0.0     13     57     24     49     19     44     # 2002035 # 2002787 # -1 # ID=1_1913;partial=00;start_type=ATG;rbs_motif=AGGAG/GGAGG;rbs_spacer=11-12bp;gc_cont=0.535
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_912     11.7     0.026     2   0.0    321    428    340    376     20     54     # 1006251 # 1008158 # 1 # ID=1_912;partial=00;start_type=ATG;rbs_motif=AGGA;rbs_spacer=5-10bp;gc_cont=0.521
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_3726    11.6     0.028     1   0.1      9     58     24     49     17     42     # 3886753 # 3887466 # -1 # ID=1_3726;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.569
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_4418    11.5      0.03     1   0.0     20     63     28     62     21     54     # 4664553 # 4665311 # -1 # ID=1_4418;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.599
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_3687    10.6     0.056     1   0.0    187    247    192    230      8     46     # 3843859 # 3845418 # 1 # ID=1_3687;partial=00;start_type=ATG;rbs_motif=AGGA;rbs_spacer=5-10bp;gc_cont=0.549
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_3759    10.3     0.068     1   0.1     19     69     29     59     15     45     # 3917060 # 3917866 # 1 # ID=1_3759;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.572
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_2773    10.3      0.07     1   0.2     83    134     94    128     18     50     # 2905548 # 2906909 # -1 # ID=1_2773;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.542
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_4620    10.2     0.075     1   0.1     15     64     28     55     17     44     # 4865823 # 4867325 # 1 # ID=1_4620;partial=00;start_type=ATG;rbs_motif=GGxGG;rbs_spacer=5-10bp;gc_cont=0.554
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_4036     9.6      0.11     1   0.1     12     55     23     49     17     43     # 4227443 # 4228948 # 1 # ID=1_4036;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.510
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_3520     8.8       0.2     1   0.3     12     63     25     52     18     45     # 3692672 # 3694171 # -1 # ID=1_3520;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.453
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_719      8.1      0.31     1   0.1     19     65     32     58     23     49     # 791790 # 793526 # -1 # ID=1_719;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.557
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_912      7.9      0.36     1   0.0     12     61     20     58     15     52     # 1006251 # 1008158 # 1 # ID=1_912;partial=00;start_type=ATG;rbs_motif=AGGA;rbs_spacer=5-10bp;gc_cont=0.521
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_2704     7.0      0.68     1   0.1     22     64     32     56     20     44     # 2831042 # 2832553 # -1 # ID=1_2704;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.558
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_1899     6.5      0.96     1   0.1     17     64     32     53     23     44     # 1988538 # 1990052 # -1 # ID=1_1899;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.519
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_4408     6.4         1     1   0.0     18     60     27     50     20     43     # 4656114 # 4657646 # -1 # ID=1_4408;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.479
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_4036     5.8       1.6     3   0.1    268    310    275    307     21     52     # 4227443 # 4228948 # 1 # ID=1_4036;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.510
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_330      4.9         3     1   0.0      9     58     26     49     22     43     # 371794 # 373278 # 1 # ID=1_330;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.514
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_1899     4.7       3.3     2   0.2    271    314    276    309     18     50     # 1988538 # 1990052 # -1 # ID=1_1899;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.519
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_330      3.2       9.9     3   0.0    259    308    277    296     22     41     # 371794 # 373278 # 1 # ID=1_330;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.514
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_2704     3.0        11     2   0.0    268    319    287    309     23     45     # 2831042 # 2832553 # -1 # ID=1_2704;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.558
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_4620     2.7        14     2   0.1    274    308    281    303     19     41     # 4865823 # 4867325 # 1 # ID=1_4620;partial=00;start_type=ATG;rbs_motif=GGxGG;rbs_spacer=5-10bp;gc_cont=0.554
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_719      2.5        16     2   0.1    334    385    345    376     14     45     # 791790 # 793526 # -1 # ID=1_719;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.557
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_4408     2.3        18     2   0.1    106    209    160    203    163    208     # 4656114 # 4657646 # -1 # ID=1_4408;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.479
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_330      1.5        31     2   0.0    104    236    157    201    165    212     # 371794 # 373278 # 1 # ID=1_330;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.514
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_3520     0.6        62     2   0.0    115    250    152    211    156    221     # 3692672 # 3694171 # -1 # ID=1_3520;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.453
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_3520     0.4        67     3   0.0    263    313    275    304     16     45     # 3692672 # 3694171 # -1 # ID=1_3520;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.453
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_880     -0.8   1.5e+02     2   0.0     82    209     96    148    179    228     # 964681 # 965364 # 1 # ID=1_880;partial=00;start_type=ATG;rbs_motif=AGGAG;rbs_spacer=5-10bp;gc_cont=0.537
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_1913    -1.6   2.7e+02     2   0.0    102    230    147    165    257    275     # 2002035 # 2002787 # -1 # ID=1_1913;partial=00;start_type=ATG;rbs_motif=AGGAG/GGAGG;rbs_spacer=11-12bp;gc_cont=0.535
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_4036    -1.8   3.3e+02     2   0.0    113    236    157    200    164    209     # 4227443 # 4228948 # 1 # ID=1_4036;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.510
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_4408    -3.4   9.8e+02     3   0.0    271    309    285    306     22     41     # 4656114 # 4657646 # -1 # ID=1_4408;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.479
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_3726    -3.5     1e+03     2   0.0     86    154    108    134    227    253     # 3886753 # 3887466 # -1 # ID=1_3726;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.569
+#
+# Program:         hmmsearch
+# Version:         3.3.2 (Nov 2020)
+# Pipeline mode:   SEARCH
+# Query file:      /home/ai_center/ai_users/yairshimony/microbializer/pipeline/data/busco_hmms/POG091H00RI.hmm
+# Target file:     /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_translated/Ecoli_APEC_O1.faa
+# Option settings: hmmsearch -o /dev/null --pfamtblout /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/03_genomes_completeness/individual_proteomes_outputs/Ecoli_APEC_O1/POG091H00RI.txt --noali -E 0.1 /home/ai_center/ai_users/yairshimony/microbializer/pipeline/data/busco_hmms/POG091H00RI.hmm /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_translated/Ecoli_APEC_O1.faa 
+# Current dir:     /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes
+# Date:            Sat Apr 19 01:54:12 2025
+# [ok]

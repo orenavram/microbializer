@@ -1,0 +1,30 @@
+# Sequence scores
+# ---------------
+#
+# name                                              bits   E-value   n   exp  bias    description
+#                             ------------------- ------ --------- --- ----- -----    ---------------------
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_97     682.9  7.4e-206   5   5.6  22.8    # 110702 # 113407 # 1 # ID=1_97;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.521
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_3938    13.5    0.0047   2   1.4   0.1    # 4116538 # 4118619 # 1 # ID=1_3938;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.567
+
+# Domain scores
+# -------------
+#
+#  name                                             bits   E-value   hit  bias env-st env-en ali-st ali-en hmm-st hmm-en     description
+#                             ------------------- ------ --------- ----- ----- ------ ------ ------ ------ ------ ------      ---------------------
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_97     266.0   1.5e-79     3   1.8    301    522    309    518    205    390     # 110702 # 113407 # 1 # ID=1_97;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.521
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_97     262.6   1.5e-78     1   0.0     20    242     40    230     20    188     # 110702 # 113407 # 1 # ID=1_97;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.521
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_97     128.6   6.2e-38     4   4.0    545    701    550    683    390    505     # 110702 # 113407 # 1 # ID=1_97;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.521
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_97      31.1   2.2e-08     5   0.5    730    821    741    819    478    549     # 110702 # 113407 # 1 # ID=1_97;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.521
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_3938    12.5    0.0096     1   0.0    277    357    297    350     77    129     # 4116538 # 4118619 # 1 # ID=1_3938;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.567
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_97       2.8         8     2   0.0    259    298    261    279    185    203     # 110702 # 113407 # 1 # ID=1_97;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.521
+Ecoli_APEC_O1:gi|117622295|ref|NC_008563.1|_3938    -3.9   8.5e+02     2   0.0    547    589    564    587    394    416     # 4116538 # 4118619 # 1 # ID=1_3938;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.567
+#
+# Program:         hmmsearch
+# Version:         3.3.2 (Nov 2020)
+# Pipeline mode:   SEARCH
+# Query file:      /home/ai_center/ai_users/yairshimony/microbializer/pipeline/data/busco_hmms/POG091H01RS.hmm
+# Target file:     /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_translated/Ecoli_APEC_O1.faa
+# Option settings: hmmsearch -o /dev/null --pfamtblout /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/03_genomes_completeness/individual_proteomes_outputs/Ecoli_APEC_O1/POG091H01RS.txt --noali -E 0.1 /home/ai_center/ai_users/yairshimony/microbializer/pipeline/data/busco_hmms/POG091H01RS.hmm /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_translated/Ecoli_APEC_O1.faa 
+# Current dir:     /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes
+# Date:            Sat Apr 19 01:54:13 2025
+# [ok]

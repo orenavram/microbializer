@@ -1,0 +1,1 @@
+/home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/inputs/Ecoli_JJ1886.fna

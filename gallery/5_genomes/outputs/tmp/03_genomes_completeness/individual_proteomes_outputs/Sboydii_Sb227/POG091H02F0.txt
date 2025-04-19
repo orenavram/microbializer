@@ -1,0 +1,30 @@
+# Sequence scores
+# ---------------
+#
+# name                                             bits   E-value   n   exp  bias    description
+#                            ------------------- ------ --------- --- ----- -----    ---------------------
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_2025   503.1  8.3e-152   1   1.0   0.0    # 1885887 # 1886993 # 1 # ID=1_2025;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.535
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_2680    22.6     1e-05   2   2.0   0.0    # 2526681 # 2528258 # -1 # ID=1_2680;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.544
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_176     14.7    0.0026   1   1.2   0.0    # 198315 # 199613 # 1 # ID=1_176;partial=00;start_type=ATG;rbs_motif=None;rbs_spacer=None;gc_cont=0.585
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_1822    13.4    0.0065   1   1.4   0.0    # 1697677 # 1698612 # 1 # ID=1_1822;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.488
+
+# Domain scores
+# -------------
+#
+#  name                                            bits   E-value   hit  bias env-st env-en ali-st ali-en hmm-st hmm-en     description
+#                            ------------------- ------ --------- ----- ----- ------ ------ ------ ------ ------ ------      ---------------------
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_2025   502.8  9.9e-152     1   0.0      3    365      5    363      3    348     # 1885887 # 1886993 # 1 # ID=1_2025;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.535
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_2680    19.9   6.8e-05     1   0.0    226    296    228    250      4     26     # 2526681 # 2528258 # -1 # ID=1_2680;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.544
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_176     14.0    0.0041     1   0.0     11     84     13     77      4     68     # 198315 # 199613 # 1 # ID=1_176;partial=00;start_type=ATG;rbs_motif=None;rbs_spacer=None;gc_cont=0.585
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_1822    12.5     0.012     1   0.0     37    157     40    150      4    125     # 1697677 # 1698612 # 1 # ID=1_1822;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.488
+Sboydii_Sb227:gi|82542618|ref|NC_007613.1|_2680     0.0        76     2   0.0    364    397    374    394    164    184     # 2526681 # 2528258 # -1 # ID=1_2680;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.544
+#
+# Program:         hmmsearch
+# Version:         3.3.2 (Nov 2020)
+# Pipeline mode:   SEARCH
+# Query file:      /home/ai_center/ai_users/yairshimony/microbializer/pipeline/data/busco_hmms/POG091H02F0.hmm
+# Target file:     /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_translated/Sboydii_Sb227.faa
+# Option settings: hmmsearch -o /dev/null --pfamtblout /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/03_genomes_completeness/individual_proteomes_outputs/Sboydii_Sb227/POG091H02F0.txt --noali -E 0.1 /home/ai_center/ai_users/yairshimony/microbializer/pipeline/data/busco_hmms/POG091H02F0.hmm /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_translated/Sboydii_Sb227.faa 
+# Current dir:     /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes
+# Date:            Sat Apr 19 01:54:15 2025
+# [ok]

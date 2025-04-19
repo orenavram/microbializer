@@ -1,0 +1,27 @@
+# Sequence scores
+# ---------------
+#
+# name                                             bits   E-value   n   exp  bias    description
+#                            ------------------- ------ --------- --- ----- -----    ---------------------
+Ecoli_UMN026:gi|218703261|ref|NC_011751.1|_3613    38.4   2.4e-10   2   2.7   0.1    # 3877102 # 3877674 # -1 # ID=1_3613;partial=00;start_type=GTG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.518
+Ecoli_UMN026:gi|218703261|ref|NC_011751.1|_1514    29.9   1.1e-07   2   2.5   0.0    # 1575931 # 1576551 # 1 # ID=1_1514;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.496
+
+# Domain scores
+# -------------
+#
+#  name                                            bits   E-value   hit  bias env-st env-en ali-st ali-en hmm-st hmm-en     description
+#                            ------------------- ------ --------- ----- ----- ------ ------ ------ ------ ------ ------      ---------------------
+Ecoli_UMN026:gi|218703261|ref|NC_011751.1|_3613    28.7   2.4e-07     1   0.0     12     95     13     51      2     37     # 3877102 # 3877674 # -1 # ID=1_3613;partial=00;start_type=GTG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.518
+Ecoli_UMN026:gi|218703261|ref|NC_011751.1|_1514    23.6   9.6e-06     1   0.0     19     72     19     56      1     35     # 1575931 # 1576551 # 1 # ID=1_1514;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.496
+Ecoli_UMN026:gi|218703261|ref|NC_011751.1|_3613     7.1       1.3     2   0.0    101    157    111    152     57     90     # 3877102 # 3877674 # -1 # ID=1_3613;partial=00;start_type=GTG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.518
+Ecoli_UMN026:gi|218703261|ref|NC_011751.1|_1514     3.8        13     2   0.0    105    139    112    133     53     73     # 1575931 # 1576551 # 1 # ID=1_1514;partial=00;start_type=ATG;rbs_motif=GGAG/GAGG;rbs_spacer=5-10bp;gc_cont=0.496
+#
+# Program:         hmmsearch
+# Version:         3.3.2 (Nov 2020)
+# Pipeline mode:   SEARCH
+# Query file:      /home/ai_center/ai_users/yairshimony/microbializer/pipeline/data/busco_hmms/POG091H00HZ.hmm
+# Target file:     /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_translated/Ecoli_UMN026.faa
+# Option settings: hmmsearch -o /dev/null --pfamtblout /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/03_genomes_completeness/individual_proteomes_outputs/Ecoli_UMN026/POG091H00HZ.txt --noali -E 0.1 /home/ai_center/ai_users/yairshimony/microbializer/pipeline/data/busco_hmms/POG091H00HZ.hmm /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_translated/Ecoli_UMN026.faa 
+# Current dir:     /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes
+# Date:            Sat Apr 19 01:54:11 2025
+# [ok]

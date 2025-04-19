@@ -1,0 +1,30 @@
+# Sequence scores
+# ---------------
+#
+# name                                             bits   E-value   n   exp  bias    description
+#                            ------------------- ------ --------- --- ----- -----    ---------------------
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_102    683.6  4.7e-206   5   5.6  22.7    # 117096 # 119801 # 1 # ID=1_102;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.523
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_3941    13.1    0.0064   2   1.4   0.0    # 4158713 # 4160794 # 1 # ID=1_3941;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.566
+
+# Domain scores
+# -------------
+#
+#  name                                            bits   E-value   hit  bias env-st env-en ali-st ali-en hmm-st hmm-en     description
+#                            ------------------- ------ --------- ----- ----- ------ ------ ------ ------ ------ ------      ---------------------
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_102    266.0   1.5e-79     3   1.8    301    522    309    518    205    390     # 117096 # 119801 # 1 # ID=1_102;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.523
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_102    263.1   1.1e-78     1   0.0     20    242     39    230     19    188     # 117096 # 119801 # 1 # ID=1_102;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.523
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_102    128.6   6.2e-38     4   4.0    545    701    550    683    390    505     # 117096 # 119801 # 1 # ID=1_102;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.523
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_102     31.1   2.2e-08     5   0.5    730    821    741    819    478    549     # 117096 # 119801 # 1 # ID=1_102;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.523
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_3941    12.0     0.013     1   0.0    277    357    297    350     77    129     # 4158713 # 4160794 # 1 # ID=1_3941;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.566
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_102      2.8         8     2   0.0    259    298    261    279    185    203     # 117096 # 119801 # 1 # ID=1_102;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.523
+Ecoli_JJ1886:gi|556550243|ref|NC_022648.1|_3941    -3.9   8.5e+02     2   0.0    547    589    564    587    394    416     # 4158713 # 4160794 # 1 # ID=1_3941;partial=00;start_type=ATG;rbs_motif=GGA/GAG/AGG;rbs_spacer=5-10bp;gc_cont=0.566
+#
+# Program:         hmmsearch
+# Version:         3.3.2 (Nov 2020)
+# Pipeline mode:   SEARCH
+# Query file:      /home/ai_center/ai_users/yairshimony/microbializer/pipeline/data/busco_hmms/POG091H01RS.hmm
+# Target file:     /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_translated/Ecoli_JJ1886.faa
+# Option settings: hmmsearch -o /dev/null --pfamtblout /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/03_genomes_completeness/individual_proteomes_outputs/Ecoli_JJ1886/POG091H01RS.txt --noali -E 0.1 /home/ai_center/ai_users/yairshimony/microbializer/pipeline/data/busco_hmms/POG091H01RS.hmm /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/02_1_orfs/orfs_translated/Ecoli_JJ1886.faa 
+# Current dir:     /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes
+# Date:            Sat Apr 19 01:54:13 2025
+# [ok]

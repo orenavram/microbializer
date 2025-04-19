@@ -1,0 +1,14 @@
+Step,Finished
+Validate input files,True
+Predict and translate ORFs,True
+Calculate genomes completeness,True
+Infer orthogroups,True
+Find orphan genes,True
+Prepare orthogroups fasta files,True
+Infer core genome and proteome,True
+Calculate genomes numeric representation,True
+Reconstruct species phylogeny,True
+Calculate ANI (Average Nucleotide Identity),True
+Analyze orthogroups codon bias,True
+Annotate orthogroups with KO terms,True
+Finalize results,True
