@@ -18,3 +18,6 @@ pipeline/flask/api_secrets.py
 /tests/kegg_optimization/salmonella_300_c_001/use_first_gene_of_og/unified_ogs_sequences.faa
 /tests/kegg_optimization/salmonella_300_c_001/use_consensus_of_og/unified_ogs_sequences.faa
 /tests/kegg_optimization/salmonella_300_c_001/use_all_genes_of_og/unified_ogs_sequences.faa
+/tests/6000_benchmark/downloads
+/tests/6000_benchmark/extracted
+/tests/6000_benchmark/orfs
