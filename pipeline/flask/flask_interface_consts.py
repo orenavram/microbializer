@@ -63,8 +63,8 @@ OG_TABLE_ORTHOXML = ALL_OUTPUTS_DIRECTORY / '05a_orthogroups' / 'orthogroups.ort
 OG_SIZE_HISTOGRAM = ALL_OUTPUTS_DIRECTORY / '05b_orthogroups_visualizations' / 'orthogroups_sizes.png'
 PHYLETIC_PATTERN = ALL_OUTPUTS_DIRECTORY / '05b_orthogroups_visualizations' / 'phyletic_pattern.fas'
 PHYLETIC_PATTERN_PNG = ALL_OUTPUTS_DIRECTORY / '05b_orthogroups_visualizations' / 'phyletic_pattern.png'
-STRAIN_CLUSTERS_PNG = ALL_OUTPUTS_DIRECTORY / '05b_orthogroups_visualizations' / 'strain_clusters_by_orthogroups.png'
-STRAIN_CLUSTERS_CSV = ALL_OUTPUTS_DIRECTORY / '05b_orthogroups_visualizations' / 'strain_cluster_mapping.csv'
+GENOME_CLUSTERS_PNG = ALL_OUTPUTS_DIRECTORY / '05b_orthogroups_visualizations' / 'strain_clusters_by_orthogroups.png'
+GENOME_CLUSTERS_CSV = ALL_OUTPUTS_DIRECTORY / '05b_orthogroups_visualizations' / 'strain_cluster_mapping.csv'
 
 CORE_PROTEOME = ALL_OUTPUTS_DIRECTORY / '07a_aligned_core_proteome' / 'aligned_core_proteome.fas'
 CORE_GENOME = ALL_OUTPUTS_DIRECTORY / '07b_aligned_core_genome' / 'aligned_core_genome.fas'
@@ -120,8 +120,8 @@ PATHS_TO_DOWNLOAD = {
         "Orthogroups_sizes_histogram": (OG_SIZE_HISTOGRAM, "Can also be found in 05c_orthogroups_sizes directory in the 'All outputs (zip)' file"),
         "Phyletic_pattern_(FASTA)": (PHYLETIC_PATTERN, "Can also be found in 05c_orthogroups_visualizations directory in the 'All outputs (zip)' file"),
         "Phyletic_pattern_(png)": (PHYLETIC_PATTERN_PNG, "Can also be found in 05c_orthogroups_visualizations directory in the 'All outputs (zip)' file"),
-        "Strain_clusters_by_orthogroups_(csv)": (STRAIN_CLUSTERS_CSV, "Can also be found in 05c_orthogroups_visualizations directory in the 'All outputs (zip)' file"),
-        "Strain_clusters_by_orthogroups_(png)": (STRAIN_CLUSTERS_PNG, "Can also be found in 05c_orthogroups_visualizations directory in the 'All outputs (zip)' file"),
+        "Genome_clusters_by_orthogroups_(csv)": (GENOME_CLUSTERS_CSV, "Can also be found in 05c_orthogroups_visualizations directory in the 'All outputs (zip)' file"),
+        "Genome_clusters_by_orthogroups_(png)": (GENOME_CLUSTERS_PNG, "Can also be found in 05c_orthogroups_visualizations directory in the 'All outputs (zip)' file"),
     },
     "Core genome": {
         "Core_proteome_alignment": (CORE_GENOME, "Can also be found in 07a_aligned_core_proteome directory in the 'All outputs (zip)' file"),
