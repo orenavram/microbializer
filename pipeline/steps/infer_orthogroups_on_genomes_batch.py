@@ -22,7 +22,7 @@ from pipeline.auxiliaries import consts
 def create_pseudo_genome_from_ogs(
         logger, times_logger, config, base_step_number, previous_substep_number, final_orthogroups_file_path,
         subset_proteins_fasta_path, genomes_batch_id):
-    final_orthogroups_df = pd.read_csv(final_orthogroups_file_path)
+    final_orthogroups_df = pd.read_csv(final_orthogroups_file_path, dtype=str)
 
     step_number = f'{base_step_number}_{previous_substep_number + 1}'
     logger.info(f'Step {step_number}: {"_" * 100}')

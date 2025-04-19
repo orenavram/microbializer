@@ -19,65 +19,66 @@ def cluster_genes_to_connected_components(logger, normalized_hits_dir, putative_
     for hits_file_path in normalized_hits_dir.glob('*.m8'):
         logger.info(f'Processing file: {hits_file_path}')
         with open(hits_file_path) as f:
+            # Read header
+            line = f.readline()
+            strain1, strain2 = line.rstrip().split(',')[:2]
+
+            # Read the rest of the file
             for line in f:
                 line_tokens = line.rstrip().split(',')
-                if 'score' in line:
-                    # new reciprocal hits file starts
-                    strain1, strain2 = line_tokens[:2]
+                gene1, gene2 = line_tokens[:2]
+
+                gene1_was_seen = gene1 in member_gene_to_strain_name_dict
+                gene2_was_seen = gene2 in member_gene_to_strain_name_dict
+
+                if not gene1_was_seen and not gene2_was_seen:
+                    # non of the two genes was seen before
+                    # update strain name
+                    member_gene_to_strain_name_dict[gene1] = strain1
+                    member_gene_to_strain_name_dict[gene2] = strain2
+
+                    group = f'OG_{next_group_id}'
+                    next_group_id += 1
+                    # add gene1 to group
+                    member_gene_to_group_name[gene1] = group
+                    # add gene2 to group
+                    member_gene_to_group_name[gene2] = group
+                    # create group (for the first time)
+                    group_name_to_member_genes[group] = [gene1, gene2]
+
+                elif gene1_was_seen and not gene2_was_seen:
+                    # update strain name
+                    member_gene_to_strain_name_dict[gene2] = strain2
+                    # gene1 is already in the table
+                    group = member_gene_to_group_name[gene1]
+                    # add gene2 to gene1's group
+                    member_gene_to_group_name[gene2] = group
+                    group_name_to_member_genes[group].append(gene2)
+
+                elif not gene1_was_seen and gene2_was_seen:
+                    # update strain name
+                    member_gene_to_strain_name_dict[gene1] = strain1
+
+                    # gene2 is already in the table
+                    group = member_gene_to_group_name[gene2]
+                    # add gene1 to gene2's group
+                    member_gene_to_group_name[gene1] = group
+                    group_name_to_member_genes[group].append(gene1)
+
                 else:
-                    gene1, gene2 = line_tokens[:2]
-
-                    gene1_was_seen = gene1 in member_gene_to_strain_name_dict
-                    gene2_was_seen = gene2 in member_gene_to_strain_name_dict
-
-                    if not gene1_was_seen and not gene2_was_seen:
-                        # non of the two genes was seen before
-                        # update strain name
-                        member_gene_to_strain_name_dict[gene1] = strain1
-                        member_gene_to_strain_name_dict[gene2] = strain2
-
-                        group = f'OG_{next_group_id}'
-                        next_group_id += 1
-                        # add gene1 to group
-                        member_gene_to_group_name[gene1] = group
-                        # add gene2 to group
-                        member_gene_to_group_name[gene2] = group
-                        # create group (for the first time)
-                        group_name_to_member_genes[group] = [gene1, gene2]
-
-                    elif gene1_was_seen and not gene2_was_seen:
-                        # update strain name
-                        member_gene_to_strain_name_dict[gene2] = strain2
-                        # gene1 is already in the table
-                        group = member_gene_to_group_name[gene1]
-                        # add gene2 to gene1's group
-                        member_gene_to_group_name[gene2] = group
-                        group_name_to_member_genes[group].append(gene2)
-
-                    elif not gene1_was_seen and gene2_was_seen:
-                        # update strain name
-                        member_gene_to_strain_name_dict[gene1] = strain1
-
-                        # gene2 is already in the table
-                        group = member_gene_to_group_name[gene2]
-                        # add gene1 to gene2's group
-                        member_gene_to_group_name[gene1] = group
-                        group_name_to_member_genes[group].append(gene1)
-
-                    else:
-                        # both genes were already seen; merge groups...
-                        group1 = member_gene_to_group_name[gene1]
-                        group2 = member_gene_to_group_name[gene2]
-                        if group1 == group2:
-                            # groups are already merged
-                            continue
-                        min_group, max_group = sorted([group1, group2])
-                        # remove max_group from dictionary
-                        max_group_members = group_name_to_member_genes.pop(max_group)
-                        # merge groups
-                        for gene in max_group_members:
-                            member_gene_to_group_name[gene] = min_group
-                        group_name_to_member_genes[min_group].extend(max_group_members)
+                    # both genes were already seen; merge groups...
+                    group1 = member_gene_to_group_name[gene1]
+                    group2 = member_gene_to_group_name[gene2]
+                    if group1 == group2:
+                        # groups are already merged
+                        continue
+                    min_group, max_group = sorted([group1, group2])
+                    # remove max_group from dictionary
+                    max_group_members = group_name_to_member_genes.pop(max_group)
+                    # merge groups
+                    for gene in max_group_members:
+                        member_gene_to_group_name[gene] = min_group
+                    group_name_to_member_genes[min_group].extend(max_group_members)
 
     # strains sorted lexicographically
     sorted_strains = sorted(set(member_gene_to_strain_name_dict.values()))
