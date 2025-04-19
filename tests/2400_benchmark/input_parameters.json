@@ -1,0 +1,13 @@
+{
+    "identity_cutoff": "40.0",
+    "core_minimal_percentage": "100.0",
+    "outgroup": "No outgroup",
+    "bootstrap": "True",
+    "coverage_cutoff": "70.0",
+    "filter_out_plasmids": "False",
+    "add_orphan_genes_to_ogs": "False",
+    "inputs_fasta_type": "orfs",
+    "email": "test@gmail.com",
+    "job_name": "test_2400_genomes",
+    "contigs_dir": "/home/ai_center/ai_users/yairshimony/microbializer_runs/2400_benchmark/orfs/"
+}

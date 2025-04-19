@@ -21,3 +21,4 @@ pipeline/flask/api_secrets.py
 /tests/6000_benchmark/downloads
 /tests/6000_benchmark/extracted
 /tests/6000_benchmark/orfs
+/tests/2400_benchmark/orfs
