@@ -173,6 +173,7 @@ def count_and_plot_orthogroups_sizes(logger, final_orthogroups_file_path, output
     plt.ylabel('Count of OGs of each OG size', fontsize=20)
     plt.tight_layout()
     plt.savefig(output_dir / 'orthogroups_sizes.png', dpi=600)
+    plt.savefig(output_dir / 'orthogroups_sizes.svg', dpi=600)
     plt.clf()
     logger.info(f'Created orthogroups sizes histogram at {output_dir / "orthogroups_sizes.png"}')
 

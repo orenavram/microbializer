@@ -82,6 +82,7 @@ def plot_genomes_histogram(data, output_dir, output_file_name, title, xlabel):
     plt.gca().yaxis.set_major_locator(MaxNLocator(integer=True))  # make y-axis integer
     plt.tight_layout()
     plt.savefig(output_dir / f'{output_file_name}.png', dpi=600)
+    plt.savefig(output_dir / f'{output_file_name}.svg', dpi=600)
 
     plt.clf()
 

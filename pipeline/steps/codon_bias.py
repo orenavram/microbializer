@@ -156,6 +156,7 @@ def visualize_Ws_with_PCA(W_vectors_df, output_dir, logger):
     # Save plot to output_dir
     plt.tight_layout()
     plt.savefig(w_vectors_pca_plot_path, dpi=600)
+    plt.savefig(w_vectors_pca_plot_path.with_suffix('.svg'), dpi=600)
     logger.info(f'PCA plot of w_vectors was saved to {w_vectors_pca_plot_path}')
     plt.close()
 
@@ -201,6 +202,7 @@ def plot_CAI_histogram(logger, ogs_cai_info_df, output_dir):
     plt.tight_layout()
     cai_histogram_path = output_dir / 'CAI_histogram.png'
     plt.savefig(cai_histogram_path, dpi=600)
+    plt.savefig(cai_histogram_path.with_suffix('.svg'), dpi=600)
     logger.info(f'CAI histogram was saved to {cai_histogram_path}')
     plt.close()
 

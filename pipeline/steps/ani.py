@@ -134,6 +134,7 @@ def plot_ani_clustermap(
     # Output ANI clustermap figure
     plt.tight_layout()
     plt.savefig(ani_map_path, dpi=600)
+    plt.savefig(ani_map_path.with_suffix('.svg'), dpi=600)
     plt.close()
     logger.info(f'ANI clustermap was saved to {ani_map_path}')
 
