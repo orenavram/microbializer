@@ -199,7 +199,7 @@ GCF_000959445.1,Burkholderia_vietnamiensis_LMG_10929
 GCF_000019345.1,Ureaplasma_parvum_serovar_3_str__ATCC_27815
 GCF_021654455.1,Streptococcus_parasuis
 GCF_014779555.2,Lysobacter_capsici
-GCF_012317185.1,_Clostridium__innocuum
+GCF_012317185.1,Clostridium__innocuum
 GCF_016127195.1,Aeromonas_jandaei
 GCF_900474605.1,Enterococcus_cecorum
 GCF_008801925.2,Cupriavidus_basilensis
@@ -209,7 +209,7 @@ GCF_000092045.1,Rhizobium_etli_CFN_42
 GCF_000026105.1,Pseudomonas_entomophila_L48
 GCF_000179635.2,Ruminococcus_albus_7___DSM_20455
 GCF_000021925.1,Desulfitobacterium_hafniense_DCB_2
-GCF_004295125.1,_Clostridium__scindens_ATCC_35704
+GCF_004295125.1,Clostridium__scindens_ATCC_35704
 GCF_000959545.1,Burkholderia_ambifaria_AMMD
 GCF_001042595.1,Bifidobacterium_dentium_JCM_1195___DSM_20436
 GCF_003010495.1,Megasphaera_elsdenii_DSM_20460
@@ -374,7 +374,7 @@ GCF_018343775.1,Pseudomonas_cichorii
 GCF_001038625.1,Clostridium_carboxidivorans_P7
 GCF_004117055.1,Brevibacillus_agri
 GCF_037935975.1,Teredinibacter_turnerae
-GCF_000164865.1,_Enterobacter__lignolyticus_SCF1
+GCF_000164865.1,Enterobacter__lignolyticus_SCF1
 GCF_020735925.1,Bordetella_parapertussis
 GCF_001441165.1,Acidipropionibacterium_acidipropionici
 GCF_001050115.1,Bacillus_smithii
@@ -1189,7 +1189,7 @@ GCF_001267925.1,Herbaspirillum_hiltneri_N3
 GCF_000013605.1,Rhodoferax_ferrireducens_T118
 GCF_000021945.1,Chloroflexus_aggregans_DSM_9485
 GCF_006740045.1,Comamonas_terrigena_NBRC_13299
-GCF_000144625.1,_Clostridium__saccharolyticum_WM1
+GCF_000144625.1,Clostridium__saccharolyticum_WM1
 GCF_000154785.2,Roseobacter_litoralis_Och_149
 GCF_000014145.1,Cytophaga_hutchinsonii_ATCC_33406
 GCF_000219915.2,Advenella_kashmirensis_WT001
@@ -1210,7 +1210,7 @@ GCF_000332115.1,Nonlabens_dokdonensis_DSW_6
 GCF_000224085.1,Allomuricauda_ruestringensis_DSM_13258
 GCF_000306675.2,Leptospira_mayottensis_200901116
 GCF_000284115.1,Phycisphaera_mikurensis_NBRC_102666
-GCF_000022305.1,_Acidovorax__ebreus_TPSY
+GCF_000022305.1,Acidovorax__ebreus_TPSY
 GCF_024347275.1,Amphritea_japonica
 GCF_000024965.1,Xylanimonas_cellulosilytica_DSM_15894
 GCF_002221525.1,Pseudoalteromonas_espejiana_DSM_9414
@@ -1240,7 +1240,7 @@ GCF_000214435.1,Desulfotomaculum_nigrificans_CO_1_SRB
 GCF_000020685.1,Deinococcus_deserti_VCD115
 GCF_000166695.1,Caldicellulosiruptor_acetigenus_I77R1B
 GCF_000020465.1,Chlorobium_limicola_DSM_245
-GCF_025152405.1,_Ruminococcus__lactaris_ATCC_29176
+GCF_025152405.1,Ruminococcus__lactaris_ATCC_29176
 GCF_000226295.1,Chloracidobacterium_thermophilum_B
 GCF_000015585.1,Halorhodospira_halophila_SL1
 GCF_029023825.1,Enterococcus_saccharolyticus_subsp__saccharolyticus
@@ -1294,7 +1294,7 @@ GCF_000022525.1,Neorickettsia_risticii_str__Illinois
 GCF_900476175.1,Mycoplasma_putrefaciens
 GCF_000815065.1,Mesomycoplasma_flocculare_ATCC_27399
 GCF_900660685.1,Mycoplasmopsis_columbina
-GCF_003285045.1,_Mycoplasma__anseris
+GCF_003285045.1,Mycoplasma__anseris
 GCF_000179035.2,Mycoplasma_suis_str__Illinois
 GCF_045276915.1,Mesomycoplasma_moatsii
 GCF_000277795.1,Mycoplasma_wenyonii_str__Massachusetts
@@ -1472,7 +1472,7 @@ GCF_000008625.1,Aquifex_aeolicus_VF5
 GCF_000512735.1,Thermocrinis_ruber
 GCF_000973085.1,Sneathia_vaginalis
 GCF_045276875.1,Mycoplasma_corogypsi
-GCF_037482225.1,_Mycoplasma__gypis
+GCF_037482225.1,Mycoplasma__gypis
 GCF_024498255.1,Mycoplasmopsis_equigenitalium
 GCF_046774455.1,Metamycoplasma_buccale
 GCF_003855455.1,Mycoplasma_struthionis
@@ -1495,7 +1495,7 @@ GCF_000024545.1,Stackebrandtia_nassauensis_DSM_44728
 GCF_000204155.1,Micromonospora_maris_AB_18_032
 GCF_000218895.1,Runella_slithyformis_DSM_19594
 GCF_000266945.1,Desulfomonile_tiedjei_DSM_6799
-GCF_025149125.1,_Clostridium__asparagiforme_DSM_15981
+GCF_025149125.1,Clostridium__asparagiforme_DSM_15981
 GCF_000317125.1,Chroococcidiopsis_thermalis_PCC_7203
 GCF_000222485.1,Cyclobacterium_marinum_DSM_745
 GCF_000230995.2,Mesorhizobium_australicum_WSM2073
@@ -1600,7 +1600,7 @@ GCF_000503895.1,Hyphomicrobium_nitrativorans_NL23
 GCF_000176915.2,Pseudodesulfovibrio_aespoeensis_Aspo_2
 GCF_000242255.2,Frateuria_aurantia_DSM_6220
 GCF_000214705.1,Desulfofundulus_kuznetsovii_DSM_6115
-GCF_000093085.1,_Bacillus__selenitireducens_MLS10
+GCF_000093085.1,Bacillus__selenitireducens_MLS10
 GCF_000236685.1,Sphaerochaeta_pleomorpha_str__Grapes
 GCF_003019675.1,Fusobacterium_ulcerans
 GCF_000199675.1,Anaerolinea_thermophila_UNI_1
@@ -1695,7 +1695,7 @@ GCF_000175295.2,Thermoanaerobacter_brockii_subsp__finnii_Ako_1
 GCF_024453835.1,Corynebacterium_genitalium_ATCC_33030
 GCF_046058945.1,Brochothrix_campestris
 GCF_000217795.1,Thermodesulfatator_indicus_DSM_15286
-GCF_000007745.1,_Mannheimia__succiniciproducens_MBEL55E
+GCF_000007745.1,Mannheimia__succiniciproducens_MBEL55E
 GCF_000165465.1,Halanaerobium_praevalens_DSM_2228
 GCF_000024885.1,Sulfurospirillum_deleyianum_DSM_6946
 GCF_000183745.1,Oceanithermus_profundus_DSM_14977
@@ -1777,7 +1777,7 @@ GCF_000508245.1,Mycoplasma_ovis_str__Michigan
 GCF_037157805.1,Pendulispora_rubella
 GCF_037157775.1,Pendulispora_brunnea
 GCF_026965555.1,Nannocystis_punicea
-GCF_002057455.1,_Actinomadura__parvosata_subsp__kistnae
+GCF_002057455.1,Actinomadura__parvosata_subsp__kistnae
 GCF_005144635.2,Polyangium_aurulentum
 GCF_037157815.1,Pendulispora_albinea
 GCF_001263205.1,Labilithrix_luteola
@@ -2210,7 +2210,7 @@ GCF_022846615.1,Roseomonas_fluvialis
 GCF_040024445.1,Prescottella_soli
 GCF_033954455.1,Thiorhodovibrio_litoralis
 GCF_900637205.1,Mycolicibacterium_chitae
-GCF_963378095.1,_Mycobacterium__burgundiense
+GCF_963378095.1,Mycobacterium__burgundiense
 GCF_022059845.1,Terrirubrum_flagellatum
 GCF_027111255.2,Flavobacterium_flavigenum
 GCF_015679185.1,Pedobacter_endophyticus
@@ -2258,7 +2258,7 @@ GCF_024347215.1,Aliamphritea_ceti
 GCF_007970665.1,Baekduia_soli
 GCF_024347195.1,Aliamphritea_hakodatensis
 GCF_003970675.1,Flammeovirga_pectinis
-GCF_963378085.1,_Mycobacterium__wendilense
+GCF_963378085.1,Mycobacterium__wendilense
 GCF_001651805.1,Marinobacterium_aestuarii
 GCF_000935025.1,Sphingomonas_hengshuiensis
 GCF_015101885.1,Massilia_litorea
@@ -2314,7 +2314,7 @@ GCF_001644605.1,Paenibacillus_swuensis
 GCF_040269895.1,Methyloraptor_flagellatus
 GCF_018595675.2,Flavihumibacter_fluvii
 GCF_030295405.1,Mesoterricola_silvestris
-GCF_002356335.1,_Mycobacterium__stephanolepidis
+GCF_002356335.1,Mycobacterium__stephanolepidis
 GCF_023078495.1,Luteibacter_aegosomatissinici
 GCF_000803645.1,Sphingopyxis_fribergensis
 GCF_014297575.1,Dyella_telluris
@@ -2390,7 +2390,7 @@ GCF_022919575.1,Gracilibacillus_salinarum
 GCF_013201075.1,Lichenicola_cladoniae
 GCF_032051675.1,Candidatus_Nitrospira_neomarina
 GCF_036492635.1,Aureibacter_tunicatorum
-GCF_963378105.1,_Mycobacterium__holstebronense
+GCF_963378105.1,Mycobacterium__holstebronense
 GCF_003325475.1,Chromobacterium_phragmitis
 GCF_041428605.1,Sporomusa_paucivorans
 GCF_038449125.1,Kosakonia_calanthes
@@ -2590,7 +2590,7 @@ GCF_010092985.1,Pontibacter_pudoricolor
 GCF_021650935.1,Thiothrix_winogradskyi
 GCF_033180165.1,Shewanella_youngdeokensis
 GCF_026247885.1,Methylococcus_mesophilus
-GCF_963378075.1,_Mycobacterium__kokjensenii
+GCF_963378075.1,Mycobacterium__kokjensenii
 GCF_014805825.1,Marinomonas_algicola
 GCF_019968605.1,Polaribacter_litorisediminis
 GCF_002224365.1,Virgibacillus_necropolis
@@ -2708,7 +2708,7 @@ GCF_001854125.1,Marinobacter_salinus
 GCF_024508275.1,Cellulomonas_wangsupingiae
 GCF_002893765.1,Pseudotamlana_carrageenivorans
 GCF_028747805.1,Solibacillus_daqui
-GCF_022647505.1,_Pantoea__beijingensis
+GCF_022647505.1,Pantoea__beijingensis
 GCF_030271835.1,Proteus_appendicitidis
 GCF_001729245.1,Leptospira_tipperaryensis
 GCF_003574965.1,Hymenobacter_oligotrophus
@@ -3175,7 +3175,7 @@ GCF_018905915.1,Azospira_inquinata
 GCF_003860525.1,Epilithonimonas_vandammei
 GCF_000963865.1,Flagellimonas_lutaonensis
 GCF_002240035.1,Legionella_clemsonensis
-GCF_029030725.1,_Pseudomonas__carboxydohydrogena
+GCF_029030725.1,Pseudomonas__carboxydohydrogena
 GCF_004683865.2,Paracoccus_liaowanqingii
 GCF_900604385.1,Alistipes_megaguti
 GCF_018406605.1,Noviluteimonas_caseinilytica
@@ -3708,7 +3708,7 @@ GCF_013307225.1,Polynucleobacter_tropicus
 GCF_038095555.1,Macrococcus_psychrotolerans
 GCF_951229915.1,Candidatus_Ornithobacterium_hominis
 GCF_000219045.1,Francisella_salina
-GCF_940677205.1,_Clostridium__colinum
+GCF_940677205.1,Clostridium__colinum
 GCF_001543145.1,Aerococcus_sanguinicola
 GCF_016127995.1,Schaalia_meyeri
 GCF_014905135.1,Sulfurimonas_paralvinellae
@@ -3842,7 +3842,7 @@ GCF_024498215.1,Mycoplasmopsis_caviae
 GCF_000632845.1,Ehrlichia_japonica
 GCF_045276205.1,Mycoplasmopsis_adleri
 GCF_046774425.1,Malacoplasma_muris
-GCF_042984175.1,_Mycoplasma__cavipharyngis
+GCF_042984175.1,Mycoplasma__cavipharyngis
 GCF_000723365.1,Mycoplasma_amphoriforme_A39
 GCF_024172705.1,Candidatus_Comchoanobacter_bicostacola
 GCF_024338845.1,Mycoplasma_bradburyae
@@ -3868,7 +3868,7 @@ GCF_900660705.1,Mycoplasmopsis_columbinasalis
 GCF_002804025.1,Mesoplasma_tabanidae
 GCF_900476105.1,Mycoplasmopsis_edwardii
 GCF_013008635.1,Mycoplasma_miroungigenitalium
-GCF_003332325.1,_Mycoplasma__phocae
+GCF_003332325.1,Mycoplasma__phocae
 GCF_045276895.1,Mycoplasmopsis_lipophila
 GCF_002804245.1,Mesoplasma_coleopterae
 GCF_030550815.1,Candidatus_Mycoplasma_mahonii
@@ -4212,7 +4212,7 @@ GCF_005144905.1,Vibrio_cyclitrophicus
 GCF_025561465.1,Staphylococcus_simulans
 GCF_017498585.1,Acinetobacter_towneri
 GCF_018135955.1,Francisella_philomiragia
-GCF_001647695.1,_Haemophilus__ducreyi
+GCF_001647695.1,Haemophilus__ducreyi
 GCF_003932715.1,Streptomyces_tsukubensis
 GCF_008330085.1,Kosakonia_radicincitans
 GCF_002214395.1,Vibrio_rotiferianus
@@ -4292,7 +4292,7 @@ GCF_963227125.1,Companilactobacillus_paralimentarius
 GCF_900477945.1,Haemophilus_haemolyticus
 GCF_031172035.1,Bacteroides_salyersiae
 GCF_019175485.1,Enterococcus_raffinosus
-GCF_044591705.1,_Ruminococcus__torques
+GCF_044591705.1,Ruminococcus__torques
 GCF_009936175.1,Bartonella_quintana
 GCF_019552005.1,Fusobacterium_vincentii
 GCF_020549965.1,Chlamydia_pecorum
@@ -4682,7 +4682,7 @@ GCF_014217765.1,Rhodococcus_triatomae
 GCF_035905475.1,Clostridium_intestinale
 GCF_039789245.1,Leminorella_grimontii
 GCF_027924785.1,Vibrio_nigripulchritudo
-GCF_022845755.1,_Clostridium__hylemonae
+GCF_022845755.1,Clostridium__hylemonae
 GCF_023733635.1,Candidatus_Endoriftia_persephone
 GCF_003071405.1,Pseudogemmobacter_blasticus
 GCF_016728785.1,Thomasclavelia_ramosa
@@ -4911,7 +4911,7 @@ GCF_003226695.1,Blattabacterium_punctulatus
 GCF_016599635.1,Pseudomonas_cannabina_pv__alisalensis
 GCF_000235585.1,Paenibacillus_terrae_HPL_003
 GCF_000012325.1,Colwellia_psychrerythraea_34H
-GCF_000196515.1,_Nostoc_azollae__0708
+GCF_000196515.1,Nostoc_azollae__0708
 GCF_043187465.1,Sphingobacterium_cellulitidis
 GCF_000834395.1,Yersinia_aldovae_670_83
 GCF_001886435.1,Alteromonas_mediterranea
@@ -5142,7 +5142,7 @@ GCF_034262375.1,Mucilaginibacter_sabulilitoris
 GCF_045276965.1,Streptomyces_althioticus
 GCF_045207185.1,Streptomyces_halstedii
 GCF_036189845.1,Streptomyces_jietaisiensis
-GCF_036240075.1,_Kitasatospora__papulosa
+GCF_036240075.1,Kitasatospora__papulosa
 GCF_021654775.1,Paenibacillus_azoreducens
 GCF_047325105.1,Massilia_cellulosiltytica
 GCF_040564635.1,Planktothricoides_raciborskii_GIHE_MW2
