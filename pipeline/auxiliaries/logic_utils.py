@@ -152,7 +152,15 @@ def split_ogs_to_jobs_inputs_files_by_og_sizes(orthogroups_df, step_tmp_dir, max
     return job_paths
 
 
-def sort_orthogroups_df_and_rename_ogs(logger, orthogroups_df, orfs_coordinates_dir):
+def sort_orthogroups_df_and_rename_ogs(logger, orthogroups_file_path, orfs_coordinates_dir, sorted_orthogroups_file_path):
+    def sort_genes_in_cell(cell, orfs_coordinates_dict):
+        if pd.isna(cell) or cell == '':
+            return cell
+
+        genes = cell.split(';')
+        genes_sorted = sorted(genes, key=lambda gene: orfs_coordinates_dict[gene])
+        return ';'.join(genes_sorted)
+
     logger.info(f'Reading {orfs_coordinates_dir} into memory...')
 
     genome_name_to_orfs_coordinates = {}
@@ -163,11 +171,17 @@ def sort_orthogroups_df_and_rename_ogs(logger, orthogroups_df, orfs_coordinates_
 
     logger.info(f'Finished reading {orfs_coordinates_dir} into memory.')
 
+    # Sort the genes in each cell of the orthogroups DataFrame
+    orthogroups_df = pd.read_csv(orthogroups_file_path)
+    for col in orthogroups_df.columns[1:]:
+        orthogroups_df[col] = orthogroups_df[col].apply(lambda cell: sort_genes_in_cell(cell, genome_name_to_orfs_coordinates[col]))
+
+    # Sort the table OGs by the first genome's coordinates, then by the second genome's coordinates, and so on.
     orthogroups_df = orthogroups_df.sort_values(
         by=list(orthogroups_df.columns[1:]),
         key=lambda col: col.map(lambda val: genome_name_to_orfs_coordinates[val.split(';')[0]]))\
         .reset_index(drop=True)
 
     orthogroups_df['OG_name'] = [f'OG_{i}' for i in range(len(orthogroups_df.index))]
-
-    return orthogroups_df
+    orthogroups_df.to_csv(sorted_orthogroups_file_path, index=False)
+    logger.info(f'Wrote sorted orthogroups table according to coordinates to {sorted_orthogroups_file_path}')

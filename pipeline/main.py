@@ -7,10 +7,7 @@ import traceback
 import json
 import subprocess
 from datetime import timedelta
-import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
-import seaborn as sns
 from dataclasses import replace
 
 from auxiliaries import consts
@@ -23,7 +20,7 @@ from auxiliaries.main_utils import send_email_in_pipeline_end, submit_clean_fold
     calc_genomes_batch_size, initialize_progressbar
 from auxiliaries.run_step_utils import wait_for_results, prepare_directories, submit_mini_batch, submit_batch
 from auxiliaries.logic_utils import (plot_genomes_histogram, combine_orphan_genes_stats,
-                                     split_ogs_to_jobs_inputs_files_by_og_sizes)
+                                     split_ogs_to_jobs_inputs_files_by_og_sizes, sort_orthogroups_df_and_rename_ogs)
 
 from auxiliaries.infer_orthogroups_logic import infer_orthogroups
 from flask.SharedConsts import State
@@ -266,17 +263,50 @@ def step_3_analyze_genome_completeness(logger, times_logger, config, translated_
     update_progressbar(config.progressbar_file_path, 'Calculate genomes completeness')
 
 
-def step_5_full_orthogroups_inference(logger, times_logger, config, translated_orfs_dir, all_proteins_path):
-    final_orthogroups_dir_path, orphan_genes_dir, _ = infer_orthogroups(
-        logger, times_logger, config, '05', translated_orfs_dir, all_proteins_path)
+def step_5_orthogroups_inference(logger, times_logger, config, genomes_names, translated_orfs_dir, all_proteins_path,
+                                 orfs_coordinates_dir):
+    genomes_batch_size = calc_genomes_batch_size(logger, config, len(genomes_names))
+    if len(genomes_names) < config.min_num_of_genomes_to_optimize_orthogroups_inference or \
+            len(genomes_names) < genomes_batch_size * 2 or config.always_run_full_orthogroups_inference:
+        final_orthogroups_dir_path, orphan_genes_dir, final_substep_number = infer_orthogroups(
+            logger, times_logger, config, '05', translated_orfs_dir, all_proteins_path)
+        final_step_number = '05'
+    else:
+        final_orthogroups_dir_path, orphan_genes_dir, final_substep_number = step_5_6_approximate_orthogroups_inference(
+            logger, times_logger, config, translated_orfs_dir, genomes_batch_size)
+        final_step_number = '06'
+
+    # Sort orthogroups table by coordinates
+    step_number = f'{final_step_number}_{final_substep_number + 1}'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_sort_orthogroups_by_coordinates'
+    sorted_orthogroups_dir, sorted_orthogroups_tmp_dir = prepare_directories(
+        logger, config.steps_results_dir, config.tmp_dir, step_name)
+    sorted_orthogroups_file_path = sorted_orthogroups_dir / 'orthogroups.csv'
+    done_file_path = config.done_files_dir / f'{step_name}.txt'
+    if not done_file_path.exists():
+        start_time = time.time()
+
+        sort_orthogroups_df_and_rename_ogs(logger, final_orthogroups_dir_path / 'orthogroups.csv',
+                                           orfs_coordinates_dir, sorted_orthogroups_file_path)
+
+        step_time = timedelta(seconds=int(time.time() - start_time))
+        times_logger.info(f'Step {step_name} took {step_time}.')
+
+        write_done_file(logger, done_file_path)
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
     if not config.do_not_copy_outputs_to_final_results_dir:
         add_results_to_final_dir(logger, orphan_genes_dir, config.final_output_dir)
 
     if not config.do_not_copy_outputs_to_final_results_dir:
-        add_results_to_final_dir(logger, final_orthogroups_dir_path, config.final_output_dir)
+        add_results_to_final_dir(logger, sorted_orthogroups_dir, config.final_output_dir)
 
-    return final_orthogroups_dir_path / 'orthogroups.csv'
+    update_progressbar(config.progressbar_file_path, 'Infer orthogroups')
+    update_progressbar(config.progressbar_file_path, 'Find orphan genes')
+
+    return sorted_orthogroups_file_path
 
 
 def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, translated_orfs_dir, genomes_batch_size):
@@ -452,9 +482,6 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
         step_post_processing_time = timedelta(seconds=int(time.time() - start_time))
         times_logger.info(f'Step {step_name} post-processing took {step_post_processing_time}.')
 
-        if not config.do_not_copy_outputs_to_final_results_dir:
-            add_results_to_final_dir(logger, orphan_genes_dir, config.final_output_dir)
-
         write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -491,14 +518,11 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
         step_time = timedelta(seconds=int(time.time() - start_time))
         times_logger.info(f'Step {step_name} took {step_time}.')
 
-        if not config.do_not_copy_outputs_to_final_results_dir:
-            add_results_to_final_dir(logger, final_orthogroups_dir, config.final_output_dir)
-
         write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    return final_orthogroups_file_path
+    return final_orthogroups_dir, orphan_genes_dir, final_substep_number + 3
 
 
 def step_7_orthologs_table_variations(logger, times_logger, config, final_orthogroups_file_path):
@@ -988,25 +1012,13 @@ def run_main_pipeline(logger, times_logger, config):
         logger.info("Step 3 completed.")
         return
 
-    genomes_batch_size = calc_genomes_batch_size(logger, config, len(genomes_names))
-    if len(genomes_names) < config.min_num_of_genomes_to_optimize_orthogroups_inference or \
-            len(genomes_names) < genomes_batch_size * 2 or config.always_run_full_orthogroups_inference:
-        final_orthogroups_file_path = step_5_full_orthogroups_inference(
-            logger, times_logger, config, translated_orfs_dir, all_proteins_fasta_path)
+    final_orthogroups_file_path = step_5_orthogroups_inference(logger, times_logger, config, genomes_names,
+                                                               translated_orfs_dir, all_proteins_fasta_path,
+                                                               orfs_coordinates_dir)
 
-        if config.step_to_complete == '5':
-            logger.info("Step 5 completed.")
-            return
-    else:
-        final_orthogroups_file_path = step_5_6_approximate_orthogroups_inference(
-            logger, times_logger, config, translated_orfs_dir, genomes_batch_size)
-
-        if config.step_to_complete == '6':
-            logger.info("Step 6 completed.")
-            return
-
-    update_progressbar(config.progressbar_file_path, 'Infer orthogroups')
-    update_progressbar(config.progressbar_file_path, 'Find orphan genes')
+    if config.step_to_complete == '5':
+        logger.info("Step 5 completed.")
+        return
 
     orthogroups_visualizations_dir_path = step_7_orthologs_table_variations(logger, times_logger, config,
                                                                             final_orthogroups_file_path)
