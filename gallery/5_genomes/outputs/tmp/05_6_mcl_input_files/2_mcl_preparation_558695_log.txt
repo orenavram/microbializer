@@ -1,0 +1,97 @@
+2025-04-21 01:05:43,296 INFO run_step_utils.py:318 Starting command is: /home/ai_center/ai_users/yairshimony/microbializer/pipeline/steps/prepare_og_for_mcl.py /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_4_normalize_scores /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_5_putative_table/putative_orthologs_table.csv /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/jobs_inputs/2.txt /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files -v False --logs_dir /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files --error_file_path /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs/error.txt --job_name 2_mcl_preparation --use_job_manager True --cpus 1
+2025-04-21 01:05:43,337 INFO prepare_og_for_mcl.py:45 Aggregating all genes from the specified 88 putative OGs...
+2025-04-21 01:05:43,389 INFO prepare_og_for_mcl.py:58 All relevant genes were aggregated successfully. Number of relevant genes is 424.
+2025-04-21 01:05:43,389 INFO prepare_og_for_mcl.py:60 Loading relevant hits scores to memory...
+2025-04-21 01:05:43,430 INFO prepare_og_for_mcl.py:62 All relevant hits were loaded successfully.
+2025-04-21 01:05:43,430 INFO prepare_og_for_mcl.py:64 Preparing input files for MCL...
+2025-04-21 01:05:43,441 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_2100.mcl_input
+2025-04-21 01:05:43,453 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_2203.mcl_input
+2025-04-21 01:05:43,462 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1853.mcl_input
+2025-04-21 01:05:43,472 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1847.mcl_input
+2025-04-21 01:05:43,482 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1915.mcl_input
+2025-04-21 01:05:43,493 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_2404.mcl_input
+2025-04-21 01:05:43,504 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_2475.mcl_input
+2025-04-21 01:05:43,505 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_2387.mcl_input
+2025-04-21 01:05:43,506 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_2382.mcl_input
+2025-04-21 01:05:43,515 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_3928.mcl_input
+2025-04-21 01:05:43,526 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_3980.mcl_input
+2025-04-21 01:05:43,527 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_3767.mcl_input
+2025-04-21 01:05:43,538 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_3751.mcl_input
+2025-04-21 01:05:43,539 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_3828.mcl_input
+2025-04-21 01:05:43,550 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_4140.mcl_input
+2025-04-21 01:05:43,559 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_4193.mcl_input
+2025-04-21 01:05:43,567 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_4002.mcl_input
+2025-04-21 01:05:43,576 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_4116.mcl_input
+2025-04-21 01:05:43,586 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_3264.mcl_input
+2025-04-21 01:05:43,588 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_3336.mcl_input
+2025-04-21 01:05:43,596 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_3118.mcl_input
+2025-04-21 01:05:43,606 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_3183.mcl_input
+2025-04-21 01:05:43,614 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_3361.mcl_input
+2025-04-21 01:05:43,623 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_3565.mcl_input
+2025-04-21 01:05:43,636 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_3628.mcl_input
+2025-04-21 01:05:43,645 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_3377.mcl_input
+2025-04-21 01:05:43,660 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_3481.mcl_input
+2025-04-21 01:05:43,671 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_570.mcl_input
+2025-04-21 01:05:43,686 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1245.mcl_input
+2025-04-21 01:05:43,700 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1176.mcl_input
+2025-04-21 01:05:43,710 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1382.mcl_input
+2025-04-21 01:05:43,721 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1398.mcl_input
+2025-04-21 01:05:43,722 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1286.mcl_input
+2025-04-21 01:05:43,733 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1115.mcl_input
+2025-04-21 01:05:43,744 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_731.mcl_input
+2025-04-21 01:05:43,754 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_838.mcl_input
+2025-04-21 01:05:43,764 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_849.mcl_input
+2025-04-21 01:05:43,775 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_653.mcl_input
+2025-04-21 01:05:43,784 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_710.mcl_input
+2025-04-21 01:05:43,795 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_669.mcl_input
+2025-04-21 01:05:43,805 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_177.mcl_input
+2025-04-21 01:05:43,815 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1652.mcl_input
+2025-04-21 01:05:43,825 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_195.mcl_input
+2025-04-21 01:05:43,833 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1752.mcl_input
+2025-04-21 01:05:43,844 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1778.mcl_input
+2025-04-21 01:05:43,852 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_51.mcl_input
+2025-04-21 01:05:43,862 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_336.mcl_input
+2025-04-21 01:05:43,876 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1489.mcl_input
+2025-04-21 01:05:43,896 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_283.mcl_input
+2025-04-21 01:05:43,907 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1565.mcl_input
+2025-04-21 01:05:43,917 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_749.mcl_input
+2025-04-21 01:05:43,928 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_417.mcl_input
+2025-04-21 01:05:43,937 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_576.mcl_input
+2025-04-21 01:05:43,947 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_555.mcl_input
+2025-04-21 01:05:43,958 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_486.mcl_input
+2025-04-21 01:05:43,968 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_3395.mcl_input
+2025-04-21 01:05:43,976 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_2398.mcl_input
+2025-04-21 01:05:43,985 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_2734.mcl_input
+2025-04-21 01:05:43,993 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_2099.mcl_input
+2025-04-21 01:05:44,001 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_2289.mcl_input
+2025-04-21 01:05:44,011 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_2934.mcl_input
+2025-04-21 01:05:44,012 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_4644.mcl_input
+2025-04-21 01:05:44,013 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1690.mcl_input
+2025-04-21 01:05:44,013 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_377.mcl_input
+2025-04-21 01:05:44,014 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_2159.mcl_input
+2025-04-21 01:05:44,023 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_159.mcl_input
+2025-04-21 01:05:44,024 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1603.mcl_input
+2025-04-21 01:05:44,026 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_4443.mcl_input
+2025-04-21 01:05:44,035 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1900.mcl_input
+2025-04-21 01:05:44,036 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1014.mcl_input
+2025-04-21 01:05:44,037 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1362.mcl_input
+2025-04-21 01:05:44,038 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_4849.mcl_input
+2025-04-21 01:05:44,039 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_4466.mcl_input
+2025-04-21 01:05:44,040 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_4500.mcl_input
+2025-04-21 01:05:44,050 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_4737.mcl_input
+2025-04-21 01:05:44,060 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_4868.mcl_input
+2025-04-21 01:05:44,062 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1842.mcl_input
+2025-04-21 01:05:44,072 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_4676.mcl_input
+2025-04-21 01:05:44,083 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_4657.mcl_input
+2025-04-21 01:05:44,096 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_3682.mcl_input
+2025-04-21 01:05:44,104 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1470.mcl_input
+2025-04-21 01:05:44,114 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_2808.mcl_input
+2025-04-21 01:05:44,115 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1250.mcl_input
+2025-04-21 01:05:44,116 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1006.mcl_input
+2025-04-21 01:05:44,127 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1926.mcl_input
+2025-04-21 01:05:44,141 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_4310.mcl_input
+2025-04-21 01:05:44,157 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_2185.mcl_input
+2025-04-21 01:05:44,158 INFO prepare_og_for_mcl.py:77 Wrote /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1631.mcl_input
+2025-04-21 01:05:44,158 INFO prepare_og_for_mcl.py:83 Input files for MCL were written successfully.
+   RunTime=00:00:04 TimeLimit=5-00:00:00 TimeMin=N/A
+   NumNodes=1 NumCPUs=1 NumTasks=1 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
