@@ -14,9 +14,7 @@ def get_genome_numeric_representation(logger, orthogroups_table_path, ORFs_dir_p
     orthogroups_df = pd.read_csv(orthogroups_table_path, index_col=0)
 
     genome_name_to_numeric_genome = {}
-    for genome_orfs_path in ORFs_dir_path.iterdir():
-        genome_name = genome_orfs_path.stem
-
+    for genome_name in orthogroups_df.columns:
         gene_id_to_og_number = {}
         for og, gene_ids in orthogroups_df[genome_name].items():
             if pd.isna(gene_ids):
@@ -25,6 +23,7 @@ def get_genome_numeric_representation(logger, orthogroups_table_path, ORFs_dir_p
                 gene_id = gene_id.strip()
                 gene_id_to_og_number[gene_id] = og.lstrip('OG_')
 
+        genome_orfs_path = ORFs_dir_path / f'{genome_name}.fna'
         orf_ids = [record.id for record in SeqIO.parse(genome_orfs_path, 'fasta')]
         numeric_genome = [gene_id_to_og_number.get(orf_id, '-1') for orf_id in orf_ids]
         genome_name_to_numeric_genome[genome_name] = ','.join(numeric_genome)
