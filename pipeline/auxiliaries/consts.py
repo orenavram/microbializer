@@ -145,9 +145,9 @@ OUTPUTS_DIRECTORIES_MAP = {
     'orfs_translated': '02c_translated_orfs',
     '03_genomes_completeness': '03_genomes_completeness',
     '05_9_orphan_genes': '04_orphan_genes',  # full_orthogroups_inference
-    '05_10_orthogroups_final': '05a_orthogroups',  # full_orthogroups_inference
+    '05_11_orthogroups_final': '05a_orthogroups',  # full_orthogroups_inference
     '06_12_orphan_genes_from_orthogroups': '04_orphan_genes',  # approximate_orthogroups_inference
-    '06_13_orthogroups_final': '05a_orthogroups',  # approximate_orthogroups_inference
+    '06_14_orthogroups_final': '05a_orthogroups',  # approximate_orthogroups_inference
     '07_1_orthoxml': '05a_orthogroups',
     '07_2_orthogroups_visualizations': '05b_orthogroups_visualizations',
     'orthogroups_dna': '06a_orthogroups_dna',

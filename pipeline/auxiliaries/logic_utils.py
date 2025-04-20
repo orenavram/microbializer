@@ -166,7 +166,7 @@ def sort_orthogroups_df_and_rename_ogs(logger, orthogroups_file_path, orfs_coord
     genome_name_to_orfs_coordinates = {}
     for orfs_coordinate_path in orfs_coordinates_dir.glob('*.csv'):
         genome_name = orfs_coordinate_path.stem
-        orfs_coordinate_dict = pd.read_csv(orfs_coordinate_path, index_col=0).to_dict(orient='index')
+        orfs_coordinate_dict = pd.read_csv(orfs_coordinate_path, index_col=0)['coordinate'].to_dict()
         genome_name_to_orfs_coordinates[genome_name] = orfs_coordinate_dict
 
     logger.info(f'Finished reading {orfs_coordinates_dir} into memory.')
@@ -179,7 +179,7 @@ def sort_orthogroups_df_and_rename_ogs(logger, orthogroups_file_path, orfs_coord
     # Sort the table OGs by the first genome's coordinates, then by the second genome's coordinates, and so on.
     orthogroups_df = orthogroups_df.sort_values(
         by=list(orthogroups_df.columns[1:]),
-        key=lambda col: col.map(lambda val: genome_name_to_orfs_coordinates[val.split(';')[0]]))\
+        key=lambda col: col.map(lambda val: genome_name_to_orfs_coordinates[col][val.split(';')[0]]))\
         .reset_index(drop=True)
 
     orthogroups_df['OG_name'] = [f'OG_{i}' for i in range(len(orthogroups_df.index))]

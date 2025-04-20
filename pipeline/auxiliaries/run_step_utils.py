@@ -259,20 +259,20 @@ def submit_batch(logger, config, script_path, batch_parameters_list, logs_dir, j
     num_of_mini_batches = 0
     job_name_suffix = job_name_suffix.replace(' ', '_')  # job name cannot contain spaces!
 
-    if not config.use_job_manager:
+    if not config.use_job_manager and config.max_parallel_jobs > 1:
         executor = ProcessPoolExecutor(max_workers=config.max_parallel_jobs)
 
     for i in range(0, len(batch_parameters_list), num_of_cmds_per_job):
         mini_batch_parameters_list = batch_parameters_list[i: i + num_of_cmds_per_job]
         mini_batch_job_name = f'{num_of_mini_batches}_{job_name_suffix}'
 
-        if config.use_job_manager:
+        if not config.use_job_manager and config.max_parallel_jobs > 1:
+            executor.submit(submit_mini_batch, logger, config, script_path, mini_batch_parameters_list, logs_dir,
+                            mini_batch_job_name, num_of_cpus=num_of_cpus, memory=memory, time_in_hours=time_in_hours)
+        else:
             submit_mini_batch(
                 logger, config, script_path, mini_batch_parameters_list, logs_dir, mini_batch_job_name,
                 num_of_cpus=num_of_cpus, memory=memory, time_in_hours=time_in_hours)
-        else:
-            executor.submit(submit_mini_batch, logger, config, script_path, mini_batch_parameters_list, logs_dir,
-                            mini_batch_job_name, num_of_cpus=num_of_cpus, memory=memory, time_in_hours=time_in_hours)
 
         num_of_mini_batches += 1
         sleep(0.1)
