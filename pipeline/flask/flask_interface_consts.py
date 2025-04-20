@@ -68,7 +68,7 @@ GENOME_CLUSTERS_CSV = ALL_OUTPUTS_DIRECTORY / '05b_orthogroups_visualizations' /
 
 CORE_PROTEOME = ALL_OUTPUTS_DIRECTORY / '07a_aligned_core_proteome' / 'aligned_core_proteome.fas'
 CORE_GENOME = ALL_OUTPUTS_DIRECTORY / '07b_aligned_core_genome' / 'aligned_core_genome.fas'
-GENOME_NUMERIC_REPRESENTATION = ALL_OUTPUTS_DIRECTORY / '08_genome_numeric_representation' / 'core_genome_numeric_representation.txt'
+GENOME_NUMERIC_REPRESENTATION = ALL_OUTPUTS_DIRECTORY / '08_genome_numeric_representation' / 'genome_numeric_representation.txt'
 
 SPECIES_TREE_NEWICK = ALL_OUTPUTS_DIRECTORY / '09_species_phylogeny' / 'final_species_tree.newick'
 SPECIES_TREE_PNG = ALL_OUTPUTS_DIRECTORY / '09_species_phylogeny' / 'final_species_tree.png'
