@@ -91,6 +91,7 @@ def step_2_search_orfs(logger, times_logger, config):
     orfs_sequences_dir = orfs_dir / 'orfs_sequences'
     orfs_statistics_dir = orfs_dir / 'orfs_statistics'
     orfs_translated_dir = orfs_dir / 'orfs_translated'
+    orfs_coordinates_dir = orfs_dir / 'orfs_coordinates'
     done_file_path = config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
         logger.info('Extracting ORFs...')
@@ -98,6 +99,7 @@ def step_2_search_orfs(logger, times_logger, config):
         orfs_sequences_dir.mkdir(parents=True, exist_ok=True)
         orfs_statistics_dir.mkdir(parents=True, exist_ok=True)
         orfs_translated_dir.mkdir(parents=True, exist_ok=True)
+        orfs_coordinates_dir.mkdir(parents=True, exist_ok=True)
 
         job_index_to_fasta_files = defaultdict(list)
 
@@ -115,7 +117,7 @@ def step_2_search_orfs(logger, times_logger, config):
                 f.write('\n'.join(job_fasta_files))
 
             single_cmd_params = [job_input_path, orfs_sequences_dir, orfs_statistics_dir, orfs_translated_dir,
-                                 config.inputs_fasta_type]
+                                 orfs_coordinates_dir, config.inputs_fasta_type]
             all_cmds_params.append(single_cmd_params)
 
         num_of_batches = submit_batch(logger, config, script_path, all_cmds_params, orfs_tmp_dir,
@@ -195,7 +197,7 @@ def step_2_search_orfs(logger, times_logger, config):
     update_progressbar(config.progressbar_file_path, 'Predict and translate ORFs')
     update_progressbar(config.progressbar_file_path, 'Translate ORFs')
 
-    return orfs_sequences_dir, orfs_translated_dir, all_orfs_fasta_path, all_proteins_fasta_path
+    return orfs_sequences_dir, orfs_translated_dir, all_orfs_fasta_path, all_proteins_fasta_path, orfs_coordinates_dir
 
 
 def step_3_analyze_genome_completeness(logger, times_logger, config, translated_orfs_dir_path):
@@ -738,22 +740,17 @@ def step_10_genome_numeric_representation(logger, times_logger, config, orfs_dir
         logger, config.steps_results_dir, config.tmp_dir, numeric_step_name)
     numeric_done_file_path = config.done_files_dir / f'{numeric_step_name}.txt'
     if not numeric_done_file_path.exists():
-        core_genome_numeric_representation_file_path = numeric_representation_output_dir / 'core_genome_numeric_representation.txt'
-        if config.core_minimal_percentage == 100:
-            params = [final_orthologs_table_file_path,
-                      orfs_dir,
-                      core_genome_numeric_representation_file_path,
-                      numeric_representation_tmp_dir
-                      ]
+        params = [final_orthologs_table_file_path,
+                  orfs_dir,
+                  numeric_representation_output_dir,
+                  ]
 
-            memory_gb = max(config.job_default_memory_gb, get_required_memory_gb_to_load_csv(final_orthologs_table_file_path))
-            submit_mini_batch(logger, config, script_path, [params], numeric_representation_tmp_dir,
-                              'numeric_representation', memory=memory_gb)
+        memory_gb = max(config.job_default_memory_gb, get_required_memory_gb_to_load_csv(final_orthologs_table_file_path))
+        submit_mini_batch(logger, config, script_path, [params], numeric_representation_tmp_dir,
+                          'numeric_representation', memory=memory_gb)
 
-            wait_for_results(logger, times_logger, numeric_step_name, numeric_representation_tmp_dir,
-                             1, config.error_file_path)
-        else:
-            open(core_genome_numeric_representation_file_path, 'w').close()
+        wait_for_results(logger, times_logger, numeric_step_name, numeric_representation_tmp_dir,
+                         1, config.error_file_path)
 
         if not config.do_not_copy_outputs_to_final_results_dir:
             add_results_to_final_dir(logger, numeric_representation_output_dir, config.final_output_dir)
@@ -977,8 +974,8 @@ def run_main_pipeline(logger, times_logger, config):
         logger.info("Step 1 completed.")
         return
 
-    orfs_dir, translated_orfs_dir, all_orfs_fasta_path, all_proteins_fasta_path = step_2_search_orfs(
-        logger, times_logger, config)
+    orfs_dir, translated_orfs_dir, all_orfs_fasta_path, all_proteins_fasta_path, orfs_coordinates_dir = \
+        step_2_search_orfs(logger, times_logger, config)
 
     if config.step_to_complete == '2':
         logger.info("Step 2 completed.")

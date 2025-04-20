@@ -6,6 +6,7 @@ ENV = 'yair_test'
 # ENV = 'yair_prod'
 # ENV = 'lsweb'
 # ENV = 'c-001'
+ENV = 'windows'
 
 if ENV == 'yair_test':
     PROJECT_ROOT_DIR = Path('/groups/pupko/yairshimony/microbializer')
@@ -19,6 +20,8 @@ elif ENV == 'wsl':
     PROJECT_ROOT_DIR = Path('/home/yair/microbializer')
 elif ENV == 'c-001':
     PROJECT_ROOT_DIR = Path('/home/ai_center/ai_users/yairshimony/microbializer/')
+elif ENV == 'windows':
+    PROJECT_ROOT_DIR = Path(r'C:\repos\microbializer')
 else:
     raise ValueError(f'Unknown environment: {ENV}')
 
@@ -44,6 +47,11 @@ elif ENV == 'c-001':
     CONDA_ENVIRONMENT_DIR = Path('/home/ai_center/ai_users/yairshimony/miniconda/envs/microbializer')
     SLURM_ACCOUNT = 'gpu-research'
     SLURM_PARTITION = 'cpu-killable'
+elif ENV == 'windows':
+    CONDA_INSTALLATION_DIR = Path(r'C:\ProgramData\miniconda3')
+    CONDA_ENVIRONMENT_DIR = Path(r'C:\ProgramData\miniconda3\envs\microbializer')
+    SLURM_ACCOUNT = None
+    SLURM_PARTITION = None
 else:
     raise ValueError(f'Unknown environment: {ENV}')
 

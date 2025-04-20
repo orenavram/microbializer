@@ -4,6 +4,8 @@ import argparse
 from pathlib import Path
 import mmap
 import json
+
+import pandas as pd
 from Bio import SeqIO
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -82,9 +84,17 @@ def fna_to_faa(logger, nucleotide_path, protein_path):
     logger.info(f'Translated fatsa file {nucleotide_path}. Output was written successfully to: {protein_path}')
 
 
+def create_coordinates_file(logger, orfs_file_path, coordinates_file_path):
+    record_ids = [record.id for record in SeqIO.parse(orfs_file_path, 'fasta')]
+    coordinates = list(range(len(record_ids)))
+
+    coordinates_df = pd.DataFrame({'record_id': record_ids, 'coordinate': coordinates})
+    coordinates_df.to_csv(coordinates_file_path, index=False)
+    logger.info(f'Coordinates file was created successfully for {orfs_file_path} in {coordinates_file_path}')
+
 
 def find_genes_of_all_files(logger, job_input_path, orfs_sequences_dir, orfs_statistics_dir, orfs_translated_dir,
-                            inputs_fasta_type):
+                            orfs_coordinates_dir, inputs_fasta_type):
     with open(job_input_path, 'r') as f:
         for line in f:
             genome_path = Path(line.strip())
@@ -98,6 +108,7 @@ def find_genes_of_all_files(logger, job_input_path, orfs_sequences_dir, orfs_sta
 
             extract_orfs_statistics(logger, orfs_output_file_path, orfs_statistics_dir)
             fna_to_faa(logger, orfs_output_file_path, orfs_translated_dir / f'{genome_name}.faa')
+            create_coordinates_file(logger, orfs_output_file_path, orfs_coordinates_dir / f'{genome_name}.csv')
 
 
 if __name__ == '__main__':
@@ -107,9 +118,10 @@ if __name__ == '__main__':
     parser.add_argument('orfs_sequences_dir', type=Path, help='path to orfs sequences dir')
     parser.add_argument('orfs_statistics_dir', type=Path, help='path to orfs statistics dir')
     parser.add_argument('orfs_translated_dir', type=Path, help='path to orfs translated dir')
+    parser.add_argument('orfs_coordinates_dir', type=Path, help='path to orfs coordinates dir')
     parser.add_argument('inputs_fasta_type', help='')
     add_default_step_args(parser)
     args = parser.parse_args()
 
     run_step(args, find_genes_of_all_files, args.job_input_path, args.orfs_sequences_dir, args.orfs_statistics_dir,
-             args.orfs_translated_dir, args.inputs_fasta_type)
+             args.orfs_translated_dir, args.orfs_coordinates_dir, args.inputs_fasta_type)

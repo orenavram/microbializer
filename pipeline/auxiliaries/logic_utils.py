@@ -150,3 +150,24 @@ def split_ogs_to_jobs_inputs_files_by_og_sizes(orthogroups_df, step_tmp_dir, max
     orthogroups_df.drop(columns=['strains_count', 'paralogs_count', 'genes_count'], inplace=True)
 
     return job_paths
+
+
+def sort_orthogroups_df_and_rename_ogs(logger, orthogroups_df, orfs_coordinates_dir):
+    logger.info(f'Reading {orfs_coordinates_dir} into memory...')
+
+    genome_name_to_orfs_coordinates = {}
+    for orfs_coordinate_path in orfs_coordinates_dir.glob('*.csv'):
+        genome_name = orfs_coordinate_path.stem
+        orfs_coordinate_dict = pd.read_csv(orfs_coordinate_path, index_col=0).to_dict(orient='index')
+        genome_name_to_orfs_coordinates[genome_name] = orfs_coordinate_dict
+
+    logger.info(f'Finished reading {orfs_coordinates_dir} into memory.')
+
+    orthogroups_df = orthogroups_df.sort_values(
+        by=list(orthogroups_df.columns[1:]),
+        key=lambda col: col.map(lambda val: genome_name_to_orfs_coordinates[val.split(';')[0]]))\
+        .reset_index(drop=True)
+
+    orthogroups_df['OG_name'] = [f'OG_{i}' for i in range(len(orthogroups_df.index))]
+
+    return orthogroups_df
