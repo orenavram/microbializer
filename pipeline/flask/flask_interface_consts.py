@@ -65,18 +65,15 @@ PHYLETIC_PATTERN = ALL_OUTPUTS_DIRECTORY / '05b_orthogroups_visualizations' / 'p
 PHYLETIC_PATTERN_PNG = ALL_OUTPUTS_DIRECTORY / '05b_orthogroups_visualizations' / 'phyletic_pattern.png'
 GENOME_CLUSTERS_PNG = ALL_OUTPUTS_DIRECTORY / '05b_orthogroups_visualizations' / 'strain_clusters_by_orthogroups.png'
 GENOME_CLUSTERS_CSV = ALL_OUTPUTS_DIRECTORY / '05b_orthogroups_visualizations' / 'strain_cluster_mapping.csv'
+GENOME_NUMERIC_REPRESENTATION = ALL_OUTPUTS_DIRECTORY / '05b_orthogroups_visualizations' / 'genome_numeric_representation.txt'
 
-CORE_PROTEOME = ALL_OUTPUTS_DIRECTORY / '07a_aligned_core_proteome' / 'aligned_core_proteome.fas'
-CORE_GENOME = ALL_OUTPUTS_DIRECTORY / '07b_aligned_core_genome' / 'aligned_core_genome.fas'
-GENOME_NUMERIC_REPRESENTATION = ALL_OUTPUTS_DIRECTORY / '08_genome_numeric_representation' / 'genome_numeric_representation.txt'
+SPECIES_TREE_NEWICK = ALL_OUTPUTS_DIRECTORY / '08_species_phylogeny' / 'final_species_tree.newick'
+SPECIES_TREE_PNG = ALL_OUTPUTS_DIRECTORY / '08_species_phylogeny' / 'final_species_tree.png'
 
-SPECIES_TREE_NEWICK = ALL_OUTPUTS_DIRECTORY / '09_species_phylogeny' / 'final_species_tree.newick'
-SPECIES_TREE_PNG = ALL_OUTPUTS_DIRECTORY / '09_species_phylogeny' / 'final_species_tree.png'
-
-CAI_HISTOGRAM = ALL_OUTPUTS_DIRECTORY / '10_codon_bias' / 'CAI_histogram.png'
-W_VECTORS = ALL_OUTPUTS_DIRECTORY / '10_codon_bias' / 'W_vectors.csv'
-GENOMES_CLUSTERS_BY_W_VECTORS = ALL_OUTPUTS_DIRECTORY / '10_codon_bias' / 'Relative_Adaptiveness_scatter_plot.png'
-GENOMES_CLUSTERS_BY_W_VECTORS_CSV = ALL_OUTPUTS_DIRECTORY / '10_codon_bias' / 'Relative_Adaptiveness_scatter_plot_clusters.csv'
+CAI_HISTOGRAM = ALL_OUTPUTS_DIRECTORY / '09_codon_bias' / 'CAI_histogram.png'
+W_VECTORS = ALL_OUTPUTS_DIRECTORY / '09_codon_bias' / 'W_vectors.csv'
+GENOMES_CLUSTERS_BY_W_VECTORS = ALL_OUTPUTS_DIRECTORY / '09_codon_bias' / 'Relative_Adaptiveness_scatter_plot.png'
+GENOMES_CLUSTERS_BY_W_VECTORS_CSV = ALL_OUTPUTS_DIRECTORY / '09_codon_bias' / 'Relative_Adaptiveness_scatter_plot_clusters.csv'
 
 TITLE_HISTOGRAM_FOR_ORFS = "Open Reading Frames (ORFs)"
 TITLE_HISTOGRAM_FOR_GC_CONTENT = "GC Content %"
@@ -117,26 +114,22 @@ PATHS_TO_DOWNLOAD = {
         "Orthogroups_(csv)": (OG_TABLE, "Can also be found in 05a_orthogroups directory in the 'All outputs (zip)' file"),
         "Orthogroups_annotated_(csv)": (OG_TABLE_ANNOTATED, "Can also be found in 05a_orthogroups directory in the 'All outputs (zip)' file"),
         "Orthogroups_(OrthoXML)": (OG_TABLE_ORTHOXML, "Can also be found in 05a_orthogroups directory in the 'All outputs (zip)' file"),
-        "Orthogroups_sizes_histogram": (OG_SIZE_HISTOGRAM, "Can also be found in 05c_orthogroups_sizes directory in the 'All outputs (zip)' file"),
-        "Phyletic_pattern_(FASTA)": (PHYLETIC_PATTERN, "Can also be found in 05c_orthogroups_visualizations directory in the 'All outputs (zip)' file"),
-        "Phyletic_pattern_(png)": (PHYLETIC_PATTERN_PNG, "Can also be found in 05c_orthogroups_visualizations directory in the 'All outputs (zip)' file"),
-        "Genome_clusters_by_orthogroups_(csv)": (GENOME_CLUSTERS_CSV, "Can also be found in 05c_orthogroups_visualizations directory in the 'All outputs (zip)' file"),
-        "Genome_clusters_by_orthogroups_(png)": (GENOME_CLUSTERS_PNG, "Can also be found in 05c_orthogroups_visualizations directory in the 'All outputs (zip)' file"),
-    },
-    "Core genome": {
-        "Core_proteome_alignment": (CORE_GENOME, "Can also be found in 07a_aligned_core_proteome directory in the 'All outputs (zip)' file"),
-        "Core_genome_alignment": (CORE_PROTEOME, "Can also be found in 07b_aligned_core_genome directory in the 'All outputs (zip)' file"),
-        "Genome_numeric_representation": (GENOME_NUMERIC_REPRESENTATION, "Can also be found in 08_genome_numeric_representation directory in the 'All outputs (zip)' file"),
+        "Orthogroups_sizes_histogram": (OG_SIZE_HISTOGRAM, "Can also be found in 05b_orthogroups_visualizations directory in the 'All outputs (zip)' file"),
+        "Phyletic_pattern_(FASTA)": (PHYLETIC_PATTERN, "Can also be found in 05b_orthogroups_visualizations directory in the 'All outputs (zip)' file"),
+        "Phyletic_pattern_(png)": (PHYLETIC_PATTERN_PNG, "Can also be found in 05b_orthogroups_visualizations directory in the 'All outputs (zip)' file"),
+        "Genome_clusters_by_orthogroups_(csv)": (GENOME_CLUSTERS_CSV, "Can also be found in 05b_orthogroups_visualizations directory in the 'All outputs (zip)' file"),
+        "Genome_clusters_by_orthogroups_(png)": (GENOME_CLUSTERS_PNG, "Can also be found in 05b_orthogroups_visualizations directory in the 'All outputs (zip)' file"),
+        "Genome_numeric_representations": (GENOME_NUMERIC_REPRESENTATION, "Can also be found in 05b_orthogroups_visualizations directory in the 'All outputs (zip)' file"),
     },
     "Species tree": {
-        "Species_tree_(newick)": (SPECIES_TREE_NEWICK, "Can also be found in 09_species_phylogeny directory in the 'All outputs (zip)' file"),
-        "Species_tree_(png)": (SPECIES_TREE_PNG, "Can also be found in 09_species_phylogeny directory in the 'All outputs (zip)' file"),
+        "Species_tree_(newick)": (SPECIES_TREE_NEWICK, "Can also be found in 08_species_phylogeny directory in the 'All outputs (zip)' file"),
+        "Species_tree_(png)": (SPECIES_TREE_PNG, "Can also be found in 08_species_phylogeny directory in the 'All outputs (zip)' file"),
     },
     "Codon bias analysis": {
-        "Codon_adaptation_index_histogram": (CAI_HISTOGRAM, "Can also be found in 10_codon_bias directory in the 'All outputs (zip)' file"),
-        "W_vectors_(relative_adaptiveness)": (W_VECTORS, "Can also be found in 10_codon_bias directory in the 'All outputs (zip)' file"),
-        "Genome_clusters_by_relative_adaptiveness_(png)": (GENOMES_CLUSTERS_BY_W_VECTORS, "Can also be found in 10_codon_bias directory in the 'All outputs (zip)' file"),
-        "Genome_clusters_by_relative_adaptiveness_(csv)": (GENOMES_CLUSTERS_BY_W_VECTORS_CSV, "Can also be found in 10_codon_bias directory in the 'All outputs (zip)' file"),
+        "Codon_adaptation_index_histogram": (CAI_HISTOGRAM, "Can also be found in 09_codon_bias directory in the 'All outputs (zip)' file"),
+        "W_vectors_(relative_adaptiveness)": (W_VECTORS, "Can also be found in 09_codon_bias directory in the 'All outputs (zip)' file"),
+        "Genome_clusters_by_relative_adaptiveness_(png)": (GENOMES_CLUSTERS_BY_W_VECTORS, "Can also be found in 09_codon_bias directory in the 'All outputs (zip)' file"),
+        "Genome_clusters_by_relative_adaptiveness_(csv)": (GENOMES_CLUSTERS_BY_W_VECTORS_CSV, "Can also be found in 09_codon_bias directory in the 'All outputs (zip)' file"),
     }
 }
 

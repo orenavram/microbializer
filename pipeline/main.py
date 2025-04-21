@@ -525,7 +525,7 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
     return final_orthogroups_dir, orphan_genes_dir, final_substep_number + 3
 
 
-def step_7_orthologs_table_variations(logger, times_logger, config, final_orthogroups_file_path):
+def step_7_orthologs_table_variations(logger, times_logger, config, final_orthogroups_file_path, orfs_coordinates_dir):
     # 07_1.	create_orthoxml.py
     step_number = '07_1'
     logger.info(f'Step {step_number}: {"_" * 100}')
@@ -559,7 +559,7 @@ def step_7_orthologs_table_variations(logger, times_logger, config, final_orthog
     if not done_file_path.exists():
         logger.info('Creating orthogroups visualizations...')
 
-        params = [final_orthogroups_file_path, visualizations_dir_path]
+        params = [final_orthogroups_file_path, orfs_coordinates_dir, visualizations_dir_path]
 
         submit_mini_batch(logger, config, script_path, [params], visualizations_tmp_dir,
                           'orthogroups_visualizations', memory=config.orthogroups_visualizations_memory_gb)
@@ -752,37 +752,6 @@ def step_9_extract_core_genome_and_core_proteome(logger, times_logger, config, a
 
     update_progressbar(config.progressbar_file_path, 'Infer core genome and proteome')
     return aligned_core_proteome_reduced_file_path, core_proteome_reduced_length
-
-
-def step_10_genome_numeric_representation(logger, times_logger, config, orfs_dir, final_orthologs_table_file_path):
-    # 10.	genome_numeric_representation.py
-    step_number = '10'
-    logger.info(f'Step {step_number}: {"_" * 100}')
-    numeric_step_name = f'{step_number}_genome_numeric_representation'
-    script_path = consts.SRC_DIR / 'steps' / 'genome_numeric_representation.py'
-    numeric_representation_output_dir, numeric_representation_tmp_dir = prepare_directories(
-        logger, config.steps_results_dir, config.tmp_dir, numeric_step_name)
-    numeric_done_file_path = config.done_files_dir / f'{numeric_step_name}.txt'
-    if not numeric_done_file_path.exists():
-        params = [final_orthologs_table_file_path,
-                  orfs_dir,
-                  numeric_representation_output_dir,
-                  ]
-
-        memory_gb = max(config.job_default_memory_gb, get_required_memory_gb_to_load_csv(final_orthologs_table_file_path))
-        submit_mini_batch(logger, config, script_path, [params], numeric_representation_tmp_dir,
-                          'numeric_representation', memory=memory_gb)
-
-        wait_for_results(logger, times_logger, numeric_step_name, numeric_representation_tmp_dir,
-                         1, config.error_file_path)
-
-        if not config.do_not_copy_outputs_to_final_results_dir:
-            add_results_to_final_dir(logger, numeric_representation_output_dir, config.final_output_dir)
-        write_done_file(logger, numeric_done_file_path)
-    else:
-        logger.info(f'done file {numeric_done_file_path} already exists. Skipping step...')
-
-    update_progressbar(config.progressbar_file_path, 'Calculate genomes numeric representation')
 
 
 def step_11_phylogeny(logger, times_logger, config, aligned_core_proteome_file_path, genomes_names,
@@ -1021,7 +990,7 @@ def run_main_pipeline(logger, times_logger, config):
         return
 
     orthogroups_visualizations_dir_path = step_7_orthologs_table_variations(logger, times_logger, config,
-                                                                            final_orthogroups_file_path)
+                                                                            final_orthogroups_file_path, orfs_coordinates_dir)
 
     if config.step_to_complete == '7':
         logger.info("Step 7 completed.")
@@ -1043,12 +1012,6 @@ def run_main_pipeline(logger, times_logger, config):
 
     if config.step_to_complete == '9':
         logger.info("Step 9 completed.")
-        return
-
-    step_10_genome_numeric_representation(logger, times_logger, config, orfs_dir, final_orthogroups_file_path)
-
-    if config.step_to_complete == '10':
-        logger.info("Step 10 completed.")
         return
 
     step_11_phylogeny(logger, times_logger, config, aligned_core_proteome_reduced_file_path, genomes_names,

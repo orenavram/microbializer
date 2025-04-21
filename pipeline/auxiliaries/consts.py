@@ -156,9 +156,8 @@ OUTPUTS_DIRECTORIES_MAP = {
     'orthogroups_induced_dna_msa': '06d_orthogroups_induced_dna_msa_by_aa_msa',
     '09_1_aligned_core_proteome': '07a_aligned_core_proteome',
     '09_2_aligned_core_genome': '07b_aligned_core_genome',
-    '10_genome_numeric_representation': '08_genome_numeric_representation',
-    '11_2_species_phylogeny': '09_species_phylogeny',
-    '12_1_codon_bias': '10_codon_bias',
+    '11_2_species_phylogeny': '08_species_phylogeny',
+    '12_1_codon_bias': '09_codon_bias',
     '12_3_orthogroups_annotations': '05a_orthogroups',
 }
 

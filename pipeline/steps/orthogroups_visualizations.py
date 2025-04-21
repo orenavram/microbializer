@@ -9,6 +9,7 @@ from scipy.spatial.distance import pdist
 import numpy as np
 import umap
 from sklearn.cluster import HDBSCAN
+from Bio import SeqIO
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent.parent))
@@ -195,7 +196,33 @@ def create_simplified_orthogroups_table_for_results_page(logger, orthogroups_df,
     logger.info(f'Created simplified orthogroups table for results page at {results_page_orthogroups_path}')
 
 
-def create_orthogroups_visualizations(logger, orthologs_table_path, output_dir, tmp_dir):
+def get_genome_numeric_representation(logger, orthogroups_table_path, ORFs_coordinates_dir_path, output_dir):
+    orthogroups_df = pd.read_csv(orthogroups_table_path, index_col=0)
+
+    genome_name_to_numeric_genome = {}
+    for genome_name in orthogroups_df.columns:
+        gene_id_to_og_number = {}
+        for og, gene_ids in orthogroups_df[genome_name].items():
+            if pd.isna(gene_ids):
+                continue
+            for gene_id in gene_ids.split(';'):
+                gene_id = gene_id.strip()
+                gene_id_to_og_number[gene_id] = og.lstrip('OG_')
+
+        genome_orfs_coordinates_path = ORFs_coordinates_dir_path / f'{genome_name}.csv'
+        orf_ids = pd.read_csv(genome_orfs_coordinates_path, dtype=str)['record_id'].tolist()
+        numeric_genome = [gene_id_to_og_number.get(orf_id, '-1') for orf_id in orf_ids]
+        genome_name_to_numeric_genome[genome_name] = ','.join(numeric_genome)
+
+    output_path = output_dir / 'genome_numeric_representation.txt'
+    with open(output_path, 'w') as f:
+        for genome_name, numeric_genome in genome_name_to_numeric_genome.items():
+            f.write(f'>{genome_name}\n{numeric_genome}\n')
+
+    logger.info(f'Numeric genomes written to {output_path}')
+
+
+def create_orthogroups_visualizations(logger, orthologs_table_path, output_dir, tmp_dir, ORFs_coordinates_dir_path):
     count_and_plot_orthogroups_sizes(logger, orthologs_table_path, output_dir)
 
     orthogroups_df = pd.read_csv(orthologs_table_path, dtype=str)
@@ -208,12 +235,15 @@ def create_orthogroups_visualizations(logger, orthologs_table_path, output_dir, 
     plot_presence_absence_matrix(logger, binary_df, output_dir)
     cluster_strains_by_orthogroups(logger, binary_df, output_dir)
 
+    get_genome_numeric_representation(logger, orthologs_table_path, ORFs_coordinates_dir_path, output_dir)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('orthologs_table_path', type=Path, help='path to the orthologs table (input)')
+    parser.add_argument('ORFs_coordinates_dir_path', type=Path, help='A path to a ORF directory')
     parser.add_argument('output_dir', type=Path, help='path to the output dir')
     add_default_step_args(parser)
     args = parser.parse_args()
 
-    run_step(args, create_orthogroups_visualizations, args.orthologs_table_path, args.output_dir, args.logs_dir)
+    run_step(args, create_orthogroups_visualizations, args.orthologs_table_path, args.output_dir, args.logs_dir, args.ORFs_coordinates_dir_path)
