@@ -9,7 +9,6 @@ from scipy.spatial.distance import pdist
 import numpy as np
 import umap
 from sklearn.cluster import HDBSCAN
-from Bio import SeqIO
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent.parent))
