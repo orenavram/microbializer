@@ -65,7 +65,7 @@ PHYLETIC_PATTERN = ALL_OUTPUTS_DIRECTORY / '05b_orthogroups_visualizations' / 'p
 PHYLETIC_PATTERN_PNG = ALL_OUTPUTS_DIRECTORY / '05b_orthogroups_visualizations' / 'phyletic_pattern.png'
 GENOME_CLUSTERS_PNG = ALL_OUTPUTS_DIRECTORY / '05b_orthogroups_visualizations' / 'strain_clusters_by_orthogroups.png'
 GENOME_CLUSTERS_CSV = ALL_OUTPUTS_DIRECTORY / '05b_orthogroups_visualizations' / 'strain_cluster_mapping.csv'
-GENOME_NUMERIC_REPRESENTATION = ALL_OUTPUTS_DIRECTORY / '05b_orthogroups_visualizations' / 'genome_numeric_representations.txt'
+GENOME_NUMERIC_REPRESENTATION = ALL_OUTPUTS_DIRECTORY / '05b_orthogroups_visualizations' / 'genomes_numeric_representation.txt'
 
 SPECIES_TREE_NEWICK = ALL_OUTPUTS_DIRECTORY / '08_species_phylogeny' / 'final_species_tree.newick'
 SPECIES_TREE_PNG = ALL_OUTPUTS_DIRECTORY / '08_species_phylogeny' / 'final_species_tree.png'
@@ -119,7 +119,7 @@ PATHS_TO_DOWNLOAD = {
         "Phyletic_pattern_(png)": (PHYLETIC_PATTERN_PNG, "Can also be found in 05b_orthogroups_visualizations directory in the 'All outputs (zip)' file"),
         "Genome_clusters_by_orthogroups_(csv)": (GENOME_CLUSTERS_CSV, "Can also be found in 05b_orthogroups_visualizations directory in the 'All outputs (zip)' file"),
         "Genome_clusters_by_orthogroups_(png)": (GENOME_CLUSTERS_PNG, "Can also be found in 05b_orthogroups_visualizations directory in the 'All outputs (zip)' file"),
-        "Genome_numeric_representations": (GENOME_NUMERIC_REPRESENTATION, "Can also be found in 05b_orthogroups_visualizations directory in the 'All outputs (zip)' file"),
+        "Genomes_numeric_representation": (GENOME_NUMERIC_REPRESENTATION, "Can also be found in 05b_orthogroups_visualizations directory in the 'All outputs (zip)' file"),
     },
     "Species tree": {
         "Species_tree_(newick)": (SPECIES_TREE_NEWICK, "Can also be found in 08_species_phylogeny directory in the 'All outputs (zip)' file"),
