@@ -1,5 +1,5 @@
-source /home/ai_center/ai_users/yairshimony/miniconda/etc/profile.d/conda.sh
-conda activate /home/ai_center/ai_users/yairshimony/miniconda/envs/microbializer
+source /groups/pupko/yairshimony/miniconda3/etc/profile.d/conda.sh
+conda activate /groups/pupko/yairshimony/miniconda3/envs/microbializer
 export PATH=$CONDA_PREFIX/bin:$PATH
-python /home/ai_center/ai_users/yairshimony/microbializer/pipeline/steps/normalize_hits_scores.py /home/ai_center/ai_users/yairshimony/microbializer_runs/1_genome_no_paralogs/outputs/tmp/05_4_normalize_scores/jobs_inputs/0.txt /home/ai_center/ai_users/yairshimony/microbializer_runs/1_genome_no_paralogs/outputs/steps_results/05_4_normalize_scores --use_parquet True -v False --logs_dir /home/ai_center/ai_users/yairshimony/microbializer_runs/1_genome_no_paralogs/outputs/tmp/05_4_normalize_scores --error_file_path /home/ai_center/ai_users/yairshimony/microbializer_runs/1_genome_no_paralogs/M1CR0B1AL1Z3R_outputs/error.txt --job_name 0_hits_normalize --use_job_manager True --cpus 1
-touch /home/ai_center/ai_users/yairshimony/microbializer_runs/1_genome_no_paralogs/outputs/tmp/05_4_normalize_scores/0_hits_normalize.done
+python /groups/pupko/yairshimony/microbializer/pipeline/steps/normalize_hits_scores.py /groups/pupko/yairshimony/microbializer_runs/1_genome_small/outputs/tmp/05_4_normalize_scores/jobs_inputs/0.txt /groups/pupko/yairshimony/microbializer_runs/1_genome_small/outputs/steps_results/05_4_normalize_scores --use_parquet True -v False --logs_dir /groups/pupko/yairshimony/microbializer_runs/1_genome_small/outputs/tmp/05_4_normalize_scores --error_file_path /groups/pupko/yairshimony/microbializer_runs/1_genome_small/M1CR0B1AL1Z3R_outputs/error.txt --job_name 0_hits_normalize --use_job_manager True --cpus 1
+touch /groups/pupko/yairshimony/microbializer_runs/1_genome_small/outputs/tmp/05_4_normalize_scores/0_hits_normalize.done

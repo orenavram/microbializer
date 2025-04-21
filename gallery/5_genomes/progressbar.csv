@@ -6,7 +6,7 @@ Infer orthogroups,True
 Find orphan genes,True
 Prepare orthogroups fasta files,True
 Infer core genome and proteome,True
-Calculate genomes numeric representation,True
+Calculate genomes numeric representation,False
 Reconstruct species phylogeny,True
 Calculate ANI (Average Nucleotide Identity),True
 Analyze orthogroups codon bias,True

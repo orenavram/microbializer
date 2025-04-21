@@ -1,6 +1,6 @@
 IQ-TREE 2.2.5 COVID-edition built Sep 15 2023
 
-Input file name: /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/09_3_aligned_core_proteome_reduced/aligned_core_proteome.fas
+Input file name: /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/09_3_aligned_core_proteome_reduced/aligned_core_proteome.fas
 Type of analysis: tree reconstruction + ultrafast bootstrap (1000 replicates)
 Random seed number: 12345
 
@@ -25,11 +25,11 @@ https://doi.org/10.1093/molbev/msx281
 SEQUENCE ALIGNMENT
 ------------------
 
-Input data: 5 sequences with 318673 amino-acid sites
-Number of constant sites: 311125 (= 97.6314% of all sites)
-Number of invariant (constant or ambiguous constant) sites: 311125 (= 97.6314% of all sites)
-Number of parsimony informative sites: 2085
-Number of distinct site patterns: 2337
+Input data: 5 sequences with 319937 amino-acid sites
+Number of constant sites: 312122 (= 97.5573% of all sites)
+Number of invariant (constant or ambiguous constant) sites: 312122 (= 97.5573% of all sites)
+Number of parsimony informative sites: 2246
+Number of distinct site patterns: 2478
 
 SUBSTITUTION PROCESS
 --------------------
@@ -51,79 +51,79 @@ Relative rates are computed as MEAN of the portion of the Gamma distribution fal
 MAXIMUM LIKELIHOOD TREE
 -----------------------
 
-Log-likelihood of the tree: -993756.1679 (s.e. 787.6604)
-Unconstrained log-likelihood (without tree): -1025143.4272
+Log-likelihood of the tree: -1000500.4258 (s.e. 799.4733)
+Unconstrained log-likelihood (without tree): -1036592.6000
 Number of free parameters (#branches + #model parameters): 8
-Akaike information criterion (AIC) score: 1987528.3358
-Corrected Akaike information criterion (AICc) score: 1987528.3362
-Bayesian information criterion (BIC) score: 1987613.7112
+Akaike information criterion (AIC) score: 2001016.8516
+Corrected Akaike information criterion (AICc) score: 2001016.8520
+Bayesian information criterion (BIC) score: 2001102.2586
 
-Total tree length (sum of branch lengths): 0.0269
-Sum of internal branch lengths: 0.0059 (21.9870% of tree length)
+Total tree length (sum of branch lengths): 0.0278
+Sum of internal branch lengths: 0.0063 (22.6508% of tree length)
 
 NOTE: Tree is UNROOTED although outgroup taxon 'Ecoli_APEC_O1' is drawn at root
 Numbers in parentheses are  ultrafast bootstrap support (%)
 
-+--------------Ecoli_APEC_O1
++-------------Ecoli_APEC_O1
 |
-+----------------Ecoli_JJ1886
++---------------Ecoli_JJ1886
 |
-|                +------------------Ecoli_UMN026
+|                +---------------Ecoli_UMN026
 +----------------| (100)
-                 |            +---------------------------Sboydii_Sb227
+                 |            +----------------------------Sboydii_Sb227
                  +------------| (100)
-                              +----------------------------Sflexneri_5_8401
+                              +--------------------------Sflexneri_5_8401
 
 Tree in newick format:
 
-(Ecoli_APEC_O1:0.0029076028,Ecoli_JJ1886:0.0033048061,(Ecoli_UMN026:0.0037160547,(Sboydii_Sb227:0.0055256351,Sflexneri_5_8401:0.0055383540)100:0.0025288263)100:0.0033876423);
+(Ecoli_APEC_O1:0.0028944344,Ecoli_JJ1886:0.0034100592,(Ecoli_UMN026:0.0034717417,(Sboydii_Sb227:0.0060982548,Sflexneri_5_8401:0.0056399770)100:0.0027094620)100:0.0035907806);
 
 CONSENSUS TREE
 --------------
 
 Consensus tree is constructed from 1000 bootstrap trees
-Log-likelihood of consensus tree: -993756.16789917
+Log-likelihood of consensus tree: -1000500.42580005
 Robinson-Foulds distance between ML tree and consensus tree: 0
 
 Branches with support >0.00000000% are kept (extended consensus)
 Branch lengths are optimized by maximum likelihood on original alignment
 Numbers in parentheses are bootstrap supports (%)
 
-+--------------Ecoli_APEC_O1
++-------------Ecoli_APEC_O1
 |
-+----------------Ecoli_JJ1886
++---------------Ecoli_JJ1886
 |
-|                +------------------Ecoli_UMN026
+|                +---------------Ecoli_UMN026
 +----------------| (100)
-                 |            +---------------------------Sboydii_Sb227
+                 |            +----------------------------Sboydii_Sb227
                  +------------| (100)
-                              +----------------------------Sflexneri_5_8401
+                              +--------------------------Sflexneri_5_8401
 
 
 Consensus tree in newick format: 
 
-(Ecoli_APEC_O1:0.0029074172,Ecoli_JJ1886:0.0033048272,(Ecoli_UMN026:0.0037160841,(Sboydii_Sb227:0.0055255317,Sflexneri_5_8401:0.0055383792)100:0.0025288272)100:0.0033876102);
+(Ecoli_APEC_O1:0.0028941760,Ecoli_JJ1886:0.0034102675,(Ecoli_UMN026:0.0034717662,(Sboydii_Sb227:0.0060979693,Sflexneri_5_8401:0.0056399517)100:0.0027093950)100:0.0035905783);
 
 ALISIM COMMAND
 --------------
 To simulate an alignment of the same length as the original alignment, using the tree and model parameters estimated from this analysis, you can use the following command:
 
---alisim simulated_MSA -t /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/11_2_species_phylogeny/species_tree.treefile -m "WAG+G4{0.0200219}" --length 318673
+--alisim simulated_MSA -t /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/tmp/11_2_species_phylogeny/species_tree.treefile -m "WAG+G4{0.0200219}" --length 319937
 
 To mimic the alignment used to produce this analysis, i.e. simulate an alignment of the same length as the original alignment, using the tree and model parameters estimated from this analysis *and* copying the same gap positions as the original alignment, you can use the following command:
 
-iqtree -s /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/09_3_aligned_core_proteome_reduced/aligned_core_proteome.fas --alisim mimicked_MSA
+iqtree -s /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/09_3_aligned_core_proteome_reduced/aligned_core_proteome.fas --alisim mimicked_MSA
 
 To simulate any number of alignments in either of the two commandlines above, use the --num-alignments options, for example mimic 100 alignments you would use the command line:
 
-iqtree -s /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/09_3_aligned_core_proteome_reduced/aligned_core_proteome.fas --alisim mimicked_MSA --num-alignments 100
+iqtree -s /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/09_3_aligned_core_proteome_reduced/aligned_core_proteome.fas --alisim mimicked_MSA --num-alignments 100
 
 For more information on using AliSim, please visit: www.iqtree.org/doc/AliSim
 
 TIME STAMP
 ----------
 
-Date and time: Mon Apr 21 01:11:21 2025
-Total CPU time used: 54.911469 seconds (0h:0m:54s)
-Total wall-clock time used: 3.139519554 seconds (0h:0m:3s)
+Date and time: Mon Apr 21 10:14:44 2025
+Total CPU time used: 69.863605 seconds (0h:1m:9s)
+Total wall-clock time used: 4.246923411 seconds (0h:0m:4s)
 

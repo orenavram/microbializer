@@ -1,1 +1,1 @@
-/home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/inputs/Sboydii_Sb227.fna
+/groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/inputs/Sboydii_Sb227.fna

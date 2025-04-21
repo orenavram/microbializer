@@ -1,5 +1,5 @@
-source /home/ai_center/ai_users/yairshimony/miniconda/etc/profile.d/conda.sh
-conda activate /home/ai_center/ai_users/yairshimony/miniconda/envs/microbializer
+source /groups/pupko/yairshimony/miniconda3/etc/profile.d/conda.sh
+conda activate /groups/pupko/yairshimony/miniconda3/envs/microbializer
 export PATH=$CONDA_PREFIX/bin:$PATH
-python /home/ai_center/ai_users/yairshimony/microbializer/pipeline/steps/ani.py /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/11_1_ani/temp_results/genomes_list.txt /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/11_1_ani -v False --logs_dir /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/11_1_ani --error_file_path /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs/error.txt --job_name ANI --use_job_manager True --cpus 20
-touch /home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/outputs/tmp/11_1_ani/ANI.done
+python /groups/pupko/yairshimony/microbializer/pipeline/steps/ani.py /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/tmp/11_1_ani/temp_results/genomes_list.txt /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/11_1_ani -v False --logs_dir /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/tmp/11_1_ani --error_file_path /groups/pupko/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs/error.txt --job_name ANI --use_job_manager True --cpus 20
+touch /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/tmp/11_1_ani/ANI.done

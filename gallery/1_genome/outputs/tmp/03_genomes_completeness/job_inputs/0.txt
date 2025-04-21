@@ -1,1 +1,1 @@
-/home/ai_center/ai_users/yairshimony/microbializer_runs/1_genome_no_paralogs/outputs/steps_results/02_1_orfs/orfs_translated/genome_ORFs.faa
+/groups/pupko/yairshimony/microbializer_runs/1_genome_small/outputs/steps_results/02_1_orfs/orfs_translated/genome_ORFs.faa

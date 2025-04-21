@@ -1,0 +1,97 @@
+2025-04-21 09:39:34,774 INFO run_step_utils.py:318 Starting command is: /groups/pupko/yairshimony/microbializer/pipeline/steps/prepare_og_for_mcl.py /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_4_normalize_scores /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_5_putative_table/putative_orthologs_table.csv /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files/jobs_inputs/2.txt /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files -v False --logs_dir /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/tmp/05_6_mcl_input_files --error_file_path /groups/pupko/yairshimony/microbializer_runs/5_genomes/M1CR0B1AL1Z3R_outputs/error.txt --job_name 2_mcl_preparation --use_job_manager True --cpus 1
+2025-04-21 09:39:35,564 INFO prepare_og_for_mcl.py:45 Aggregating all genes from the specified 88 putative OGs...
+2025-04-21 09:39:35,627 INFO prepare_og_for_mcl.py:58 All relevant genes were aggregated successfully. Number of relevant genes is 424.
+2025-04-21 09:39:35,627 INFO prepare_og_for_mcl.py:60 Loading relevant hits scores to memory...
+2025-04-21 09:39:35,726 INFO prepare_og_for_mcl.py:62 All relevant hits were loaded successfully.
+2025-04-21 09:39:35,726 INFO prepare_og_for_mcl.py:64 Preparing input files for MCL...
+2025-04-21 09:39:35,830 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_2100.mcl_input
+2025-04-21 09:39:35,912 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_2203.mcl_input
+2025-04-21 09:39:36,004 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1853.mcl_input
+2025-04-21 09:39:36,116 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1847.mcl_input
+2025-04-21 09:39:36,206 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1915.mcl_input
+2025-04-21 09:39:36,360 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_2404.mcl_input
+2025-04-21 09:39:36,366 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_2475.mcl_input
+2025-04-21 09:39:36,592 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_2387.mcl_input
+2025-04-21 09:39:36,674 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_2382.mcl_input
+2025-04-21 09:39:36,836 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_3928.mcl_input
+2025-04-21 09:39:36,956 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_3980.mcl_input
+2025-04-21 09:39:37,037 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_3767.mcl_input
+2025-04-21 09:39:37,200 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_3751.mcl_input
+2025-04-21 09:39:37,413 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_3828.mcl_input
+2025-04-21 09:39:37,526 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_4140.mcl_input
+2025-04-21 09:39:37,577 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_4193.mcl_input
+2025-04-21 09:39:37,618 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_4002.mcl_input
+2025-04-21 09:39:37,700 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_4116.mcl_input
+2025-04-21 09:39:37,792 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_3264.mcl_input
+2025-04-21 09:39:37,995 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_3336.mcl_input
+2025-04-21 09:39:38,047 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_3118.mcl_input
+2025-04-21 09:39:38,150 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_3183.mcl_input
+2025-04-21 09:39:38,344 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_3361.mcl_input
+2025-04-21 09:39:38,467 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_3565.mcl_input
+2025-04-21 09:39:38,532 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_3628.mcl_input
+2025-04-21 09:39:38,602 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_3377.mcl_input
+2025-04-21 09:39:38,633 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_3481.mcl_input
+2025-04-21 09:39:38,726 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_570.mcl_input
+2025-04-21 09:39:38,858 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1245.mcl_input
+2025-04-21 09:39:39,000 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1176.mcl_input
+2025-04-21 09:39:39,153 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1382.mcl_input
+2025-04-21 09:39:39,317 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1398.mcl_input
+2025-04-21 09:39:39,420 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1286.mcl_input
+2025-04-21 09:39:39,506 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1115.mcl_input
+2025-04-21 09:39:39,650 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_731.mcl_input
+2025-04-21 09:39:39,832 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_838.mcl_input
+2025-04-21 09:39:39,933 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_849.mcl_input
+2025-04-21 09:39:40,108 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_653.mcl_input
+2025-04-21 09:39:40,180 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_710.mcl_input
+2025-04-21 09:39:40,273 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_669.mcl_input
+2025-04-21 09:39:40,436 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_177.mcl_input
+2025-04-21 09:39:40,540 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1652.mcl_input
+2025-04-21 09:39:40,595 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_195.mcl_input
+2025-04-21 09:39:40,802 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1752.mcl_input
+2025-04-21 09:39:40,865 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1778.mcl_input
+2025-04-21 09:39:40,930 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_51.mcl_input
+2025-04-21 09:39:41,033 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_336.mcl_input
+2025-04-21 09:39:41,277 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1489.mcl_input
+2025-04-21 09:39:41,379 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_283.mcl_input
+2025-04-21 09:39:41,450 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1565.mcl_input
+2025-04-21 09:39:41,586 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_749.mcl_input
+2025-04-21 09:39:41,750 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_417.mcl_input
+2025-04-21 09:39:41,914 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_576.mcl_input
+2025-04-21 09:39:42,119 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_555.mcl_input
+2025-04-21 09:39:42,230 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_486.mcl_input
+2025-04-21 09:39:42,518 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_3395.mcl_input
+2025-04-21 09:39:42,802 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_2398.mcl_input
+2025-04-21 09:39:42,986 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_2734.mcl_input
+2025-04-21 09:39:43,231 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_2099.mcl_input
+2025-04-21 09:39:43,406 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_2289.mcl_input
+2025-04-21 09:39:43,589 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_2934.mcl_input
+2025-04-21 09:39:43,760 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_4644.mcl_input
+2025-04-21 09:39:44,055 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1690.mcl_input
+2025-04-21 09:39:44,221 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_377.mcl_input
+2025-04-21 09:39:44,469 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_2159.mcl_input
+2025-04-21 09:39:44,715 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_159.mcl_input
+2025-04-21 09:39:44,977 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1603.mcl_input
+2025-04-21 09:39:45,171 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_4443.mcl_input
+2025-04-21 09:39:45,347 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1900.mcl_input
+2025-04-21 09:39:45,593 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1014.mcl_input
+2025-04-21 09:39:45,731 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1362.mcl_input
+2025-04-21 09:39:45,876 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_4849.mcl_input
+2025-04-21 09:39:46,168 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_4466.mcl_input
+2025-04-21 09:39:46,370 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_4500.mcl_input
+2025-04-21 09:39:46,610 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_4737.mcl_input
+2025-04-21 09:39:46,798 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_4868.mcl_input
+2025-04-21 09:39:46,960 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1842.mcl_input
+2025-04-21 09:39:47,054 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_4676.mcl_input
+2025-04-21 09:39:47,348 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_4657.mcl_input
+2025-04-21 09:39:47,644 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_3682.mcl_input
+2025-04-21 09:39:47,853 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1470.mcl_input
+2025-04-21 09:39:48,213 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_2808.mcl_input
+2025-04-21 09:39:48,450 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1250.mcl_input
+2025-04-21 09:39:48,730 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1006.mcl_input
+2025-04-21 09:39:49,086 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1926.mcl_input
+2025-04-21 09:39:49,628 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_4310.mcl_input
+2025-04-21 09:39:49,868 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_2185.mcl_input
+2025-04-21 09:39:50,008 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/5_genomes/outputs/steps_results/05_6_mcl_input_files/OG_1631.mcl_input
+2025-04-21 09:39:50,009 INFO prepare_og_for_mcl.py:83 Input files for MCL were written successfully.
+   RunTime=00:00:30 TimeLimit=1-00:00:00 TimeMin=N/A
+   NumNodes=1 NumCPUs=2 NumTasks=1 CPUs/Task=1 ReqB:S:C:T=0:0:*:*

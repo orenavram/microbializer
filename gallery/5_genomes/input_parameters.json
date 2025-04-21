@@ -9,5 +9,5 @@
     "inputs_fasta_type": "genomes",
     "email": "test@gmail.com",
     "job_name": "test_5_genomes",
-    "run_dir": "/home/ai_center/ai_users/yairshimony/microbializer_runs/5_genomes/"
+    "run_dir": "/groups/pupko/yairshimony/microbializer_runs/5_genomes/"
 }
