@@ -214,7 +214,7 @@ def get_genome_numeric_representation(logger, orthogroups_table_path, ORFs_coord
         numeric_genome = [gene_id_to_og_number.get(orf_id, '-1') for orf_id in orf_ids]
         genome_name_to_numeric_genome[genome_name] = ','.join(numeric_genome)
 
-    output_path = output_dir / 'genome_numeric_representation.txt'
+    output_path = output_dir / 'genome_numeric_representations.txt'
     with open(output_path, 'w') as f:
         for genome_name, numeric_genome in genome_name_to_numeric_genome.items():
             f.write(f'>{genome_name}\n{numeric_genome}\n')

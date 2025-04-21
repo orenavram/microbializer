@@ -65,7 +65,7 @@ PHYLETIC_PATTERN = ALL_OUTPUTS_DIRECTORY / '05b_orthogroups_visualizations' / 'p
 PHYLETIC_PATTERN_PNG = ALL_OUTPUTS_DIRECTORY / '05b_orthogroups_visualizations' / 'phyletic_pattern.png'
 GENOME_CLUSTERS_PNG = ALL_OUTPUTS_DIRECTORY / '05b_orthogroups_visualizations' / 'strain_clusters_by_orthogroups.png'
 GENOME_CLUSTERS_CSV = ALL_OUTPUTS_DIRECTORY / '05b_orthogroups_visualizations' / 'strain_cluster_mapping.csv'
-GENOME_NUMERIC_REPRESENTATION = ALL_OUTPUTS_DIRECTORY / '05b_orthogroups_visualizations' / 'genome_numeric_representation.txt'
+GENOME_NUMERIC_REPRESENTATION = ALL_OUTPUTS_DIRECTORY / '05b_orthogroups_visualizations' / 'genome_numeric_representations.txt'
 
 SPECIES_TREE_NEWICK = ALL_OUTPUTS_DIRECTORY / '08_species_phylogeny' / 'final_species_tree.newick'
 SPECIES_TREE_PNG = ALL_OUTPUTS_DIRECTORY / '08_species_phylogeny' / 'final_species_tree.png'
