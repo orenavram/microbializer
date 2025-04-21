@@ -1,0 +1,37 @@
+2025-04-21 09:56:17,599 INFO run_step_utils.py:318 Starting command is: /groups/pupko/yairshimony/microbializer/pipeline/steps/prepare_og_for_mcl.py /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_4_normalize_scores /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_5_putative_table/putative_orthologs_table.csv /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/tmp/05_6_mcl_input_files/jobs_inputs/26.txt /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_6_mcl_input_files -v False --logs_dir /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/tmp/05_6_mcl_input_files --error_file_path /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/M1CR0B1AL1Z3R_outputs/error.txt --job_name 26_mcl_preparation --use_job_manager True --cpus 1
+2025-04-21 09:56:17,913 INFO prepare_og_for_mcl.py:45 Aggregating all genes from the specified 28 putative OGs...
+2025-04-21 09:56:17,992 INFO prepare_og_for_mcl.py:58 All relevant genes were aggregated successfully. Number of relevant genes is 769.
+2025-04-21 09:56:17,992 INFO prepare_og_for_mcl.py:60 Loading relevant hits scores to memory...
+2025-04-21 09:56:37,973 INFO prepare_og_for_mcl.py:62 All relevant hits were loaded successfully.
+2025-04-21 09:56:37,973 INFO prepare_og_for_mcl.py:64 Preparing input files for MCL...
+2025-04-21 09:56:38,602 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_6_mcl_input_files/OG_312.mcl_input
+2025-04-21 09:56:39,234 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_6_mcl_input_files/OG_806.mcl_input
+2025-04-21 09:56:39,874 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_6_mcl_input_files/OG_271.mcl_input
+2025-04-21 09:56:40,628 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_6_mcl_input_files/OG_587.mcl_input
+2025-04-21 09:56:41,512 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_6_mcl_input_files/OG_440.mcl_input
+2025-04-21 09:56:42,312 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_6_mcl_input_files/OG_921.mcl_input
+2025-04-21 09:56:42,500 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_6_mcl_input_files/OG_54.mcl_input
+2025-04-21 09:56:43,872 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_6_mcl_input_files/OG_844.mcl_input
+2025-04-21 09:56:44,634 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_6_mcl_input_files/OG_546.mcl_input
+2025-04-21 09:56:45,431 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_6_mcl_input_files/OG_633.mcl_input
+2025-04-21 09:56:46,065 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_6_mcl_input_files/OG_717.mcl_input
+2025-04-21 09:56:46,918 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_6_mcl_input_files/OG_163.mcl_input
+2025-04-21 09:56:47,494 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_6_mcl_input_files/OG_263.mcl_input
+2025-04-21 09:56:48,515 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_6_mcl_input_files/OG_69.mcl_input
+2025-04-21 09:56:48,935 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_6_mcl_input_files/OG_105.mcl_input
+2025-04-21 09:56:49,556 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_6_mcl_input_files/OG_832.mcl_input
+2025-04-21 09:56:50,132 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_6_mcl_input_files/OG_1111.mcl_input
+2025-04-21 09:56:50,957 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_6_mcl_input_files/OG_120.mcl_input
+2025-04-21 09:56:51,370 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_6_mcl_input_files/OG_457.mcl_input
+2025-04-21 09:56:51,404 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_6_mcl_input_files/OG_1193.mcl_input
+2025-04-21 09:56:51,521 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_6_mcl_input_files/OG_1191.mcl_input
+2025-04-21 09:56:51,533 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_6_mcl_input_files/OG_1320.mcl_input
+2025-04-21 09:56:51,550 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_6_mcl_input_files/OG_1206.mcl_input
+2025-04-21 09:56:51,683 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_6_mcl_input_files/OG_1257.mcl_input
+2025-04-21 09:56:51,776 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_6_mcl_input_files/OG_208.mcl_input
+2025-04-21 09:56:51,821 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_6_mcl_input_files/OG_1359.mcl_input
+2025-04-21 09:56:52,047 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_6_mcl_input_files/OG_1045.mcl_input
+2025-04-21 09:56:52,090 INFO prepare_og_for_mcl.py:77 Wrote /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_6_mcl_input_files/OG_1211.mcl_input
+2025-04-21 09:56:52,090 INFO prepare_og_for_mcl.py:83 Input files for MCL were written successfully.
+   RunTime=00:00:51 TimeLimit=1-00:00:00 TimeMin=N/A
+   NumNodes=1 NumCPUs=2 NumTasks=1 CPUs/Task=1 ReqB:S:C:T=0:0:*:*

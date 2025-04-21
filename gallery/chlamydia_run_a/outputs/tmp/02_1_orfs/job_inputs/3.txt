@@ -1,0 +1,1 @@
+/groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/inputs/Chlamydia_abortus_strain_NL2335-4C.fna

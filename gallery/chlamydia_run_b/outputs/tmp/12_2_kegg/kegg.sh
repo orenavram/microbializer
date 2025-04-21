@@ -1,0 +1,5 @@
+source /groups/pupko/yairshimony/miniconda3/etc/profile.d/conda.sh
+conda activate /groups/pupko/yairshimony/miniconda3/envs/microbializer
+export PATH=$CONDA_PREFIX/bin:$PATH
+python /groups/pupko/yairshimony/microbializer/pipeline/steps/kegg_annotation.py None /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/steps_results/08_1_orthogroups_fasta/orthogroups_aa_consensus /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/steps_results/05_11_sort_orthogroups_by_coordinates/orthogroups.csv /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/steps_results/12_2_kegg /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/steps_results/12_2_kegg/og_kegg.csv --optimization_mode consensus_of_og -v False --logs_dir /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/tmp/12_2_kegg --error_file_path /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/M1CR0B1AL1Z3R_outputs/error.txt --job_name kegg --use_job_manager True --cpus 20
+touch /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/tmp/12_2_kegg/kegg.done

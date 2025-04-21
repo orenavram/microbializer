@@ -1,0 +1,4 @@
+Chlamydia_psittaci_strain_Ful127:NZ_CP033059.1_700
+Chlamydia_psittaci_strain_Ful127:NZ_CP033059.1_301
+Chlamydia_psittaci_strain_Ful127:NZ_CP033059.1_365
+Chlamydia_psittaci_strain_Ful127:NZ_CP033059.1_613

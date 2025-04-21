@@ -8,5 +8,5 @@
     "add_orphan_genes_to_ogs": "False",
     "inputs_fasta_type": "genomes",
     "job_name": "Chlamydia_run_A",
-    "run_dir": "/home/ai_center/ai_users/yairshimony/microbializer/gallery/chlamydia_run_a/"
+    "run_dir": "/groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/"
 }

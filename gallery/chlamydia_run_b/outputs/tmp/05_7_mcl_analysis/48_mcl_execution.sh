@@ -1,0 +1,5 @@
+source /groups/pupko/yairshimony/miniconda3/etc/profile.d/conda.sh
+conda activate /groups/pupko/yairshimony/miniconda3/envs/microbializer
+export PATH=$CONDA_PREFIX/bin:$PATH
+python /groups/pupko/yairshimony/microbializer/pipeline/steps/run_mcl.py /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/steps_results/05_6_mcl_input_files /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/tmp/05_7_mcl_analysis/jobs_inputs/48.txt /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/steps_results/05_7_mcl_analysis/mcl_outputs /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/steps_results/05_7_mcl_analysis/verified_clusters -v False --logs_dir /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/tmp/05_7_mcl_analysis --error_file_path /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/M1CR0B1AL1Z3R_outputs/error.txt --job_name 48_mcl_execution --use_job_manager True --cpus 1
+touch /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/tmp/05_7_mcl_analysis/48_mcl_execution.done

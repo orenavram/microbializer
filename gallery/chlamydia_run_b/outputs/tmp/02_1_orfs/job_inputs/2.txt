@@ -1,0 +1,1 @@
+/groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/steps_results/01_fix_input_files/Chlamydia_abortus_strain_GIMC_2006CabB577.fna

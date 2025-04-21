@@ -1,0 +1,1 @@
+/groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/steps_results/02_1_orfs/orfs_translated/Chlamydophila_parapsittaci_strain_Rostinovo-70.faa

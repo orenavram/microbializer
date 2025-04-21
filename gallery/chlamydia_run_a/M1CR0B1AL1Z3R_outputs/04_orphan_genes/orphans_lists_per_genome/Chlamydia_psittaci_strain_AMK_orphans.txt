@@ -1,0 +1,8 @@
+Chlamydia_psittaci_strain_AMK:NZ_CP047319.1_138;Chlamydia_psittaci_strain_AMK:NZ_CP047319.1_806
+Chlamydia_psittaci_strain_AMK:NZ_CP047319.1_139
+Chlamydia_psittaci_strain_AMK:NZ_CP047319.1_89
+Chlamydia_psittaci_strain_AMK:NZ_CP047319.1_803
+Chlamydia_psittaci_strain_AMK:NZ_CP047319.1_125
+Chlamydia_psittaci_strain_AMK:NZ_CP047319.1_110
+Chlamydia_psittaci_strain_AMK:NZ_CP047320.1_1
+Chlamydia_psittaci_strain_AMK:NZ_CP047319.1_124

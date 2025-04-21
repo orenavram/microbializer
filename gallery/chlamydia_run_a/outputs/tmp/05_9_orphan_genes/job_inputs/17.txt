@@ -1,0 +1,1 @@
+/groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/02_1_orfs/orfs_translated/Chlamydia_psittaci_MN.faa

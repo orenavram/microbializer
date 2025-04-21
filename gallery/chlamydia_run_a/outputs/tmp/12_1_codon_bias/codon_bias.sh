@@ -1,0 +1,5 @@
+source /groups/pupko/yairshimony/miniconda3/etc/profile.d/conda.sh
+conda activate /groups/pupko/yairshimony/miniconda3/envs/microbializer
+export PATH=$CONDA_PREFIX/bin:$PATH
+python /groups/pupko/yairshimony/microbializer/pipeline/steps/codon_bias.py /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/02_1_orfs/orfs_sequences /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/08_1_orthogroups_fasta/orthogroups_dna /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/12_1_codon_bias /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/12_1_codon_bias/CAI_table.csv -v False --logs_dir /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/tmp/12_1_codon_bias --error_file_path /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/M1CR0B1AL1Z3R_outputs/error.txt --job_name codon_bias --use_job_manager True --cpus 20
+touch /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/tmp/12_1_codon_bias/codon_bias.done

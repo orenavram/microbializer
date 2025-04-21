@@ -1,0 +1,5 @@
+source /groups/pupko/yairshimony/miniconda3/etc/profile.d/conda.sh
+conda activate /groups/pupko/yairshimony/miniconda3/envs/microbializer
+export PATH=$CONDA_PREFIX/bin:$PATH
+python /groups/pupko/yairshimony/microbializer/pipeline/steps/add_orphans_to_orthogroups.py /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/steps_results/05_8_verified_table/orthogroups.csv /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/steps_results/05_10_orthogroups_final/orthogroups.csv --orphan_genes_dir /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/steps_results/05_9_orphan_genes/orphans_lists_per_genome -v False --logs_dir /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/tmp/05_10_orthogroups_final --error_file_path /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/M1CR0B1AL1Z3R_outputs/error.txt --job_name add_orphans_to_orthogroups --use_job_manager True --cpus 1
+touch /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/tmp/05_10_orthogroups_final/add_orphans_to_orthogroups.done

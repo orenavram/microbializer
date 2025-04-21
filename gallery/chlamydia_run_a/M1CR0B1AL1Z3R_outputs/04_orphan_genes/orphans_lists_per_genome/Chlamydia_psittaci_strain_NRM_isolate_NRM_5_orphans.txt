@@ -1,0 +1,4 @@
+Chlamydia_psittaci_strain_NRM_isolate_NRM_5:NZ_AP028988.1_561
+Chlamydia_psittaci_strain_NRM_isolate_NRM_5:NZ_AP028988.1_518
+Chlamydia_psittaci_strain_NRM_isolate_NRM_5:NZ_AP028988.1_554
+Chlamydia_psittaci_strain_NRM_isolate_NRM_5:NZ_AP028988.1_555

@@ -1,0 +1,2 @@
+/groups/pupko/yairshimony/miniconda3/envs/microbializer/lib/python3.8/site-packages/umap/umap_.py:1880: UserWarning: gradient function is not yet implemented for hamming distance metric; inverse_transform will be unavailable
+  warn(

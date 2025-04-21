@@ -1,0 +1,2 @@
+Chlamydia_trachomatis_L1115:NC_020929.1_223
+Chlamydia_trachomatis_L1115:NC_020929.1_222

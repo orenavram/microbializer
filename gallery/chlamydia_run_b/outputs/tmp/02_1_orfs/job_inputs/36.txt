@@ -1,0 +1,1 @@
+/groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/steps_results/01_fix_input_files/Chlamydia_trachomatis_L2bUCH-2.fna

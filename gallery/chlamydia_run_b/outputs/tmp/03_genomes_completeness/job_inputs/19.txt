@@ -1,0 +1,1 @@
+/groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/steps_results/02_1_orfs/orfs_translated/Chlamydia_psittaci_strain_GIMC_2003Cps25SM.faa

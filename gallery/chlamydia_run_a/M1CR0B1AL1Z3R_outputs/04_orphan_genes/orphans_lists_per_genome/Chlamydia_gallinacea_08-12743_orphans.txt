@@ -1,0 +1,16 @@
+Chlamydia_gallinacea_08-12743:NZ_CP015840.1_10;Chlamydia_gallinacea_08-12743:NZ_CP015840.1_9
+Chlamydia_gallinacea_08-12743:NZ_CP015840.1_847
+Chlamydia_gallinacea_08-12743:NZ_CP015840.1_748
+Chlamydia_gallinacea_08-12743:NZ_CP015840.1_870
+Chlamydia_gallinacea_08-12743:NZ_CP015840.1_154
+Chlamydia_gallinacea_08-12743:NZ_CP015840.1_157
+Chlamydia_gallinacea_08-12743:NZ_CP015840.1_155
+Chlamydia_gallinacea_08-12743:NZ_CP015840.1_234
+Chlamydia_gallinacea_08-12743:NZ_CP015840.1_240
+Chlamydia_gallinacea_08-12743:NZ_CP015840.1_486
+Chlamydia_gallinacea_08-12743:NZ_CP015840.1_625
+Chlamydia_gallinacea_08-12743:NZ_CP015840.1_832
+Chlamydia_gallinacea_08-12743:NZ_CP015840.1_882
+Chlamydia_gallinacea_08-12743:NZ_CP015840.1_484
+Chlamydia_gallinacea_08-12743:NZ_CP015840.1_861
+Chlamydia_gallinacea_08-12743:NZ_CP015840.1_640

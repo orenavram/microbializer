@@ -1,0 +1,6 @@
+Job ID: 2663301
+Running on nodes: compute-0-207
+Allocated CPUs: 2
+PATH: /groups/pupko/yairshimony/miniconda3/envs/microbializer/bin:/groups/pupko/yairshimony/miniconda3/envs/microbializer/bin:/groups/pupko/yairshimony/miniconda3/condabin:/powerapps/share/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/usr/local.cc/bin
+sys.path is
+['/groups/pupko/yairshimony/microbializer/pipeline', '/groups/pupko/yairshimony/miniconda3/envs/microbializer/lib/python38.zip', '/groups/pupko/yairshimony/miniconda3/envs/microbializer/lib/python3.8', '/groups/pupko/yairshimony/miniconda3/envs/microbializer/lib/python3.8/lib-dynload', '/groups/pupko/yairshimony/miniconda3/envs/microbializer/lib/python3.8/site-packages', '/groups/pupko/yairshimony/microbializer', '/groups/pupko/yairshimony/microbializer', '/groups/pupko/yairshimony/microbializer']

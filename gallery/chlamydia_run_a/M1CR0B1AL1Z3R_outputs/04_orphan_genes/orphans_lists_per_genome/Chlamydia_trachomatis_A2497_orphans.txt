@@ -1,0 +1,10 @@
+Chlamydia_trachomatis_A2497:NC_017437.1_169
+Chlamydia_trachomatis_A2497:NC_017437.1_177
+Chlamydia_trachomatis_A2497:NC_017437.1_160
+Chlamydia_trachomatis_A2497:NC_017437.1_137
+Chlamydia_trachomatis_A2497:NC_017437.1_388
+Chlamydia_trachomatis_A2497:NC_017437.1_171
+Chlamydia_trachomatis_A2497:NC_017437.1_612
+Chlamydia_trachomatis_A2497:NC_017437.1_59
+Chlamydia_trachomatis_A2497:NC_017437.1_172
+Chlamydia_trachomatis_A2497:NC_017437.1_58

@@ -1,0 +1,7 @@
+Chlamydia_psittaci_01DC11:NC_017289.1_609
+Chlamydia_psittaci_01DC11:NC_017289.1_617
+Chlamydia_psittaci_01DC11:NC_017289.1_611
+Chlamydia_psittaci_01DC11:NC_017289.1_153
+Chlamydia_psittaci_01DC11:NC_017289.1_610
+Chlamydia_psittaci_01DC11:NC_017289.1_613
+Chlamydia_psittaci_01DC11:NC_017289.1_614

@@ -1,0 +1,168 @@
+IQ-TREE 2.2.5 COVID-edition built Sep 15 2023
+
+Input file name: /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/steps_results/09_3_aligned_core_proteome_reduced/aligned_core_proteome.fas
+Type of analysis: tree reconstruction
+Random seed number: 12345
+
+REFERENCES
+----------
+
+To cite IQ-TREE please use:
+
+Bui Quang Minh, Heiko A. Schmidt, Olga Chernomor, Dominik Schrempf,
+Michael D. Woodhams, Arndt von Haeseler, and Robert Lanfear (2020)
+IQ-TREE 2: New models and efficient methods for phylogenetic inference
+in the genomic era. Mol. Biol. Evol., in press.
+https://doi.org/10.1093/molbev/msaa015
+
+SEQUENCE ALIGNMENT
+------------------
+
+Input data: 40 sequences with 165356 amino-acid sites
+Number of constant sites: 90159 (= 54.5242% of all sites)
+Number of invariant (constant or ambiguous constant) sites: 90159 (= 54.5242% of all sites)
+Number of parsimony informative sites: 58807
+Number of distinct site patterns: 48974
+
+SUBSTITUTION PROCESS
+--------------------
+
+Model of substitution: WAG+G4
+
+State frequencies: (model)
+
+Model of rate heterogeneity: Gamma with 4 categories
+Gamma shape alpha: 0.4077
+
+ Category  Relative_rate  Proportion
+  1         0.0178         0.2500
+  2         0.1874         0.2500
+  3         0.7394         0.2500
+  4         3.0553         0.2500
+Relative rates are computed as MEAN of the portion of the Gamma distribution falling in the category.
+
+MAXIMUM LIKELIHOOD TREE
+-----------------------
+
+Log-likelihood of the tree: -1515734.2178 (s.e. 3233.6986)
+Unconstrained log-likelihood (without tree): -1156683.9707
+Number of free parameters (#branches + #model parameters): 78
+Akaike information criterion (AIC) score: 3031624.4356
+Corrected Akaike information criterion (AICc) score: 3031624.5102
+Bayesian information criterion (BIC) score: 3032405.6724
+
+Total tree length (sum of branch lengths): 1.5082
+Sum of internal branch lengths: 0.7996 (53.0183% of tree length)
+
+WARNING: 4 near-zero internal branches (<0.0000) should be treated with caution
+         Such branches are denoted by '**' in the figure below
+
+NOTE: Tree is UNROOTED although outgroup taxon 'Chlamydia_abortus_strain_162STDY5437294' is drawn at root
+
++**Chlamydia_abortus_strain_162STDY5437294
+|
++--Chlamydia_abortus_strain_1B_cevac
+|
+|  +--Chlamydia_abortus_strain_GIMC_2006CabB577
++--|
+   |     +**Chlamydia_abortus_strain_NL2335-4C
+   |  +--|
+   |  |  +**Chlamydia_abortus_strain_NL2354-2D
+   +--|
+      |                           +-----Chlamydia_avium_10DC88
+      |                 +---------|
+      |                 |         +------Chlamydia_gallinacea_08-12743
+      |            +----|
+      |            |    |                                                     +--Chlamydia_muridarum_str._Nigg
+      |            |    |                                                  +**|
+      |            |    |                                                  |  +**Chlamydia_muridarum_str._Nigg_isolate_CM008
+      |            |    |                                               +**|
+      |            |    |                                               |  +**Chlamydia_muridarum_str._Nigg_isolate_CM009
+      |            |    |                                            +**|
+      |            |    |                                            |  +--Chlamydia_muridarum_str._Nigg_isolate_CM001
+      |            |    |                                       +----|
+      |            |    |                                       |    +--Chlamydia_muridarum_str._Nigg_isolate_CM021
+      |            |    |                                    +--|
+      |            |    |                                    |  +-----Chlamydia_suis_isolate_4-29b
+      |            |    |     +------------------------------|
+      |            |    |     |                              |         +--Chlamydia_trachomatis_A2497
+      |            |    |     |                              |      +--|
+      |            |    |     |                              |      |  +--Chlamydia_trachomatis_strain_QH111L
+      |            |    |     |                              |   +--|
+      |            |    |     |                              |   |  |  +--Chlamydia_trachomatis_EBour
+      |            |    |     |                              |   |  +--|
+      |            |    |     |                              |   |     +--Chlamydia_trachomatis_strain_E-32931
+      |            |    |     |                              +---|
+      |            |    |     |                                  |        +--Chlamydia_trachomatis_L1115
+      |            |    |     |                                  |     +--|
+      |            |    |     |                                  |     |  |  +--Chlamydia_trachomatis_L2b820007
+      |            |    |     |                                  |     |  +--|
+      |            |    |     |                                  |     |     +--Chlamydia_trachomatis_L2bUCH-2
+      |            |    |     |                                  |  +--|
+      |            |    |     |                                  |  |  +--Chlamydia_trachomatis_strain_tet9
+      |            |    |     |                                  +--|
+      |            |    |     |                                     +--Chlamydia_trachomatis_RC-L255
+      |            |    +-----|
+      |            |          |      +---------------------Chlamydia_pecorum_E58
+      |            |          +------|
+      |            |                 +-------------------Chlamydia_serpentis_strain_H15-1957-10C
+      |         +--|
+      |         |  +----Chlamydia_felis_FeC-56
+      |     +---|
+      |     |   |  +--Chlamydia_caviae_GPIC
+      |     |   +--|
+      |     |      |  +--Chlamydia_crocodili_strain_No._12
+      |     |      +--|
+      |     |         +--Chlamydia_poikilotherma_strain_S15-834K
+      |  +--|
+      |  |  +--Chlamydia_buteonis_strain_IDL17-4553
+      +--|
+         |              +--Chlamydia_psittaci_01DC11
+         |           +--|
+         |           |  |     +--Chlamydia_psittaci_strain_GIMC_2003Cps25SM
+         |           |  |  +**|
+         |           |  |  |  +**Chlamydia_psittaci_strain_GIMC_2005CpsCP1
+         |           |  +--|
+         |           |     +**Chlamydia_psittaci_strain_GIMC_2004CpsAP23
+         |        +--|
+         |        |  +--Chlamydia_psittaci_6BC
+         |     +--|
+         |     |  +--Chlamydia_psittaci_strain_Ful127
+         |  +--|
+         |  |  |  +--Chlamydia_psittaci_MN
+         |  |  +--|
+         |  |     +--Chlamydia_psittaci_strain_NRM_isolate_NRM_5
+         +--|
+            |  +--Chlamydia_psittaci_WSRTE30
+            +--|
+               |  +--Chlamydia_psittaci_strain_AMK
+               +--|
+                  +**Chlamydophila_parapsittaci_strain_Rostinovo-70
+
+Tree in newick format:
+
+(Chlamydia_abortus_strain_162STDY5437294:0.0000006048,Chlamydia_abortus_strain_1B_cevac:0.0000432830,(Chlamydia_abortus_strain_GIMC_2006CabB577:0.0003189548,((Chlamydia_abortus_strain_NL2335-4C:0.0000006048,Chlamydia_abortus_strain_NL2354-2D:0.0000006048):0.0006148478,((((((Chlamydia_avium_10DC88:0.0588758180,Chlamydia_gallinacea_08-12743:0.0662355417):0.0972066666,(((((((Chlamydia_muridarum_str._Nigg:0.0000309840,Chlamydia_muridarum_str._Nigg_isolate_CM008:0.0000006048):0.0000006048,Chlamydia_muridarum_str._Nigg_isolate_CM009:0.0000006048):0.0000006048,Chlamydia_muridarum_str._Nigg_isolate_CM001:0.0000122583):0.0000006048,Chlamydia_muridarum_str._Nigg_isolate_CM021:0.0000804468):0.0479878045,Chlamydia_suis_isolate_4-29b:0.0558460303):0.0148444103,(((Chlamydia_trachomatis_A2497:0.0012288344,Chlamydia_trachomatis_strain_QH111L:0.0009751441):0.0025263950,(Chlamydia_trachomatis_EBour:0.0002371171,Chlamydia_trachomatis_strain_E-32931:0.0003407962):0.0026083587):0.0007552125,(((Chlamydia_trachomatis_L1115:0.0001665853,(Chlamydia_trachomatis_L2b820007:0.0000061541,Chlamydia_trachomatis_L2bUCH-2:0.0000061531):0.0002306682):0.0001363887,Chlamydia_trachomatis_strain_tet9:0.0000138182):0.0002172610,Chlamydia_trachomatis_RC-L255:0.0001109144):0.0027065857):0.0441463580):0.2867039786,(Chlamydia_pecorum_E58:0.2052251048,Chlamydia_serpentis_strain_H15-1957-10C:0.1870883532):0.0661352964):0.0568009799):0.0515089184,Chlamydia_felis_FeC-56:0.0490155813):0.0102544054,(Chlamydia_caviae_GPIC:0.0354778366,(Chlamydia_crocodili_strain_No._12:0.0139629176,Chlamydia_poikilotherma_strain_S15-834K:0.0183421563):0.0142434970):0.0142080486):0.0428455868,Chlamydia_buteonis_strain_IDL17-4553:0.0123265644):0.0044897889,(((((Chlamydia_psittaci_01DC11:0.0000741004,((Chlamydia_psittaci_strain_GIMC_2003Cps25SM:0.0002473187,Chlamydia_psittaci_strain_GIMC_2005CpsCP1:0.0000006048):0.0000006048,Chlamydia_psittaci_strain_GIMC_2004CpsAP23:0.0000006048):0.0000367228):0.0000250423,Chlamydia_psittaci_6BC:0.0000988135):0.0003658156,Chlamydia_psittaci_strain_Ful127:0.0005429747):0.0001428126,(Chlamydia_psittaci_MN:0.0002843929,Chlamydia_psittaci_strain_NRM_isolate_NRM_5:0.0001109557):0.0023531713):0.0009002964,(Chlamydia_psittaci_WSRTE30:0.0005985615,(Chlamydia_psittaci_strain_AMK:0.0000306136,Chlamydophila_parapsittaci_strain_Rostinovo-70:0.0000006048):0.0018916550):0.0012071846):0.0122441815):0.0168135953):0.0027221384):0.0003569967);
+
+ALISIM COMMAND
+--------------
+To simulate an alignment of the same length as the original alignment, using the tree and model parameters estimated from this analysis, you can use the following command:
+
+--alisim simulated_MSA -t /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/tmp/11_2_species_phylogeny/species_tree.treefile -m "WAG+G4{0.407652}" --length 165356
+
+To mimic the alignment used to produce this analysis, i.e. simulate an alignment of the same length as the original alignment, using the tree and model parameters estimated from this analysis *and* copying the same gap positions as the original alignment, you can use the following command:
+
+iqtree -s /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/steps_results/09_3_aligned_core_proteome_reduced/aligned_core_proteome.fas --alisim mimicked_MSA
+
+To simulate any number of alignments in either of the two commandlines above, use the --num-alignments options, for example mimic 100 alignments you would use the command line:
+
+iqtree -s /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/steps_results/09_3_aligned_core_proteome_reduced/aligned_core_proteome.fas --alisim mimicked_MSA --num-alignments 100
+
+For more information on using AliSim, please visit: www.iqtree.org/doc/AliSim
+
+TIME STAMP
+----------
+
+Date and time: Mon Apr 21 10:54:30 2025
+Total CPU time used: 35416.715 seconds (9h:50m:16s)
+Total wall-clock time used: 1846.2391 seconds (0h:30m:46s)
+

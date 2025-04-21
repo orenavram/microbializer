@@ -1,0 +1,1 @@
+/groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/steps_results/02_1_orfs/orfs_translated/Chlamydia_muridarum_str._Nigg_isolate_CM001.faa

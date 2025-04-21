@@ -1,0 +1,5 @@
+2025-04-21 09:38:38,822 INFO run_step_utils.py:318 Starting command is: /groups/pupko/yairshimony/microbializer/pipeline/steps/drop_plasmids_and_fix_frames.py /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/tmp/01_fix_input_files/job_inputs/9.txt /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/steps_results/01_fix_input_files --drop_plasmids True --fix_frames False -v False --logs_dir /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/tmp/01_fix_input_files --error_file_path /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/M1CR0B1AL1Z3R_outputs/error.txt --job_name 9_drop_plasmids --use_job_manager True --cpus 1
+2025-04-21 09:38:38,824 INFO drop_plasmids_and_fix_frames.py:19 Removing plasmids from /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/inputs/Chlamydia_felis_FeC-56.fna...
+2025-04-21 09:38:39,314 INFO drop_plasmids_and_fix_frames.py:26 Dropped plasmid sequence Chlamydia_felis_FeC-56:NC_007900.1
+   RunTime=00:00:11 TimeLimit=1-00:00:00 TimeMin=N/A
+   NumNodes=1 NumCPUs=2 NumTasks=1 CPUs/Task=1 ReqB:S:C:T=0:0:*:*

@@ -1,0 +1,5 @@
+source /groups/pupko/yairshimony/miniconda3/etc/profile.d/conda.sh
+conda activate /groups/pupko/yairshimony/miniconda3/envs/microbializer
+export PATH=$CONDA_PREFIX/bin:$PATH
+python /groups/pupko/yairshimony/microbializer/pipeline/steps/search_orfs.py /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/tmp/02_1_orfs/job_inputs/34.txt /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/02_1_orfs/orfs_sequences /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/02_1_orfs/orfs_statistics /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/02_1_orfs/orfs_translated /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/02_1_orfs/orfs_coordinates genomes -v False --logs_dir /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/tmp/02_1_orfs --error_file_path /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/M1CR0B1AL1Z3R_outputs/error.txt --job_name 34_search_orfs --use_job_manager True --cpus 1
+touch /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/tmp/02_1_orfs/34_search_orfs.done

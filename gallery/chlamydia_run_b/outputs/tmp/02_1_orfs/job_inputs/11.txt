@@ -1,0 +1,1 @@
+/groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/steps_results/01_fix_input_files/Chlamydia_poikilotherma_strain_S15-834K.fna

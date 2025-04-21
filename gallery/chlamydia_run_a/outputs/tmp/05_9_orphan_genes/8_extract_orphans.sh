@@ -1,0 +1,5 @@
+source /groups/pupko/yairshimony/miniconda3/etc/profile.d/conda.sh
+conda activate /groups/pupko/yairshimony/miniconda3/envs/microbializer
+export PATH=$CONDA_PREFIX/bin:$PATH
+python /groups/pupko/yairshimony/microbializer/pipeline/steps/extract_orphan_genes.py /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/tmp/05_9_orphan_genes/job_inputs/8.txt /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_8_verified_table/orthogroups.csv /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/steps_results/05_9_orphan_genes/orphans_lists_per_genome -v False --logs_dir /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/tmp/05_9_orphan_genes --error_file_path /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/M1CR0B1AL1Z3R_outputs/error.txt --job_name 8_extract_orphans --use_job_manager True --cpus 1
+touch /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/tmp/05_9_orphan_genes/8_extract_orphans.done

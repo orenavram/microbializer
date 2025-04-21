@@ -1,0 +1,12 @@
+Chlamydia_trachomatis_strain_E-32931:NZ_CP015302.1_854
+Chlamydia_trachomatis_strain_E-32931:NZ_CP015302.1_903
+Chlamydia_trachomatis_strain_E-32931:NZ_CP015302.1_159
+Chlamydia_trachomatis_strain_E-32931:NZ_CP015302.1_168
+Chlamydia_trachomatis_strain_E-32931:NZ_CP015302.1_169
+Chlamydia_trachomatis_strain_E-32931:NZ_CP015302.1_163
+Chlamydia_trachomatis_strain_E-32931:NZ_CP015302.1_164
+Chlamydia_trachomatis_strain_E-32931:NZ_CP015302.1_902
+Chlamydia_trachomatis_strain_E-32931:NZ_CP015302.1_165
+Chlamydia_trachomatis_strain_E-32931:NZ_CP015302.1_167
+Chlamydia_trachomatis_strain_E-32931:NZ_CP015302.1_100
+Chlamydia_trachomatis_strain_E-32931:NZ_CP015302.1_166

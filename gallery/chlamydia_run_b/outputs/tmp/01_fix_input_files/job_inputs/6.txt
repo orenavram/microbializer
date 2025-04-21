@@ -1,0 +1,1 @@
+/groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/inputs/Chlamydia_buteonis_strain_IDL17-4553.fna

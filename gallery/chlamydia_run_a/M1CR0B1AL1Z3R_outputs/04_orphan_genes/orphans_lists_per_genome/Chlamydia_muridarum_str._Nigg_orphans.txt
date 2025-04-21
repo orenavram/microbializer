@@ -1,0 +1,3 @@
+Chlamydia_muridarum_str._Nigg:NC_002620.2_597
+Chlamydia_muridarum_str._Nigg:NC_002620.2_113
+Chlamydia_muridarum_str._Nigg:NC_002620.2_373

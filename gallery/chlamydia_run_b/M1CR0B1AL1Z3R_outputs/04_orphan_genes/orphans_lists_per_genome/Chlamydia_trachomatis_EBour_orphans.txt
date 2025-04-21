@@ -1,0 +1,11 @@
+Chlamydia_trachomatis_EBour:NC_020971.1_900
+Chlamydia_trachomatis_EBour:NC_020971.1_105
+Chlamydia_trachomatis_EBour:NC_020971.1_359
+Chlamydia_trachomatis_EBour:NC_020971.1_899
+Chlamydia_trachomatis_EBour:NC_020971.1_169
+Chlamydia_trachomatis_EBour:NC_020971.1_144
+Chlamydia_trachomatis_EBour:NC_020971.1_168
+Chlamydia_trachomatis_EBour:NC_020971.1_106
+Chlamydia_trachomatis_EBour:NC_020971.1_143
+Chlamydia_trachomatis_EBour:NC_020971.1_52
+Chlamydia_trachomatis_EBour:NC_020971.1_142

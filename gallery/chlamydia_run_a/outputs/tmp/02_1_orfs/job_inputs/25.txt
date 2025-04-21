@@ -1,0 +1,1 @@
+/groups/pupko/yairshimony/microbializer_runs/chlamydia_run_a/outputs/inputs/Chlamydia_psittaci_strain_GIMC_2005CpsCP1.fna

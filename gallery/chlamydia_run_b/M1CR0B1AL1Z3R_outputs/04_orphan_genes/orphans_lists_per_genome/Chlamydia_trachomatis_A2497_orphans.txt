@@ -1,0 +1,17 @@
+Chlamydia_trachomatis_A2497:NC_017437.1_170
+Chlamydia_trachomatis_A2497:NC_017437.1_611
+Chlamydia_trachomatis_A2497:NC_017437.1_135
+Chlamydia_trachomatis_A2497:NC_017437.1_59
+Chlamydia_trachomatis_A2497:NC_017437.1_872
+Chlamydia_trachomatis_A2497:NC_017437.1_176
+Chlamydia_trachomatis_A2497:NC_017437.1_168
+Chlamydia_trachomatis_A2497:NC_017437.1_58
+Chlamydia_trachomatis_A2497:NC_017437.1_169
+Chlamydia_trachomatis_A2497:NC_017437.1_612
+Chlamydia_trachomatis_A2497:NC_017437.1_679
+Chlamydia_trachomatis_A2497:NC_017437.1_159
+Chlamydia_trachomatis_A2497:NC_017437.1_177
+Chlamydia_trachomatis_A2497:NC_017437.1_387
+Chlamydia_trachomatis_A2497:NC_017437.1_171
+Chlamydia_trachomatis_A2497:NC_017437.1_136
+Chlamydia_trachomatis_A2497:NC_017437.1_158

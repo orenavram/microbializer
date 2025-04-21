@@ -1,0 +1,4 @@
+Chlamydophila_parapsittaci_strain_Rostinovo-70:NZ_CP041038.1_800
+Chlamydophila_parapsittaci_strain_Rostinovo-70:NZ_CP041038.1_89
+Chlamydophila_parapsittaci_strain_Rostinovo-70:NZ_CP041038.1_802
+Chlamydophila_parapsittaci_strain_Rostinovo-70:NZ_CP041038.1_799

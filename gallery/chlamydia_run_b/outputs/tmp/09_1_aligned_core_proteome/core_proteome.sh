@@ -1,0 +1,5 @@
+source /groups/pupko/yairshimony/miniconda3/etc/profile.d/conda.sh
+conda activate /groups/pupko/yairshimony/miniconda3/envs/microbializer
+export PATH=$CONDA_PREFIX/bin:$PATH
+python /groups/pupko/yairshimony/microbializer/pipeline/steps/extract_core_genome.py /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/steps_results/08_1_orthogroups_fasta/orthogroups_aa_msa /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/genomes_names.txt /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/steps_results/09_1_aligned_core_proteome/aligned_core_proteome.fas /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/steps_results/09_1_aligned_core_proteome/core_length.txt --core_minimal_percentage 100.0 -v False --logs_dir /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/tmp/09_1_aligned_core_proteome --error_file_path /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/M1CR0B1AL1Z3R_outputs/error.txt --job_name core_proteome --use_job_manager True --cpus 1
+touch /groups/pupko/yairshimony/microbializer_runs/chlamydia_run_b/outputs/tmp/09_1_aligned_core_proteome/core_proteome.done
