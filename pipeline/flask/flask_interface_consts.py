@@ -143,7 +143,7 @@ MICROBIALIZER_PROCESSOR_JOB_PREFIX = 'MC'
 
 MICROBIALIZER_JOB_TEMPLATE = f'''#!/bin/bash
 
-sleep 30
+sleep 10
 
 echo "Job ID: $SLURM_JOB_ID"
 echo "Running on nodes: $SLURM_JOB_NODELIST"
