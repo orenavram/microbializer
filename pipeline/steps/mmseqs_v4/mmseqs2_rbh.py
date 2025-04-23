@@ -55,9 +55,18 @@ def search_rbh(logger, genome1, genome2, dbs_dir, rbh_hits_dir, scores_statistic
     logger.info(f'Calling: {convert_command}')
     subprocess.run(convert_command, shell=True, check=True, capture_output=True, text=True)
 
-    logger.info(f"{m8_outfile_raw} was created successfully. Adding 'score' column to it...")
-    # Add 'score' column to mmseqs output
+    logger.info(f"{m8_outfile_raw} was created successfully.")
+
+    # Delete intermediate files
+    shutil.rmtree(tmp_dir, ignore_errors=True)
+
     rbh_df = pd.read_csv(m8_outfile_raw, sep='\t', names=consts.MMSEQS_OUTPUT_HEADER)
+    if rbh_df.empty:
+        logger.info(f"No RBHs were found for {genome1} and {genome2} using the specified thresholds.")
+        return
+
+    # Add 'score' column to mmseqs output
+    logger.info(f"Adding 'score' column to {m8_outfile_raw}...")
     add_score_column_to_mmseqs_output(rbh_df)
     rbh_df = rbh_df[['query', 'target', 'score']]
     rbh_df = rbh_df.sort_values(by=['query', 'target']).reset_index(drop=True)
@@ -90,9 +99,6 @@ def search_rbh(logger, genome1, genome2, dbs_dir, rbh_hits_dir, scores_statistic
         genome2_max_scores.to_csv(output_genome2_max_scores, index=False)
 
     logger.info(f"{output_genome1_max_scores} and {output_genome2_max_scores} were created successfully.")
-
-    # Delete intermediate files
-    shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
 def search_rbhs_in_all_pairs(logger, job_input_path, dbs_dir, rbh_hits_dir, scores_statistics_dir,

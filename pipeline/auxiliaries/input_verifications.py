@@ -278,8 +278,9 @@ def verify_fasta_format(logger, data_path, inputs_fasta_type):
             return f'Illegal FASTA format. "{file_path.name}" contains duplicated record ids: {",".join(duplicate_ids)}.'
 
         if total_genome_length < consts.MIN_GENOME_LENGTH and inputs_fasta_type == 'genomes':
-            return 'Each FASTA file should contain the genome of a bacterium, hence it must contain at least 20,000 nucleotides. ' \
-                   'Please refer to the Input Specification section in the Overview page for more information.'
+            return ('Each FASTA file should contain the genome of a bacterium, hence it must contain at least 20,000 '
+                    'nucleotides. It is a requirement for Prodigal to run successfully (the first step of the pipeline '
+                    'that predicts ORFs from the genomes).')
 
         # override the old file with the curated content
         with open(file_path, 'w') as f:
