@@ -152,20 +152,17 @@ def calc_genomes_batch_size(logger, config, num_of_genomes):
     return genomes_batch_size
 
 
-def define_intervals(start, end, number_of_intervals):
-    # Calculate the interval length
-    interval_length = math.ceil((end - start + 1) / number_of_intervals)
-
+def define_intervals(number_of_genomes, genomes_batch_size):
     # Create the intervals
     intervals = []
-    i = start
-    while i < end:
-        interval_end = i + interval_length - 1
+    i = 0
+    while i < number_of_genomes:
+        interval_end = i + genomes_batch_size - 1
         intervals.append((i, interval_end))
         i = interval_end + 1
 
     # Adjust the last interval to ensure it ends exactly at end
-    intervals[-1] = (intervals[-1][0], end)
+    intervals[-1] = (intervals[-1][0], number_of_genomes - 1)
 
     return intervals
 
