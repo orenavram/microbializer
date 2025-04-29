@@ -1,2 +1,0 @@
-adjusted_rand_score,adjusted_mutual_info_score,homogeneity,completeness,v_measure,fowlkes_mallows_score
-0.9957747362563255,0.9980958453470116,0.9993124119187262,0.9990342590788698,0.9991733161405447,0.9957757765721901

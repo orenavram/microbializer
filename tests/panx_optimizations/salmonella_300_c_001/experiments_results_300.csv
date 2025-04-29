@@ -1,8 +1,0 @@
-inference_method,totalTime,num_orthogroups,adjusted_rand_score,homogeneity,completeness,v_measure,fowlkes_mallows_score
-original,23 days 22:18:31,23293,1.0,1.0,1.0,1.0,1.0
-pseudo_batchsize_50,4 days 12:34:33,23884,0.9955,0.9993,0.998,0.9986,0.9955
-pseudo_batchsize_mincomparisons,1 days 05:27:32,23404,0.9953,0.999,0.9984,0.9987,0.9953
-pseudo_batchsize_sqrt,1 days 16:24:35,23724,0.9945,0.9991,0.9979,0.9985,0.9945
-pseudo_consensus_batchsize_50,5 days 02:11:36,23974,0.9971,0.9993,0.9985,0.9989,0.9971
-pseudo_consensus_mincomparisons,2 days 18:56:48,23599,0.9962,0.9992,0.9984,0.9988,0.9962
-pseudo_consensus_sqrt,2 days 23:27:12,23914,0.9962,0.9993,0.9982,0.9987,0.9962
