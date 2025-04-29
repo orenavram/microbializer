@@ -1,0 +1,412 @@
+Assembly Accession	Assembly Name	Organism Name	Organism Infraspecific Names Breed	Organism Infraspecific Names Strain	Organism Infraspecific Names Cultivar	Organism Infraspecific Names Ecotype	Organism Infraspecific Names Isolate	Organism Infraspecific Names Sex	Annotation Name	Assembly Level	Assembly Release Date	WGS project accession	Assembly Stats Number of Scaffolds
+GCF_000005845.2	ASM584v2	Escherichia coli str. K-12 substr. MG1655		K-12 substr. MG1655					Annotation submitted by NCBI RefSeq	Complete Genome	2013-09-26		1
+GCF_000013265.1	ASM1326v1	Escherichia coli UTI89		UTI89					GCF_000013265.1-RS_2024_06_01	Complete Genome	2006-04-05		2
+GCF_000210475.1	ASM21047v1	Escherichia coli ETEC H10407		ETEC H10407					GCF_000210475.1-RS_2024_06_01	Complete Genome	2010-10-21		5
+GCF_000010385.1	ASM1038v1	Escherichia coli SE11		SE11					GCF_000010385.1-RS_2024_06_01	Complete Genome	2008-10-22		7
+GCF_000019645.1	ASM1964v1	Escherichia coli SMS-3-5		SMS-3-5					GCF_000019645.1-RS_2024_06_01	Complete Genome	2008-03-20		5
+GCF_001721125.1	ASM172112v1	Escherichia coli		FORC_028					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-09-07		1
+GCF_001612475.1	ASM161247v1	Escherichia coli		28RC1					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-04-06		2
+GCF_001890245.1	ASM189024v1	Escherichia coli		472					GCF_001890245.1-RS_2024_06_12	Complete Genome	2016-12-07		2
+GCF_001890205.1	ASM189020v1	Escherichia coli		155					GCF_001890205.1-RS_2024_06_12	Complete Genome	2016-12-07		2
+GCF_001612495.1	ASM161249v1	Escherichia coli		SRCC 1675					GCF_001612495.1-RS_2024_06_12	Complete Genome	2016-04-06		2
+GCF_002220265.1	ASM222026v1	Escherichia coli		FORC_044					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2017-07-17		3
+GCF_001890325.1	ASM189032v1	Escherichia coli		319					GCF_001890325.1-RS_2024_06_12	Complete Genome	2016-12-07		2
+GCF_001890225.1	ASM189022v1	Escherichia coli		272					GCF_001890225.1-RS_2024_06_12	Complete Genome	2016-12-07		2
+GCF_002156845.1	ASM215684v1	Escherichia coli		95NR1					GCF_002156845.1-RS_2024_06_13	Complete Genome	2017-05-23		3
+GCF_001806265.1	ASM180626v1	Escherichia coli		NADC 5570/86-24/6565			mutant		NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-10-21		2
+GCF_001806285.1	ASM180628v1	Escherichia coli		NADC 5570/86-24/6564			wild type		NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-10-21		2
+GCF_002058765.1	ASM205876v1	Escherichia coli		DSM 103246					GCF_002058765.1-RS_2024_06_13	Complete Genome	2017-03-21		1
+GCF_002012085.1	ASM201208v1	Escherichia coli		Ecol_AZ146					GCF_002012085.1-RS_2024_06_13	Complete Genome	2017-03-03		8
+GCF_001644745.1	ASM164474v1	Escherichia coli		2013C-4465					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-05-16		2
+GCF_001890345.1	ASM189034v1	Escherichia coli		10671					GCF_001890345.1-RS_2024_06_12	Complete Genome	2016-12-07		2
+GCF_001900355.1	ASM190035v1	Escherichia coli		C11					GCF_001900355.1-RS_2024_06_13	Complete Genome	2016-12-12		1
+GCF_001890265.1	ASM189026v1	Escherichia coli		350					GCF_001890265.1-RS_2024_06_12	Complete Genome	2016-12-07		2
+GCF_002249955.1	ASM224995v1	Escherichia coli		CDC#03-98					GCF_002249955.1-RS_2024_06_14	Complete Genome	2017-08-14		2
+GCF_001900945.1	ASM190094v1	Escherichia coli		S40					GCF_001900945.1-RS_2024_06_13	Complete Genome	2016-12-12		1
+GCF_002057245.1	ASM205724v1	Escherichia coli		13E0780					GCF_002057245.1-RS_2024_06_13	Complete Genome	2017-03-21		1
+GCF_001890305.1	ASM189030v1	Escherichia coli		7784					GCF_001890305.1-RS_2024_06_12	Complete Genome	2016-12-07		2
+GCF_001900515.1	ASM190051v1	Escherichia coli		C3					GCF_001900515.1-RS_2024_06_13	Complete Genome	2016-12-12		2
+GCF_002156825.1	ASM215682v1	Escherichia coli		95JB1					GCF_002156825.1-RS_2024_06_13	Complete Genome	2017-05-23		3
+GCF_900093485.1	NRZ14408 genome	Escherichia coli					E. coli NRZ14408		GCF_900093485.1-RS_2024_09_08	Complete Genome	2017-01-09		7
+GCF_001645235.2	ASM164523v2	Escherichia coli		2011C-4315					GCF_001645235.2-RS_2024_06_15	Complete Genome	2017-11-02		3
+GCF_001900535.1	ASM190053v1	Escherichia coli		C5					GCF_001900535.1-RS_2024_06_13	Complete Genome	2016-12-12		3
+GCF_002393465.1	ASM239346v1	Escherichia coli		FDAARGOS_401					GCF_002393465.1-RS_2024_06_14	Complete Genome	2017-09-28		2
+GCF_000784925.1	ASM78492v1	Escherichia coli		ECONIH1					GCF_000784925.1-RS_2024_06_01	Complete Genome	2014-11-17		4
+GCF_001901425.1	ASM190142v1	Escherichia coli		C7					GCF_001901425.1-RS_2024_06_12	Complete Genome	2016-12-12		2
+GCF_002278115.2	ASM227811v2	Escherichia coli		CFSAN061770					GCF_002278115.2-RS_2024_06_13	Complete Genome	2017-09-05		4
+GCF_001677495.1	ASM167749v1	Escherichia coli		09-00049					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-07-01		2
+GCF_001936315.1	ASM193631v1	Escherichia coli		SLK172					GCF_001936315.1-RS_2024_06_12	Complete Genome	2017-01-05		3
+GCF_000967155.2	HUSEC2011CHR1	Escherichia coli		HUSEC2011					GCF_000967155.2-RS_2024_06_01	Complete Genome	2015-01-07		4
+GCF_002393365.1	ASM239336v1	Escherichia coli		FDAARGOS_403					GCF_002393365.1-RS_2024_06_14	Complete Genome	2017-09-28		4
+GCF_002012225.1	ASM201222v1	Escherichia coli		Ecol_881					GCF_002012225.1-RS_2024_06_13	Complete Genome	2017-03-03		9
+GCF_002012025.1	ASM201202v1	Escherichia coli		Ecol_542					GCF_002012025.1-RS_2024_06_13	Complete Genome	2017-03-03		5
+GCF_002214745.2	ASM221474v2	Escherichia coli		FORC_043					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2017-10-05		2
+GCF_001678965.1	ASM167896v1	Escherichia coli		GB089					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-07-05		2
+GCF_002012065.1	ASM201206v1	Escherichia coli		Ecol_656					GCF_002012065.1-RS_2024_06_13	Complete Genome	2017-03-03		3
+GCF_002846135.1	ASM284613v1	Escherichia coli		MS8345					GCF_002846135.1-RS_2024_06_15	Complete Genome	2017-12-21		3
+GCF_001677515.1	ASM167751v1	Escherichia coli		08-00022					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-07-01		2
+GCF_001420935.1	ASM142093v1	Escherichia coli		2012C-4227					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2015-10-30		3
+GCF_002763995.1	ASM276399v1	Escherichia coli					NQ3		GCF_002763995.1-RS_2024_06_15	Complete Genome	2017-11-13		3
+GCF_002764015.1	ASM276401v1	Escherichia coli		LS4					GCF_002764015.1-RS_2024_06_15	Complete Genome	2017-11-13		3
+GCF_001721225.1	ASM172122v1	Escherichia coli		CFSAN004176					GCF_001721225.1-RS_2024_06_12	Complete Genome	2016-09-07		4
+GCF_001886895.1	ASM188689v1	Escherichia coli		FORC_029					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-11-28		2
+GCF_001693315.1	ASM169331v1	Escherichia coli		UPEC 26-1					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-07-25		2
+GCF_002142675.1	ASM214267v1	Escherichia coli		Z1002					GCF_002142675.1-RS_2024_06_02	Complete Genome	2017-05-16		5
+GCF_001721525.1	ASM172152v1	Escherichia coli		MS6198					GCF_001721525.1-RS_2024_06_13	Complete Genome	2016-09-08		5
+GCF_002591135.1	ASM259113v1	Escherichia coli		FDAARGOS_448					GCF_002591135.1-RS_2024_06_14	Complete Genome	2017-10-18		5
+GCF_002196475.1	ASM219647v1	Escherichia coli		EC974					GCF_002196475.1-RS_2024_06_13	Complete Genome	2017-06-15		4
+GCF_002196495.1	ASM219649v1	Escherichia coli		EC1515					GCF_002196495.1-RS_2024_06_13	Complete Genome	2017-06-15		4
+GCF_001420955.1	ASM142095v1	Escherichia coli		2009C-3133					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2015-10-30		4
+GCF_001683435.1	ASM168343v1	Escherichia coli		K-15KW01					GCF_001683435.1-RS_2024_06_12	Complete Genome	2016-07-11		1
+GCF_000987875.1	ASM98787v1	Escherichia coli		SEC470					GCF_000987875.1-RS_2024_06_09	Complete Genome	2015-05-04		1
+GCF_002844685.1	ASM284468v1	Escherichia coli		ExPEC XM					GCF_002844685.1-RS_2024_06_15	Complete Genome	2017-12-19		2
+GCF_001901065.1	ASM190106v1	Escherichia coli		M6					GCF_001901065.1-RS_2024_06_13	Complete Genome	2016-12-12		5
+GCF_001901105.1	ASM190110v1	Escherichia coli		M9					GCF_001901105.1-RS_2024_06_13	Complete Genome	2016-12-12		4
+GCF_900092615.1	PRJEB14041	Escherichia coli					NCTC86EC		GCF_900092615.1-RS_2024_06_12	Complete Genome	2016-07-21		1
+GCF_001280345.1	ASM128034v1	Escherichia coli		SF-468					GCF_001280345.1-RS_2024_06_11	Complete Genome	2015-09-09		6
+GCF_002202175.1	ASM220217v1	Escherichia coli		AR_0055					GCF_002202175.1-RS_2024_06_13	Complete Genome	2017-06-20		4
+GCF_001693635.1	ASM169363v1	Escherichia coli		O177:H21					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-07-26		6
+GCF_002310595.1	ASM231059v1	Escherichia coli		144					GCF_002310595.1-RS_2024_06_14	Complete Genome	2017-09-18		3
+GCF_001900395.1	ASM190039v1	Escherichia coli		D8					GCF_001900395.1-RS_2024_06_13	Complete Genome	2016-12-12		1
+GCF_001513635.1	ASM151363v1	Escherichia coli		JJ2434					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-01-12		3
+GCF_002787935.1	ASM278793v1	Escherichia coli		CREC-591					GCF_002787935.1-RS_2024_06_15	Complete Genome	2017-11-20		5
+GCF_002357895.1	ASM235789v1	Escherichia coli		MRY15-117					GCF_002357895.1-RS_2024_05_08	Complete Genome	2017-04-06		3
+GCF_001675145.1	ASM167514v1	Escherichia coli		ECONIH2					GCF_001675145.1-RS_2024_06_13	Complete Genome	2016-06-22		3
+GCF_002055605.1	ASM205560v1	Escherichia coli		13E0725					GCF_002055605.1-RS_2024_06_13	Complete Genome	2017-03-21		1
+GCF_001900735.1	ASM190073v1	Escherichia coli		D10					GCF_001900735.1-RS_2024_06_12	Complete Genome	2016-12-12		3
+GCF_002007705.1	ASM200770v1	Escherichia coli		NCTC86					GCF_002007705.1-RS_2024_04_08	Complete Genome	2017-02-28		1
+GCF_002788115.1	ASM278811v1	Escherichia coli		AR_0015					GCF_002788115.1-RS_2024_06_15	Complete Genome	2017-11-20		4
+GCF_001469815.1	ASM146981v1	Escherichia coli		uk_P46212					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2015-12-18		2
+GCF_001901165.1	ASM190116v1	Escherichia coli		M15					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-12-12		6
+GCF_001901185.1	ASM190118v1	Escherichia coli		M18					GCF_001901185.1-RS_2024_06_13	Complete Genome	2016-12-12		2
+GCF_001901215.1	ASM190121v1	Escherichia coli		M19					GCF_001901215.1-RS_2024_06_12	Complete Genome	2016-12-12		5
+GCF_002012165.1	ASM201216v1	Escherichia coli		Ecol_AZ162					GCF_002012165.1-RS_2024_06_14	Complete Genome	2017-03-03		3
+GCF_002211725.1	ASM221172v1	Escherichia coli		ABWA45					GCF_002211725.1-RS_2024_06_13	Complete Genome	2017-06-30		6
+GCF_002310655.1	ASM231065v1	Escherichia coli		746					GCF_002310655.1-RS_2024_06_13	Complete Genome	2017-09-18		4
+GCF_002302315.1	ASM230231v1	Escherichia coli		ETEC-2265					GCF_002302315.1-RS_2024_06_14	Complete Genome	2017-09-14		3
+GCF_002741355.1	ASM274135v1	Escherichia coli		ATCC 43896					GCF_002741355.1-RS_2024_06_15	Complete Genome	2017-11-02		4
+GCF_002285755.1	ASM228575v1	Escherichia coli		PA45B					GCF_002285755.1-RS_2024_06_13	Complete Genome	2017-09-05		2
+GCF_001513615.1	ASM151361v1	Escherichia coli		CD306					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-01-12		2
+GCF_001566615.1	ASM156661v1	Escherichia coli		SaT040					GCF_001566615.1-RS_2024_06_11	Complete Genome	2016-02-23		2
+GCF_001900595.1	ASM190059v1	Escherichia coli		D1					GCF_001900595.1-RS_2024_06_13	Complete Genome	2016-12-12		3
+GCF_001280405.1	ASM128040v1	Escherichia coli		SF-173					GCF_001280405.1-RS_2024_06_11	Complete Genome	2015-09-09		2
+GCF_002310635.1	ASM231063v1	Escherichia coli		1105					GCF_002310635.1-RS_2024_06_14	Complete Genome	2017-09-18		2
+GCF_001485455.1	ASM148545v1	Escherichia coli		ST648			Pleural Effusion of Patients with Empyema Thoracis		GCF_001485455.1-RS_2024_06_12	Complete Genome	2016-01-05		8
+GCF_002011985.1	ASM201198v1	Escherichia coli		Ecol_316					GCF_002011985.1-RS_2024_06_13	Complete Genome	2017-03-03		4
+GCF_000599665.1	ASM59966v1	Escherichia coli		ST2747					GCF_000599665.1-RS_2024_06_01	Complete Genome	2014-03-19		1
+GCF_002787215.1	ASM278721v1	Escherichia coli		AR_0006					GCF_002787215.1-RS_2024_06_15	Complete Genome	2017-11-20		4
+GCF_001280325.1	ASM128032v1	Escherichia coli		SF-088					GCF_001280325.1-RS_2024_06_11	Complete Genome	2015-09-09		4
+GCF_001566675.1	ASM156667v1	Escherichia coli		ZH193					GCF_001566675.1-RS_2024_06_11	Complete Genome	2016-02-23		2
+GCF_001900985.1	ASM190098v1	Escherichia coli		S43					GCF_001900985.1-RS_2024_06_13	Complete Genome	2016-12-12		1
+GCF_002357875.1	ASM235787v1	Escherichia coli		MRY15-131					GCF_002357875.1-RS_2024_05_08	Complete Genome	2017-04-06		3
+GCF_001890365.1	ASM189036v1	Escherichia coli		MRSN346647					GCF_001890365.1-RS_2024_06_12	Complete Genome	2016-12-07		3
+GCF_002142695.1	ASM214269v1	Escherichia coli		5CRE51					GCF_002142695.1-RS_2024_06_13	Complete Genome	2017-05-16		3
+GCF_002796585.1	ASM279658v1	Escherichia coli		AR_0017					GCF_002796585.1-RS_2024_06_15	Complete Genome	2017-11-27		2
+GCF_002310575.1	ASM231057v1	Escherichia coli		317					GCF_002310575.1-RS_2024_06_14	Complete Genome	2017-09-18		2
+GCF_001577325.1	ASM157732v1	Escherichia coli		ZH063					GCF_001577325.1-RS_2024_06_13	Complete Genome	2016-02-29		3
+GCF_001901145.1	ASM190114v1	Escherichia coli		M11					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-12-12		7
+GCF_002012045.1	ASM201204v1	Escherichia coli		Ecol_545					GCF_002012045.1-RS_2024_06_13	Complete Genome	2017-03-03		6
+GCF_002180095.1	ASM218009v1	Escherichia coli		AR_0119					GCF_002180095.1-RS_2024_06_13	Complete Genome	2017-06-08		4
+GCF_001660585.1	ASM166058v1	Escherichia coli		NGF1					GCF_001660585.1-RS_2024_06_13	Complete Genome	2016-06-09		3
+GCF_001900335.1	ASM190033v1	Escherichia coli		C10					GCF_001900335.1-RS_2024_06_13	Complete Genome	2016-12-12		1
+GCF_002055635.1	ASM205563v1	Escherichia coli		AR_0118					GCF_002055635.1-RS_2024_06_14	Complete Genome	2017-03-21		4
+GCF_000819645.1	ASM81964v1	Escherichia coli		789					GCF_000819645.1-RS_2024_06_01	Complete Genome	2015-01-16		4
+GCF_002142715.1	ASM214271v1	Escherichia coli		strain Z247					GCF_002142715.1-RS_2024_06_02	Complete Genome	2017-05-16		4
+GCF_001663475.1	ASM166347v1	Escherichia coli		Eco889					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-06-16		3
+GCF_002157245.1	ASM215724v1	Escherichia coli		81009					GCF_002157245.1-RS_2024_06_13	Complete Genome	2017-05-24		2
+GCF_000931565.1	ASM93156v1	Escherichia coli		MNCRE44					GCF_000931565.1-RS_2024_06_01	Complete Genome	2015-02-23		7
+GCF_001617565.1	ASM161756v1	Escherichia coli		Ecol_732					GCF_001617565.1-RS_2024_06_13	Complete Genome	2016-04-08		7
+GCF_001618365.1	ASM161836v1	Escherichia coli		Ecol_448					GCF_001618365.1-RS_2024_06_13	Complete Genome	2016-04-11		3
+GCF_001679985.1	ASM167998v1	Escherichia coli		210205630					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-07-06		6
+GCF_001021595.1	ASM102159v1	Escherichia coli		O18					GCF_001021595.1-RS_2024_06_09	Complete Genome	2015-06-08		1
+GCF_000599685.1	ASM59968v1	Escherichia coli		ST2747					GCF_000599685.1-RS_2024_06_01	Complete Genome	2014-03-19		1
+GCF_002012245.1	ASM201224v1	Escherichia coli		Ecol_AZ153					GCF_002012245.1-RS_2024_06_13	Complete Genome	2017-03-03		5
+GCF_900166955.1	E. coli KV7	Escherichia coli		KV7			KV7		GCF_900166955.1-RS_2024_06_13	Complete Genome	2017-03-10		7
+GCF_001660565.1	ASM166056v1	Escherichia coli		S51					GCF_001660565.1-RS_2024_06_13	Complete Genome	2016-06-09		3
+GCF_002056635.1	ASM205663v1	Escherichia coli		AR_0104					GCF_002056635.1-RS_2024_06_14	Complete Genome	2017-03-21		4
+GCF_001900315.1	ASM190031v1	Escherichia coli		C4					GCF_001900315.1-RS_2024_06_13	Complete Genome	2016-12-12		1
+GCF_002310695.1	ASM231069v1	Escherichia coli		1428					GCF_002310695.1-RS_2024_06_14	Complete Genome	2017-09-18		5
+GCF_002193095.1	ASM219309v1	Escherichia coli		H105					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2017-06-14		2
+GCF_002009315.1	ASM200931v1	Escherichia coli		MDR_56					GCF_002009315.1-RS_2024_06_13	Complete Genome	2017-03-02		8
+GCF_001618345.2	ASM161834v2	Escherichia coli		Ecol_745					GCF_001618345.2-RS_2024_09_15	Complete Genome	2016-07-12		2
+GCF_002302335.1	ASM230233v1	Escherichia coli		ETEC-2264					GCF_002302335.1-RS_2024_06_14	Complete Genome	2017-09-14		4
+GCF_001900635.1	ASM190063v1	Escherichia coli		D3					GCF_001900635.1-RS_2024_06_12	Complete Genome	2016-12-12		3
+GCF_002180275.1	ASM218027v1	Escherichia coli		AR_0128					GCF_002180275.1-RS_2024_06_13	Complete Genome	2017-06-08		4
+GCF_002214205.1	ASM221420v1	Escherichia coli		M160133					GCF_002214205.1-RS_2024_09_14	Complete Genome	2017-07-03		4
+GCF_002012205.1	ASM201220v1	Escherichia coli		Ecol_867					GCF_002012205.1-RS_2024_06_14	Complete Genome	2017-03-03		4
+GCF_001007915.1	ASM100791v1	Escherichia coli		CFSAN029787					GCF_001007915.1-RS_2024_06_01	Complete Genome	2015-05-15		3
+GCF_002057355.1	ASM205735v1	Escherichia coli		13E0767					GCF_002057355.1-RS_2024_06_13	Complete Genome	2017-03-21		1
+GCF_001901025.1	ASM190102v1	Escherichia coli		M1					GCF_001901025.1-RS_2024_06_13	Complete Genome	2016-12-12		3
+GCF_002180195.1	ASM218019v1	Escherichia coli		AR_0058					GCF_002180195.1-RS_2024_06_13	Complete Genome	2017-06-08		2
+GCF_001901045.1	ASM190104v1	Escherichia coli		M3					GCF_001901045.1-RS_2024_06_13	Complete Genome	2016-12-12		3
+GCF_002787545.1	ASM278754v1	Escherichia coli		CREC-629					GCF_002787545.1-RS_2024_06_15	Complete Genome	2017-11-20		4
+GCF_002587005.1	ASM258700v1	Escherichia coli		IMT16316					GCF_002587005.1-RS_2024_06_14	Complete Genome	2017-10-18		2
+GCF_001900835.1	ASM190083v1	Escherichia coli		H8					GCF_001900835.1-RS_2024_06_12	Complete Genome	2016-12-12		4
+GCF_002012145.1	ASM201214v1	Escherichia coli		Ecol_AZ159					GCF_002012145.1-RS_2024_06_14	Complete Genome	2017-03-03		3
+GCF_002215095.1	ASM221509v1	Escherichia coli		PSUO2					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2017-07-06		2
+GCF_002357915.1	ASM235791v1	Escherichia coli		20Ec-P-124					GCF_002357915.1-RS_2024_05_08	Complete Genome	2017-04-06		7
+GCF_002220215.1	ASM222021v1	Escherichia coli		E62					GCF_002220215.1-RS_2024_06_14	Complete Genome	2017-07-17		1
+GCF_002741295.1	ASM274129v1	Escherichia coli		ATCC 43886					GCF_002741295.1-RS_2024_06_15	Complete Genome	2017-11-02		3
+GCF_002012305.1	ASM201230v1	Escherichia coli		Ecol_244					GCF_002012305.1-RS_2024_06_13	Complete Genome	2017-03-03		5
+GCF_002012265.1	ASM201226v1	Escherichia coli		Ecol_AZ161					GCF_002012265.1-RS_2024_06_13	Complete Genome	2017-03-03		4
+GCF_001280385.1	ASM128038v1	Escherichia coli		SF-166					GCF_001280385.1-RS_2024_06_02	Complete Genome	2015-09-09		2
+GCF_003570765.1	ASM357076v1	Escherichia coli		GE3					GCF_003570765.1-RS_2024_06_17	Complete Genome	2017-07-31		2
+GCF_002741535.1	ASM274153v1	Escherichia coli		F8111-1SC3					GCF_002741535.1-RS_2024_06_15	Complete Genome	2017-11-02		4
+GCF_900184875.1	Unitig	Escherichia coli					6666666.257727.embl		GCF_900184875.1-RS_2024_06_15	Complete Genome	2017-12-06		4
+GCF_002787645.1	ASM278764v1	Escherichia coli		CREC-544					GCF_002787645.1-RS_2024_06_15	Complete Genome	2017-11-20		4
+GCF_002077195.1	ASM207719v1	Escherichia coli		FAM21845					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2017-04-03		6
+GCF_001900555.1	ASM190055v1	Escherichia coli		C8					GCF_001900555.1-RS_2024_06_13	Complete Genome	2016-12-12		4
+GCF_002310615.1	ASM231061v1	Escherichia coli		1190					GCF_002310615.1-RS_2024_06_14	Complete Genome	2017-09-18		2
+GCF_002011965.1	ASM201196v1	Escherichia coli		Ecol_276					GCF_002011965.1-RS_2024_06_13	Complete Genome	2017-03-03		5
+GCF_001566635.1	ASM156663v1	Escherichia coli		G749					GCF_001566635.1-RS_2024_06_11	Complete Genome	2016-02-23		4
+GCF_900088105.1	ASM90008810v2	Escherichia coli					E. coli RL465		GCF_900088105.1-RS_2024_06_15	Complete Genome	2017-08-22		4
+GCF_002011945.1	ASM201194v1	Escherichia coli		Ecol_224					GCF_002011945.1-RS_2024_06_13	Complete Genome	2017-03-03		9
+GCF_002105735.1	ASM210573v1	Escherichia coli		CFSAN051542					GCF_002105735.1-RS_2024_06_13	Complete Genome	2017-04-24		2
+GCF_001901465.1	ASM190146v1	Escherichia coli		S10					GCF_001901465.1-RS_2024_06_12	Complete Genome	2016-12-12		1
+GCF_000971615.1	ASM97161v1	Escherichia coli		CI5					GCF_000971615.1-RS_2024_06_01	Complete Genome	2015-04-13		2
+GCF_000801185.2	ASM80118v2	Escherichia coli		94-3024					GCF_000801185.2-RS_2024_05_06	Complete Genome	2015-06-18		2
+GCF_001971765.1	ASM197176v1	Escherichia coli		XH990					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2017-01-26		4
+GCF_001515725.1	ASM151572v1	Escherichia coli		ACN002					GCF_001515725.1-RS_2024_06_12	Complete Genome	2016-01-15		1
+GCF_000599645.1	ASM59964v1	Escherichia coli		ST540					GCF_000599645.1-RS_2024_06_01	Complete Genome	2014-03-19		1
+GCF_002741555.1	ASM274155v1	Escherichia coli		F9792					GCF_002741555.1-RS_2024_06_15	Complete Genome	2017-11-02		2
+GCF_001886935.1	ASM188693v1	Escherichia coli		FORC_041					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-11-28		1
+GCF_002192295.1	ASM219229v1	Escherichia coli		AR_0150					GCF_002192295.1-RS_2024_06_13	Complete Genome	2017-06-13		4
+GCF_001644725.1	ASM164472v1	Escherichia coli		2011C-3911					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-05-16		2
+GCF_001442495.1	ASM144249v1	Escherichia coli		YD786					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2015-11-10		1
+GCF_002180215.1	ASM218021v1	Escherichia coli		AR_0151					GCF_002180215.1-RS_2024_06_13	Complete Genome	2017-06-08		3
+GCF_002237305.1	ASM223730v1	Escherichia coli		PAR					GCF_002237305.1-RS_2024_06_13	Complete Genome	2017-07-31		1
+GCF_002116715.2	ASM211671v2	Escherichia coli		HB-Coli0					GCF_002116715.2-RS_2024_06_18	Complete Genome	2017-05-01		3
+GCF_002788295.1	ASM278829v1	Escherichia coli		AR_0011					GCF_002788295.1-RS_2024_06_15	Complete Genome	2017-11-20		4
+GCF_001618325.1	ASM161832v1	Escherichia coli		Ecol_743					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-04-11		5
+GCF_002163655.1	ASM216365v1	Escherichia coli		KSC9					GCF_002163655.1-RS_2024_06_13	Complete Genome	2017-06-02		1
+GCF_002237325.1	ASM223732v1	Escherichia coli		WAT					GCF_002237325.1-RS_2024_06_13	Complete Genome	2017-07-31		1
+GCF_001900295.1	ASM190029v1	Escherichia coli		C1					GCF_001900295.1-RS_2024_06_13	Complete Genome	2016-12-12		1
+GCF_002787315.1	ASM278731v1	Escherichia coli		AR_0014					GCF_002787315.1-RS_2024_06_15	Complete Genome	2017-11-20		3
+GCF_001860505.1	ASM186050v1	Escherichia coli		Y5					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-11-01		1
+GCF_001900965.1	ASM190096v1	Escherichia coli		S42					GCF_001900965.1-RS_2024_06_13	Complete Genome	2016-12-12		1
+GCF_002786655.1	ASM278665v1	Escherichia coli		CREC-532					GCF_002786655.1-RS_2024_06_15	Complete Genome	2017-11-20		4
+GCF_001900415.1	ASM190041v1	Escherichia coli		H5					GCF_001900415.1-RS_2024_06_13	Complete Genome	2016-12-12		1
+GCF_001900435.1	ASM190043v1	Escherichia coli		H6					GCF_001900435.1-RS_2024_06_13	Complete Genome	2016-12-12		1
+GCF_002180055.1	ASM218005v1	Escherichia coli		AR_0149					GCF_002180055.1-RS_2024_06_13	Complete Genome	2017-06-08		3
+GCF_001750845.1	ASM175084v1	Escherichia coli		FORC_031					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-10-03		5
+GCF_001900375.1	ASM190037v1	Escherichia coli		D7					GCF_001900375.1-RS_2024_06_13	Complete Genome	2016-12-12		1
+GCF_000801165.1	ASM80116v1	Escherichia coli		RM9387					GCF_000801165.1-RS_2024_05_07	Complete Genome	2014-12-15		2
+GCF_001901125.1	ASM190112v1	Escherichia coli		M10					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-12-12		6
+GCF_001900655.1	ASM190065v1	Escherichia coli		D4					GCF_001900655.1-RS_2024_06_12	Complete Genome	2016-12-12		2
+GCF_001900775.1	ASM190077v1	Escherichia coli		H1					GCF_001900775.1-RS_2024_06_12	Complete Genome	2016-12-12		3
+GCF_001900675.1	ASM190067v1	Escherichia coli		D5					GCF_001900675.1-RS_2024_06_12	Complete Genome	2016-12-12		3
+GCF_900174635.1	WI2	Escherichia coli					WI2 isolate		GCF_900174635.1-RS_2024_06_16	Complete Genome	2017-04-20		5
+GCF_002180135.1	ASM218013v1	Escherichia coli		AR_0162					GCF_002180135.1-RS_2024_06_13	Complete Genome	2017-06-08		5
+GCF_900174625.1	WI1-reUpload	Escherichia coli					WI1 isolate		GCF_900174625.1-RS_2024_06_02	Complete Genome	2017-04-20		4
+GCF_001900495.1	ASM190049v1	Escherichia coli		C2					GCF_001900495.1-RS_2024_06_13	Complete Genome	2016-12-12		2
+GCF_000599625.1	ASM59962v1	Escherichia coli		ST540					GCF_000599625.1-RS_2024_06_01	Complete Genome	2014-03-19		1
+GCF_001900455.1	ASM190045v1	Escherichia coli		H7					GCF_001900455.1-RS_2024_06_13	Complete Genome	2016-12-12		1
+GCF_001900475.1	ASM190047v1	Escherichia coli		H10					GCF_001900475.1-RS_2024_06_13	Complete Genome	2016-12-12		1
+GCF_001901085.1	ASM190108v1	Escherichia coli		M8					GCF_001901085.1-RS_2024_06_13	Complete Genome	2016-12-12		5
+GCF_001886555.1	ASM188655v1	Escherichia coli		MRSN346638					GCF_001886555.1-RS_2024_06_13	Complete Genome	2016-11-28		6
+GCF_001886755.1	ASM188675v1	Escherichia coli		MRSN346595					GCF_001886755.1-RS_2024_06_12	Complete Genome	2016-11-28		6
+GCF_002012005.1	ASM201200v1	Escherichia coli		Ecol_517					GCF_002012005.1-RS_2024_06_13	Complete Genome	2017-03-03		3
+GCF_001886535.1	ASM188653v1	Escherichia coli		MRSN352231					GCF_001886535.1-RS_2024_06_13	Complete Genome	2016-11-28		6
+GCF_001886575.1	ASM188657v1	Escherichia coli		MRSN346355					GCF_001886575.1-RS_2024_06_12	Complete Genome	2016-11-28		6
+GCF_002812545.1	ASM281254v1	Escherichia coli		SC516					GCF_002812545.1-RS_2024_06_15	Complete Genome	2017-12-06		1
+GCF_001932515.1	ASM193251v1	Escherichia coli		tolC-					GCF_001932515.1-RS_2024_06_12	Complete Genome	2017-01-03		1
+GCF_002192275.1	ASM219227v1	Escherichia coli		AR_0114					GCF_002192275.1-RS_2024_06_13	Complete Genome	2017-06-13		4
+GCF_002310555.1	ASM231055v1	Escherichia coli		1943					GCF_002310555.1-RS_2024_06_13	Complete Genome	2017-09-18		4
+GCF_002803905.1	ASM280390v1	Escherichia coli		AMA1167					GCF_002803905.1-RS_2024_06_15	Complete Genome	2017-12-04		6
+GCF_001900615.1	ASM190061v1	Escherichia coli		D2					GCF_001900615.1-RS_2024_06_12	Complete Genome	2016-12-12		3
+GCF_000814145.2	ASM81414v2	Escherichia coli		6409					GCF_000814145.2-RS_2024_06_09	Complete Genome	2015-02-27		3
+GCF_002163695.1	ASM216369v1	Escherichia coli		KSC64					GCF_002163695.1-RS_2024_06_13	Complete Genome	2017-06-02		1
+GCF_000597845.1	ASM59784v1	Escherichia coli		ST540					GCF_000597845.1-RS_2024_06_08	Complete Genome	2014-03-19		1
+GCF_002201835.1	ASM220183v1	Escherichia coli		AR_0137					GCF_002201835.1-RS_2024_06_13	Complete Genome	2017-06-20		4
+GCF_001901005.1	ASM190100v1	Escherichia coli		H15					GCF_001901005.1-RS_2024_06_13	Complete Genome	2016-12-12		2
+GCF_001901445.1	ASM190144v1	Escherichia coli		S56					GCF_001901445.1-RS_2024_06_12	Complete Genome	2016-12-12		4
+GCF_001900885.1	ASM190088v1	Escherichia coli		H14					GCF_001900885.1-RS_2024_06_13	Complete Genome	2016-12-12		1
+GCF_002741335.1	ASM274133v1	Escherichia coli		F5656C1					GCF_002741335.1-RS_2024_06_15	Complete Genome	2017-11-02		3
+GCF_001900925.1	ASM190092v1	Escherichia coli		S21					GCF_001900925.1-RS_2024_06_13	Complete Genome	2016-12-12		1
+GCF_001678925.1	ASM167892v1	Escherichia coli		H1827/12					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-07-05		1
+GCF_001888075.1	ASM188807v1	Escherichia coli		FMU073332					GCF_001888075.1-RS_2024_06_13	Complete Genome	2016-12-02		5
+GCF_002310715.1	ASM231071v1	Escherichia coli		1223					GCF_002310715.1-RS_2024_06_14	Complete Genome	2017-09-18		3
+GCF_002589795.1	ASM258979v1	Escherichia coli		FDAARGOS_433					GCF_002589795.1-RS_2024_06_14	Complete Genome	2017-10-18		11
+GCF_002012105.1	ASM201210v1	Escherichia coli		Ecol_AZ147					GCF_002012105.1-RS_2024_06_13	Complete Genome	2017-03-03		4
+GCF_002163935.1	ASM216393v1	Escherichia coli		KSC1031					GCF_002163935.1-RS_2024_06_13	Complete Genome	2017-06-02		2
+GCF_002163955.1	ASM216395v1	Escherichia coli		KSC207					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2017-06-02		2
+GCF_001901315.1	ASM190131v1	Escherichia coli		S1					GCF_001901315.1-RS_2024_06_12	Complete Genome	2016-12-12		2
+GCF_002310675.1	ASM231067v1	Escherichia coli		127					GCF_002310675.1-RS_2024_06_14	Complete Genome	2017-09-18		6
+GCF_002012125.1	ASM201212v1	Escherichia coli		Ecol_AZ155					GCF_002012125.1-RS_2024_06_13	Complete Genome	2017-03-03		5
+GCF_001043215.1	ASM104321v1	Escherichia coli		NCM3722			K-12		GCF_001043215.1-RS_2024_06_01	Complete Genome	2015-06-30		2
+GCF_002310735.1	ASM231073v1	Escherichia coli		1283					GCF_002310735.1-RS_2024_06_14	Complete Genome	2017-09-18		6
+GCF_001735705.1	ASM173570v1	Escherichia coli		210221272					GCF_001735705.1-RS_2024_06_13	Complete Genome	2016-09-20		2
+GCF_001901365.1	ASM190136v1	Escherichia coli		S30					GCF_001901365.1-RS_2024_06_12	Complete Genome	2016-12-12		4
+GCF_002056145.1	ASM205614v1	Escherichia coli		AR_0069					GCF_002056145.1-RS_2024_06_13	Complete Genome	2017-03-21		3
+GCF_002796445.1	ASM279644v1	Escherichia coli		AR_0019					GCF_002796445.1-RS_2024_06_15	Complete Genome	2017-11-27		2
+GCF_001999185.1	ASM199918v1	Escherichia coli		MGY					GCF_001999185.1-RS_2024_05_15	Complete Genome	2017-02-14		1
+GCF_001308165.1	ASM130816v1	Escherichia coli		K-12 substr. MG1655_TMP32XR2					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2015-10-08		1
+GCF_001308125.1	ASM130812v1	Escherichia coli		K-12 substr. MG1655_TMP32XR1					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2015-10-08		1
+GCF_900096795.1	Ecoli_AG100_Sample3_Doxycycline_Assembly	Escherichia coli					103		GCF_900096795.1-RS_2024_06_13	Complete Genome	2017-01-03		1
+GCF_900096845.1	Ecoli_AG100_Sample3_M9_Assembly	Escherichia coli					106		GCF_900096845.1-RS_2024_06_13	Complete Genome	2017-01-03		1
+GCF_001900715.1	ASM190071v1	Escherichia coli		D9					GCF_001900715.1-RS_2024_06_12	Complete Genome	2016-12-12		5
+GCF_000988355.1	ASM98835v1	Escherichia coli		SQ37					GCF_000988355.1-RS_2024_06_01	Complete Genome	2015-05-06		1
+GCF_001900905.1	ASM190090v1	Escherichia coli		S3					GCF_001900905.1-RS_2024_06_13	Complete Genome	2016-12-12		1
+GCF_001900815.1	ASM190081v1	Escherichia coli		H3					GCF_001900815.1-RS_2024_06_12	Complete Genome	2016-12-12		2
+GCF_900186905.1	49923_G01	Escherichia coli		NCTC122					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2017-08-15		1
+GCF_001682305.2	ASM168230v2	Escherichia coli		EC590					GCF_001682305.2-RS_2024_06_13	Complete Genome	2017-03-24		1
+GCF_001183645.1	ASM118364v1	Escherichia coli		DH1Ec095					GCF_001183645.1-RS_2024_06_09	Complete Genome	2015-07-21		1
+GCF_001183665.1	ASM118366v1	Escherichia coli		DH1Ec104					GCF_001183665.1-RS_2024_06_09	Complete Genome	2015-07-21		1
+GCF_000988385.1	ASM98838v1	Escherichia coli		SQ88					GCF_000988385.1-RS_2024_06_01	Complete Genome	2015-05-06		1
+GCF_001183685.1	ASM118368v1	Escherichia coli		DH1Ec169					GCF_001183685.1-RS_2024_06_09	Complete Genome	2015-07-21		1
+GCF_002848225.1	ASM284822v1	Escherichia coli		DH5alpha					GCF_002848225.1-RS_2024_06_15	Complete Genome	2017-12-28		1
+GCF_000988465.1	ASM98846v1	Escherichia coli		SQ2203					GCF_000988465.1-RS_2024_06_01	Complete Genome	2015-05-06		1
+GCF_000988425.1	ASM98842v1	Escherichia coli		SQ110					GCF_000988425.1-RS_2024_06_01	Complete Genome	2015-05-06		1
+GCF_001663075.1	ASM166307v1	Escherichia coli		ER1821R					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-06-15		1
+GCF_002056065.1	ASM205606v1	Escherichia coli		AR_0061					GCF_002056065.1-RS_2024_06_14	Complete Genome	2017-03-21		3
+GCF_002761835.1	ASM276183v1	Escherichia coli		WG5					GCF_002761835.1-RS_2024_06_15	Complete Genome	2017-11-08		1
+GCF_001276585.2	ASM127658v2	Escherichia coli		RR1					GCF_001276585.2-RS_2024_06_12	Complete Genome	2016-11-29		1
+GCF_000952955.1	EcRV308Chr	Escherichia coli		K-12 substr. RV308					GCF_000952955.1-RS_2024_06_01	Complete Genome	2014-09-24		1
+GCF_000953515.1	EcHMS174Chr	Escherichia coli		K-12 substr. HMS174					GCF_000953515.1-RS_2024_06_01	Complete Genome	2014-09-24		1
+GCF_001723505.1	ASM172350v1	Escherichia coli		K-12 NEB 5-alpha					GCF_001723505.1-RS_2024_06_12	Complete Genome	2016-09-13		1
+GCF_002118095.1	ASM211809v1	Escherichia coli		HST04					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2017-04-28		1
+GCF_000830035.1	ASM83003v1	Escherichia coli		C41(DE3)					GCF_000830035.1-RS_2024_06_09	Complete Genome	2015-01-29		1
+GCF_002090355.1	ASM209035v1	Escherichia coli		BLR(DE3)					GCF_002090355.1-RS_2024_06_14	Complete Genome	2017-04-13		1
+GCF_001900795.1	ASM190079v1	Escherichia coli		H2					GCF_001900795.1-RS_2024_06_12	Complete Genome	2016-12-12		4
+GCF_000833145.1	ASM83314v1	Escherichia coli		BL21 (TaKaRa)					GCF_000833145.1-RS_2024_06_09	Complete Genome	2015-02-05		1
+GCF_001900575.1	ASM190057v1	Escherichia coli		C9					GCF_001900575.1-RS_2024_06_13	Complete Genome	2016-12-12		3
+GCF_000833635.2	ASM83363v2	Escherichia coli		USML2					GCF_000833635.2-RS_2024_06_13	Complete Genome	2017-03-17		1
+GCF_001039415.1	ASM103941v1	Escherichia coli		C43(DE3)					GCF_001039415.1-RS_2024_05_07	Complete Genome	2015-06-25		1
+GCF_002078295.1	ASM207829v1	Escherichia coli		BLK16					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2017-04-04		1
+GCF_002078275.1	ASM207827v1	Escherichia coli		BLK9					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2017-04-04		1
+GCF_001544635.1	ASM154463v1	Escherichia coli str. K-12 substr. MG1655		K-12 substr. MG1655					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-02-02		1
+GCF_001566335.1	ASM156633v1	Escherichia coli str. K-12 substr. MG1655		JW5437-1 substr. MG1655					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-02-23		1
+GCF_002843685.1	ASM284368v1	Escherichia coli str. K-12 substr. MG1655		K-12 substr. MG1655					GCF_002843685.1-RS_2024_06_15	Complete Genome	2017-12-17		1
+GCF_001308065.1	ASM130806v1	Escherichia coli str. K-12 substr. MG1655		K-12 substr. MG1655					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2015-10-08		1
+GCF_000269645.1	PB_Esch_coli_MG12655_V1	Escherichia coli str. K-12 substr. MG1655		K-12 substr. MG1655					GCF_000269645.1-RS_2024_03_27	Complete Genome	2012-06-15	AKBV01	1
+GCF_000273425.1	Esch_coli_MG12655_V1	Escherichia coli str. K-12 substr. MG1655		K-12 substr. MG1655					GCF_000273425.1-RS_2024_03_27	Complete Genome	2012-06-25	AKVX01	1
+GCF_000801205.1	ASM80120v1	Escherichia coli str. K-12 substr. MG1655		K-12 substr. MG1655					GCF_000801205.1-RS_2024_06_09	Complete Genome	2014-12-15		1
+GCF_001559675.1	ASM155967v1	Escherichia coli K-12		K-12 C3026					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-02-11		2
+GCF_000974885.1	ASM97488v1	Escherichia coli K-12		K-12 MG1655					GCF_000974885.1-RS_2024_06_09	Complete Genome	2015-04-21		1
+GCF_000974575.1	ASM97457v1	Escherichia coli K-12		K-12 MG1655					GCF_000974575.1-RS_2024_06_09	Complete Genome	2015-04-21		1
+GCF_000981485.1	EcoliK12AG100	Escherichia coli K-12		K-12 substr. AG100					GCF_000981485.1-RS_2024_06_09	Complete Genome	2015-04-03		1
+GCF_001020945.2	ASM102094v2	Escherichia coli K-12		K-12 substr. GM4792					GCF_001020945.2-RS_2024_05_16	Complete Genome	2015-10-20		1
+GCF_001021005.2	ASM102100v2	Escherichia coli K-12		K-12 substr. GM4792					GCF_001021005.2-RS_2024_07_09	Complete Genome	2015-10-20		1
+GCF_000974505.1	ASM97450v1	Escherichia coli K-12		K-12 MG1655					GCF_000974505.1-RS_2024_06_09	Complete Genome	2015-04-21		1
+GCF_000974405.1	ASM97440v1	Escherichia coli K-12		K-12 MG1655					GCF_000974405.1-RS_2024_06_09	Complete Genome	2015-04-21		1
+GCF_000974865.1	ASM97486v1	Escherichia coli K-12		K-12 MG1655					GCF_000974865.1-RS_2024_06_09	Complete Genome	2015-04-21		1
+GCF_000974535.1	ASM97453v1	Escherichia coli K-12		K-12 MG1655					GCF_000974535.1-RS_2024_06_09	Complete Genome	2015-04-21		1
+GCF_000974825.1	ASM97482v1	Escherichia coli K-12		K-12 MG1655					GCF_000974825.1-RS_2024_06_09	Complete Genome	2015-04-21		1
+GCF_000974465.1	ASM97446v1	Escherichia coli K-12		K-12 MG1655					GCF_000974465.1-RS_2024_06_09	Complete Genome	2015-04-21		1
+GCF_000800765.1	ASM80076v1	Escherichia coli K-12		K-12 ER3413					GCF_000800765.1-RS_2024_05_07	Complete Genome	2014-12-11		1
+GCF_001559655.1	ASM155965v1	Escherichia coli K-12		K-12 DHB4					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-02-11		2
+GCF_000750555.1	ASM75055v1	Escherichia coli BW25113		K-12 substr. BW25113					GCF_000750555.1-RS_2024_06_01	Complete Genome	2014-09-09		1
+GCF_001695515.1	ASM169551v1	Escherichia coli O157:H7		FRIK944					GCF_001695515.1-RS_2024_06_12	Complete Genome	2016-07-27		2
+GCF_001651965.2	ASM165196v2	Escherichia coli O157:H7		FRIK2455					GCF_001651965.2-RS_2024_06_13	Complete Genome	2017-08-08		3
+GCF_001651925.2	ASM165192v2	Escherichia coli O157:H7		FRIK2069					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2017-08-14		2
+GCF_001651945.2	ASM165194v2	Escherichia coli O157:H7		FRIK2533					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2017-08-11		2
+GCF_001865295.1	ASM186529v1	Escherichia coli O157:H7		PA20					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-11-03		2
+GCF_001558995.2	ASM155899v2	Escherichia coli O157:H7		JEONG-1266					GCF_001558995.2-RS_2024_06_13	Complete Genome	2016-05-20		2
+GCF_001753545.1	ASM175354v1	Escherichia coli O157:H7		3384					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-10-06		2
+GCF_001753485.1	ASM175348v1	Escherichia coli O157:H7		8368					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-10-06		2
+GCF_001753505.1	ASM175350v1	Escherichia coli O157:H7		2159					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-10-06		2
+GCF_001753445.1	ASM175344v1	Escherichia coli O157:H7		1130					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-10-06		2
+GCF_001753525.1	ASM175352v1	Escherichia coli O157:H7		9234					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-10-06		2
+GCF_001753465.1	ASM175346v1	Escherichia coli O157:H7		2149					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-10-06		2
+GCF_001753565.1	ASM175356v1	Escherichia coli O157:H7		4276					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-10-06		2
+GCF_001307215.1	ASM130721v1	Escherichia coli O157:H7		WS4202					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2015-10-06		3
+GCF_000022665.1	ASM2266v1	Escherichia coli BL21(DE3)		BL21(DE3)					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2010-05-17		1
+GCF_000009565.1	ASM956v1	Escherichia coli BL21(DE3)		BL21(DE3)					GCF_000009565.1-RS_2024_06_01	Complete Genome	2010-12-09		1
+GCF_000732965.1	ASM73296v1	Escherichia coli O157:H7 str. EDL933		EDL933					GCF_000732965.1-RS_2024_06_01	Complete Genome	2014-07-24		2
+GCF_001650295.1	ASM165029v1	Escherichia coli O157		644-PT8					GCF_001650295.1-RS_2024_05_07	Complete Genome	2016-05-24		1
+GCF_001650275.1	ASM165027v1	Escherichia coli O157		180-PT54					GCF_001650275.1-RS_2024_05_17	Complete Genome	2016-05-24		2
+GCF_000010245.2	ASM1024v1	Escherichia coli str. K-12 substr. W3110		K-12 substr. W3110					GCF_000010245.2-RS_2024_06_16	Complete Genome	2006-01-23		1
+GCF_000007445.1	ASM744v1	Escherichia coli CFT073		CFT073					GCF_000007445.1-RS_2024_06_01	Complete Genome	2002-12-06		1
+GCF_000285655.3	EC958.v1	Escherichia coli O25b:H4-ST131		EC958					GCF_000285655.3-RS_2024_05_07	Complete Genome	2014-05-29		3
+GCF_000714595.1	ASM71459v1	Escherichia coli Nissle 1917		Nissle 1917					GCF_000714595.1-RS_2024_06_01	Complete Genome	2014-06-27		1
+GCF_000019385.1	ASM1938v1	Escherichia coli ATCC 8739		ATCC 8739					GCF_000019385.1-RS_2024_06_08	Complete Genome	2008-03-11		1
+GCF_000019425.1	ASM1942v1	Escherichia coli str. K-12 substr. DH10B		K-12 substr. DH10B					GCF_000019425.1-RS_2024_06_01	Complete Genome	2008-03-14		1
+GCF_000743255.1	ASM74325v1	Escherichia coli ATCC 25922		ATCC 25922					GCF_000743255.1-RS_2024_06_01	Complete Genome	2014-08-22		3
+GCF_000023365.1	ASM2336v1	Escherichia coli DH1		DH1					GCF_000023365.1-RS_2024_06_08	Complete Genome	2009-10-05		1
+GCF_000270105.1	ASM27010v1	Escherichia coli DH1		DH1					GCF_000270105.1-RS_2024_05_08	Complete Genome	2010-12-16		1
+GCF_001559635.1	ASM155963v1	Escherichia coli B		C3029					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-02-11		1
+GCF_001559615.2	ASM155961v2	Escherichia coli B		C2566					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-06-15		1
+GCF_000184185.1	ASM18418v1	Escherichia coli W		W					GCF_000184185.1-RS_2024_06_01	Complete Genome	2010-12-14		3
+GCF_000258145.1	ASM25814v1	Escherichia coli W		W					GCF_000258145.1-RS_2024_06_01	Complete Genome	2012-04-06		3
+GCF_000017745.1	ASM1774v1	Escherichia coli O139:H28 str. E24377A		E24377A					GCF_000017745.1-RS_2024_06_08	Complete Genome	2007-09-11		7
+GCF_000284495.1	ASM28449v1	Escherichia coli LF82		LF82					GCF_000284495.1-RS_2024_07_21	Complete Genome	2009-01-27		1
+GCF_000017985.1	ASM1798v1	Escherichia coli B str. REL606		REL606					GCF_000017985.1-RS_2024_06_08	Complete Genome	2009-07-15		1
+GCF_000013305.1	ASM1330v1	Escherichia coli 536		536					GCF_000013305.1-RS_2024_06_01	Complete Genome	2006-07-13		1
+GCF_000027125.1	ASM2712v1	Escherichia coli 042		042					GCF_000027125.1-RS_2024_05_02	Complete Genome	2010-01-28		2
+GCF_000026545.1	ASM2654v1	Escherichia coli O127:H6 str. E2348/69		E2348/69					GCF_000026545.1-RS_2024_06_01	Complete Genome	2008-11-26		3
+GCF_000010485.1	ASM1048v1	Escherichia coli SE15		SE15					GCF_000010485.1-RS_2024_06_01	Complete Genome	2009-12-14		2
+GCF_000499485.1	MYMC4100	Escherichia coli str. K-12 substr. MC4100		K-12 substr. MC4100					GCF_000499485.1-RS_2024_06_01	Complete Genome	2013-11-06		1
+GCF_000986765.1	ASM98676v1	Escherichia coli O104:H4 str. C227-11		C227-11			368 shch		GCF_000986765.1-RS_2024_05_01	Complete Genome	2015-04-30		8
+GCF_001874485.1	ASM187448v1	Escherichia coli O25b:H4		O25b:H4					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2016-06-15		4
+GCF_000299455.1	ASM29945v1	Escherichia coli O104:H4 str. 2011C-3493		2011C-3493					GCF_000299455.1-RS_2024_05_02	Complete Genome	2012-09-27		4
+GCF_000026245.1	ASM2624v1	Escherichia coli 55989		55989					GCF_000026245.1-RS_2024_06_01	Complete Genome	2008-12-18		1
+GCF_000026345.1	ASM2634v1	Escherichia coli IAI39		IAI39					GCF_000026345.1-RS_2024_06_01	Complete Genome	2008-12-18		1
+GCF_000493755.1	ASM49375v1	Escherichia coli JJ1886		JJ1886					GCF_000493755.1-RS_2024_06_01	Complete Genome	2013-10-29		6
+GCF_000014845.1	ASM1484v1	Escherichia coli APEC O1		APEC O1					GCF_000014845.1-RS_2024_07_23	Complete Genome	2006-10-04		3
+GCF_000258025.1	ASM25802v1	Escherichia coli KO11FL		KO11FL					GCF_000258025.1-RS_2024_06_01	Complete Genome	2012-04-06		2
+GCF_001051135.1	ASM105113v1	Escherichia coli ACN001		ACN001					GCF_001051135.1-RS_2024_04_30	Complete Genome	2015-07-09		1
+GCF_000831565.1	ASM83156v1	Escherichia coli ECC-1470		ECC-1470					GCF_000831565.1-RS_2024_06_01	Complete Genome	2015-02-03		2
+GCF_000183345.1	ASM18334v1	Escherichia coli O83:H1 str. NRG 857C		NRG 857C					GCF_000183345.1-RS_2024_03_27	Complete Genome	2010-11-30		2
+GCF_000017765.1	ASM1776v1	Escherichia coli HS		HS					GCF_000017765.1-RS_2024_06_01	Complete Genome	2007-09-10		1
+GCF_002079225.1	ASM207922v1	Escherichia coli C		C					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2017-04-05		1
+GCF_000091005.1	ASM9100v1	Escherichia coli O26:H11 str. 11368		11368					GCF_000091005.1-RS_2024_06_16	Complete Genome	2009-09-10		5
+GCF_000520035.1	ASM52003v1	Escherichia coli O145:H28 str. RM13514		RM13514					GCF_000520035.1-RS_2024_06_01	Complete Genome	2014-01-14		3
+GCF_000671295.1	ASM67129v1	Escherichia coli O145:H28 str. RM12581		RM12581					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2014-05-01		3
+GCF_000021125.1	ASM2112v1	Escherichia coli O157:H7 str. EC4115		EC4115					GCF_000021125.1-RS_2024_06_01	Complete Genome	2008-10-08		3
+GCF_000022225.1	ASM2222v1	Escherichia coli O157:H7 str. TW14359		TW14359					GCF_000022225.1-RS_2024_03_27	Complete Genome	2009-07-23		2
+GCF_000730345.1	ASM73034v1	Escherichia coli O157:H7 str. SS17		SS17					GCF_000730345.1-RS_2024_05_08	Complete Genome	2014-07-17		3
+GCF_000803705.1	ASM80370v1	Escherichia coli O157:H7 str. SS52		SS52					GCF_000803705.1-RS_2024_06_09	Complete Genome	2014-12-18		2
+GCF_000010745.1	ASM1074v1	Escherichia coli O103:H2 str. 12009		12009					GCF_000010745.1-RS_2024_04_07	Complete Genome	2009-09-10		2
+GCF_000662395.1	ASM66239v1	Escherichia coli O145:H28 str. RM12761		RM12761					GCF_000662395.1-RS_2024_06_01	Complete Genome	2014-05-01		3
+GCF_000520055.1	ASM52005v1	Escherichia coli O145:H28 str. RM13516		RM13516					GCF_000520055.1-RS_2024_06_09	Complete Genome	2014-01-14		3
+GCF_002844165.1	ASM284416v1	Escherichia coli O121:H19		16-9255					GCF_002844165.1-RS_2024_06_15	Complete Genome	2017-12-15		2
+GCF_000025165.1	ASM2516v1	Escherichia coli O55:H7 str. CB9615		CB9615					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2010-03-08		2
+GCF_000262125.1	ASM26212v1	Escherichia coli Xuzhou21		Xuzhou21					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2012-05-09		3
+GCF_000010765.1	ASM1076v1	Escherichia coli O111:H- str. 11128		11128					GCF_000010765.1-RS_2024_04_07	Complete Genome	2009-09-10		6
+GCF_003433275.1	ASM343327v1	Escherichia coli NCCP15648		NCCP15648					GCF_003433275.1-RS_2024_06_17	Complete Genome	2017-08-02		4
+GCF_000227625.1	ASM22762v1	Escherichia coli O7:K1 str. CE10		CE10					GCF_000227625.1-RS_2024_06_01	Complete Genome	2011-10-06		5
+GCF_000299475.1	ASM29947v1	Escherichia coli O104:H4 str. 2009EL-2071		2009EL-2071					GCF_000299475.1-RS_2024_05_08	Complete Genome	2012-09-27		3
+GCF_000245515.1	ASM24551v1	Escherichia coli O55:H7 str. RM12579		RM12579					GCF_000245515.1-RS_2024_03_27	Complete Genome	2012-02-01		6
+GCF_000299255.1	ASM29925v1	Escherichia coli O104:H4 str. 2009EL-2050		2009EL-2050					GCF_000299255.1-RS_2024_05_07	Complete Genome	2012-09-25		4
+GCF_000220005.1	ASM22000v2	Escherichia coli UMNF18		UMNF18					GCF_000220005.1-RS_2024_03_27	Complete Genome	2011-11-01	AGTD01	6
+GCF_000212715.2	ASM21271v2	Escherichia coli UMNK88		UMNK88					GCF_000212715.2-RS_2024_05_08	Complete Genome	2011-05-09		6
+GCF_000148365.1	ASM14836v1	Escherichia coli ABU 83972		ABU 83972					GCF_000148365.1-RS_2024_05_08	Complete Genome	2010-09-22		2
+GCF_003586045.1	E.coli isolate	Escherichia coli M8		M8					GCF_003586045.1-RS_2024_06_17	Complete Genome	2017-03-06		4
+GCF_000025745.1	ASM2574v1	Escherichia coli IHE3034		IHE3034					GCF_000025745.1-RS_2024_06_01	Complete Genome	2010-04-12		1
+GCF_000827105.1	ASM82710v1	Escherichia coli O157:H16		Santai					GCF_000827105.1-RS_2024_06_09	Complete Genome	2015-01-21		1
+GCF_001593565.1	ASM159356v1	Escherichia coli JJ1887		JJ1887					GCF_001593565.1-RS_2024_06_01	Complete Genome	2016-03-17		6
+GCF_002024865.1	ASM202486v1	Escherichia coli NU14		NU14					GCF_002024865.1-RS_2024_06_13	Complete Genome	2017-03-10		1
+GCF_002741595.1	ASM274159v1	Escherichia coli O178:H19		2012C-4431					GCF_002741595.1-RS_2024_06_15	Complete Genome	2017-11-02		4
+GCF_000233875.1	ASM23387v1	Escherichia coli str. 'clone D i2'		clone D i2					GCF_000233875.1-RS_2024_05_01	Complete Genome	2011-11-03		1
+GCF_000233895.1	ASM23389v1	Escherichia coli str. 'clone D i14'		clone D i14					GCF_000233895.1-RS_2024_05_06	Complete Genome	2011-11-03		1
+GCF_000026285.1	ASM2628v2	Escherichia coli S88		S88					GCF_000026285.1-RS_2024_06_13	Complete Genome	2008-12-18		2
+GCF_001021615.1	APECO18	Escherichia coli APEC O18		APEC O18					GCF_001021615.1-RS_2024_06_09	Complete Genome	2015-06-08		1
+GCF_000968515.1	ASM96851v1	Escherichia coli VR50		VR50					GCF_000968515.1-RS_2024_06_01	Complete Genome	2015-04-02		10
+GCF_000148605.1	ASM14860v1	Escherichia coli UM146		UM146					GCF_000148605.1-RS_2024_06_01	Complete Genome	2010-09-24		2
+GCF_000219515.2	ASM21951v3	Escherichia coli PCN033		PCN033					GCF_000219515.2-RS_2024_05_06	Complete Genome	2015-06-08		4
+GCF_000493595.2	EcoPMV1	Escherichia coli PMV-1		PMV-1					GCF_000493595.2-RS_2024_06_01	Complete Genome	2013-09-27	CBTO01	4
+GCF_002741455.1	ASM274145v1	Escherichia coli O128:H27		90-9281					GCF_002741455.1-RS_2024_06_15	Complete Genome	2017-11-02		2
+GCF_002741255.1	ASM274125v1	Escherichia coli O114:H49		90-9280					GCF_002741255.1-RS_2024_06_15	Complete Genome	2017-11-02		3
+GCF_000829985.1	ASM82998v1	Escherichia coli 1303		1303					GCF_000829985.1-RS_2024_06_01	Complete Genome	2015-01-29		4
+GCF_002741435.1	ASM274143v1	Escherichia coli O169:H41		2014EL-1345-2					GCF_002741435.1-RS_2024_06_15	Complete Genome	2017-11-02		5
+GCF_002741495.1	ASM274149v1	Escherichia coli O169:H41		F6326-C1					GCF_002741495.1-RS_2024_06_15	Complete Genome	2017-11-02		3
+GCF_000813165.1	ASM81316v1	Escherichia coli APEC IMT5155		APEC IMT5155					GCF_000813165.1-RS_2024_04_30	Complete Genome	2015-01-02		3
+GCF_002716885.1	ASM271688v1	Escherichia coli O91 str. RM7190		RM7190					NCBI Prokaryotic Genome Annotation Pipeline (PGAP)	Complete Genome	2017-10-25		3
+GCF_001610755.1	ASM161075v1	Escherichia coli str. Sanji		Sanji					GCF_001610755.1-RS_2024_06_12	Complete Genome	2016-04-05		7
+GCF_002741315.1	ASM274131v1	Escherichia coli O25:H16		F5505-C1					GCF_002741315.1-RS_2024_06_15	Complete Genome	2017-11-02		3
+GCF_000464955.2	ASM46495v2	Escherichia coli O104:H21 str. CFSAN002236		ATCC BAA-178					GCF_000464955.2-RS_2024_06_14	Complete Genome	2017-10-02		2
+GCF_002741195.1	ASM274119v1	Escherichia coli O6:H16		2014EL-1346-6					GCF_002741195.1-RS_2024_06_14	Complete Genome	2017-11-02		6
+GCF_900149915.1	EPEC-E2348_69-V2	Escherichia coli O127:H6					EPEC E2348/69 variety 2		GCF_900149915.1-RS_2024_06_15	Complete Genome	2017-10-28		1
+GCF_002741175.1	ASM274117v1	Escherichia coli O25:NM		2014EL-1343-2					GCF_002741175.1-RS_2024_06_15	Complete Genome	2017-11-02		4
+GCF_000468515.1	ASM46851v1	Escherichia coli LY180		LY180					GCF_000468515.1-RS_2024_06_01	Complete Genome	2013-09-18		1
+GCF_000332755.1	ASM33275v1	Escherichia coli APEC O78		APEC O78					GCF_000332755.1-RS_2024_05_01	Complete Genome	2013-01-23		1
+GCF_900149875.1	EPEC1	Escherichia coli O127:H6					EPEC1		GCF_900149875.1-RS_2024_06_15	Complete Genome	2017-10-28		1
+GCF_002269325.1	ASM226932v1	Escherichia coli O6:H16		2011EL-1370-2					GCF_002269325.1-RS_2024_06_13	Complete Genome	2017-08-24		3
+GCF_002741575.1	ASM274157v1	Escherichia coli O6:H16		M9682-C1					GCF_002741575.1-RS_2024_06_15	Complete Genome	2017-11-02		3
+GCF_000725305.1	ASM72530v1	Escherichia coli KLY		KLY					GCF_000725305.1-RS_2024_06_01	Complete Genome	2014-07-14		1
+GCF_002741475.1	ASM274147v1	Escherichia coli O27:H7		B4103-1					GCF_002741475.1-RS_2024_06_15	Complete Genome	2017-11-02		4
+GCF_000026265.1	ASM2626v1	Escherichia coli IAI1		IAI1					GCF_000026265.1-RS_2024_06_01	Complete Genome	2008-12-18		1
+GCF_001029125.1	ASM102912v1	Escherichia coli PCN061		PCN061					GCF_001029125.1-RS_2024_05_07	Complete Genome	2015-06-17		7
+GCF_000022345.1	ASM2234v1	Escherichia coli BW2952		K-12 substr. BW2952					GCF_000022345.1-RS_2024_06_01	Complete Genome	2009-06-04		1
+GCF_000023665.1	ASM2366v1	Escherichia coli 'BL21-Gold(DE3)pLysS AG'		BL21-Gold(DE3)pLysS AG					GCF_000023665.1-RS_2024_06_08	Complete Genome	2009-07-09		1
+GCF_000800215.1	ASM80021v1	Escherichia coli ER2796		K-12 ER2796					GCF_000800215.1-RS_2024_05_01	Complete Genome	2014-12-09		1
