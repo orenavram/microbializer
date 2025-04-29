@@ -171,7 +171,6 @@ FULL_STEPS_NAMES_FOR_PROGRESS_BAR = [
     'Find orphan genes',
     'Prepare orthogroups fasta files',
     'Infer core genome and proteome',
-    'Calculate genomes numeric representation',
     'Reconstruct species phylogeny',
     'Calculate ANI (Average Nucleotide Identity)',
     'Analyze orthogroups codon bias',

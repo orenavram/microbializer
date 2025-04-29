@@ -124,9 +124,6 @@ def initialize_progressbar(config):
                 steps[i] = 'Translate ORFs'
                 break
 
-    if config.core_minimal_percentage != 100:
-        steps.remove('Calculate genomes numeric representation')
-
     df = pd.DataFrame({'Step': steps, 'Finished': [False] * len(steps)})
     df.to_csv(config.progressbar_file_path, index=False)
 
