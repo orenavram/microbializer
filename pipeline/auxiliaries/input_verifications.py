@@ -222,6 +222,8 @@ def verify_fasta_format(logger, data_path, inputs_fasta_type):
         strain_name = file_path.stem
         record_ids = []
         total_genome_length = 0
+        max_record_length = 0
+        max_record_length_name = None
         with open(file_path) as f:
             line_number = 0
             try:
@@ -239,6 +241,7 @@ def verify_fasta_format(logger, data_path, inputs_fasta_type):
                 record_ids.append(line[1:].split(' ')[0])
                 previous_line_was_header = True
 
+                record_length = 0
                 for line in f:
                     line_number += 1
                     line = line.strip()
@@ -254,8 +257,14 @@ def verify_fasta_format(logger, data_path, inputs_fasta_type):
                                    f'character in its first word (one of: {" ".join(ILLEGAL_CHARS_IN_RECORD_IDS)}).'
                         else:
                             curated_content += f'>{strain_name}:{line[1:]}\n'
-                            record_ids.append(line[1:].split(' ')[0])
+                            record_id = line[1:].split(' ')[0]
+                            record_ids.append(record_id)
                             previous_line_was_header = True
+
+                            if record_length > max_record_length:
+                                max_record_length = record_length
+                                max_record_length_name = record_id
+                            record_length = 0
                             continue
 
                     else:  # not a header
@@ -265,6 +274,7 @@ def verify_fasta_format(logger, data_path, inputs_fasta_type):
                                 return f'Illegal FASTA format. Line {line_number} in "{file_path.name}" contains ' \
                                        f'illegal DNA character "{c}".'
                         curated_content += f'{line}\n'
+                        record_length += len(line)
                         total_genome_length += len(line)
 
             except UnicodeDecodeError as e:
@@ -278,9 +288,15 @@ def verify_fasta_format(logger, data_path, inputs_fasta_type):
             return f'Illegal FASTA format. "{file_path.name}" contains duplicated record ids: {",".join(duplicate_ids)}.'
 
         if total_genome_length < consts.MIN_GENOME_LENGTH and inputs_fasta_type == 'genomes':
-            return ('Each FASTA file should contain the genome of a bacterium, hence it must contain at least 20,000 '
-                    'nucleotides. It is a requirement for Prodigal to run successfully (the first step of the pipeline '
-                    'that predicts ORFs from the genomes).')
+            return (f'Each FASTA file should contain the genome of a bacterium, hence it must contain at least {consts.MIN_GENOME_LENGTH} '
+                    f'nucleotides. It is a requirement for Prodigal to run successfully (the first step of the pipeline '
+                    f'that predicts ORFs from the genomes). {file_path.name} contains less than {consts.MIN_GENOME_LENGTH} nucleotides.')
+
+        if max_record_length > consts.MAX_ORF_LENGTH and inputs_fasta_type == 'orfs':
+            return (f'The ORF {max_record_length_name} in the input FASTA file {file_path.name} is longer than '
+                    f'{consts.MAX_ORF_LENGTH} nucleotides. This is biologically invalid since the longest known '
+                    f'bacterial or archeal ORF is {consts.MAX_ORF_LENGTH} nucleotides long. Please make sure you input '
+                    f'files are valid FASTA files, each containing the ORFs of a single genome.')
 
         # override the old file with the curated content
         with open(file_path, 'w') as f:
