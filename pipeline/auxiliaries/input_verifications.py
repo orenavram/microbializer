@@ -295,7 +295,7 @@ def verify_fasta_format(logger, data_path, inputs_fasta_type):
         if max_record_length > consts.MAX_ORF_LENGTH and inputs_fasta_type == 'orfs':
             return (f'The ORF {max_record_length_name} in the input FASTA file {file_path.name} is longer than '
                     f'{consts.MAX_ORF_LENGTH} nucleotides. This is biologically invalid since the longest known '
-                    f'bacterial or archeal ORF is {consts.MAX_ORF_LENGTH} nucleotides long. Please make sure you input '
+                    f'bacterial or archeal ORF is {consts.MAX_ORF_LENGTH} nucleotides long. Please make sure your input '
                     f'files are valid FASTA files, each containing the ORFs of a single genome.')
 
         # override the old file with the curated content
