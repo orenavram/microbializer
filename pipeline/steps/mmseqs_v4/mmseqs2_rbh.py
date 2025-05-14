@@ -57,9 +57,6 @@ def search_rbh(logger, genome1, genome2, dbs_dir, rbh_hits_dir, scores_statistic
 
     logger.info(f"{m8_outfile_raw} was created successfully.")
 
-    # Delete intermediate files
-    shutil.rmtree(tmp_dir, ignore_errors=True)
-
     rbh_df = pd.read_csv(m8_outfile_raw, sep='\t', names=consts.MMSEQS_OUTPUT_HEADER)
     if rbh_df.empty:
         logger.info(f"No RBHs were found for {genome1} and {genome2} using the specified thresholds.")
@@ -76,6 +73,9 @@ def search_rbh(logger, genome1, genome2, dbs_dir, rbh_hits_dir, scores_statistic
     else:
         rbh_df.to_csv(output_rbh_path, index=False)
     logger.info(f"{output_rbh_path} was created successfully.")
+
+    # Delete intermediate files
+    shutil.rmtree(tmp_dir, ignore_errors=True)
 
     # Calculate statistics of scores
     scores_statistics = {'mean': statistics.mean(rbh_df['score']), 'sum': sum(rbh_df['score']),
