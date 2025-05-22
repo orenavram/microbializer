@@ -35,22 +35,20 @@ def write_og_aa_sequences_file(logger, og_name, og_members, protein_to_sequence_
 
 
 def reconstruct_msa(logger, sequences_file_path, output_file_path):
-    # cmd = f'mafft-linsi --maxiterate {maxiterate} --localpair {sequences_file_path} > {output_file_path}'
-
     # --auto Automatically selects an appropriate strategy from L-INS-i, FFT-NS-i and FFT-NS-2, according to data size.
     # --amino/--nuc tells mafft that's an amino acid/nucleotide (respectively) msa. If you let it decide by itself, it
-    # might wrong on small data sets as they might look like dna but they are NOT! e.g.,
-    # [orenavr2@powerlogin-be2 test]$ cat /groups/pupko/orenavr2/igomeProfilingPipeline/experiments/test/analysis/motif_inference/17b_03/unaligned_sequences/17b_03_clusterRank_215_uniqueMembers_2_clusterSize_252.81.faa
-    # >seq_235_lib_12_len_12_counts_126.40626975097965
-    # CNTDVACAAPGN
-    # >seq_1112_lib_C8C_len_10_counts_126.40626975097965
-    # CTTACAPVNC
+    # might wrong on small data sets as they might look like dna but they are NOT!
     records = list(SeqIO.parse(sequences_file_path, 'fasta'))
+    max_record_length = max(len(record.seq) for record in records)
     if len(records) == 1:
         logger.info(f'Only one sequence in {sequences_file_path}. Copying it to {output_file_path}')
         shutil.copy(sequences_file_path, output_file_path)
     else:
-        cmd = f'mafft --auto --amino --quiet {sequences_file_path} > {output_file_path}'
+        if max_record_length < 5000:
+            mode = '--auto'
+        else:  # For large sequences, the --auto mode in MAFFT demands a lot of memory and it makes the job crash. So I use --parttree which uses less memory.
+            mode = '--parttree'
+        cmd = f'mafft {mode} --amino --quiet {sequences_file_path} > {output_file_path}'
         logger.info(f'Starting MAFFT. Executed command is: {cmd}')
         subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
         logger.info(f'Finished MAFFT. Output was written to {output_file_path}')
