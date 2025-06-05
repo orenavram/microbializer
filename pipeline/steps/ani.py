@@ -46,7 +46,10 @@ def run_ani(logger, genomes_list_path, output_path, cpus):
     ani_values_df.to_csv(ani_values_temp_path)
     logger.info(f'ANI temp values were saved to {ani_values_temp_path}')
 
-    plot_ani_clustermap(logger, ani_values_df, ani_map_path)
+    if not ani_values_df.empty:
+        plot_ani_clustermap(logger, ani_values_df, ani_map_path)
+    else:
+        open(ani_map_path, 'w').close()  # Create an empty file if no ANI values
 
     if len(ani_values_df) >= 2:
         # Iterate over rows and find max value ignoring diagonal

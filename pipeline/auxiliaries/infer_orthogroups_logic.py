@@ -125,6 +125,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
             logger.info(f'No hits were found. Created an empty orthologs table at {putative_orthologs_table_path}.')
         else:
             params = [normalized_hits_output_dir,
+                      config.genomes_names_path,
                       putative_orthologs_table_path]
             submit_mini_batch(logger, config, script_path, [params], putative_orthologs_table_tmp_dir,
                               'putative_table')

@@ -10,7 +10,7 @@ sys.path.append(str(SCRIPT_DIR.parent.parent))
 from pipeline.auxiliaries.run_step_utils import add_default_step_args, run_step
 
 
-def cluster_genes_to_connected_components(logger, normalized_hits_dir, putative_orthologs_path):
+def cluster_genes_to_connected_components(logger, normalized_hits_dir, genome_names_file_path, putative_orthologs_path):
     member_gene_to_group_name = {}
     member_gene_to_strain_name_dict = {}
     group_name_to_member_genes = {}
@@ -81,7 +81,9 @@ def cluster_genes_to_connected_components(logger, normalized_hits_dir, putative_
                     group_name_to_member_genes[min_group].extend(max_group_members)
 
     # strains sorted lexicographically
-    sorted_strains = sorted(set(member_gene_to_strain_name_dict.values()))
+    with open(genome_names_file_path) as genome_names_fp:
+        strain_names = [line.strip() for line in genome_names_fp if line.strip()]
+    sorted_strains = sorted(strain_names)
 
     header = ','.join(['OG_name'] + sorted_strains) + '\n'
     result = ''
@@ -105,9 +107,9 @@ def cluster_genes_to_connected_components(logger, normalized_hits_dir, putative_
     logger.info(f'Wrote putative orthogroups table to {putative_orthologs_path}')
 
 
-def construct_table(logger, normalized_hits_dir, putative_orthologs_path):
+def construct_table(logger, normalized_hits_dir, genome_names_file_path, putative_orthologs_path):
     if not putative_orthologs_path.exists():
-        cluster_genes_to_connected_components(logger, normalized_hits_dir, putative_orthologs_path)
+        cluster_genes_to_connected_components(logger, normalized_hits_dir, genome_names_file_path, putative_orthologs_path)
     else:
         logger.info(f'Putative orthogroups table already exists at {putative_orthologs_path}')
 
@@ -126,9 +128,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('normalized_hits_dir', type=Path,
                         help='path to a dir with all the hits files')
+    parser.add_argument('genome_names_file_path', type=Path)
     parser.add_argument('putative_orthologs_path', type=Path,
                         help='path to an output file in which the putative orthologs table will be written')
     add_default_step_args(parser)
     args = parser.parse_args()
 
-    run_step(args, construct_table, args.normalized_hits_dir, args.putative_orthologs_path)
+    run_step(args, construct_table, args.normalized_hits_dir, args.genome_names_file_path, args.putative_orthologs_path)
