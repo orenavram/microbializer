@@ -71,6 +71,7 @@ def plot_genomes_histogram(data, output_dir, output_file_name, title, xlabel):
         json.dump(data, fp)
 
     output_df = pd.DataFrame.from_dict(data, orient='index', columns=[title])
+    output_df.index = output_df.index.astype(str)
     output_df = output_df.sort_index()
     output_df.index.name = 'Genome'
     output_df.to_csv(output_dir / f'{output_file_name}.csv')
