@@ -7,6 +7,8 @@ import traceback
 import json
 import subprocess
 from datetime import timedelta
+
+from Bio import SeqIO
 import pandas as pd
 from dataclasses import replace
 
@@ -17,7 +19,7 @@ from auxiliaries.input_verifications import prepare_and_verify_input_data
 from auxiliaries.general_utils import write_done_file, get_required_memory_gb_to_load_csv
 from auxiliaries.main_utils import send_email_in_pipeline_end, submit_clean_folders_job, zip_results, \
     submit_clean_old_user_results_job, update_progressbar, define_intervals, add_results_to_final_dir, \
-    calc_genomes_batch_size, initialize_progressbar
+    calc_genomes_batch_size, initialize_progressbar, find_all_gap_sequences
 from auxiliaries.run_step_utils import wait_for_results, prepare_directories, submit_mini_batch, submit_batch
 from auxiliaries.logic_utils import (plot_genomes_histogram, combine_orphan_genes_stats,
                                      split_ogs_to_jobs_inputs_files_by_og_sizes, sort_orthogroups_df_and_rename_ogs)
@@ -790,9 +792,22 @@ def step_11_phylogeny(logger, times_logger, config, aligned_core_proteome_file_p
     phylogeny_done_file_path = config.done_files_dir / f'{phylogeny_step_name}.txt'
     if not phylogeny_done_file_path.exists():
         output_tree_path = phylogeny_path / 'final_species_tree.newick'
-        if len(genomes_names) < 3 or core_proteome_length == 0:
-            logger.info('Skipping phylogeny reconstruction because there are less than 3 genomes or no core proteome')
-            open(output_tree_path, 'w').close()
+
+        all_gap_seqs = find_all_gap_sequences(aligned_core_proteome_file_path)
+
+        if len(genomes_names) < 3:
+            error_text = 'Not enough genomes for phylogeny reconstruction. At least 3 genomes are required.'
+        elif core_proteome_length == 0:
+            error_text = 'Core proteome is empty. No core genes were found in the input genomes.'
+        elif all_gap_seqs:
+            error_text = f'Genomes {",".join(sorted(all_gap_seqs))} have no genes at all in the core proteome.'
+        else:
+            error_text = None
+
+        if error_text:
+            logger.info(f'Skipping phylogeny reconstruction because {error_text}')
+            with open(output_tree_path, 'w') as output_tree_fp:
+                output_tree_fp.write(error_text)
             output_tree_image_path = output_tree_path.with_suffix('.png')
             open(output_tree_image_path, 'w').close()
         else:

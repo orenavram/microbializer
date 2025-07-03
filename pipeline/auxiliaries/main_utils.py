@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 import pandas as pd
 import math
+from Bio import SeqIO
 
 from . import consts
 from .run_step_utils import submit_mini_batch
@@ -169,3 +170,16 @@ def zip_results(logger, config):
         logger.info('Zipping results folder...')
         shutil.make_archive(config.final_output_dir, 'zip', config.run_dir, config.final_output_dir_name)
         logger.info(f'Zipped results folder to {config.final_output_dir}.zip')
+
+
+def find_all_gap_sequences(fasta_path):
+    all_gap_ids = []
+
+    for record in SeqIO.parse(fasta_path, "fasta"):
+        seq_str = str(record.seq).upper()
+        non_missing = [c for c in seq_str if c != '-']
+
+        if len(non_missing) == 0:
+            all_gap_ids.append(record.id)
+
+    return all_gap_ids
