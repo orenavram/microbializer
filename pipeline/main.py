@@ -798,14 +798,16 @@ def step_11_phylogeny(logger, times_logger, config, aligned_core_proteome_file_p
         if len(genomes_names) < 3:
             error_text = 'Not enough genomes for phylogeny reconstruction. At least 3 genomes are required.'
         elif core_proteome_length == 0:
-            error_text = 'Core proteome is empty. No core genes were found in the input genomes.'
+            error_text = ('Core proteome is empty. No core genes were found in the input genomes, hence skipping '
+                          'phylogeny reconstruction.')
         elif all_gap_seqs:
-            error_text = f'Genomes {",".join(sorted(all_gap_seqs))} have no genes at all in the core proteome.'
+            error_text = (f'Skipping phylogeny reconstruction since the genomes {",".join(sorted(all_gap_seqs))} have '
+                          f'no genes at all in the core proteome.')
         else:
             error_text = None
 
         if error_text:
-            logger.info(f'Skipping phylogeny reconstruction because {error_text}')
+            logger.info(error_text)
             with open(output_tree_path, 'w') as output_tree_fp:
                 output_tree_fp.write(error_text)
             output_tree_image_path = output_tree_path.with_suffix('.png')
