@@ -73,7 +73,7 @@ class UI_CONSTS:
         UNKNOWN_PROCESS_ID = 'The provided process id does not exist'
         INVALID_MAIL = 'invalid mail'
         INVALID_FILE_EXTENTION = f'invalid file extenstion, please upload a file of: {", ".join(ALLOWED_EXTENSIONS)}'
-        CORRUPTED_FILE = f'please upload a valid fasta file, the file you uploaded is corrupted'
+        CORRUPTED_FILE = f'please upload a valid zipped folder of fasta files, the file you uploaded is corrupted'
         INVALID_FILES_NUMBER = f'please insert one or two files'
         HISTOGRAM_DATA_IS_NULL = f'cannot find the data for histograms, make sure the process id is correct and finished'
         ORTHOLOGOUS_DATA_IS_NULL = f'cannot find the orthogroups table, make sure the process id is correct and finished'
