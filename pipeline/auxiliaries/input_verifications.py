@@ -256,15 +256,16 @@ def verify_fasta_format(logger, data_path, inputs_fasta_type):
                             return f'Illegal format. Line {line_number} in "{file_path.name}" contains an illegal ' \
                                    f'character in its first word (one of: {" ".join(ILLEGAL_CHARS_IN_RECORD_IDS)}).'
                         else:
+                            if record_length > max_record_length:
+                                max_record_length = record_length
+                                max_record_length_name = record_id
+                            record_length = 0
+                            
                             curated_content += f'>{strain_name}:{line[1:]}\n'
                             record_id = line[1:].split(' ')[0]
                             record_ids.append(record_id)
                             previous_line_was_header = True
 
-                            if record_length > max_record_length:
-                                max_record_length = record_length
-                                max_record_length_name = record_id
-                            record_length = 0
                             continue
 
                     else:  # not a header
