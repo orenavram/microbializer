@@ -6,6 +6,7 @@ import sys
 import subprocess
 from pathlib import Path
 import re
+from Bio import SeqIO
 
 from . import consts
 from .general_utils import remove_path, fail, write_done_file
@@ -220,10 +221,6 @@ def verify_fasta_format(logger, data_path, inputs_fasta_type):
             return f'{file_path.name} is a binary file (rather than textual). Please upload your genomes as FASTA text ' \
                    f'files (such as fas or fna).'
         strain_name = file_path.stem
-        record_ids = []
-        total_genome_length = 0
-        max_record_length = 0
-        max_record_length_name = None
         with open(file_path) as f:
             line_number = 0
             try:
@@ -238,10 +235,8 @@ def verify_fasta_format(logger, data_path, inputs_fasta_type):
                            f'first word (one of: {" ".join(ILLEGAL_CHARS_IN_RECORD_IDS)}).'
 
                 curated_content = f'>{strain_name}:{line[1:]}'
-                record_ids.append(line[1:].split(' ')[0])
                 previous_line_was_header = True
 
-                record_length = 0
                 for line in f:
                     line_number += 1
                     line = line.strip()
@@ -256,16 +251,8 @@ def verify_fasta_format(logger, data_path, inputs_fasta_type):
                             return f'Illegal format. Line {line_number} in "{file_path.name}" contains an illegal ' \
                                    f'character in its first word (one of: {" ".join(ILLEGAL_CHARS_IN_RECORD_IDS)}).'
                         else:
-                            if record_length > max_record_length:
-                                max_record_length = record_length
-                                max_record_length_name = record_id
-                            record_length = 0
-                            
                             curated_content += f'>{strain_name}:{line[1:]}\n'
-                            record_id = line[1:].split(' ')[0]
-                            record_ids.append(record_id)
                             previous_line_was_header = True
-
                             continue
 
                     else:  # not a header
@@ -275,14 +262,24 @@ def verify_fasta_format(logger, data_path, inputs_fasta_type):
                                 return f'Illegal FASTA format. Line {line_number} in "{file_path.name}" contains ' \
                                        f'illegal DNA character "{c}".'
                         curated_content += f'{line}\n'
-                        record_length += len(line)
-                        total_genome_length += len(line)
 
             except UnicodeDecodeError as e:
                 logger.info(e.args)
                 line_number += 1  # the line that was failed to be read
                 return f'Illegal FASTA format. Line {line_number} in "{file_path.name}" contains one (or more) non ' \
                        f'ascii character(s).'
+
+        # Now that we verified the fasta format, we parse it again with Bio.SeqIO.
+        record_ids = []
+        total_genome_length = 0
+        max_record_length = 0
+        max_record_length_name = ''
+        for record in SeqIO.parse(file_path, 'fasta'):
+            record_ids.append(record.id)
+            total_genome_length += len(record.seq)
+            if len(record.seq) > max_record_length:
+                max_record_length = len(record.seq)
+                max_record_length_name = record.id
 
         duplicate_ids = [item for item, count in collections.Counter(record_ids).items() if count > 1]
         if duplicate_ids:
