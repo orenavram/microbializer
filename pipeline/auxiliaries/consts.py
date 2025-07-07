@@ -107,7 +107,7 @@ NUMBER_OF_RAXML_BOOTSTRAP_ITERATIONS = 100
 MAX_NUMBER_OF_CORE_OGS_FOR_PHYLOGENY = 1000
 OUTPUT_TSV_OF_ORTHOLOGS_PAIRS = False
 MIN_GENOME_LENGTH = 20000  # otherwise, prodigal raises an error
-MAX_ORF_LENGTH = 36000  # this is the longest known bacterial / archeal ORF. If the user provides ORF files with longer ORFs, we will fail the job since it means the inputs are wrong
+MAX_ORF_LENGTH = 90000 * 3  # this is the longest known bacterial / archeal ORF. If the user provides ORF files with longer ORFs, we will fail the job since it means the inputs are wrong
 
 DEFAULT_IDENTITY_CUTOFF = 40.0
 DEFAULT_COVERAGE_CUTOFF = 70.0
