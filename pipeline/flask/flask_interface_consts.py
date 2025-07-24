@@ -152,6 +152,7 @@ echo "Allocated CPUs: $SLURM_JOB_CPUS_PER_NODE"
 echo "Job name: $SLURM_JOB_NAME"
 
 export HOME={WEBSERVER_PROJECT_ROOT_DIR}
+cd $HOME
 source {WEBSERVER_PROJECT_ROOT_DIR}/miniconda3/etc/profile.d/conda.sh
 conda activate {WEBSERVER_PROJECT_ROOT_DIR}/miniconda3/envs/microbializer
 export PATH=$CONDA_PREFIX/bin:$PATH
