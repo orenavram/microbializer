@@ -43,6 +43,7 @@ class Config:
     node_name: str
     max_parallel_jobs: int
     use_job_manager: bool
+    use_job_array: bool
 
     # Email at job completion
     email: str
@@ -196,6 +197,7 @@ def get_configuration():
     parser.add_argument('--min_num_of_genomes_to_optimize_orthogroups_inference', type=int, default=150)
     parser.add_argument('--max_parallel_jobs', type=int)
     parser.add_argument('--use_job_manager', type=str_to_bool, default=consts.USE_JOB_MANAGER)
+    parser.add_argument('--use_job_array', type=str_to_bool, default=consts.USE_JOB_ARRAY)
     parser.add_argument('--kegg_optimization_mode', choices=['first_gene_of_og', 'consensus_of_og', 'all_genes_of_og'],
                         default='consensus_of_og')
     parser.add_argument('--max_number_of_core_ogs_for_phylogeny', help='-1 to not limit', type=int, default=consts.MAX_NUMBER_OF_CORE_OGS_FOR_PHYLOGENY)

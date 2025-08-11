@@ -56,6 +56,7 @@ else:
     raise ValueError(f'Unknown environment: {ENV}')
 
 USE_JOB_MANAGER = False if ENV == 'wsl' else True
+USE_JOB_ARRAY = True
 MAX_PARALLEL_JOBS = 50
 
 # General Job submission consts
