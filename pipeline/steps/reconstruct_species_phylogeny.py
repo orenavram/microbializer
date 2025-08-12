@@ -14,13 +14,6 @@ from pipeline.auxiliaries.general_utils import str_to_bool
 from pipeline.auxiliaries import consts
 
 
-def extract_msa_dimensions(msa_path):
-    data = list(SeqIO.parse(msa_path, 'fasta'))
-    n_seq = len(data)
-    n_loci = len(data[0])
-    return n_seq, n_loci
-
-
 def RAxML_tree_search(tmp_folder, msa_path, phylogenetic_tree_path, logger, num_of_cpus, outgroup,
                       bootstrap, seed):
     final_tree_name = phylogenetic_tree_path.name
@@ -116,10 +109,13 @@ def draw_tree(logger, phylogenetic_tree_path, bootstrap, outgroup):
 
 
 def generate_phylogenetic_tree(logger, msa_path, phylogenetic_tree_path, tmp_folder, seed, tree_search_software,
-                               outgroup,
-                               bootstrap, num_of_cpus):
-    # optionally use to decide which program to use
-    # n_seq, n_loci = extract_msa_dimensions(msa_path)
+                               outgroup, bootstrap, num_of_cpus):
+
+    if bootstrap:
+        n_seq = sum(1 for _ in SeqIO.parse(msa_path, 'fasta'))
+        if n_seq < 4:
+            bootstrap = False  # IQ-tree does not support bootstrap for less than 4 sequences
+            logger.info(f'Setting bootstrap=False because the number of sequences in the MSA ({n_seq}) is less than 4.')
 
     if not phylogenetic_tree_path.exists():  # Might already exist if the job restarted
         if tree_search_software == 'raxml':
