@@ -7,7 +7,7 @@ import math
 from Bio import SeqIO
 
 from . import consts
-from .run_step_utils import submit_mini_batch
+from .run_step_utils import submit_job
 from .email_sender import send_email
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -35,7 +35,7 @@ def submit_clean_folders_job(logger, config):
     params = [clean_folders_file_path]
 
     script_path = consts.SRC_DIR / 'steps' / 'clean_folders.py'
-    submit_mini_batch(logger, config, script_path, [params], clean_folders_tmp_dir,
+    submit_job(logger, config, script_path, params, clean_folders_tmp_dir,
                       'clean_folders', alternative_error_file=clean_folders_error_file_path)
 
 
@@ -70,8 +70,8 @@ def submit_clean_old_user_results_job(logger, config):
     script_path = consts.SRC_DIR / 'steps' / 'clean_old_jobs.py'
     params = []
 
-    submit_mini_batch(logger, config, script_path, [params], tmp_dir, 'clean_old_jobs',
-                      alternative_error_file=clean_old_jobs_error_file_path)
+    submit_job(logger, config, script_path, params, tmp_dir, 'clean_old_jobs',
+               alternative_error_file=clean_old_jobs_error_file_path)
 
 
 def send_email_in_pipeline_end(logger, config, state):

@@ -55,10 +55,10 @@ def create_pseudo_genome_from_ogs(
                                  orthologs_aa_consensus_dir_path if config.pseudo_genome_mode == 'consensus_gene' else None]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches = submit_batch(logger, config, script_path, all_cmds_params, pipeline_step_tmp_dir,
+        submit_batch(logger, config, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                       'orfs_extraction')
 
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, num_of_batches, config.error_file_path)
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, len(job_paths), config.error_file_path)
         write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -142,17 +142,22 @@ def infer_orthogroups_on_genomes_batch(logger, times_logger, config, step_number
         subset_proteins_fasta_path, genomes_batch_id)
 
 
+def main(logger, times_logger, step_number, translated_orfs_dir):
+    with open(args.job_input_path, 'r') as f:
+        for line in f:
+            genomes_batch_id, config_path = line.strip().split('\t')
+            config = Config.from_csv(config_path)
+            infer_orthogroups_on_genomes_batch(logger, times_logger, config, step_number, translated_orfs_dir,
+                                               genomes_batch_id)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('config_path', help='')
+    parser.add_argument('job_input_path', type=Path)
     parser.add_argument('step_number', help='')
-    parser.add_argument('translated_orfs_dir', type=Path, help='')
-    parser.add_argument('genomes_batch_id', help='', type=int)
+    parser.add_argument('translated_orfs_dir', type=Path)
     add_default_step_args(parser)
     args = parser.parse_args()
 
     times_logger = get_job_times_logger(args.logs_dir, args.job_name, args.verbose, args.use_job_manager)
-    config = Config.from_csv(args.config_path)
-
-    run_step(args, infer_orthogroups_on_genomes_batch, times_logger, config, args.step_number, args.translated_orfs_dir,
-             args.genomes_batch_id)
+    run_step(args, main, times_logger, args.step_number, args.translated_orfs_dir)

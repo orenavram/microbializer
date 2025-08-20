@@ -180,12 +180,12 @@ def prepare_directories(logger, outputs_dir_prefix, tmp_dir_prefix, dir_name):
     return outputs_dir, tmp_dir
 
 
-def submit_mini_batch(logger, config, script_path, mini_batch_parameters_list, logs_dir, job_name, num_of_cpus=1,
-                      memory=None, time_in_hours=None, environment_variables_to_change_before_script: dict = None,
-                      alternative_error_file=None):
+def submit_job(logger, config, script_path, script_parameters, logs_dir, job_name, num_of_cpus=1,
+               memory=None, time_in_hours=None, environment_variables_to_change_before_script: dict = None,
+               alternative_error_file=None):
     """
     :param script_path:
-    :param mini_batch_parameters_list: a list of lists. each sublist corresponds to a single command and contain its parameters
+    :param script_parameters: a list of parameters
     :param logs_dir:
     :param job_name:
     :param num_of_cpus:
@@ -207,11 +207,11 @@ def submit_mini_batch(logger, config, script_path, mini_batch_parameters_list, l
             shell_cmds_as_str += f'export {key}={value}\n'
 
     error_file_path = alternative_error_file if alternative_error_file else config.error_file_path
-    for params in mini_batch_parameters_list:
-        shell_cmds_as_str += ' '.join(
-            ['python', str(script_path), *[str(param) for param in params],
-             f'-v {config.verbose}', f'--logs_dir {logs_dir}', f'--error_file_path {error_file_path}',
-             f'--job_name {job_name}', f'--use_job_manager {config.use_job_manager}', f'--cpus {num_of_cpus}']) + '\n'
+
+    shell_cmds_as_str += ' '.join(
+        ['python', str(script_path), *[str(param) for param in script_parameters],
+         f'-v {config.verbose}', f'--logs_dir {logs_dir}', f'--error_file_path {error_file_path}',
+         f'--job_name {job_name}', f'--use_job_manager {config.use_job_manager}', f'--cpus {num_of_cpus}']) + '\n'
 
     # GENERATE DONE FILE
     shell_cmds_as_str += f'touch {logs_dir / (job_name + consts.JOB_DONE_FILE_SUFFIX)}\n'
@@ -246,38 +246,32 @@ def submit_mini_batch(logger, config, script_path, mini_batch_parameters_list, l
 
 
 def submit_batch(logger, config, script_path, batch_parameters_list, logs_dir, job_name_suffix,
-                 num_of_cmds_per_job=1, num_of_cpus=1, memory=None, time_in_hours=None):
+                 num_of_cpus=1, memory=None, time_in_hours=None):
     """
     :param script_path:
     :param batch_parameters_list: a list of lists. each sublist corresponds to a single command and contain its parameters
     :param logs_dir:
     :param job_name_suffix: a string that will be concatenated after the batch number as the job name
-    :param num_of_cmds_per_job:
     :param num_of_cpus:
     :return: number of batches submitted (in case waiting for the results) and an example command to debug on the shell
     """
-    num_of_mini_batches = 0
     job_name_suffix = job_name_suffix.replace(' ', '_')  # job name cannot contain spaces!
 
     if not config.use_job_manager and config.max_parallel_jobs > 1:
         executor = ProcessPoolExecutor(max_workers=config.max_parallel_jobs)
 
-    for i in range(0, len(batch_parameters_list), num_of_cmds_per_job):
-        mini_batch_parameters_list = batch_parameters_list[i: i + num_of_cmds_per_job]
-        mini_batch_job_name = f'{num_of_mini_batches}_{job_name_suffix}'
+    for i, script_parameters in enumerate(batch_parameters_list):
+        job_name = f'{i}_{job_name_suffix}'
 
         if not config.use_job_manager and config.max_parallel_jobs > 1:
-            executor.submit(submit_mini_batch, logger, config, script_path, mini_batch_parameters_list, logs_dir,
-                            mini_batch_job_name, num_of_cpus=num_of_cpus, memory=memory, time_in_hours=time_in_hours)
+            executor.submit(submit_job, logger, config, script_path, script_parameters, logs_dir,
+                            job_name, num_of_cpus=num_of_cpus, memory=memory, time_in_hours=time_in_hours)
         else:
-            submit_mini_batch(
-                logger, config, script_path, mini_batch_parameters_list, logs_dir, mini_batch_job_name,
+            submit_job(
+                logger, config, script_path, script_parameters, logs_dir, job_name,
                 num_of_cpus=num_of_cpus, memory=memory, time_in_hours=time_in_hours)
 
-        num_of_mini_batches += 1
         sleep(0.1)
-
-    return num_of_mini_batches
 
 
 def get_job_logger(log_file_dir, job_name, verbose, use_job_manager):

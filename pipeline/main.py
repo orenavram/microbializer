@@ -20,7 +20,7 @@ from auxiliaries.general_utils import write_done_file, get_required_memory_gb_to
 from auxiliaries.main_utils import send_email_in_pipeline_end, submit_clean_folders_job, zip_results, \
     submit_clean_old_user_results_job, update_progressbar, define_intervals, add_results_to_final_dir, \
     calc_genomes_batch_size, initialize_progressbar, find_all_gap_sequences
-from auxiliaries.run_step_utils import wait_for_results, prepare_directories, submit_mini_batch, submit_batch
+from auxiliaries.run_step_utils import wait_for_results, prepare_directories, submit_job, submit_batch
 from auxiliaries.logic_utils import (plot_genomes_histogram, combine_orphan_genes_stats,
                                      split_ogs_to_jobs_inputs_files_by_og_sizes, sort_orthogroups_df_and_rename_ogs)
 
@@ -59,11 +59,11 @@ def step_1_fix_input_files(logger, times_logger, config):
                                  f'--fix_frames {config.inputs_fasta_type == "orfs"}']
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches = submit_batch(logger, config, script_path, all_cmds_params, pipeline_step_tmp_dir,
+        submit_batch(logger, config, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                       'drop_plasmids')
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
-                         num_of_batches, config.error_file_path)
+                         len(job_index_to_fasta_files), config.error_file_path)
         write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -119,10 +119,10 @@ def step_2_search_orfs(logger, times_logger, config):
                                  orfs_coordinates_dir, config.inputs_fasta_type]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches = submit_batch(logger, config, script_path, all_cmds_params, orfs_tmp_dir,
+        submit_batch(logger, config, script_path, all_cmds_params, orfs_tmp_dir,
                                       'search_orfs')
 
-        wait_for_results(logger, times_logger, step_name, orfs_tmp_dir, num_of_batches, config.error_file_path)
+        wait_for_results(logger, times_logger, step_name, orfs_tmp_dir, len(job_index_to_fasta_files), config.error_file_path)
 
         if not config.do_not_copy_outputs_to_final_results_dir:
             add_results_to_final_dir(logger, orfs_sequences_dir, config.final_output_dir)
@@ -233,11 +233,11 @@ def step_3_analyze_genome_completeness(logger, times_logger, config, translated_
             single_cmd_params = [job_input_path, genomes_output_dir_path]
             all_cmds_params.append(single_cmd_params)
 
-        num_of_batches = submit_batch(logger, config, script_path, all_cmds_params, genome_completeness_tmp_dir,
+        submit_batch(logger, config, script_path, all_cmds_params, genome_completeness_tmp_dir,
                                       'genomes_completeness')
 
         wait_for_results(logger, times_logger, step_name, genome_completeness_tmp_dir,
-                         num_of_batches, config.error_file_path)
+                         len(job_index_to_fasta_files), config.error_file_path)
 
         # Aggregate results of step
         start_time = time.time()
@@ -329,7 +329,8 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
         logger.info(f'Infer orthogroups on {len(genomes_names)} genomes in {len(genomes_batches)} batches, '
                     f'using batch size of {genomes_batch_size}')
 
-        all_cmds_params = []
+        job_index_to_batches = defaultdict(list)
+
         for batch_id, (start_index, end_index_inclusive) in enumerate(genomes_batches):
             subset_genome_names = genomes_names[start_index:end_index_inclusive + 1]
 
@@ -352,16 +353,26 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
             subset_config_path = subset_tmp_dir / 'config.csv'
             config_for_subset_inference.to_csv(subset_config_path)
 
-            params = [subset_config_path, step_number, translated_orfs_dir, batch_id]
+            job_index = batch_id % config.max_parallel_jobs
+            job_index_to_batches[job_index].append(f'{batch_id}\t{subset_config_path}')
+
+        jobs_inputs_dir = inference_tmp_dir / 'job_inputs'
+        jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
+
+        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
+        for job_index, job_batches in job_index_to_batches.items():
+            job_input_path = jobs_inputs_dir / f'{job_index}.txt'
+            with open(job_input_path, 'w') as f:
+                f.write('\n'.join(job_batches))
+
+            params = [job_input_path, step_number, translated_orfs_dir]
             all_cmds_params.append(params)
 
-        num_of_batches = submit_batch(logger, config, script_path, all_cmds_params, inference_tmp_dir,
-                                      'infer_orthogroups',
-                                      num_of_cmds_per_job=max(1, len(genomes_batches) // config.max_parallel_jobs),
-                                      time_in_hours=config.infer_orthogroups_time_limit)
+        submit_batch(logger, config, script_path, all_cmds_params, inference_tmp_dir,
+                                      'infer_orthogroups', time_in_hours=config.infer_orthogroups_time_limit)
 
         wait_for_results(logger, times_logger, step_name, inference_tmp_dir,
-                         num_of_batches, config.error_file_path, recursive_step=True)
+                         len(job_index_to_batches), config.error_file_path, recursive_step=True)
 
         write_done_file(logger, done_file_path)
     else:
@@ -434,7 +445,7 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
 
         params = [pseudo_orthogroups_file_path, sub_orthogroups_dir_path, merged_orthogroups_file_path]
 
-        submit_mini_batch(logger, config, script_path, [params], merged_orthogroups_tmp_dir,
+        submit_job(logger, config, script_path, params, merged_orthogroups_tmp_dir,
                           'merge_sub_orthogroups', memory=config.merge_sub_orthogroups_memory_gb)
         wait_for_results(logger, times_logger, step_name, merged_orthogroups_tmp_dir, 1, config.error_file_path)
 
@@ -473,10 +484,10 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
             all_cmds_params.append(single_cmd_params)
 
         memory_gb = max(config.job_default_memory_gb, get_required_memory_gb_to_load_csv(merged_orthogroups_file_path))
-        num_of_batches = submit_batch(logger, config, script_path, all_cmds_params, orphans_tmp_dir,
+        submit_batch(logger, config, script_path, all_cmds_params, orphans_tmp_dir,
                                       'extract_orphans_from_orthogroups', memory=memory_gb)
 
-        wait_for_results(logger, times_logger, step_name, orphans_tmp_dir, num_of_batches, config.error_file_path)
+        wait_for_results(logger, times_logger, step_name, orphans_tmp_dir, len(job_index_to_genome_names), config.error_file_path)
 
         start_time = time.time()
         combine_orphan_genes_stats(orphan_genes_internal_dir, orphan_genes_dir)
@@ -539,7 +550,7 @@ def step_7_orthologs_table_variations(logger, times_logger, config, final_orthog
 
         params = [final_orthogroups_file_path, orthoxml_dir_path, f'--qfo_benchmark {config.qfo_benchmark}']
 
-        submit_mini_batch(logger, config, script_path, [params], orthoxml_tmp_dir,
+        submit_job(logger, config, script_path, params, orthoxml_tmp_dir,
                           'orthoxml', memory=config.orthoxml_memory_gb)
         wait_for_results(logger, times_logger, step_name, orthoxml_tmp_dir, 1, config.error_file_path)
 
@@ -562,7 +573,7 @@ def step_7_orthologs_table_variations(logger, times_logger, config, final_orthog
 
         params = [final_orthogroups_file_path, orfs_coordinates_dir, visualizations_dir_path]
 
-        submit_mini_batch(logger, config, script_path, [params], visualizations_tmp_dir,
+        submit_job(logger, config, script_path, params, visualizations_tmp_dir,
                           'orthogroups_visualizations', memory=config.orthogroups_visualizations_memory_gb)
         wait_for_results(logger, times_logger, step_name, visualizations_tmp_dir, 1, config.error_file_path)
 
@@ -626,10 +637,10 @@ def step_8_build_orthologous_groups_fastas(logger, times_logger, config, all_orf
         step_pre_processing_time = timedelta(seconds=int(time.time() - start_time))
         times_logger.info(f'Step {step_name} pre-processing time took {step_pre_processing_time}.')
 
-        num_of_batches = submit_batch(logger, config, script_path, all_cmds_params, pipeline_step_tmp_dir,
+        submit_batch(logger, config, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                       'orfs_extraction', memory=memory_gb)
 
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, num_of_batches, config.error_file_path)
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, len(job_paths), config.error_file_path)
 
         if not config.do_not_copy_outputs_to_final_results_dir:
             add_results_to_final_dir(logger, orthogroups_dna_dir_path, config.final_output_dir)
@@ -665,7 +676,7 @@ def step_9_extract_core_genome_and_core_proteome(logger, times_logger, config, a
                   aligned_core_proteome_file_path,
                   core_proteome_length_file_path,
                   f'--core_minimal_percentage {config.core_minimal_percentage}']  # how many members induce a core group?
-        submit_mini_batch(logger, config, script_path, [params], aligned_core_proteome_tmp_dir,
+        submit_job(logger, config, script_path, params, aligned_core_proteome_tmp_dir,
                           'core_proteome')
 
     else:
@@ -689,7 +700,7 @@ def step_9_extract_core_genome_and_core_proteome(logger, times_logger, config, a
                   aligned_core_genome_file_path,
                   core_genome_length_file_path,
                   f'--core_minimal_percentage {config.core_minimal_percentage}']  # how many members induce a core group?
-        submit_mini_batch(logger, config, script_path, [params], aligned_core_genome_tmp_dir, 'core_genome')
+        submit_job(logger, config, script_path, params, aligned_core_genome_tmp_dir, 'core_genome')
 
     else:
         logger.info(f'done file {core_genome_done_file_path} already exists. Skipping step...')
@@ -713,7 +724,7 @@ def step_9_extract_core_genome_and_core_proteome(logger, times_logger, config, a
                       core_proteome_reduced_length_file_path,
                       f'--core_minimal_percentage {config.core_minimal_percentage}',  # how many members induce a core group?
                       f'--max_number_of_ogs {config.max_number_of_core_ogs_for_phylogeny}']
-            submit_mini_batch(logger, config, script_path, [params], aligned_core_proteome_reduced_tmp_dir,
+            submit_job(logger, config, script_path, params, aligned_core_proteome_reduced_tmp_dir,
                               'core_proteome')
         else:
             logger.info('max_number_of_core_ogs_for_phylogeny is -1. Skipping step...')
@@ -776,7 +787,7 @@ def step_11_phylogeny(logger, times_logger, config, aligned_core_proteome_file_p
 
         single_cmd_params = [genomes_list_path, ani_output_dir]
 
-        submit_mini_batch(logger, config, script_path, [single_cmd_params], ani_tmp_dir,
+        submit_job(logger, config, script_path, single_cmd_params, ani_tmp_dir,
                           'ANI', num_of_cpus=config.ani_cpus, memory=config.ani_memory_gb)
 
     else:
@@ -831,12 +842,12 @@ def step_11_phylogeny(logger, times_logger, config, aligned_core_proteome_file_p
             xdg_runtime_dir.mkdir(parents=True, exist_ok=True)
             xdg_runtime_dir.chmod(0o700)
 
-            submit_mini_batch(logger, config, script_path, [params], phylogeny_tmp_dir,
+            submit_job(logger, config, script_path, params, phylogeny_tmp_dir,
                               'tree_reconstruction', num_of_cpus=config.phylogeny_cpus,
-                              memory=config.phylogeny_memory_gb,
-                              # Needed to avoid an error in drawing the tree. Taken from: https://github.com/NVlabs/instant-ngp/discussions/300
-                              environment_variables_to_change_before_script={'QT_QPA_PLATFORM': 'offscreen', 'XDG_RUNTIME_DIR': xdg_runtime_dir},
-                              time_in_hours=config.phylogeny_time_limit)
+                       memory=config.phylogeny_memory_gb,
+                       # Needed to avoid an error in drawing the tree. Taken from: https://github.com/NVlabs/instant-ngp/discussions/300
+                       environment_variables_to_change_before_script={'QT_QPA_PLATFORM': 'offscreen', 'XDG_RUNTIME_DIR': xdg_runtime_dir},
+                       time_in_hours=config.phylogeny_time_limit)
 
             # wait for the phylogenetic tree here
             wait_for_results(logger, times_logger, phylogeny_step_name, phylogeny_tmp_dir,
@@ -884,7 +895,7 @@ def step_12_orthogroups_annotations(logger, times_logger, config, orfs_dir,
             codon_bias_output_dir_path,
             cai_table_path
         ]
-        submit_mini_batch(logger, config, script_path, [params], codon_bias_tmp_dir,
+        submit_job(logger, config, script_path, params, codon_bias_tmp_dir,
                           'codon_bias', num_of_cpus=config.codon_bias_cpus, memory=config.codon_bias_memory)
 
     else:
@@ -911,7 +922,7 @@ def step_12_orthogroups_annotations(logger, times_logger, config, orfs_dir,
             kegg_table_path,
             f'--optimization_mode {config.kegg_optimization_mode}'
         ]
-        submit_mini_batch(logger, config, script_path, [params], kegg_tmp_dir,
+        submit_job(logger, config, script_path, params, kegg_tmp_dir,
                           'kegg', num_of_cpus=config.kegg_cpus, memory=config.kegg_memory_gb)
 
     else:
