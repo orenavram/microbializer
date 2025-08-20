@@ -227,6 +227,7 @@ def get_configuration():
 
                     queue_name=args.queue_name, account_name=args.account_name, node_name=args.node_name,
                     max_parallel_jobs=args.max_parallel_jobs, use_job_manager=args.use_job_manager,
+                    use_job_array=args.use_job_array,
 
                     email=args.email, job_name=args.job_name, run_number=run_number,
                     send_email=consts.ENV == 'lsweb' and SEND_EMAIL_WHEN_JOB_FINISHED_FROM_PIPELINE and
