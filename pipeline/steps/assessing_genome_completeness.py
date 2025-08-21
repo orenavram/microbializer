@@ -58,8 +58,6 @@ def main(logger, job_input_path, output_dir):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('job_input_path', type=Path,
-                        help='path to a file that contains the genome names to asses completeness for')
     parser.add_argument('output_dir', type=Path, help='path to the output dir')
     add_default_step_args(parser)
     args = parser.parse_args()

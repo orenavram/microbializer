@@ -216,17 +216,14 @@ def step_3_analyze_genome_completeness(logger, times_logger, config, translated_
         genomes_output_dir_path = genome_completeness_tmp_dir / 'individual_proteomes_outputs'
         genomes_output_dir_path.mkdir(parents=True, exist_ok=True)
 
-        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
         for job_index, job_fasta_files in job_index_to_fasta_files.items():
             job_input_path = jobs_inputs_dir / f'{job_index}.txt'
             with open(job_input_path, 'w') as f:
                 f.write('\n'.join(job_fasta_files))
 
-            single_cmd_params = [job_input_path, genomes_output_dir_path]
-            all_cmds_params.append(single_cmd_params)
-
-        submit_batch(logger, config, script_path, all_cmds_params, genome_completeness_tmp_dir,
-                                      'genomes_completeness')
+        script_params = [genomes_output_dir_path]
+        submit_batch(logger, config, script_path, script_params, jobs_inputs_dir, genome_completeness_tmp_dir,
+                     'genomes_completeness')
 
         wait_for_results(logger, times_logger, step_name, genome_completeness_tmp_dir, config.error_file_path)
 
