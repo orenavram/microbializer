@@ -58,7 +58,7 @@ def create_pseudo_genome_from_ogs(
         submit_batch(logger, config, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                       'orfs_extraction')
 
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, len(job_paths), config.error_file_path)
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, config.error_file_path)
         write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')

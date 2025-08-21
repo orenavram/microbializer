@@ -96,8 +96,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
             submit_batch(logger, config, script_path, all_cmds_params, normalized_hits_tmp_dir,
                                           'hits_normalize')
 
-            wait_for_results(logger, times_logger, step_name, normalized_hits_tmp_dir, len(job_index_to_hits_files_and_coefficients),
-                             config.error_file_path)
+            wait_for_results(logger, times_logger, step_name, normalized_hits_tmp_dir, config.error_file_path)
 
         write_done_file(logger, done_file_path)
     else:
@@ -129,8 +128,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
                       putative_orthologs_table_path]
             submit_job(logger, config, script_path, params, putative_orthologs_table_tmp_dir,
                               'putative_table')
-            wait_for_results(logger, times_logger, step_name, putative_orthologs_table_tmp_dir, 1,
-                             config.error_file_path)
+            wait_for_results(logger, times_logger, step_name, putative_orthologs_table_tmp_dir, config.error_file_path)
 
         write_done_file(logger, done_file_path)
     else:
@@ -164,7 +162,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
         submit_batch(logger, config, script_path, all_cmds_params, mcl_inputs_tmp_dir,
                                       'mcl_preparation')
 
-        wait_for_results(logger, times_logger, step_name, mcl_inputs_tmp_dir, len(job_paths), config.error_file_path)
+        wait_for_results(logger, times_logger, step_name, mcl_inputs_tmp_dir, config.error_file_path)
         write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -203,8 +201,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
         submit_batch(logger, config, script_path, all_cmds_params, mcl_tmp_dir,
                                       'mcl_execution')
 
-        wait_for_results(logger, times_logger, step_name, mcl_tmp_dir,
-                         len(job_paths), config.error_file_path)
+        wait_for_results(logger, times_logger, step_name, mcl_tmp_dir, config.error_file_path)
         write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -228,8 +225,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
 
         submit_job(logger, config, script_path, params, verified_orthologs_table_tmp_dir,
                           'verified_ortholog_groups')
-        wait_for_results(logger, times_logger, step_name, verified_orthologs_table_tmp_dir,
-                         1, config.error_file_path)
+        wait_for_results(logger, times_logger, step_name, verified_orthologs_table_tmp_dir, config.error_file_path)
 
         write_done_file(logger, done_file_path)
     else:
@@ -269,8 +265,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
         submit_batch(logger, config, script_path, all_cmds_params, orphans_tmp_dir,
                                       'extract_orphans')
 
-        wait_for_results(logger, times_logger, step_name, orphans_tmp_dir,
-                         len(job_index_to_fasta_files), config.error_file_path)
+        wait_for_results(logger, times_logger, step_name, orphans_tmp_dir, config.error_file_path)
 
         start_time = time.time()
         combine_orphan_genes_stats(orphan_genes_internal_dir, orphan_genes_dir)
@@ -299,8 +294,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
 
             submit_job(logger, config, script_path, params, pipeline_step_tmp_dir,
                               'add_orphans_to_orthogroups')
-            wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, 1,
-                             config.error_file_path)
+            wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, config.error_file_path)
         else:
             shutil.copy(orthogroups_file_path, final_orthogroups_file_path)
             logger.info(f'add_orphan_genes_to_ogs is False. Skipping adding orphans to orthogroups. Copied '
@@ -343,8 +337,7 @@ def run_unified_mmseqs(logger, times_logger, config, base_step_number, all_prote
                    memory=config.mmseqs_big_dataset_memory_gb,
                    time_in_hours=config.mmseqs_time_limit)
 
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, 1,
-                         config.error_file_path)
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, config.error_file_path)
 
         start_time = time.time()
 
@@ -406,8 +399,7 @@ def run_unified_mmseqs(logger, times_logger, config, base_step_number, all_prote
                                           'rbh_analysis', memory=m8_output_parsing_memory,
                                           time_in_hours=config.mmseqs_time_limit)
 
-            wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
-                             len(job_index_to_pairs), config.error_file_path)
+            wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, config.error_file_path)
 
         write_done_file(logger, done_file_path)
     else:
@@ -452,8 +444,7 @@ def run_unified_mmseqs(logger, times_logger, config, base_step_number, all_prote
         submit_batch(logger, config, script_path, all_cmds_params, pipeline_step_tmp_dir,
                                       'paralogs_analysis', memory=m8_output_parsing_memory)
 
-        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir,
-                         len(job_index_to_genome), config.error_file_path)
+        wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, config.error_file_path)
 
         write_done_file(logger, done_file_path)
     else:
@@ -498,8 +489,7 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, config, base_step_numb
         submit_batch(logger, config, script_path, all_cmds_params, mmseqs_dbs_tmp_dir,
                                       'mmseqs_dbs')
 
-        wait_for_results(logger, times_logger, step_name, mmseqs_dbs_tmp_dir,
-                         len(job_index_to_strain_names), config.error_file_path)
+        wait_for_results(logger, times_logger, step_name, mmseqs_dbs_tmp_dir, config.error_file_path)
 
         write_done_file(logger, done_file_path)
     else:
@@ -555,8 +545,7 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, config, base_step_numb
             submit_batch(logger, config, script_path, all_cmds_params, orthologs_tmp_dir,
                                           'rbh_analysis', time_in_hours=config.mmseqs_time_limit)
 
-            wait_for_results(logger, times_logger, step_name, orthologs_tmp_dir,
-                             len(job_index_to_strain_pairs), config.error_file_path)
+            wait_for_results(logger, times_logger, step_name, orthologs_tmp_dir, config.error_file_path)
 
         write_done_file(logger, done_file_path)
     else:
@@ -616,7 +605,7 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, config, base_step_numb
         submit_batch(logger, config, script_path, all_cmds_params, paralogs_tmp_dir,
                                       'paralogs_analysis')
 
-        wait_for_results(logger, times_logger, step_name, paralogs_tmp_dir, len(job_index_to_strain_names), config.error_file_path)
+        wait_for_results(logger, times_logger, step_name, paralogs_tmp_dir, config.error_file_path)
         write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')

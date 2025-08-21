@@ -53,8 +53,6 @@ def filter_out_plasmids_of_all_files(logger, job_input_path, output_dir, drop_pl
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('job_input_path', type=Path,
-                        help='path to a file that contains the genome names to drop plasmids from')
     parser.add_argument('output_dir', type=Path, help='path to output dir')
     parser.add_argument('--drop_plasmids', type=str_to_bool, help='Drop plasmids from the genome file')
     parser.add_argument('--fix_frames', type=str_to_bool, help='Fix frames of the genome file')

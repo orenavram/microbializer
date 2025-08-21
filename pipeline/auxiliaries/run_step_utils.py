@@ -26,11 +26,16 @@ def validate_slurm_error_logs(logger, slurm_logs_dir, error_file_path):
                     fail(logger, f'file {slurm_log_file} shows a slurm error: {line}', error_file_path)
 
 
-def wait_for_results(logger, times_logger, script_name, path, num_of_expected_results, error_file_path,
-                     start=0, recursive_step=False):
+def wait_for_results(logger, times_logger, script_name, path, error_file_path, start=0, recursive_step=False):
     """waits until path contains num_of_expected_results .done files"""
     if not start:
         start = time()
+
+    if (path / 'job_inputs').exists():
+        num_of_expected_results = sum(1 for _ in (path / 'job_inputs').glob('*.txt'))
+    else:
+        num_of_expected_results = 1
+
     logger.info(f'Waiting for {script_name}... Continues when {num_of_expected_results} results will be in: {path}')
 
     if num_of_expected_results == 0:
@@ -182,7 +187,7 @@ def prepare_directories(logger, outputs_dir_prefix, tmp_dir_prefix, dir_name):
 
 def submit_job(logger, config, script_path, script_parameters, logs_dir, job_name, num_of_cpus=1,
                memory=None, time_in_hours=None, environment_variables_to_change_before_script: dict = None,
-               alternative_error_file=None):
+               alternative_error_file=None, job_array_interval=None, job_input_path=None):
     """
     :param script_path:
     :param script_parameters: a list of parameters
@@ -211,10 +216,14 @@ def submit_job(logger, config, script_path, script_parameters, logs_dir, job_nam
     shell_cmds_as_str += ' '.join(
         ['python', str(script_path), *[str(param) for param in script_parameters],
          f'-v {config.verbose}', f'--logs_dir {logs_dir}', f'--error_file_path {error_file_path}',
-         f'--job_name {job_name}', f'--use_job_manager {config.use_job_manager}', f'--cpus {num_of_cpus}']) + '\n'
+         f'--job_name {job_name}', f'--use_job_manager {config.use_job_manager}', f'--cpus {num_of_cpus}'])
+
+    if job_input_path:
+        shell_cmds_as_str += f' --job_input_path {job_input_path}'
 
     # GENERATE DONE FILE
-    shell_cmds_as_str += f'touch {logs_dir / (job_name + consts.JOB_DONE_FILE_SUFFIX)}\n'
+    done_file_name = f'{job_name}_${consts.JOB_ID_ENVIRONMENT_VARIABLE}{consts.JOB_DONE_FILE_SUFFIX}'
+    shell_cmds_as_str += f'\ntouch {logs_dir / done_file_name}\n'
 
     # WRITING CMDS FILE
     cmds_path = logs_dir / f'{job_name}.sh'
@@ -230,7 +239,7 @@ def submit_job(logger, config, script_path, script_parameters, logs_dir, job_nam
             memory = config.job_default_memory_gb
 
         submit_cmds_from_file_to_q(logger, job_name, cmds_path, logs_dir, config.queue_name, str(num_of_cpus),
-                                   config.account_name, memory, time_in_hours, config.node_name)
+                                   config.account_name, memory, time_in_hours, config.node_name, job_array_interval)
     else:
         new_env = os.environ.copy()
         if environment_variables_to_change_before_script:
@@ -245,7 +254,7 @@ def submit_job(logger, config, script_path, script_parameters, logs_dir, job_nam
                 subprocess.run(shell_cmd, shell=True, check=True, capture_output=True, text=True, env=new_env)
 
 
-def submit_batch(logger, config, script_path, batch_parameters_list, logs_dir, job_name_suffix,
+def submit_batch(logger, config, script_path, script_parameters, batch_inputs_dir, logs_dir, job_name_suffix,
                  num_of_cpus=1, memory=None, time_in_hours=None):
     """
     :param script_path:
@@ -257,21 +266,30 @@ def submit_batch(logger, config, script_path, batch_parameters_list, logs_dir, j
     """
     job_name_suffix = job_name_suffix.replace(' ', '_')  # job name cannot contain spaces!
 
-    if not config.use_job_manager and config.max_parallel_jobs > 1:
-        executor = ProcessPoolExecutor(max_workers=config.max_parallel_jobs)
-
-    for i, script_parameters in enumerate(batch_parameters_list):
-        job_name = f'{i}_{job_name_suffix}'
-
-        if not config.use_job_manager and config.max_parallel_jobs > 1:
-            executor.submit(submit_job, logger, config, script_path, script_parameters, logs_dir,
-                            job_name, num_of_cpus=num_of_cpus, memory=memory, time_in_hours=time_in_hours)
-        else:
+    if (config.use_job_manager and not config.use_job_array) or config.max_parallel_jobs == 1:
+        for i, input_file in enumerate(batch_inputs_dir.glob('*.txt')):
+            job_name = f'{i}_{job_name_suffix}'
             submit_job(
                 logger, config, script_path, script_parameters, logs_dir, job_name,
-                num_of_cpus=num_of_cpus, memory=memory, time_in_hours=time_in_hours)
+                num_of_cpus=num_of_cpus, memory=memory, time_in_hours=time_in_hours, job_input_path=input_file)
+            sleep(0.1)
 
+    elif config.use_job_manager and config.use_job_array:
+        job_count = sum(1 for _ in batch_inputs_dir.glob("*.txt"))
+        submit_job(
+            logger, config, script_path, script_parameters, logs_dir, job_name_suffix,
+            num_of_cpus=num_of_cpus, memory=memory, time_in_hours=time_in_hours,
+            job_array_interval=f'0-{job_count - 1}',
+            job_input_path=f'{batch_inputs_dir}/${consts.JOB_ARRAY_TASK_ID_ENVIRONMENT_VARIABLE}.txt')
         sleep(0.1)
+
+    else:
+        executor = ProcessPoolExecutor(max_workers=config.max_parallel_jobs)
+        for i, input_file in enumerate(batch_inputs_dir.glob('*.txt')):
+            job_name = f'{i}_{job_name_suffix}'
+            executor.submit(submit_job, logger, config, script_path, script_parameters, logs_dir,
+                            job_name, num_of_cpus=num_of_cpus, memory=memory, time_in_hours=time_in_hours, job_input_path=input_file)
+            sleep(0.1)
 
 
 def get_job_logger(log_file_dir, job_name, verbose, use_job_manager):
@@ -303,6 +321,7 @@ def add_default_step_args(args_parser):
     args_parser.add_argument('--job_name', help='job name')
     args_parser.add_argument('--use_job_manager', help='use job manager', type=str_to_bool)
     args_parser.add_argument('--cpus', default=1, type=int)
+    args_parser.add_argument('--job_input_path', help='path to an input file for the job', type=Path, required=False)
 
 
 def run_step(args, step_method, *step_args):
