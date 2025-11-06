@@ -24,8 +24,8 @@ def normalize_hits_scores(logger, blast_result, output_path, scores_normalize_co
     logger.info(f'Normalized scores of {blast_result} written to {output_path}')
 
 
-def normalize_hits_scores_of_all_files(logger, job_input_file, output_dir, use_parquet):
-    with open(job_input_file, 'r') as f:
+def normalize_hits_scores_of_all_files(logger, job_input_path, output_dir, use_parquet):
+    with open(job_input_path, 'r') as f:
         for line in f:
             hits_path, scores_normalize_coefficient = line.strip().split()
             hits_path = Path(hits_path)
@@ -40,4 +40,4 @@ if __name__ == '__main__':
     add_default_step_args(parser)
     args = parser.parse_args()
 
-    run_step(args, normalize_hits_scores_of_all_files, args.job_input_file, args.output_dir, args.use_parquet)
+    run_step(args, normalize_hits_scores_of_all_files, args.job_input_path, args.output_dir, args.use_parquet)
