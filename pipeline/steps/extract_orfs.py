@@ -202,7 +202,6 @@ if __name__ == '__main__':
     parser.add_argument('all_orfs_path', type=none_or_path, help='path to a file of all ORFs of all genomes')
     parser.add_argument('all_proteins_path', type=none_or_path, help='path to a file of all proteins of all genomes')
     parser.add_argument('orthogroups_file_path', type=Path, help='path of the orthogroups file')
-    parser.add_argument('job_input_path', type=Path, help='')
     parser.add_argument('ogs_dna_output_dir', type=none_or_path, help='path to an output directory of ogs dna')
     parser.add_argument('ogs_aa_output_dir', type=none_or_path, help='path to an output directory of ogs aa')
     parser.add_argument('ogs_aa_aligned_output_dir', type=none_or_path,

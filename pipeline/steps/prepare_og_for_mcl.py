@@ -87,7 +87,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('normalized_hits_dir', type=Path, help='path to a file with all hits')
     parser.add_argument('putative_ogs_path', type=Path, help='path to a putative ogs path')
-    parser.add_argument('job_input_path', type=Path, help='')
     parser.add_argument('output_path', type=Path, help='a folder in which the input files for mcl will be written')
     add_default_step_args(parser)
     args = parser.parse_args()

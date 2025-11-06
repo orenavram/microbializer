@@ -124,8 +124,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
             params = [normalized_hits_output_dir,
                       config.genomes_names_path,
                       putative_orthologs_table_path]
-            submit_job(logger, config, script_path, params, putative_orthologs_table_tmp_dir,
-                              'putative_table')
+            submit_job(logger, config, script_path, params, putative_orthologs_table_tmp_dir, 'putative_table')
             wait_for_results(logger, times_logger, step_name, putative_orthologs_table_tmp_dir, config.error_file_path)
 
         write_done_file(logger, done_file_path)
@@ -148,17 +147,14 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
 
         job_paths = split_ogs_to_jobs_inputs_files_by_og_sizes(putative_orthologs_table_df, mcl_inputs_tmp_dir,
                                                                config.max_parallel_jobs)
-        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-        for job_path in job_paths:
-            single_cmd_params = [normalized_hits_output_dir, putative_orthologs_table_path, job_path, mcl_inputs_dir]
-            all_cmds_params.append(single_cmd_params)
+
+        script_params = [normalized_hits_output_dir, putative_orthologs_table_path, mcl_inputs_dir]
 
         logger.info('Done preparing jobs inputs for prepare_og_for_mcl.')
         step_pre_processing_time = timedelta(seconds=int(time.time() - start_time))
         times_logger.info(f'Step {step_name} pre-processing time took {step_pre_processing_time}.')
 
-        submit_batch(logger, config, script_path, all_cmds_params, mcl_inputs_tmp_dir,
-                                      'mcl_preparation')
+        submit_batch(logger, config, script_path, script_params, job_paths, mcl_inputs_tmp_dir, 'mcl_preparation')
 
         wait_for_results(logger, times_logger, step_name, mcl_inputs_tmp_dir, config.error_file_path)
         write_done_file(logger, done_file_path)
@@ -187,17 +183,14 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
 
         job_paths = split_ogs_to_jobs_inputs_files_by_og_sizes(putative_orthologs_table_df, mcl_tmp_dir,
                                                                config.max_parallel_jobs)
-        all_cmds_params = []
-        for job_path in job_paths:
-            single_cmd_params = [mcl_inputs_dir, job_path, mcl_outputs_dir, verified_clusters_output_dir]
-            all_cmds_params.append(single_cmd_params)
+
+        script_params = [mcl_inputs_dir, mcl_outputs_dir, verified_clusters_output_dir]
 
         logger.info('Done preparing jobs inputs for mcl_analysis.')
         step_pre_processing_time = timedelta(seconds=int(time.time() - start_time))
         times_logger.info(f'Step {step_name} pre-processing time took {step_pre_processing_time}.')
 
-        submit_batch(logger, config, script_path, all_cmds_params, mcl_tmp_dir,
-                                      'mcl_execution')
+        submit_batch(logger, config, script_path, script_params, job_paths, mcl_tmp_dir, 'mcl_execution')
 
         wait_for_results(logger, times_logger, step_name, mcl_tmp_dir, config.error_file_path)
         write_done_file(logger, done_file_path)
@@ -251,17 +244,13 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
         jobs_inputs_dir = orphans_tmp_dir / 'job_inputs'
         jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
 
-        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
         for job_index, job_fasta_files in job_index_to_fasta_files.items():
             job_input_path = jobs_inputs_dir / f'{job_index}.txt'
             with open(job_input_path, 'w') as f:
                 f.write('\n'.join(job_fasta_files))
 
-            single_cmd_params = [job_input_path, orthogroups_file_path, orphan_genes_internal_dir]
-            all_cmds_params.append(single_cmd_params)
-
-        submit_batch(logger, config, script_path, all_cmds_params, orphans_tmp_dir,
-                                      'extract_orphans')
+        script_params = [orthogroups_file_path, orphan_genes_internal_dir]
+        submit_batch(logger, config, script_path, script_params, jobs_inputs_dir, orphans_tmp_dir, 'extract_orphans')
 
         wait_for_results(logger, times_logger, step_name, orphans_tmp_dir, config.error_file_path)
 

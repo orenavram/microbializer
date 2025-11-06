@@ -347,17 +347,14 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
         jobs_inputs_dir = inference_tmp_dir / 'job_inputs'
         jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
 
-        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
         for job_index, job_batches in job_index_to_batches.items():
             job_input_path = jobs_inputs_dir / f'{job_index}.txt'
             with open(job_input_path, 'w') as f:
                 f.write('\n'.join(job_batches))
 
-            params = [job_input_path, step_number, translated_orfs_dir]
-            all_cmds_params.append(params)
-
-        submit_batch(logger, config, script_path, all_cmds_params, inference_tmp_dir,
-                                      'infer_orthogroups', time_in_hours=config.infer_orthogroups_time_limit)
+        script_params = [step_number, translated_orfs_dir]
+        submit_batch(logger, config, script_path, script_params, jobs_inputs_dir, inference_tmp_dir,
+                     'infer_orthogroups', time_in_hours=config.infer_orthogroups_time_limit)
 
         wait_for_results(logger, times_logger, step_name, inference_tmp_dir, config.error_file_path, recursive_step=True)
 
@@ -461,18 +458,16 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
         jobs_inputs_dir = orphans_tmp_dir / 'job_inputs'
         jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
 
-        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
         for job_index, job_genome_names in job_index_to_genome_names.items():
             job_input_path = jobs_inputs_dir / f'{job_index}.txt'
             with open(job_input_path, 'w') as f:
                 f.write('\n'.join(job_genome_names))
 
-            single_cmd_params = [job_input_path, merged_orthogroups_file_path, orphan_genes_internal_dir]
-            all_cmds_params.append(single_cmd_params)
+        script_params = [merged_orthogroups_file_path, orphan_genes_internal_dir]
 
         memory_gb = max(config.job_default_memory_gb, get_required_memory_gb_to_load_csv(merged_orthogroups_file_path))
-        submit_batch(logger, config, script_path, all_cmds_params, orphans_tmp_dir,
-                                      'extract_orphans_from_orthogroups', memory=memory_gb)
+        submit_batch(logger, config, script_path, script_params, jobs_inputs_dir, orphans_tmp_dir,
+                     'extract_orphans_from_orthogroups', memory=memory_gb)
 
         wait_for_results(logger, times_logger, step_name, orphans_tmp_dir, config.error_file_path)
 
@@ -604,18 +599,15 @@ def step_8_build_orthologous_groups_fastas(logger, times_logger, config, all_orf
         orthogroups_df = pd.read_csv(final_orthologs_table_file_path, dtype=str)
         job_paths = split_ogs_to_jobs_inputs_files_by_og_sizes(orthogroups_df, pipeline_step_tmp_dir,
                                                                config.max_parallel_jobs)
-        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
-        for job_path in job_paths:
-            single_cmd_params = [all_orfs_fasta_path,
-                                 all_proteins_fasta_path,
-                                 final_orthologs_table_file_path,
-                                 job_path,
-                                 orthogroups_dna_dir_path,
-                                 orthologs_aa_dir_path,
-                                 orthogroups_aa_msa_dir_path,
-                                 orthogroups_induced_dna_msa_dir_path,
-                                 orthogroups_aa_consensus_dir_path if config.kegg_optimization_mode == 'consensus_of_og' else None]
-            all_cmds_params.append(single_cmd_params)
+
+        script_params = [all_orfs_fasta_path,
+                         all_proteins_fasta_path,
+                         final_orthologs_table_file_path,
+                         orthogroups_dna_dir_path,
+                         orthologs_aa_dir_path,
+                         orthogroups_aa_msa_dir_path,
+                         orthogroups_induced_dna_msa_dir_path,
+                         orthogroups_aa_consensus_dir_path if config.kegg_optimization_mode == 'consensus_of_og' else None]
 
         orfs_size_gb = (all_orfs_fasta_path.stat().st_size + all_proteins_fasta_path.stat().st_size) / 1024 ** 3
         memory_gb = max(config.job_default_memory_gb,
@@ -624,8 +616,8 @@ def step_8_build_orthologous_groups_fastas(logger, times_logger, config, all_orf
         step_pre_processing_time = timedelta(seconds=int(time.time() - start_time))
         times_logger.info(f'Step {step_name} pre-processing time took {step_pre_processing_time}.')
 
-        submit_batch(logger, config, script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                      'orfs_extraction', memory=memory_gb)
+        submit_batch(logger, config, script_path, script_params, job_paths, pipeline_step_tmp_dir,
+                     'orfs_extraction', memory=memory_gb)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, config.error_file_path)
 

@@ -60,7 +60,6 @@ def run_mcl_on_all_putative_ogs(logger, mcl_input_dir, job_input_path, mcl_outpu
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('mcl_input_dir', type=Path, help='path to dir of mcl input files')
-    parser.add_argument('job_input_path', type=Path, help='')
     parser.add_argument('mcl_output_dir', type=Path, help='path to dir the MCL analysis will be written')
     parser.add_argument('verified_clusters_dir', type=Path, help='dir path to which verified clusters are written')
     add_default_step_args(parser)

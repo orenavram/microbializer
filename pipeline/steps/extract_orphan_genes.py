@@ -60,8 +60,6 @@ def extract_orphan_proteins_from_all_files(logger, job_input_path, orthogroups_f
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('job_input_path', type=Path,
-                        help='path to a file that contains the orfs path to extract orphan gene')
     parser.add_argument('orthogroups_file', type=Path, help='path to the the orthologs table')
     parser.add_argument('output_dir', type=Path, help='path to which the orphan proteins will be written')
     add_default_step_args(parser)

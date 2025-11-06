@@ -142,8 +142,8 @@ def infer_orthogroups_on_genomes_batch(logger, times_logger, config, step_number
         subset_proteins_fasta_path, genomes_batch_id)
 
 
-def main(logger, times_logger, step_number, translated_orfs_dir):
-    with open(args.job_input_path, 'r') as f:
+def main(logger, times_logger, step_number, job_input_path, translated_orfs_dir):
+    with open(job_input_path, 'r') as f:
         for line in f:
             genomes_batch_id, config_path = line.strip().split('\t')
             config = Config.from_csv(config_path)
@@ -153,11 +153,10 @@ def main(logger, times_logger, step_number, translated_orfs_dir):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('job_input_path', type=Path)
     parser.add_argument('step_number', help='')
     parser.add_argument('translated_orfs_dir', type=Path)
     add_default_step_args(parser)
     args = parser.parse_args()
 
     times_logger = get_job_times_logger(args.logs_dir, args.job_name, args.verbose, args.use_job_manager)
-    run_step(args, main, times_logger, args.step_number, args.translated_orfs_dir)
+    run_step(args, main, times_logger, args.step_number, args.job_input_path, args.translated_orfs_dir)
