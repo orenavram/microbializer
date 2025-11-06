@@ -238,7 +238,7 @@ def submit_job(logger, config, script_path, script_parameters, logs_dir, job_nam
         if memory is None:
             memory = config.job_default_memory_gb
 
-        submit_cmds_from_file_to_q(logger, job_name, cmds_path, logs_dir, config.queue_name, str(num_of_cpus),
+        submit_cmds_from_file_to_q(logger, job_name, cmds_path, logs_dir, config.queue_name, config.qos, str(num_of_cpus),
                                    config.account_name, memory, time_in_hours, config.node_name, job_array_interval)
     else:
         new_env = os.environ.copy()

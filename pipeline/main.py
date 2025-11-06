@@ -597,8 +597,10 @@ def step_8_build_orthologous_groups_fastas(logger, times_logger, config, all_orf
         orthogroups_aa_consensus_dir_path.mkdir(parents=True, exist_ok=True)
 
         orthogroups_df = pd.read_csv(final_orthologs_table_file_path, dtype=str)
-        job_paths = split_ogs_to_jobs_inputs_files_by_og_sizes(orthogroups_df, pipeline_step_tmp_dir,
-                                                               config.max_parallel_jobs)
+
+        jobs_inputs_dir = pipeline_step_tmp_dir / 'job_inputs'
+        jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
+        split_ogs_to_jobs_inputs_files_by_og_sizes(orthogroups_df, jobs_inputs_dir, config.max_parallel_jobs)
 
         script_params = [all_orfs_fasta_path,
                          all_proteins_fasta_path,
@@ -616,7 +618,7 @@ def step_8_build_orthologous_groups_fastas(logger, times_logger, config, all_orf
         step_pre_processing_time = timedelta(seconds=int(time.time() - start_time))
         times_logger.info(f'Step {step_name} pre-processing time took {step_pre_processing_time}.')
 
-        submit_batch(logger, config, script_path, script_params, job_paths, pipeline_step_tmp_dir,
+        submit_batch(logger, config, script_path, script_params, jobs_inputs_dir, pipeline_step_tmp_dir,
                      'orfs_extraction', memory=memory_gb)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, config.error_file_path)

@@ -30,8 +30,9 @@ SRC_DIR = PROJECT_ROOT_DIR / 'pipeline'
 if ENV == 'yair_test' or ENV == 'yair_prod':
     CONDA_INSTALLATION_DIR = Path('/groups/pupko/yairshimony/miniconda3')
     CONDA_ENVIRONMENT_DIR = Path('/groups/pupko/yairshimony/miniconda3/envs/microbializer')
-    SLURM_ACCOUNT = 'pupko-users'
-    SLURM_PARTITION = 'pupko'
+    SLURM_ACCOUNT = 'pupko-users_v2'
+    SLURM_PARTITION = 'power-general-shared-pool'
+    SLURM_QOS = 'public'
 elif ENV == 'lsweb':
     CONDA_INSTALLATION_DIR = Path('/lsweb/pupko/microbializer/miniconda3')
     CONDA_ENVIRONMENT_DIR = Path('/lsweb/pupko/microbializer/miniconda3/envs/microbializer')
@@ -52,6 +53,7 @@ elif ENV == 'windows':
     CONDA_ENVIRONMENT_DIR = Path(r'C:\ProgramData\miniconda3\envs\microbializer')
     SLURM_ACCOUNT = None
     SLURM_PARTITION = None
+    SLURM_QOS = None
 else:
     raise ValueError(f'Unknown environment: {ENV}')
 

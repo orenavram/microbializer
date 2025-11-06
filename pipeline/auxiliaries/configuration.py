@@ -40,6 +40,7 @@ class Config:
     # Job submission
     queue_name: str
     account_name: str
+    qos: str
     node_name: str
     max_parallel_jobs: int
     use_job_manager: bool
@@ -176,6 +177,8 @@ def get_configuration():
                         default=consts.SLURM_PARTITION)
     parser.add_argument('--account_name', help='The slurm account to submit jobs to',
                         default=consts.SLURM_ACCOUNT)
+    parser.add_argument('--qos', help='The slurm os to submit jobs to',
+                        default=consts.SLURM_QOS)
     parser.add_argument('--node_name', help='The node name to submit jobs to', default='')
     parser.add_argument('--step_to_complete', help='The final step to execute',
                         choices=[*PIPELINE_STEPS, ''], default='')
@@ -225,7 +228,7 @@ def get_configuration():
                     final_output_dir=final_output_dir, final_output_dir_name=final_output_dir_name,
                     error_file_path=error_file_path, progressbar_file_path=progressbar_file_path,
 
-                    queue_name=args.queue_name, account_name=args.account_name, node_name=args.node_name,
+                    queue_name=args.queue_name, account_name=args.account_name, qos=args.qos, node_name=args.node_name,
                     max_parallel_jobs=args.max_parallel_jobs, use_job_manager=args.use_job_manager,
                     use_job_array=args.use_job_array,
 

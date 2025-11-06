@@ -123,7 +123,7 @@ def count_strains_and_genes_in_ogs(orthogroups_df):
     return orthogroups_df[['OG_name', 'strains_count', 'genes_count']]
 
 
-def split_ogs_to_jobs_inputs_files_by_og_sizes(orthogroups_df, step_tmp_dir, max_parallel_jobs):
+def split_ogs_to_jobs_inputs_files_by_og_sizes(orthogroups_df, job_inputs_dir, max_parallel_jobs):
     orthogroups_sizes_df = count_strains_and_genes_in_ogs(orthogroups_df)
     ogs_genes_count_df = orthogroups_sizes_df[['OG_name', 'genes_count']].sort_values(by='genes_count', ascending=False)
 
@@ -138,19 +138,13 @@ def split_ogs_to_jobs_inputs_files_by_og_sizes(orthogroups_df, step_tmp_dir, max
         # Update the job's genes count
         job_index_to_genes_count[job_index_with_min_genes_count] += row["genes_count"]
 
-    job_inputs_dir = step_tmp_dir / 'jobs_inputs'
-    job_inputs_dir.mkdir(parents=True, exist_ok=True)
-    job_paths = []
     for job_index, ogs in job_index_to_ogs.items():
         job_path = job_inputs_dir / f'{job_index}.txt'
         with open(job_path, 'w') as f:
             f.write('\n'.join(map(str, ogs)))
-        job_paths.append(job_path)
 
     # Remove the columns that were added
     orthogroups_df.drop(columns=['strains_count', 'paralogs_count', 'genes_count'], inplace=True)
-
-    return job_paths
 
 
 def sort_orthogroups_df_and_rename_ogs(logger, orthogroups_file_path, orfs_coordinates_dir, sorted_orthogroups_file_path):

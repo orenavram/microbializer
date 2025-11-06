@@ -40,23 +40,21 @@ def create_pseudo_genome_from_ogs(
         orthologs_aa_aligned_dir_path.mkdir(parents=True, exist_ok=True)
         orthologs_aa_consensus_dir_path.mkdir(parents=True, exist_ok=True)
 
-        job_paths = split_ogs_to_jobs_inputs_files_by_og_sizes(
-            final_orthogroups_df, pipeline_step_tmp_dir, config.max_parallel_jobs)
-        all_cmds_params = []
-        for job_path in job_paths:
-            single_cmd_params = [None,
-                                 subset_proteins_fasta_path,
-                                 final_orthogroups_file_path,
-                                 job_path,
-                                 None,
-                                 orthologs_aa_dir_path,
-                                 orthologs_aa_aligned_dir_path if config.pseudo_genome_mode == 'consensus_gene' else None,
-                                 None,
-                                 orthologs_aa_consensus_dir_path if config.pseudo_genome_mode == 'consensus_gene' else None]
-            all_cmds_params.append(single_cmd_params)
+        jobs_inputs_dir = pipeline_step_tmp_dir / 'jobs_inputs'
+        jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
+        split_ogs_to_jobs_inputs_files_by_og_sizes(final_orthogroups_df, jobs_inputs_dir, config.max_parallel_jobs)
 
-        submit_batch(logger, config, script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                      'orfs_extraction')
+        script_params = [None,
+                         subset_proteins_fasta_path,
+                         final_orthogroups_file_path,
+                         None,
+                         orthologs_aa_dir_path,
+                         orthologs_aa_aligned_dir_path if config.pseudo_genome_mode == 'consensus_gene' else None,
+                         None,
+                         orthologs_aa_consensus_dir_path if config.pseudo_genome_mode == 'consensus_gene' else None]
+
+        submit_batch(logger, config, script_path, script_params, jobs_inputs_dir, pipeline_step_tmp_dir,
+                     'orfs_extraction')
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, config.error_file_path)
         write_done_file(logger, done_file_path)

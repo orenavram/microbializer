@@ -145,8 +145,9 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
         logger.info('Preparing jobs inputs for prepare_og_for_mcl...')
         start_time = time.time()
 
-        job_paths = split_ogs_to_jobs_inputs_files_by_og_sizes(putative_orthologs_table_df, mcl_inputs_tmp_dir,
-                                                               config.max_parallel_jobs)
+        job_inputs_dir = mcl_inputs_tmp_dir / 'jobs_inputs'
+        job_inputs_dir.mkdir(parents=True, exist_ok=True)
+        split_ogs_to_jobs_inputs_files_by_og_sizes(putative_orthologs_table_df, job_inputs_dir, config.max_parallel_jobs)
 
         script_params = [normalized_hits_output_dir, putative_orthologs_table_path, mcl_inputs_dir]
 
@@ -154,7 +155,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
         step_pre_processing_time = timedelta(seconds=int(time.time() - start_time))
         times_logger.info(f'Step {step_name} pre-processing time took {step_pre_processing_time}.')
 
-        submit_batch(logger, config, script_path, script_params, job_paths, mcl_inputs_tmp_dir, 'mcl_preparation')
+        submit_batch(logger, config, script_path, script_params, job_inputs_dir, mcl_inputs_tmp_dir, 'mcl_preparation')
 
         wait_for_results(logger, times_logger, step_name, mcl_inputs_tmp_dir, config.error_file_path)
         write_done_file(logger, done_file_path)
@@ -181,8 +182,9 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
         mcl_outputs_dir.mkdir(parents=True, exist_ok=True)
         verified_clusters_output_dir.mkdir(parents=True, exist_ok=True)
 
-        job_paths = split_ogs_to_jobs_inputs_files_by_og_sizes(putative_orthologs_table_df, mcl_tmp_dir,
-                                                               config.max_parallel_jobs)
+        jobs_inputs_dir = mcl_tmp_dir / 'jobs_inputs'
+        jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
+        split_ogs_to_jobs_inputs_files_by_og_sizes(putative_orthologs_table_df, jobs_inputs_dir, config.max_parallel_jobs)
 
         script_params = [mcl_inputs_dir, mcl_outputs_dir, verified_clusters_output_dir]
 
@@ -190,7 +192,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
         step_pre_processing_time = timedelta(seconds=int(time.time() - start_time))
         times_logger.info(f'Step {step_name} pre-processing time took {step_pre_processing_time}.')
 
-        submit_batch(logger, config, script_path, script_params, job_paths, mcl_tmp_dir, 'mcl_execution')
+        submit_batch(logger, config, script_path, script_params, jobs_inputs_dir, mcl_tmp_dir, 'mcl_execution')
 
         wait_for_results(logger, times_logger, step_name, mcl_tmp_dir, config.error_file_path)
         write_done_file(logger, done_file_path)

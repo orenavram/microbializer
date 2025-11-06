@@ -15,11 +15,12 @@ MEMORY_SUFFIX = 'G'
 CHECK_JOB_DETAILS_COMMAND = 'scontrol show job'
 
 
-def add_slurm_header(sbatch_file_content, queue_name, tmp_dir, job_name, CPUs, account_name, memory, time_in_hours,
+def add_slurm_header(sbatch_file_content, queue_name, qos, tmp_dir, job_name, CPUs, account_name, memory, time_in_hours,
                      node_name, job_array_interval):
     sbatch_file_content += f'#SBATCH --job-name={job_name}\n'
     sbatch_file_content += f'#SBATCH --account={account_name}\n'
     sbatch_file_content += f'#SBATCH --partition={queue_name}\n'
+    sbatch_file_content += f'#SBATCH --qos={qos}\n'
     sbatch_file_content += f'#SBATCH --ntasks=1\n'
     sbatch_file_content += f'#SBATCH --cpus-per-task={CPUs}\n'
     sbatch_file_content += f'#SBATCH --mem={memory}{MEMORY_SUFFIX}\n'
@@ -50,11 +51,11 @@ def add_slurm_header(sbatch_file_content, queue_name, tmp_dir, job_name, CPUs, a
     return sbatch_file_content
 
 
-def generate_job_file(logger, queue_name, tmp_dir, cmds_path, job_name, job_path, CPUs, account_name, memory,
+def generate_job_file(logger, queue_name, qos, tmp_dir, cmds_path, job_name, job_path, CPUs, account_name, memory,
                       time_in_hours, node_name, job_array_interval):
     """compose the job file content and fetches it"""
     job_file_content = f'#!/bin/bash {"-x" if consts.JOB_FILES_DEBUG_MODE else ""}\n'  # 'old bash: #!/bin/tcsh -x\n'
-    job_file_content = add_slurm_header(job_file_content, queue_name, tmp_dir, job_name, CPUs, account_name, memory,
+    job_file_content = add_slurm_header(job_file_content, queue_name, qos, tmp_dir, job_name, CPUs, account_name, memory,
                                         time_in_hours, node_name, job_array_interval)
     job_file_content += f'{cmds_path}\n'
 
@@ -77,10 +78,10 @@ def generate_job_file(logger, queue_name, tmp_dir, cmds_path, job_name, job_path
     subprocess.call(['chmod', '+x', job_path])  # set execution permissions
 
 
-def submit_cmds_from_file_to_q(logger, job_name, cmds_path, tmp_dir, queue_name, CPUs, account_name, memory,
+def submit_cmds_from_file_to_q(logger, job_name, cmds_path, tmp_dir, queue_name, qos, CPUs, account_name, memory,
                                time_in_hours, node_name, job_array_interval):
     job_path = tmp_dir / f'{job_name}{JOB_EXTENSION}'  # path to job
-    generate_job_file(logger, queue_name, tmp_dir, cmds_path, job_name, job_path, CPUs, account_name, memory,
+    generate_job_file(logger, queue_name, qos, tmp_dir, cmds_path, job_name, job_path, CPUs, account_name, memory,
                       time_in_hours, node_name, job_array_interval)
 
     # execute the job
