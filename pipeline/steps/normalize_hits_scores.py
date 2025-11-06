@@ -35,8 +35,6 @@ def normalize_hits_scores_of_all_files(logger, job_input_file, output_dir, use_p
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('job_input_file', type=Path,
-                        help='path to a file that contains the paths of the files to normalize and the normalization coefficients')
     parser.add_argument('output_dir', type=Path, help='path to output dir')
     parser.add_argument('--use_parquet', type=str_to_bool)
     add_default_step_args(parser)

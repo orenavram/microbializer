@@ -39,8 +39,6 @@ def create_dbs(logger, job_input_path, proteomes_dir, output_dir):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('job_input_path', type=Path,
-                        help='path to a file that contains the genome names to create dbs for')
     parser.add_argument('proteomes_dir', type=Path, help='path to dir of proteomes')
     parser.add_argument('output_dir', type=Path, help='path to which the results will be written')
     add_default_step_args(parser)

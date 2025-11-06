@@ -114,7 +114,6 @@ def search_rbhs_in_all_pairs(logger, job_input_path, dbs_dir, rbh_hits_dir, scor
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('job_input_path', type=Path, help='path to a file that contains the genome pairs to find rbhs')
     parser.add_argument('dbs_dir', type=Path, help='path to dbs dir')
     parser.add_argument('rbh_hits_dir', type=Path, help='path to which the results will be written (blast m8 format)')
     parser.add_argument('scores_statistics_dir', type=Path, help='path to output dir of score statistics')

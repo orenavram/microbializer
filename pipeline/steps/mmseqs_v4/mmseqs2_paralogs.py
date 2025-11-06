@@ -143,8 +143,6 @@ def search_paralogs_in_all_pairs(logger, job_input_path, dbs_dir, max_scores_par
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('job_input_path', type=Path,
-                        help='path to a file that contains the genome names to find paralogs')
     parser.add_argument('dbs_dir', type=Path, help='')
     parser.add_argument('max_scores_parts_dir', type=Path, help='')
     parser.add_argument('paralogs_dir', type=Path, help='')

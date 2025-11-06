@@ -98,9 +98,9 @@ def extract_rbh_hits_of_pair(logger, m8_df, genome1, genome2, rbh_hits_dir, scor
     logger.info(f"{output_genome1_max_scores} and {output_genome2_max_scores} were created successfully.")
 
 
-def extract_rbh_hits(logger, m8_path, rbh_input_path, rbh_hits_dir, scores_statistics_dir, max_rbh_score_per_gene_dir,
+def extract_rbh_hits(logger, m8_path, job_input_path, rbh_hits_dir, scores_statistics_dir, max_rbh_score_per_gene_dir,
                      use_parquet, verbose):
-    with open(rbh_input_path, 'r') as f:
+    with open(job_input_path, 'r') as f:
         genome_pairs = f.readlines()
         genome_pairs = [pair.strip().split() for pair in genome_pairs]
 
@@ -116,7 +116,6 @@ def extract_rbh_hits(logger, m8_path, rbh_input_path, rbh_hits_dir, scores_stati
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('m8_path', type=Path, help='')
-    parser.add_argument('rbh_input_path', type=Path, help='')
     parser.add_argument('rbh_hits_dir', type=Path, help='')
     parser.add_argument('scores_statistics_dir', type=Path, help='')
     parser.add_argument('max_rbh_score_per_gene_dir', type=Path, help='')
@@ -124,5 +123,5 @@ if __name__ == '__main__':
     add_default_step_args(parser)
     args = parser.parse_args()
 
-    run_step(args, extract_rbh_hits, args.m8_path, args.rbh_input_path, args.rbh_hits_dir, args.scores_statistics_dir,
+    run_step(args, extract_rbh_hits, args.m8_path, args.job_input_path, args.rbh_hits_dir, args.scores_statistics_dir,
              args.max_rbh_score_per_gene_dir, args.use_parquet, args.verbose)

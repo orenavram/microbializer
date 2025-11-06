@@ -96,9 +96,9 @@ def extract_paralogs_of_genome(logger, m8_df, genome_name, max_scores_parts_dir,
     logger.info(f"{score_stats_file} was created successfully.")
 
 
-def extract_paralogs(logger, m8_path, genomes_input_path, max_scores_parts_dir, paralogs_dir,
+def extract_paralogs(logger, m8_path, job_input_path, max_scores_parts_dir, paralogs_dir,
                      max_rbh_scores_unified_dir, scores_statistics_dir, use_parquet, verbose):
-    with open(genomes_input_path, 'r') as f:
+    with open(job_input_path, 'r') as f:
         genomes = [genome.strip() for genome in f]
 
     temp_dir = paralogs_dir / 'tmp'
@@ -113,7 +113,6 @@ def extract_paralogs(logger, m8_path, genomes_input_path, max_scores_parts_dir, 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('m8_path', type=Path, help='')
-    parser.add_argument('genomes_input_path', type=Path, help='')
     parser.add_argument('max_scores_parts_dir', type=Path, help='')
     parser.add_argument('paralogs_dir', type=Path, help='')
     parser.add_argument('max_rbh_scores_unified_dir', type=Path, help='')
@@ -122,6 +121,6 @@ if __name__ == '__main__':
     add_default_step_args(parser)
     args = parser.parse_args()
 
-    run_step(args, extract_paralogs, args.m8_path, args.genomes_input_path, args.max_scores_parts_dir,
+    run_step(args, extract_paralogs, args.m8_path, args.job_input_path, args.max_scores_parts_dir,
              args.paralogs_dir, args.max_rbh_scores_unified_dir, args.scores_statistics_dir, args.use_parquet,
              args.verbose)

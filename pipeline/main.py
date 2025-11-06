@@ -985,8 +985,6 @@ def run_main_pipeline(logger, times_logger, config):
         logger.info("Step 2 completed.")
         return
 
-    return
-
     if not config.only_calc_ogs:
         step_3_analyze_genome_completeness(logger, times_logger, config, translated_orfs_dir)
 

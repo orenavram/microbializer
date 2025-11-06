@@ -78,7 +78,6 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
                     job_index_to_hits_files_and_coefficients[job_index].append(
                         (str(hits_file), scores_normalize_coefficients[strains_pair]))
 
-            all_cmds_params = []
             jobs_inputs_dir = normalized_hits_tmp_dir / 'jobs_inputs'
             jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
             for job_index, job_input_info in job_index_to_hits_files_and_coefficients.items():
@@ -87,14 +86,13 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
                     for hits_file, scores_normalize_coefficient in job_input_info:
                         f.write(f'{hits_file}\t{scores_normalize_coefficient}\n')
 
-                single_cmd_params = [job_input_path, normalized_hits_output_dir, f'--use_parquet {config.use_parquet}']
-                all_cmds_params.append(single_cmd_params)
+            script_params = [normalized_hits_output_dir, f'--use_parquet {config.use_parquet}']
 
             step_pre_processing_time = timedelta(seconds=int(time.time() - start_time))
             times_logger.info(f'Step {step_name} pre-processing took {step_pre_processing_time}.')
 
-            submit_batch(logger, config, script_path, all_cmds_params, normalized_hits_tmp_dir,
-                                          'hits_normalize')
+            submit_batch(logger, config, script_path, script_params, jobs_inputs_dir, normalized_hits_tmp_dir,
+                         'hits_normalize')
 
             wait_for_results(logger, times_logger, step_name, normalized_hits_tmp_dir, config.error_file_path)
 
@@ -383,21 +381,17 @@ def run_unified_mmseqs(logger, times_logger, config, base_step_number, all_prote
                 job_index = i % config.max_parallel_jobs
                 job_index_to_pairs[job_index].append((genome1, genome2))
 
-            all_cmds_params = []
             for job_index, pairs in job_index_to_pairs.items():
-                job_input_path = rbh_inputs_dir / f'job_{job_index}_pairs.txt'
+                job_input_path = rbh_inputs_dir / f'{job_index}.txt'
                 pairs_text = '\n'.join([f'{genome1}\t{genome2}' for genome1, genome2 in pairs])
                 with open(job_input_path, 'w') as f:
                     f.write(pairs_text)
 
-                params = [m8_output_path, job_input_path, orthologs_output_dir,
-                          orthologs_scores_statistics_dir, max_rbh_scores_parts_output_dir,
-                          f'--use_parquet {config.use_parquet}']
-                all_cmds_params.append(params)
+            script_params = [m8_output_path, orthologs_output_dir, orthologs_scores_statistics_dir,
+                             max_rbh_scores_parts_output_dir, f'--use_parquet {config.use_parquet}']
 
-            submit_batch(logger, config, script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                          'rbh_analysis', memory=m8_output_parsing_memory,
-                                          time_in_hours=config.mmseqs_time_limit)
+            submit_batch(logger, config, script_path, script_params, rbh_inputs_dir, pipeline_step_tmp_dir,
+                         'rbh_analysis', memory=m8_output_parsing_memory, time_in_hours=config.mmseqs_time_limit)
 
             wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, config.error_file_path)
 
@@ -430,19 +424,17 @@ def run_unified_mmseqs(logger, times_logger, config, base_step_number, all_prote
             job_index = i % config.max_parallel_jobs
             job_index_to_genome[job_index].append(genome)
 
-        all_cmds_params = []
         for job_index, genomes in job_index_to_genome.items():
-            job_input_path = paralogs_inputs_dir / f'job_{job_index}_genomes.txt'
+            job_input_path = paralogs_inputs_dir / f'{job_index}.txt'
             with open(job_input_path, 'w') as f:
                 f.write('\n'.join(genomes))
 
-            single_cmd_params = [m8_output_path, job_input_path, max_rbh_scores_parts_output_dir,
-                                 paralogs_output_dir, max_rbh_scores_unified_dir, paralogs_scores_statistics_dir,
-                                 f'--use_parquet {config.use_parquet}']
-            all_cmds_params.append(single_cmd_params)
+        script_params = [m8_output_path, max_rbh_scores_parts_output_dir, paralogs_output_dir,
+                         max_rbh_scores_unified_dir, paralogs_scores_statistics_dir,
+                         f'--use_parquet {config.use_parquet}']
 
-        submit_batch(logger, config, script_path, all_cmds_params, pipeline_step_tmp_dir,
-                                      'paralogs_analysis', memory=m8_output_parsing_memory)
+        submit_batch(logger, config, script_path, script_params, paralogs_inputs_dir, pipeline_step_tmp_dir,
+                     'paralogs_analysis', memory=m8_output_parsing_memory)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, config.error_file_path)
 
@@ -477,17 +469,13 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, config, base_step_numb
         jobs_inputs_dir = mmseqs_dbs_tmp_dir / 'job_inputs'
         jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
 
-        all_cmds_params = []  # a list of lists. Each sublist contain different parameters set for the same script to reduce the total number of jobs
         for job_index, job_strain_names in job_index_to_strain_names.items():
             job_input_path = jobs_inputs_dir / f'{job_index}.txt'
             with open(job_input_path, 'w') as f:
                 f.write('\n'.join(job_strain_names))
 
-            single_cmd_params = [job_input_path, translated_orfs_dir, mmseqs_dbs_output_dir]
-            all_cmds_params.append(single_cmd_params)
-
-        submit_batch(logger, config, script_path, all_cmds_params, mmseqs_dbs_tmp_dir,
-                                      'mmseqs_dbs')
+        script_params = [translated_orfs_dir, mmseqs_dbs_output_dir]
+        submit_batch(logger, config, script_path, script_params, jobs_inputs_dir, mmseqs_dbs_tmp_dir, 'mmseqs_dbs')
 
         wait_for_results(logger, times_logger, step_name, mmseqs_dbs_tmp_dir, config.error_file_path)
 
@@ -521,29 +509,25 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, config, base_step_numb
             jobs_inputs_dir = orthologs_tmp_dir / 'job_inputs'
             jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
 
-            all_cmds_params = []
             for job_index, job_strain_pairs in job_index_to_strain_pairs.items():
                 job_input_path = jobs_inputs_dir / f'{job_index}.txt'
                 with open(job_input_path, 'w') as f:
                     for strain1_name, strain2_name in job_strain_pairs:
                         f.write(f'{strain1_name}\t{strain2_name}\n')
 
-                single_cmd_params = [job_input_path,
-                                     mmseqs_dbs_output_dir,
-                                     orthologs_output_dir,
-                                     orthologs_scores_statistics_dir,
-                                     max_rbh_scores_parts_output_dir,
-                                     temp_dir,
-                                     f'--identity_cutoff {config.identity_cutoff / 100}',
-                                     f'--coverage_cutoff {config.coverage_cutoff / 100}',
-                                     f'--e_value_cutoff {config.e_value_cutoff}',
-                                     f'--sensitivity {config.sensitivity}',
-                                     f'--use_parquet {config.use_parquet}'
-                                     ]
-                all_cmds_params.append(single_cmd_params)
-
-            submit_batch(logger, config, script_path, all_cmds_params, orthologs_tmp_dir,
-                                          'rbh_analysis', time_in_hours=config.mmseqs_time_limit)
+            script_params = [mmseqs_dbs_output_dir,
+                             orthologs_output_dir,
+                             orthologs_scores_statistics_dir,
+                             max_rbh_scores_parts_output_dir,
+                             temp_dir,
+                             f'--identity_cutoff {config.identity_cutoff / 100}',
+                             f'--coverage_cutoff {config.coverage_cutoff / 100}',
+                             f'--e_value_cutoff {config.e_value_cutoff}',
+                             f'--sensitivity {config.sensitivity}',
+                             f'--use_parquet {config.use_parquet}'
+                             ]
+            submit_batch(logger, config, script_path, script_params, jobs_inputs_dir, orthologs_tmp_dir,
+                         'rbh_analysis', time_in_hours=config.mmseqs_time_limit)
 
             wait_for_results(logger, times_logger, step_name, orthologs_tmp_dir, config.error_file_path)
 
@@ -580,30 +564,25 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, config, base_step_numb
         jobs_inputs_dir = paralogs_tmp_dir / 'job_inputs'
         jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
 
-        all_cmds_params = []
-
         for job_index, job_strains_names in job_index_to_strain_names.items():
             job_input_path = jobs_inputs_dir / f'{job_index}.txt'
             with open(job_input_path, 'w') as f:
                 f.write('\n'.join(job_strains_names))
 
-            single_cmd_params = [job_input_path,
-                                 mmseqs_dbs_output_dir,
-                                 max_rbh_scores_parts_output_dir,
-                                 paralogs_output_dir,
-                                 max_rbh_scores_unified_dir,
-                                 paralogs_scores_statistics_dir,
-                                 temp_dir,
-                                 f'--identity_cutoff {config.identity_cutoff / 100}',
-                                 f'--coverage_cutoff {config.coverage_cutoff / 100}',
-                                 f'--e_value_cutoff {config.e_value_cutoff}',
-                                 f'--sensitivity {config.sensitivity}',
-                                 f'--use_parquet {config.use_parquet}'
-                                 ]
-            all_cmds_params.append(single_cmd_params)
+        script_params = [mmseqs_dbs_output_dir,
+                         max_rbh_scores_parts_output_dir,
+                         paralogs_output_dir,
+                         max_rbh_scores_unified_dir,
+                         paralogs_scores_statistics_dir,
+                         temp_dir,
+                         f'--identity_cutoff {config.identity_cutoff / 100}',
+                         f'--coverage_cutoff {config.coverage_cutoff / 100}',
+                         f'--e_value_cutoff {config.e_value_cutoff}',
+                         f'--sensitivity {config.sensitivity}',
+                         f'--use_parquet {config.use_parquet}'
+                         ]
 
-        submit_batch(logger, config, script_path, all_cmds_params, paralogs_tmp_dir,
-                                      'paralogs_analysis')
+        submit_batch(logger, config, script_path, script_params, jobs_inputs_dir, paralogs_tmp_dir, 'paralogs_analysis')
 
         wait_for_results(logger, times_logger, step_name, paralogs_tmp_dir, config.error_file_path)
         write_done_file(logger, done_file_path)
