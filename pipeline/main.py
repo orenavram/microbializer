@@ -231,7 +231,7 @@ def step_3_analyze_genome_completeness(logger, times_logger, config, translated_
         start_time = time.time()
 
         genomes_completeness_scores = {}
-        for genome_dir in genomes_output_dir_path.iterdir():
+        for genome_dir in sorted(genomes_output_dir_path.iterdir()):
             genome_score_path = genome_dir / 'result.txt'
             with open(genome_score_path, 'r') as fp:
                 genomes_completeness_scores[genome_dir.name] = float(fp.read().strip())
@@ -381,7 +381,7 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
         sub_orthogroups_dir_path.mkdir(parents=True, exist_ok=True)
         pseudo_genomes_names = []
 
-        for batch_dir_path in inference_dir_path.iterdir():
+        for batch_dir_path in sorted(inference_dir_path.iterdir()):
             if not batch_dir_path.is_dir():
                 continue
             batch_id = batch_dir_path.name.split('_')[1]
@@ -761,7 +761,7 @@ def step_11_phylogeny(logger, times_logger, config, aligned_core_proteome_file_p
         ani_tmp_files = ani_tmp_dir / 'temp_results'
         ani_tmp_files.mkdir(parents=True, exist_ok=True)
 
-        genomes_paths = [str(genome_path) for genome_path in config.data_path.iterdir()]
+        genomes_paths = [str(genome_path) for genome_path in sorted(config.data_path.iterdir())]
         genomes_list_path = ani_tmp_files / 'genomes_list.txt'
         with open(genomes_list_path, 'w') as genomes_list_file:
             genomes_list_file.write('\n'.join(genomes_paths))

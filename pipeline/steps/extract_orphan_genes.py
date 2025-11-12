@@ -30,7 +30,7 @@ def extract_orphan_proteins(logger, proteins_file_path, orthogroups_df, output_d
     orthogroups_strain_column = orthogroups_df[strain_name].dropna()
     genes_in_orthogroups = flatten([value.split(';') for value in orthogroups_strain_column])
     all_strain_genes = set(extract_gene_names_from_fasta(proteins_file_path))
-    orphans = list(all_strain_genes.difference(genes_in_orthogroups))
+    orphans = sorted(list(all_strain_genes.difference(genes_in_orthogroups)))
 
     orphans_path = output_dir / f'{strain_name}_orphans.txt'
     with open(orphans_path, 'w') as orphans_path_fp:

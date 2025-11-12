@@ -236,6 +236,7 @@ def analyze_codon_bias(logger, ORF_dir, OG_dir, output_dir, cai_table_path, tmp_
 
     genomes_W_vectors_df = pd.DataFrame.from_dict(genome_name_to_codon_index, orient='index')
     genomes_W_vectors_df = genomes_W_vectors_df.round(3)
+    genomes_W_vectors_df.sort_index(inplace=True)
     genomes_W_vectors_path = output_dir / 'W_vectors.csv'
     genomes_W_vectors_df.to_csv(genomes_W_vectors_path, index_label='Genome')
     logger.info(f"W vectors were calculated successfully and written to {genomes_W_vectors_path}")

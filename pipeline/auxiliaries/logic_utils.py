@@ -107,6 +107,7 @@ def combine_orphan_genes_stats(orphan_genes_dir, output_dir):
 
     combined_df = pd.concat(all_stat_dfs)
     combined_df.index.name = 'Genome'
+    combined_df.sort_index(inplace=True)
     combined_df.to_csv(output_dir / 'orphans_genes_stats.csv')
 
     number_of_orphans_per_file = combined_df['Total orphans count'].to_dict()

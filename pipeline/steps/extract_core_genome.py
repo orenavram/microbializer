@@ -48,7 +48,7 @@ def extract_core_genome(logger, alignments_path, strains_names_path, core_genome
 
     strain_to_core_genome_dict = dict.fromkeys(strains_names, '')
     core_ogs = []
-    for og_file in alignments_path.iterdir():  # TODO: consider sorting by og name (currently the concatenation is arbitrary)
+    for og_file in sorted(alignments_path.iterdir()):
         gene_name_to_sequence_dict = {record.id: record.seq for record in SeqIO.parse(og_file, 'fasta')}
         og_alignment_length = len(next(iter(gene_name_to_sequence_dict.values())))
         num_of_strains_in_og = get_num_of_strains_in_og(gene_name_to_sequence_dict)
