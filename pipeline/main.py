@@ -46,7 +46,7 @@ def step_1_fix_input_files(logger, times_logger, config):
             job_index = i % config.max_parallel_jobs
             job_index_to_fasta_files[job_index].append(str(fasta_file))
 
-        jobs_inputs_dir = pipeline_step_tmp_dir / 'job_inputs'
+        jobs_inputs_dir = pipeline_step_tmp_dir / consts.STEP_INPUTS_DIR_NAME
         jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
 
         for job_index, job_fasta_files in job_index_to_fasta_files.items():
@@ -57,7 +57,7 @@ def step_1_fix_input_files(logger, times_logger, config):
         script_params = [filtered_inputs_dir, f'--drop_plasmids {config.filter_out_plasmids}',
                          f'--fix_frames {config.inputs_fasta_type == "orfs"}']
 
-        submit_batch(logger, config, script_path, script_params, jobs_inputs_dir, pipeline_step_tmp_dir,
+        submit_batch(logger, config, script_path, script_params, pipeline_step_tmp_dir,
                      'drop_plasmids')
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, config.error_file_path)
@@ -103,7 +103,7 @@ def step_2_search_orfs(logger, times_logger, config):
             job_index = i % config.max_parallel_jobs
             job_index_to_fasta_files[job_index].append(str(fasta_file))
 
-        jobs_inputs_dir = orfs_tmp_dir / 'job_inputs'
+        jobs_inputs_dir = orfs_tmp_dir / consts.STEP_INPUTS_DIR_NAME
         jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
 
         for job_index, job_fasta_files in job_index_to_fasta_files.items():
@@ -112,7 +112,7 @@ def step_2_search_orfs(logger, times_logger, config):
                 f.write('\n'.join(job_fasta_files))
 
         script_params = [orfs_sequences_dir, orfs_statistics_dir, orfs_translated_dir, orfs_coordinates_dir, config.inputs_fasta_type]
-        submit_batch(logger, config, script_path, script_params, jobs_inputs_dir, orfs_tmp_dir, 'search_orfs')
+        submit_batch(logger, config, script_path, script_params, orfs_tmp_dir, 'search_orfs')
 
         wait_for_results(logger, times_logger, step_name, orfs_tmp_dir, config.error_file_path)
 
@@ -211,7 +211,7 @@ def step_3_analyze_genome_completeness(logger, times_logger, config, translated_
             job_index = i % config.max_parallel_jobs
             job_index_to_fasta_files[job_index].append(str(fasta_file))
 
-        jobs_inputs_dir = genome_completeness_tmp_dir / 'job_inputs'
+        jobs_inputs_dir = genome_completeness_tmp_dir / consts.STEP_INPUTS_DIR_NAME
         jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
         genomes_output_dir_path = genome_completeness_tmp_dir / 'individual_proteomes_outputs'
         genomes_output_dir_path.mkdir(parents=True, exist_ok=True)
@@ -222,7 +222,7 @@ def step_3_analyze_genome_completeness(logger, times_logger, config, translated_
                 f.write('\n'.join(job_fasta_files))
 
         script_params = [genomes_output_dir_path]
-        submit_batch(logger, config, script_path, script_params, jobs_inputs_dir, genome_completeness_tmp_dir,
+        submit_batch(logger, config, script_path, script_params, genome_completeness_tmp_dir,
                      'genomes_completeness')
 
         wait_for_results(logger, times_logger, step_name, genome_completeness_tmp_dir, config.error_file_path)
@@ -344,7 +344,7 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
             job_index = batch_id % config.max_parallel_jobs
             job_index_to_batches[job_index].append(f'{batch_id}\t{subset_config_path}')
 
-        jobs_inputs_dir = inference_tmp_dir / 'job_inputs'
+        jobs_inputs_dir = inference_tmp_dir / consts.STEP_INPUTS_DIR_NAME
         jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
 
         for job_index, job_batches in job_index_to_batches.items():
@@ -353,7 +353,7 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
                 f.write('\n'.join(job_batches))
 
         script_params = [step_number, translated_orfs_dir]
-        submit_batch(logger, config, script_path, script_params, jobs_inputs_dir, inference_tmp_dir,
+        submit_batch(logger, config, script_path, script_params, inference_tmp_dir,
                      'infer_orthogroups', time_in_hours=config.infer_orthogroups_time_limit)
 
         wait_for_results(logger, times_logger, step_name, inference_tmp_dir, config.error_file_path, recursive_step=True)
@@ -455,7 +455,7 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
             job_index = i % config.max_parallel_jobs
             job_index_to_genome_names[job_index].append(genome_name)
 
-        jobs_inputs_dir = orphans_tmp_dir / 'job_inputs'
+        jobs_inputs_dir = orphans_tmp_dir / consts.STEP_INPUTS_DIR_NAME
         jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
 
         for job_index, job_genome_names in job_index_to_genome_names.items():
@@ -466,7 +466,7 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
         script_params = [merged_orthogroups_file_path, orphan_genes_internal_dir]
 
         memory_gb = max(config.job_default_memory_gb, get_required_memory_gb_to_load_csv(merged_orthogroups_file_path))
-        submit_batch(logger, config, script_path, script_params, jobs_inputs_dir, orphans_tmp_dir,
+        submit_batch(logger, config, script_path, script_params, orphans_tmp_dir,
                      'extract_orphans_from_orthogroups', memory=memory_gb)
 
         wait_for_results(logger, times_logger, step_name, orphans_tmp_dir, config.error_file_path)
@@ -598,7 +598,7 @@ def step_8_build_orthologous_groups_fastas(logger, times_logger, config, all_orf
 
         orthogroups_df = pd.read_csv(final_orthologs_table_file_path, dtype=str)
 
-        jobs_inputs_dir = pipeline_step_tmp_dir / 'job_inputs'
+        jobs_inputs_dir = pipeline_step_tmp_dir / consts.STEP_INPUTS_DIR_NAME
         jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
         split_ogs_to_jobs_inputs_files_by_og_sizes(orthogroups_df, jobs_inputs_dir, config.max_parallel_jobs)
 
@@ -618,7 +618,7 @@ def step_8_build_orthologous_groups_fastas(logger, times_logger, config, all_orf
         step_pre_processing_time = timedelta(seconds=int(time.time() - start_time))
         times_logger.info(f'Step {step_name} pre-processing time took {step_pre_processing_time}.')
 
-        submit_batch(logger, config, script_path, script_params, jobs_inputs_dir, pipeline_step_tmp_dir,
+        submit_batch(logger, config, script_path, script_params, pipeline_step_tmp_dir,
                      'orfs_extraction', memory=memory_gb)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, config.error_file_path)

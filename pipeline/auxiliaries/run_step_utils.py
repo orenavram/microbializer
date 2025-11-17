@@ -31,8 +31,8 @@ def wait_for_results(logger, times_logger, script_name, path, error_file_path, s
     if not start:
         start = time()
 
-    if (path / 'job_inputs').exists():
-        num_of_expected_results = sum(1 for _ in (path / 'job_inputs').glob('*.txt'))
+    if (path / consts.STEP_INPUTS_DIR_NAME).exists():
+        num_of_expected_results = sum(1 for _ in (path / consts.STEP_INPUTS_DIR_NAME).glob('*.txt'))
     else:
         num_of_expected_results = 1
 
@@ -254,7 +254,7 @@ def submit_job(logger, config, script_path, script_parameters, logs_dir, job_nam
                 subprocess.run(shell_cmd, shell=True, check=True, capture_output=True, text=True, env=new_env)
 
 
-def submit_batch(logger, config, script_path, script_parameters, batch_inputs_dir, logs_dir, job_name_suffix,
+def submit_batch(logger, config, script_path, script_parameters, logs_dir, job_name_suffix,
                  num_of_cpus=1, memory=None, time_in_hours=None):
     """
     :param script_path:
@@ -265,6 +265,7 @@ def submit_batch(logger, config, script_path, script_parameters, batch_inputs_di
     :return: number of batches submitted (in case waiting for the results) and an example command to debug on the shell
     """
     job_name_suffix = job_name_suffix.replace(' ', '_')  # job name cannot contain spaces!
+    batch_inputs_dir = logs_dir / consts.STEP_INPUTS_DIR_NAME
 
     if (config.use_job_manager and not config.use_job_array) or config.max_parallel_jobs == 1:
         for i, input_file in enumerate(batch_inputs_dir.glob('*.txt')):

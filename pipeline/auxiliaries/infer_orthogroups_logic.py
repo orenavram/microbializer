@@ -78,7 +78,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
                     job_index_to_hits_files_and_coefficients[job_index].append(
                         (str(hits_file), scores_normalize_coefficients[strains_pair]))
 
-            jobs_inputs_dir = normalized_hits_tmp_dir / 'jobs_inputs'
+            jobs_inputs_dir = normalized_hits_tmp_dir / consts.STEP_INPUTS_DIR_NAME
             jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
             for job_index, job_input_info in job_index_to_hits_files_and_coefficients.items():
                 job_input_path = jobs_inputs_dir / f'{job_index}.txt'
@@ -91,7 +91,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
             step_pre_processing_time = timedelta(seconds=int(time.time() - start_time))
             times_logger.info(f'Step {step_name} pre-processing took {step_pre_processing_time}.')
 
-            submit_batch(logger, config, script_path, script_params, jobs_inputs_dir, normalized_hits_tmp_dir,
+            submit_batch(logger, config, script_path, script_params, normalized_hits_tmp_dir,
                          'hits_normalize')
 
             wait_for_results(logger, times_logger, step_name, normalized_hits_tmp_dir, config.error_file_path)
@@ -145,7 +145,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
         logger.info('Preparing jobs inputs for prepare_og_for_mcl...')
         start_time = time.time()
 
-        job_inputs_dir = mcl_inputs_tmp_dir / 'jobs_inputs'
+        job_inputs_dir = mcl_inputs_tmp_dir / consts.STEP_INPUTS_DIR_NAME
         job_inputs_dir.mkdir(parents=True, exist_ok=True)
         split_ogs_to_jobs_inputs_files_by_og_sizes(putative_orthologs_table_df, job_inputs_dir, config.max_parallel_jobs)
 
@@ -155,7 +155,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
         step_pre_processing_time = timedelta(seconds=int(time.time() - start_time))
         times_logger.info(f'Step {step_name} pre-processing time took {step_pre_processing_time}.')
 
-        submit_batch(logger, config, script_path, script_params, job_inputs_dir, mcl_inputs_tmp_dir, 'mcl_preparation')
+        submit_batch(logger, config, script_path, script_params, mcl_inputs_tmp_dir, 'mcl_preparation')
 
         wait_for_results(logger, times_logger, step_name, mcl_inputs_tmp_dir, config.error_file_path)
         write_done_file(logger, done_file_path)
@@ -182,7 +182,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
         mcl_outputs_dir.mkdir(parents=True, exist_ok=True)
         verified_clusters_output_dir.mkdir(parents=True, exist_ok=True)
 
-        jobs_inputs_dir = mcl_tmp_dir / 'jobs_inputs'
+        jobs_inputs_dir = mcl_tmp_dir / consts.STEP_INPUTS_DIR_NAME
         jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
         split_ogs_to_jobs_inputs_files_by_og_sizes(putative_orthologs_table_df, jobs_inputs_dir, config.max_parallel_jobs)
 
@@ -192,7 +192,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
         step_pre_processing_time = timedelta(seconds=int(time.time() - start_time))
         times_logger.info(f'Step {step_name} pre-processing time took {step_pre_processing_time}.')
 
-        submit_batch(logger, config, script_path, script_params, jobs_inputs_dir, mcl_tmp_dir, 'mcl_execution')
+        submit_batch(logger, config, script_path, script_params, mcl_tmp_dir, 'mcl_execution')
 
         wait_for_results(logger, times_logger, step_name, mcl_tmp_dir, config.error_file_path)
         write_done_file(logger, done_file_path)
@@ -243,7 +243,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
             job_index = i % config.max_parallel_jobs
             job_index_to_fasta_files[job_index].append(str(fasta_file))
 
-        jobs_inputs_dir = orphans_tmp_dir / 'job_inputs'
+        jobs_inputs_dir = orphans_tmp_dir / consts.STEP_INPUTS_DIR_NAME
         jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
 
         for job_index, job_fasta_files in job_index_to_fasta_files.items():
@@ -252,7 +252,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
                 f.write('\n'.join(job_fasta_files))
 
         script_params = [orthogroups_file_path, orphan_genes_internal_dir]
-        submit_batch(logger, config, script_path, script_params, jobs_inputs_dir, orphans_tmp_dir, 'extract_orphans')
+        submit_batch(logger, config, script_path, script_params, orphans_tmp_dir, 'extract_orphans')
 
         wait_for_results(logger, times_logger, step_name, orphans_tmp_dir, config.error_file_path)
 
@@ -365,7 +365,7 @@ def run_unified_mmseqs(logger, times_logger, config, base_step_number, all_prote
     done_file_path = config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
         if len(strains_names) >= 2:
-            rbh_inputs_dir = pipeline_step_tmp_dir / 'rbh_inputs_dir'
+            rbh_inputs_dir = pipeline_step_tmp_dir / consts.STEP_INPUTS_DIR_NAME
             rbh_inputs_dir.mkdir(parents=True, exist_ok=True)
             job_index_to_pairs = defaultdict(list)
             for i, (genome1, genome2) in enumerate(itertools.combinations(strains_names, 2)):
@@ -381,7 +381,7 @@ def run_unified_mmseqs(logger, times_logger, config, base_step_number, all_prote
             script_params = [m8_output_path, orthologs_output_dir, orthologs_scores_statistics_dir,
                              max_rbh_scores_parts_output_dir, f'--use_parquet {config.use_parquet}']
 
-            submit_batch(logger, config, script_path, script_params, rbh_inputs_dir, pipeline_step_tmp_dir,
+            submit_batch(logger, config, script_path, script_params, pipeline_step_tmp_dir,
                          'rbh_analysis', memory=m8_output_parsing_memory, time_in_hours=config.mmseqs_time_limit)
 
             wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, config.error_file_path)
@@ -408,7 +408,7 @@ def run_unified_mmseqs(logger, times_logger, config, base_step_number, all_prote
     if not done_file_path.exists():
         logger.info('Searching for paralogs in each genome')
 
-        paralogs_inputs_dir = pipeline_step_tmp_dir / 'paralogs_inputs_dir'
+        paralogs_inputs_dir = pipeline_step_tmp_dir / consts.STEP_INPUTS_DIR_NAME
         paralogs_inputs_dir.mkdir(parents=True, exist_ok=True)
         job_index_to_genome = defaultdict(list)
         for i, genome in enumerate(strains_names):
@@ -424,7 +424,7 @@ def run_unified_mmseqs(logger, times_logger, config, base_step_number, all_prote
                          max_rbh_scores_unified_dir, paralogs_scores_statistics_dir,
                          f'--use_parquet {config.use_parquet}']
 
-        submit_batch(logger, config, script_path, script_params, paralogs_inputs_dir, pipeline_step_tmp_dir,
+        submit_batch(logger, config, script_path, script_params, pipeline_step_tmp_dir,
                      'paralogs_analysis', memory=m8_output_parsing_memory)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, config.error_file_path)
@@ -457,7 +457,7 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, config, base_step_numb
             job_index = i % config.max_parallel_jobs
             job_index_to_strain_names[job_index].append(strain_name)
 
-        jobs_inputs_dir = mmseqs_dbs_tmp_dir / 'job_inputs'
+        jobs_inputs_dir = mmseqs_dbs_tmp_dir / consts.STEP_INPUTS_DIR_NAME
         jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
 
         for job_index, job_strain_names in job_index_to_strain_names.items():
@@ -466,7 +466,7 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, config, base_step_numb
                 f.write('\n'.join(job_strain_names))
 
         script_params = [translated_orfs_dir, mmseqs_dbs_output_dir]
-        submit_batch(logger, config, script_path, script_params, jobs_inputs_dir, mmseqs_dbs_tmp_dir, 'mmseqs_dbs')
+        submit_batch(logger, config, script_path, script_params, mmseqs_dbs_tmp_dir, 'mmseqs_dbs')
 
         wait_for_results(logger, times_logger, step_name, mmseqs_dbs_tmp_dir, config.error_file_path)
 
@@ -497,7 +497,7 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, config, base_step_numb
                 job_index = i % config.max_parallel_jobs
                 job_index_to_strain_pairs[job_index].append((strain1_name, strain2_name))
 
-            jobs_inputs_dir = orthologs_tmp_dir / 'job_inputs'
+            jobs_inputs_dir = orthologs_tmp_dir / consts.STEP_INPUTS_DIR_NAME
             jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
 
             for job_index, job_strain_pairs in job_index_to_strain_pairs.items():
@@ -517,7 +517,7 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, config, base_step_numb
                              f'--sensitivity {config.sensitivity}',
                              f'--use_parquet {config.use_parquet}'
                              ]
-            submit_batch(logger, config, script_path, script_params, jobs_inputs_dir, orthologs_tmp_dir,
+            submit_batch(logger, config, script_path, script_params, orthologs_tmp_dir,
                          'rbh_analysis', time_in_hours=config.mmseqs_time_limit)
 
             wait_for_results(logger, times_logger, step_name, orthologs_tmp_dir, config.error_file_path)
@@ -552,7 +552,7 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, config, base_step_numb
             job_index = i % config.max_parallel_jobs
             job_index_to_strain_names[job_index].append(strain_name)
 
-        jobs_inputs_dir = paralogs_tmp_dir / 'job_inputs'
+        jobs_inputs_dir = paralogs_tmp_dir / consts.STEP_INPUTS_DIR_NAME
         jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
 
         for job_index, job_strains_names in job_index_to_strain_names.items():
@@ -573,7 +573,7 @@ def run_non_unified_mmseqs_with_dbs(logger, times_logger, config, base_step_numb
                          f'--use_parquet {config.use_parquet}'
                          ]
 
-        submit_batch(logger, config, script_path, script_params, jobs_inputs_dir, paralogs_tmp_dir, 'paralogs_analysis')
+        submit_batch(logger, config, script_path, script_params, paralogs_tmp_dir, 'paralogs_analysis')
 
         wait_for_results(logger, times_logger, step_name, paralogs_tmp_dir, config.error_file_path)
         write_done_file(logger, done_file_path)

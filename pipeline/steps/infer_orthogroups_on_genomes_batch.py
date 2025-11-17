@@ -40,7 +40,7 @@ def create_pseudo_genome_from_ogs(
         orthologs_aa_aligned_dir_path.mkdir(parents=True, exist_ok=True)
         orthologs_aa_consensus_dir_path.mkdir(parents=True, exist_ok=True)
 
-        jobs_inputs_dir = pipeline_step_tmp_dir / 'jobs_inputs'
+        jobs_inputs_dir = pipeline_step_tmp_dir / consts.STEP_INPUTS_DIR_NAME
         jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
         split_ogs_to_jobs_inputs_files_by_og_sizes(final_orthogroups_df, jobs_inputs_dir, config.max_parallel_jobs)
 
@@ -53,7 +53,7 @@ def create_pseudo_genome_from_ogs(
                          None,
                          orthologs_aa_consensus_dir_path if config.pseudo_genome_mode == 'consensus_gene' else None]
 
-        submit_batch(logger, config, script_path, script_params, jobs_inputs_dir, pipeline_step_tmp_dir,
+        submit_batch(logger, config, script_path, script_params, pipeline_step_tmp_dir,
                      'orfs_extraction')
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, config.error_file_path)
