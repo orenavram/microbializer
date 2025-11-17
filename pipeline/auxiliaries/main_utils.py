@@ -44,11 +44,11 @@ def submit_clean_old_user_results_job(logger, config):
         return
 
     logger.info('Checking if a clean old jobs job is needed...')
-    consts.CLEAN_JOBS_LOGS_DIR.mkdir(parents=True, exist_ok=True)
+    flask_interface_consts.CLEAN_JOBS_LOGS_DIR.mkdir(parents=True, exist_ok=True)
 
     datetime_format = "%Y_%m_%d_%H_%M_%S"
     parsed_datetimes = []
-    for subdir in consts.CLEAN_JOBS_LOGS_DIR.iterdir():
+    for subdir in flask_interface_consts.CLEAN_JOBS_LOGS_DIR.iterdir():
         if subdir.is_dir():
             try:
                 parsed_datetimes.append(datetime.strptime(subdir.name, datetime_format))
@@ -64,7 +64,7 @@ def submit_clean_old_user_results_job(logger, config):
             return
 
     logger.info('Submitting a job to clean old user results since the last one was more than a day ago...')
-    tmp_dir = consts.CLEAN_JOBS_LOGS_DIR / now.strftime(datetime_format)
+    tmp_dir = flask_interface_consts.CLEAN_JOBS_LOGS_DIR / now.strftime(datetime_format)
     tmp_dir.mkdir(parents=True, exist_ok=True)
     clean_old_jobs_error_file_path = tmp_dir / 'error.txt'
     script_path = consts.SRC_DIR / 'steps' / 'clean_old_jobs.py'

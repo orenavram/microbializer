@@ -42,6 +42,8 @@ class Config:
     account_name: str
     qos: str
     node_name: str
+    conda_installation_dir: str
+    conda_environment_dir: str
     max_parallel_jobs: int
     use_job_manager: bool
     use_job_array: bool
@@ -180,6 +182,10 @@ def get_configuration():
     parser.add_argument('--qos', help='The slurm os to submit jobs to',
                         default=consts.SLURM_QOS)
     parser.add_argument('--node_name', help='The node name to submit jobs to', default='')
+    parser.add_argument('--conda_installation_dir', help='The directory of conda installation',
+                        default=consts.CONDA_INSTALLATION_DIR)
+    parser.add_argument('--conda_environment_dir', help='The directory of conda environment',
+                        default=consts.CONDA_ENVIRONMENT_DIR)
     parser.add_argument('--step_to_complete', help='The final step to execute',
                         choices=[*PIPELINE_STEPS, ''], default='')
     parser.add_argument('--only_calc_ogs', type=str_to_bool, default=False,
@@ -229,6 +235,7 @@ def get_configuration():
                     error_file_path=error_file_path, progressbar_file_path=progressbar_file_path,
 
                     queue_name=args.queue_name, account_name=args.account_name, qos=args.qos, node_name=args.node_name,
+                    conda_installation_dir=args.conda_installation_dir, conda_environment_dir=args.conda_environment_dir,
                     max_parallel_jobs=args.max_parallel_jobs, use_job_manager=args.use_job_manager,
                     use_job_array=args.use_job_array,
 

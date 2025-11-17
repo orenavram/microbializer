@@ -86,11 +86,7 @@ def submit_cmds_from_file_to_q(logger, job_name, cmds_path, tmp_dir, queue_name,
 
     # execute the job
     # queue_name may contain more arguments, thus the string of the cmd is generated and raw cmd is called
-
-    if consts.Q_SUBMITTER_ADD_SSH_PREFIX:
-        terminal_cmd = f'ssh {consts.LOGIN_NODE} "{JOB_SUBMITTER} {job_path}"'  # FIX by danny 5-1-2023
-    else:
-        terminal_cmd = f'{JOB_SUBMITTER} {job_path}'
+    terminal_cmd = f'{JOB_SUBMITTER} {job_path}'
 
     job_submitted_successfully = False
     try_index = 1

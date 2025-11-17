@@ -8,24 +8,7 @@ ENV = 'yair_test'
 # ENV = 'c-001'
 # ENV = 'windows'
 
-if ENV == 'yair_test':
-    PROJECT_ROOT_DIR = Path('/groups/pupko/yairshimony/microbializer')
-elif ENV == 'yair_prod':
-    PROJECT_ROOT_DIR = Path('/groups/pupko/yairshimony/microbializer_prod')
-elif ENV == 'lsweb':
-    PROJECT_ROOT_DIR = Path('/lsweb/pupko/microbializer')
-    USER_RESULTS_DIR = PROJECT_ROOT_DIR / 'user_results'
-    CLEAN_JOBS_LOGS_DIR = PROJECT_ROOT_DIR / 'clean_jobs_logs'
-elif ENV == 'wsl':
-    PROJECT_ROOT_DIR = Path('/home/yair/microbializer')
-elif ENV == 'c-001':
-    PROJECT_ROOT_DIR = Path('/home/ai_center/ai_users/yairshimony/microbializer/')
-elif ENV == 'windows':
-    PROJECT_ROOT_DIR = Path(r'C:\repos\microbializer')
-else:
-    raise ValueError(f'Unknown environment: {ENV}')
-
-SRC_DIR = PROJECT_ROOT_DIR / 'pipeline'
+SRC_DIR = Path(__file__).resolve().parent.parent
 
 if ENV == 'yair_test' or ENV == 'yair_prod':
     CONDA_INSTALLATION_DIR = Path('/groups/pupko/yairshimony/miniconda3')
@@ -62,12 +45,6 @@ USE_JOB_ARRAY = True
 MAX_PARALLEL_JOBS = 50
 
 # General Job submission consts
-Q_SUBMITTER_ADD_SSH_PREFIX = False
-if ENV == 'c-001':
-    LOGIN_NODE = 'c-001'
-else:
-    LOGIN_NODE = 'powerslurm-login'
-
 JOB_NAME_ENVIRONMENT_VARIABLE = 'SLURM_JOB_NAME'
 JOB_ID_ENVIRONMENT_VARIABLE = 'SLURM_JOB_ID'
 JOB_FILES_DEBUG_MODE = False

@@ -201,9 +201,9 @@ def submit_job(logger, config, script_path, script_parameters, logs_dir, job_nam
 
     if config.use_job_manager:
         # shell_cmds_as_str += f'source ~/.bashrc{new_line_delimiter}'
-        conda_sh_path = consts.CONDA_INSTALLATION_DIR / 'etc' / 'profile.d' / 'conda.sh'
+        conda_sh_path = config.conda_installation_dir / 'etc' / 'profile.d' / 'conda.sh'
         shell_cmds_as_str += f'source {conda_sh_path}\n'
-        shell_cmds_as_str += f'conda activate {consts.CONDA_ENVIRONMENT_DIR}\n'
+        shell_cmds_as_str += f'conda activate {config.conda_environment_dir}\n'
         shell_cmds_as_str += f'export PATH=$CONDA_PREFIX/bin:$PATH\n'
 
     # PREPARING RELEVANT COMMANDS

@@ -42,6 +42,9 @@ SEND_EMAIL_WHEN_JOB_FINISHED_FROM_PIPELINE = True
 # Whether to clean old jobs directories from pipeline
 CLEAN_OLD_JOBS_DIRECTORIES_FROM_PIPELINE = True
 
+USER_RESULTS_DIR = Path(WEBSERVER_PROJECT_ROOT_DIR) / 'user_results'
+CLEAN_JOBS_LOGS_DIR = Path(WEBSERVER_PROJECT_ROOT_DIR) / 'clean_jobs_logs'
+
 # Progress bar file (the path is relative to the unique folder of the job)
 PROGRESSBAR_FILE_NAME = "progressbar.csv"
 
