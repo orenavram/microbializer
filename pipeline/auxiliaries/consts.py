@@ -16,6 +16,9 @@ if ENV == 'yair_test' or ENV == 'yair_prod':
     SLURM_ACCOUNT = 'pupko-users_v2'
     SLURM_PARTITION = 'power-general-shared-pool'
     SLURM_QOS = 'public'
+    # SLURM_ACCOUNT = 'pupko-users_v2'
+    # SLURM_PARTITION = 'pupko-pool'
+    # SLURM_QOS = 'owner'
 elif ENV == 'lsweb':
     CONDA_INSTALLATION_DIR = Path('/lsweb/pupko/microbializer/miniconda3')
     CONDA_ENVIRONMENT_DIR = Path('/lsweb/pupko/microbializer/miniconda3/envs/microbializer')

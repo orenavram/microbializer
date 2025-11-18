@@ -1,4 +1,5 @@
 import shutil
+import subprocess
 from datetime import datetime, timedelta
 import sys
 from pathlib import Path
@@ -101,8 +102,9 @@ def add_results_to_final_dir(logger, source_dir_path, final_output_dir):
     dest = final_output_dir / consts.OUTPUTS_DIRECTORIES_MAP[source_dir_path.name]
 
     try:
-        logger.info(f'Copying {source_dir_path} TO {dest}')
-        shutil.copytree(source_dir_path, dest, dirs_exist_ok=True)
+        copy_dir_cmd = f'rsync -a {source_dir_path}/ {dest}/'
+        logger.info(f'Running: {copy_dir_cmd}')
+        subprocess.run(copy_dir_cmd, shell=True, check=True, capture_output=True, text=True)
     except Exception:
         logger.exception(f'Failed to copy {source_dir_path} to {dest}')
         raise
@@ -168,8 +170,9 @@ def define_intervals(number_of_genomes, genomes_batch_size):
 def zip_results(logger, config):
     if not config.step_to_complete and not config.only_calc_ogs and not config.do_not_copy_outputs_to_final_results_dir:
         logger.info('Zipping results folder...')
-        shutil.make_archive(config.final_output_dir, 'zip', config.run_dir, config.final_output_dir_name)
-        logger.info(f'Zipped results folder to {config.final_output_dir}.zip')
+        tar_command = f'tar -czf {config.final_output_dir}.tar.gz {config.final_output_dir}/'
+        logger.info(f'Running command: {tar_command}')
+        subprocess.run(tar_command, shell=True, check=True, capture_output=True, text=True)
 
 
 def find_all_gap_sequences(fasta_path):

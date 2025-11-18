@@ -27,7 +27,7 @@ INPUTS_GENOMES_ZIPPED = "genomes.zip"
 
 # Output files (the paths are relative to the unique folder of the job)
 ALL_OUTPUTS_DIRECTORY = Path(WEBSERVER_NAME + "_outputs")
-ALL_OUTPUTS_ZIPPED = WEBSERVER_NAME + "_outputs.zip"
+ALL_OUTPUTS_ZIPPED = WEBSERVER_NAME + "_outputs.tar.gz"
 INTERMEDIATE_OUTPUTS_DIRECTORY = Path("outputs")
 
 # Error description file (the path is relative to the unique folder of the job)

@@ -28,9 +28,6 @@ def validate_slurm_error_logs(logger, slurm_logs_dir, error_file_path):
 
 def wait_for_results(logger, times_logger, script_name, path, error_file_path, start=0, recursive_step=False):
     """waits until path contains num_of_expected_results .done files"""
-    if not start:
-        start = time()
-
     if (path / consts.STEP_INPUTS_DIR_NAME).exists():
         num_of_expected_results = sum(1 for _ in (path / consts.STEP_INPUTS_DIR_NAME).glob('*.txt'))
     else:
@@ -41,7 +38,9 @@ def wait_for_results(logger, times_logger, script_name, path, error_file_path, s
     if num_of_expected_results == 0:
         raise ValueError('Number of expected results is 0! Something went wrong in the previous analysis steps.')
 
-    total_time = 0
+    if not start:
+        start = time()
+
     i = 0
     current_num_of_results = 0
     while num_of_expected_results > current_num_of_results:
@@ -50,15 +49,14 @@ def wait_for_results(logger, times_logger, script_name, path, error_file_path, s
         current_num_of_results = sum(1 for _ in path.glob(f'*{consts.JOB_DONE_FILE_SUFFIX}'))
         jobs_left = num_of_expected_results - current_num_of_results
         sleep(consts.CHECK_JOB_DONE_INTERVAL_SECONDS)
-        total_time += consts.CHECK_JOB_DONE_INTERVAL_SECONDS
+        total_time_waited = timedelta(seconds=int(time() - start))
         i += 1
         if i % 5 == 0:  # print status every 5 cycles of $time_to_wait
             logger.info(
-                f'\t{timedelta(seconds=total_time)} have passed since started waiting ('
+                f'\t{total_time_waited} have passed since started waiting ('
                 f'{num_of_expected_results} - {current_num_of_results} = {jobs_left} more files are still missing)')
 
-    end = time()
-    total_time_waited = timedelta(seconds=int(end - start))
+    total_time_waited = timedelta(seconds=int(time() - start))
     logger.info(f'Done waiting for: {script_name} (took {total_time_waited}).')
 
     validate_slurm_error_logs(logger, path, error_file_path)
