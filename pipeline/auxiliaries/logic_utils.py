@@ -68,7 +68,7 @@ def plot_genomes_histogram(data, output_dir, output_file_name, title, xlabel):
     # data is expected to be: {'genome1': 54, 'genome2': 20, ...}
 
     with open(output_dir / f'{output_file_name}.json', 'w') as fp:
-        json.dump(data, fp)
+        json.dump(data, fp, indent=2, sort_keys=True)
 
     output_df = pd.DataFrame.from_dict(data, orient='index', columns=[title])
     output_df.index = output_df.index.astype(str)

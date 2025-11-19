@@ -23,7 +23,7 @@ ADD_ORPHAN_GENES_TO_OGS = "add_orphan_genes_to_ogs"
 INPUT_FASTA_TYPE = "inputs_fasta_type"
 
 # Input file
-INPUTS_GENOMES_ZIPPED = "genomes.zip"
+INPUTS_GENOMES_ZIPPED = "genomes.tar.gz"
 
 # Output files (the paths are relative to the unique folder of the job)
 ALL_OUTPUTS_DIRECTORY = Path(WEBSERVER_NAME + "_outputs")
@@ -96,8 +96,8 @@ OG_TABLE_PATH_FOR_RESULTS_PAGE = INTERMEDIATE_OUTPUTS_DIRECTORY / 'tmp' / '07_2_
 
 PATHS_TO_DOWNLOAD = {
     "General": {
-        "Inputs_(zip)": (INPUTS_GENOMES_ZIPPED, "The input genomes in a zip file"),
-        "All_outputs_(zip)": (ALL_OUTPUTS_ZIPPED, "All the outputs in a zip file"),
+        "Inputs_(tar.gz)": (INPUTS_GENOMES_ZIPPED, "The input genomes in a zip file"),
+        "All_outputs_(tar.gz)": (ALL_OUTPUTS_ZIPPED, "All the outputs in a zip file"),
     },
     "ANI (Average Nucleotide Identity)": {
         "ANI_table": (ANI_CSV, "Can also be found in 01_ani directory in the 'All outputs (zip)' file"),

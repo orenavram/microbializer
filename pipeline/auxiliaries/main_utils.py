@@ -170,7 +170,7 @@ def define_intervals(number_of_genomes, genomes_batch_size):
 def zip_results(logger, config):
     if not config.step_to_complete and not config.only_calc_ogs and not config.do_not_copy_outputs_to_final_results_dir:
         logger.info('Zipping results folder...')
-        tar_command = f'tar -czf {config.final_output_dir}.tar.gz {config.final_output_dir}/'
+        tar_command = f'tar -czf {config.final_output_dir}.tar.gz -C {config.final_output_dir} .'
         logger.info(f'Running command: {tar_command}')
         subprocess.run(tar_command, shell=True, check=True, capture_output=True, text=True)
 
