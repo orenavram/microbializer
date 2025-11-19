@@ -16,7 +16,6 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent.parent))
 
 from pipeline.flask.flask_interface_consts import WEBSERVER_NAME
-from pipeline.flask.SharedConsts import USER_FILE_NAME_TAR
 
 ILLEGAL_CHARS_IN_FILE_NAMES = '\\/:*?\"\'<>` |(),;&'
 ILLEGAL_CHARS_IN_RECORD_IDS = ':;,\'\"'
@@ -156,13 +155,6 @@ def unpack_data(logger, raw_data_path, run_dir, error_file_path):
         else:
             # make sure each fasta has writing permissions for downstream editing
             file_path.chmod(0o644)  # -rw-r--r--
-
-    # Create .tar.gz of input files in case it doesn't exist, for download page
-    input_tar_gz_path = run_dir / USER_FILE_NAME_TAR
-    if not input_tar_gz_path.exists():
-        cmd = f'tar -czf {input_tar_gz_path} -C {data_path} .'
-        logger.info(f'Calling: {cmd}')
-        subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
 
     return data_path
 
