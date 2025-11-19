@@ -174,12 +174,12 @@ def zip_results(logger, config):
         logger.info(f'Running command: {tar_command}')
         subprocess.run(tar_command, shell=True, check=True, capture_output=True, text=True)
 
-    # Create .tar.gz of input files in case it doesn't exist, for download page
-    input_tar_gz_path = config.run_dir / SharedConsts.USER_FILE_NAME_TAR
-    if not input_tar_gz_path.exists():
-        cmd = f'tar -czf {input_tar_gz_path} -C {config.data_path} .'
-        logger.info(f'Running command: {cmd}')
-        subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
+        # Create .tar.gz of input files in case it doesn't exist, for download page
+        input_tar_gz_path = config.run_dir / SharedConsts.USER_FILE_NAME_TAR
+        if not input_tar_gz_path.exists():
+            cmd = f'tar -czf {input_tar_gz_path} -C {config.data_path} .'
+            logger.info(f'Running command: {cmd}')
+            subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
 
 
 def find_all_gap_sequences(fasta_path):
