@@ -98,15 +98,19 @@ def send_email_in_pipeline_end(logger, config, state):
                    SharedConsts.EMAIL_CONSTS.CONTENT_PROCESS_CRASHED.format(process_id=config.run_number), email_addresses)
 
 
-def add_results_to_final_dir(logger, source_dir_path, final_output_dir):
+def add_results_to_final_dir(logger, source_dir_path, final_output_dir, move=False):
     dest = final_output_dir / consts.OUTPUTS_DIRECTORIES_MAP[source_dir_path.name]
 
     try:
-        copy_dir_cmd = f'rsync -a {source_dir_path}/ {dest}/'
-        logger.info(f'Running: {copy_dir_cmd}')
-        subprocess.run(copy_dir_cmd, shell=True, check=True, capture_output=True, text=True)
+        if move:
+            cmd = f'mv {source_dir_path} {dest}'
+        else:
+            cmd = f'cp -a {source_dir_path}/ {dest}/'
+
+        logger.info(f'Running: {cmd}')
+        subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
     except Exception:
-        logger.exception(f'Failed to copy {source_dir_path} to {dest}')
+        logger.exception(f'Failed to copy/move {source_dir_path} to {dest}')
         raise
 
     return dest
@@ -168,13 +172,19 @@ def define_intervals(number_of_genomes, genomes_batch_size):
 
 
 def zip_results(logger, config):
+    if not config.do_not_copy_outputs_to_final_results_dir:
+        for output_dir in consts.OUTPUTS_DIRECTORIES_MAP:
+            output_dir_path = config.steps_results_dir / output_dir
+            if output_dir_path.exists():
+                add_results_to_final_dir(logger, output_dir_path, config.final_output_dir, config.move_outputs_to_final_output_dir)
+
     if not config.step_to_complete and not config.only_calc_ogs and not config.do_not_copy_outputs_to_final_results_dir:
         logger.info('Zipping results folder...')
         tar_command = f'tar -czf {config.final_output_dir}.tar.gz -C {config.final_output_dir} .'
         logger.info(f'Running command: {tar_command}')
         subprocess.run(tar_command, shell=True, check=True, capture_output=True, text=True)
 
-        # Create .tar.gz of input files in case it doesn't exist, for download page
+        # Create .tar.gz of input files in case it doesn't exist (for download page)
         input_tar_gz_path = config.run_dir / SharedConsts.USER_FILE_NAME_TAR
         if not input_tar_gz_path.exists():
             cmd = f'tar -czf {input_tar_gz_path} -C {config.data_path} .'

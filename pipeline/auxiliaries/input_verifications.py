@@ -1,37 +1,25 @@
-import Bio.SeqUtils
 import shutil
 import tarfile
-import collections
 import sys
 import subprocess
 from pathlib import Path
-import re
-from Bio import SeqIO
+from collections import defaultdict
 
 from . import consts
 from .general_utils import remove_path, fail, write_done_file
 from .configuration import Config
+from .run_step_utils import wait_for_results, prepare_directories, submit_job, submit_batch
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent.parent))
 
 from pipeline.flask.flask_interface_consts import WEBSERVER_NAME
 
+
 ILLEGAL_CHARS_IN_FILE_NAMES = '\\/:*?\"\'<>` |(),;&'
-ILLEGAL_CHARS_IN_RECORD_IDS = ':;,\'\"'
 
 
-def record_has_illegal_chars(record_header):
-    # Check if the first word in the string (which is the record ID) contains illegal characters
-    record_id = re.match(r">(\S+)", record_header)
-    if record_id is None:
-        return True
-
-    record_id = record_id.group(1)
-    return any(not char.isascii() or char in ILLEGAL_CHARS_IN_RECORD_IDS for char in record_id)
-
-
-def prepare_and_verify_input_data(logger, config: Config):
+def prepare_and_verify_input_data(logger, times_logger, config: Config):
     done_file_path = config.done_files_dir / '00_prepare_and_verify_inputs.txt'
     if not done_file_path.exists():
         logger.info(f'Examining {config.raw_data_path}..')
@@ -42,7 +30,9 @@ def prepare_and_verify_input_data(logger, config: Config):
         remove_system_files(logger, primary_data_path)
 
         # copies input contigs_dir because we edit the files and want to keep the input directory as is
-        shutil.copytree(primary_data_path, config.data_path, dirs_exist_ok=True)
+        copy_dir_cmd = f'rsync -a {primary_data_path}/ {config.data_path}/'
+        logger.info(f'Running: {copy_dir_cmd}')
+        subprocess.run(copy_dir_cmd, shell=True, check=True, capture_output=True, text=True)
         logger.info(f'Copied {primary_data_path} to {config.data_path}')
 
         # have to be AFTER system files removal (in the weird case a file name starts with a space)
@@ -76,7 +66,7 @@ def prepare_and_verify_input_data(logger, config: Config):
             fail(logger, error_msg, config.error_file_path)
 
         # must be only after the spaces removal from the species names!!
-        verification_error = verify_fasta_format(logger, config.data_path, config.inputs_fasta_type)
+        verification_error = verify_fasta_format(logger, times_logger, config)
         if verification_error:
             remove_path(logger, config.data_path)
             fail(logger, verification_error, config.error_file_path)
@@ -212,89 +202,39 @@ def rename_file(logger, file_path, new_file_name, error_file_path):
         fail(logger, error_msg, error_file_path)
 
 
-def verify_fasta_format(logger, data_path, inputs_fasta_type):
-    Bio.SeqUtils.IUPACData.ambiguous_dna_letters += 'U-'
-    legal_chars = set(
-        Bio.SeqUtils.IUPACData.ambiguous_dna_letters.lower() + Bio.SeqUtils.IUPACData.ambiguous_dna_letters)
-    for file_path in data_path.iterdir():
-        if file_path.suffix in ['.zip', '.gz', '.rar']:
-            return f'{file_path.name} is a binary file (rather than textual). Please upload your genomes as FASTA text ' \
-                   f'files (such as fas or fna).'
-        strain_name = file_path.stem
-        with open(file_path) as f:
-            line_number = 0
-            try:
-                line = f.readline()
-                line_number += 1
-                if not line:
-                    return f'Illegal FASTA format. First line in "{file_path.name}" is empty.'
-                if not line.startswith('>'):
-                    return f'Illegal FASTA format. First line in "{file_path.name}" starts with "{line[0]}" instead of ">".'
-                if record_has_illegal_chars(line):
-                    return f'Illegal format. First line in "{file_path.name}" contains an illegal character in its ' \
-                           f'first word (one of: {" ".join(ILLEGAL_CHARS_IN_RECORD_IDS)}).'
+def verify_fasta_format(logger, times_logger, config):
+    step_number = '00_0'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_verify_fasta_format'
+    script_path = consts.SRC_DIR / 'steps' / 'verify_fasta_format.py'
+    errors_dir, verify_fasta_tmp_dir = prepare_directories(logger, config.steps_results_dir, config.tmp_dir, step_name)
+    done_file_path = config.done_files_dir / f'{step_name}.txt'
+    if not done_file_path.exists():
+        logger.info('Verify fasta formats...')
 
-                curated_content = f'>{strain_name}:{line[1:]}'
-                previous_line_was_header = True
+        job_index_to_fasta_files = defaultdict(list)
 
-                for line in f:
-                    line_number += 1
-                    line = line.strip()
-                    if not line:
-                        continue
+        for i, fasta_file in enumerate(config.data_path.iterdir()):
+            job_index = i % config.max_parallel_jobs
+            job_index_to_fasta_files[job_index].append(str(fasta_file))
 
-                    if line.startswith('>'):
-                        if previous_line_was_header:
-                            return f'Illegal FASTA format. "{file_path.name}" contains an empty record. ' \
-                                   f'Both lines {line_number - 1} and {line_number} start with ">".'
-                        elif record_has_illegal_chars(line):
-                            return f'Illegal format. Line {line_number} in "{file_path.name}" contains an illegal ' \
-                                   f'character in its first word (one of: {" ".join(ILLEGAL_CHARS_IN_RECORD_IDS)}).'
-                        else:
-                            curated_content += f'>{strain_name}:{line[1:]}\n'
-                            previous_line_was_header = True
-                            continue
+        jobs_inputs_dir = verify_fasta_tmp_dir / consts.STEP_INPUTS_DIR_NAME
+        jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
 
-                    else:  # not a header
-                        previous_line_was_header = False
-                        for c in line:
-                            if c not in legal_chars:
-                                return f'Illegal FASTA format. Line {line_number} in "{file_path.name}" contains ' \
-                                       f'illegal DNA character "{c}".'
-                        curated_content += f'{line}\n'
+        for job_index, job_fasta_files in job_index_to_fasta_files.items():
+            job_input_path = jobs_inputs_dir / f'{job_index}.txt'
+            with open(job_input_path, 'w') as f:
+                f.write('\n'.join(job_fasta_files))
 
-            except UnicodeDecodeError as e:
-                logger.info(e.args)
-                line_number += 1  # the line that was failed to be read
-                return f'Illegal FASTA format. Line {line_number} in "{file_path.name}" contains one (or more) non ' \
-                       f'ascii character(s).'
+        script_params = [errors_dir, config.inputs_fasta_type]
+        submit_batch(logger, config, script_path, script_params, verify_fasta_tmp_dir, 'verify_fasta')
 
-        # Now that we verified the fasta format, we parse it again with Bio.SeqIO.
-        record_ids = []
-        total_genome_length = 0
-        max_record_length = 0
-        max_record_length_name = ''
-        for record in SeqIO.parse(file_path, 'fasta'):
-            record_ids.append(record.id)
-            total_genome_length += len(record.seq)
-            if len(record.seq) > max_record_length:
-                max_record_length = len(record.seq)
-                max_record_length_name = record.id
+        wait_for_results(logger, times_logger, step_name, verify_fasta_tmp_dir, config.error_file_path)
 
-        duplicate_ids = [item for item, count in collections.Counter(record_ids).items() if count > 1]
-        if duplicate_ids:
-            return f'Illegal FASTA format. "{file_path.name}" contains duplicated record ids: {",".join(duplicate_ids)}.'
+        for error_file in errors_dir.iterdir():
+            if error_file.is_file() and error_file.suffix == '.txt':
+                with open(error_file, 'r') as ef:
+                    error_message = ef.read()
+                return error_message
 
-        if total_genome_length < consts.MIN_GENOME_LENGTH and inputs_fasta_type == 'genomes':
-            return (f'Each FASTA file should contain the genome of a bacterium, hence it must contain at least {consts.MIN_GENOME_LENGTH} '
-                    f'nucleotides. It is a requirement for Prodigal to run successfully (the first step of the pipeline '
-                    f'that predicts ORFs from the genomes). {file_path.name} contains less than {consts.MIN_GENOME_LENGTH} nucleotides.')
-
-        if max_record_length > consts.MAX_ORF_LENGTH and inputs_fasta_type == 'orfs':
-            return (f'The ORF {max_record_length_name} in the input FASTA file {file_path.name} is longer than '
-                    f'{consts.MAX_ORF_LENGTH} nucleotides. This is biologically invalid since the longest known '
-                    f'bacterial or archeal ORF is {consts.MAX_ORF_LENGTH} nucleotides long.')
-
-        # override the old file with the curated content
-        with open(file_path, 'w') as f:
-            f.write(curated_content)
+        write_done_file(logger, done_file_path)

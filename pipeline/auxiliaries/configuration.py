@@ -86,6 +86,7 @@ class Config:
     verbose: bool
 
     # Clean at end
+    move_outputs_to_final_output_dir: bool
     clean_intermediate_outputs: bool
     clean_old_job_directories: bool
 
@@ -197,6 +198,7 @@ def get_configuration():
     parser.add_argument('--use_parquet', type=str_to_bool, default=True,
                         help='When True, use parquet files when possible instead of csv')
     parser.add_argument('--do_not_copy_outputs_to_final_results_dir', type=str_to_bool, default=False)
+    parser.add_argument('--move_outputs_to_final_results_dir', type=str_to_bool, default=False)
     parser.add_argument('--clean_intermediate_outputs', type=str_to_bool, default=False)
     parser.add_argument('--genomes_batch_size', type=int, default=50, help='relevant if genomes_batch_size_calc_method = fixed_number')
     parser.add_argument('--genomes_batch_size_calc_method', choices=['fixed_number', 'sqrt', 'min_comparisons'], default='min_comparisons')
@@ -267,6 +269,7 @@ def get_configuration():
                     always_run_full_orthogroups_inference=args.always_run_full_orthogroups_inference,
                     verbose=args.verbose,
 
+                    move_outputs_to_final_output_dir=args.move_outputs_to_final_results_dir,
                     clean_intermediate_outputs=args.clean_intermediate_outputs,
                     clean_old_job_directories=consts.ENV == 'lsweb' and CLEAN_OLD_JOBS_DIRECTORIES_FROM_PIPELINE and
                                not args.step_to_complete and not args.only_calc_ogs and

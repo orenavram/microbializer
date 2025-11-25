@@ -128,9 +128,9 @@ LOG_MESSAGE_FORMAT = '%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(messag
 # outputs directories map
 OUTPUTS_DIRECTORIES_MAP = {
     '11_1_ani': '01_ani',
-    'orfs_sequences': '02a_orfs',
+    '02_1_orfs/orfs_sequences': '02a_orfs',
     '02_2_orfs_plots': '02b_orfs_plots',
-    'orfs_translated': '02c_translated_orfs',
+    '02_1_orfs/orfs_translated': '02c_translated_orfs',
     '03_genomes_completeness': '03_genomes_completeness',
     '05_9_orphan_genes': '04_orphan_genes',  # full_orthogroups_inference
     '05_11_sort_orthogroups_by_coordinates': '05a_orthogroups',  # full_orthogroups_inference
@@ -138,10 +138,10 @@ OUTPUTS_DIRECTORIES_MAP = {
     '06_14_sort_orthogroups_by_coordinates': '05a_orthogroups',  # approximate_orthogroups_inference
     '07_1_orthoxml': '05a_orthogroups',
     '07_2_orthogroups_visualizations': '05b_orthogroups_visualizations',
-    'orthogroups_dna': '06a_orthogroups_dna',
-    'orthogroups_aa': '06b_orthogroups_aa',
-    'orthogroups_aa_msa': '06c_orthogroups_aa_msa',
-    'orthogroups_induced_dna_msa': '06d_orthogroups_induced_dna_msa_by_aa_msa',
+    '08_1_orthogroups_fasta/orthogroups_dna': '06a_orthogroups_dna',
+    '08_1_orthogroups_fasta/orthogroups_aa': '06b_orthogroups_aa',
+    '08_1_orthogroups_fasta/orthogroups_aa_msa': '06c_orthogroups_aa_msa',
+    '08_1_orthogroups_fasta/orthogroups_induced_dna_msa': '06d_orthogroups_induced_dna_msa_by_aa_msa',
     '09_1_aligned_core_proteome': '07a_aligned_core_proteome',
     '09_2_aligned_core_genome': '07b_aligned_core_genome',
     '11_2_species_phylogeny': '08_species_phylogeny',

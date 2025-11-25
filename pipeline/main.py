@@ -18,7 +18,7 @@ from auxiliaries.input_verifications import prepare_and_verify_input_data
 
 from auxiliaries.general_utils import write_done_file, get_required_memory_gb_to_load_csv
 from auxiliaries.main_utils import send_email_in_pipeline_end, submit_clean_folders_job, zip_results, \
-    submit_clean_old_user_results_job, update_progressbar, define_intervals, add_results_to_final_dir, \
+    submit_clean_old_user_results_job, update_progressbar, define_intervals, \
     calc_genomes_batch_size, initialize_progressbar, find_all_gap_sequences
 from auxiliaries.run_step_utils import wait_for_results, prepare_directories, submit_job, submit_batch
 from auxiliaries.logic_utils import (plot_genomes_histogram, combine_orphan_genes_stats,
@@ -115,10 +115,6 @@ def step_2_search_orfs(logger, times_logger, config):
         submit_batch(logger, config, script_path, script_params, orfs_tmp_dir, 'search_orfs')
 
         wait_for_results(logger, times_logger, step_name, orfs_tmp_dir, config.error_file_path)
-
-        if not config.do_not_copy_outputs_to_final_results_dir:
-            add_results_to_final_dir(logger, orfs_sequences_dir, config.final_output_dir)
-            add_results_to_final_dir(logger, orfs_translated_dir, config.final_output_dir)
         write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -151,8 +147,6 @@ def step_2_search_orfs(logger, times_logger, config):
         step_time = timedelta(seconds=int(time.time() - start_time))
         times_logger.info(f'Step {step_name} took {step_time}.')
 
-        if not config.do_not_copy_outputs_to_final_results_dir:
-            add_results_to_final_dir(logger, orfs_plots_path, config.final_output_dir)
         write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -244,8 +238,6 @@ def step_3_analyze_genome_completeness(logger, times_logger, config, translated_
         aggregation_time = timedelta(seconds=int(time.time() - start_time))
         times_logger.info(f'Step {step_name} post-processing took {aggregation_time}.')
 
-        if not config.do_not_copy_outputs_to_final_results_dir:
-            add_results_to_final_dir(logger, genome_completeness_dir_path, config.final_output_dir)
         write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -286,12 +278,6 @@ def step_5_orthogroups_inference(logger, times_logger, config, genomes_names, tr
         write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
-
-    if not config.do_not_copy_outputs_to_final_results_dir:
-        add_results_to_final_dir(logger, orphan_genes_dir, config.final_output_dir)
-
-    if not config.do_not_copy_outputs_to_final_results_dir:
-        add_results_to_final_dir(logger, sorted_orthogroups_dir, config.final_output_dir)
 
     update_progressbar(config.progressbar_file_path, 'Infer orthogroups')
     update_progressbar(config.progressbar_file_path, 'Find orphan genes')
@@ -536,8 +522,6 @@ def step_7_orthologs_table_variations(logger, times_logger, config, final_orthog
                           'orthoxml', memory=config.orthoxml_memory_gb)
         wait_for_results(logger, times_logger, step_name, orthoxml_tmp_dir, config.error_file_path)
 
-        if not config.do_not_copy_outputs_to_final_results_dir:
-            add_results_to_final_dir(logger, orthoxml_dir_path, config.final_output_dir)
         write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -559,8 +543,6 @@ def step_7_orthologs_table_variations(logger, times_logger, config, final_orthog
                           'orthogroups_visualizations', memory=config.orthogroups_visualizations_memory_gb)
         wait_for_results(logger, times_logger, step_name, visualizations_tmp_dir, config.error_file_path)
 
-        if not config.do_not_copy_outputs_to_final_results_dir:
-            add_results_to_final_dir(logger, visualizations_dir_path, config.final_output_dir)
         write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -622,13 +604,6 @@ def step_8_build_orthologous_groups_fastas(logger, times_logger, config, all_orf
                      'orfs_extraction', memory=memory_gb)
 
         wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, config.error_file_path)
-
-        if not config.do_not_copy_outputs_to_final_results_dir:
-            add_results_to_final_dir(logger, orthogroups_dna_dir_path, config.final_output_dir)
-            add_results_to_final_dir(logger, orthologs_aa_dir_path, config.final_output_dir)
-            add_results_to_final_dir(logger, orthogroups_aa_msa_dir_path, config.final_output_dir)
-            add_results_to_final_dir(logger, orthogroups_induced_dna_msa_dir_path, config.final_output_dir)
-
         write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -718,16 +693,12 @@ def step_9_extract_core_genome_and_core_proteome(logger, times_logger, config, a
         wait_for_results(logger, times_logger, core_proteome_step_name, aligned_core_proteome_tmp_dir,
                          config.error_file_path)
 
-        if not config.do_not_copy_outputs_to_final_results_dir:
-            add_results_to_final_dir(logger, aligned_core_proteome_path, config.final_output_dir)
         write_done_file(logger, core_proteome_done_file_path)
 
     if not core_genome_done_file_path.exists():
         wait_for_results(logger, times_logger, core_genome_step_name, aligned_core_genome_tmp_dir,
                          config.error_file_path)
 
-        if not config.do_not_copy_outputs_to_final_results_dir:
-            add_results_to_final_dir(logger, aligned_core_genome_path, config.final_output_dir)
         write_done_file(logger, core_genome_done_file_path)
 
     if not core_proteome_reduced_done_file_path.exists():
@@ -833,8 +804,6 @@ def step_11_phylogeny(logger, times_logger, config, aligned_core_proteome_file_p
             # wait for the phylogenetic tree here
             wait_for_results(logger, times_logger, phylogeny_step_name, phylogeny_tmp_dir, config.error_file_path)
 
-        if not config.do_not_copy_outputs_to_final_results_dir:
-            add_results_to_final_dir(logger, phylogeny_path, config.final_output_dir)
         write_done_file(logger, phylogeny_done_file_path)
     else:
         logger.info(f'done file {phylogeny_done_file_path} already exists. Skipping step...')
@@ -842,9 +811,6 @@ def step_11_phylogeny(logger, times_logger, config, aligned_core_proteome_file_p
     # Wait for ANI here, such that ANI and phylogeny will run in parallel
     if not ani_done_file_path.exists():
         wait_for_results(logger, times_logger, ani_step_name, ani_tmp_dir, config.error_file_path)
-
-        if not config.do_not_copy_outputs_to_final_results_dir:
-            add_results_to_final_dir(logger, ani_output_dir, config.final_output_dir)
         write_done_file(logger, ani_done_file_path)
 
     update_progressbar(config.progressbar_file_path, 'Reconstruct species phylogeny')
@@ -911,9 +877,6 @@ def step_12_orthogroups_annotations(logger, times_logger, config, orfs_dir,
     # Wait for results here (since the steps aren't dependent on each other)
     if not codon_bias_done_file_path.exists():
         wait_for_results(logger, times_logger, codon_bias_step_name, codon_bias_tmp_dir, config.error_file_path)
-
-        if not config.do_not_copy_outputs_to_final_results_dir:
-            add_results_to_final_dir(logger, codon_bias_output_dir_path, config.final_output_dir)
         write_done_file(logger, codon_bias_done_file_path)
 
     if not kegg_done_file_path.exists():
@@ -950,8 +913,6 @@ def step_12_orthogroups_annotations(logger, times_logger, config, orfs_dir,
         step_time = timedelta(seconds=int(time.time() - start_time))
         times_logger.info(f'Step {step_name} took {step_time}.')
 
-        if not config.do_not_copy_outputs_to_final_results_dir:
-            add_results_to_final_dir(logger, output_dir_path, config.final_output_dir)
         write_done_file(logger, done_file_path)
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
@@ -1042,7 +1003,7 @@ def main():
 
     try:
         initialize_progressbar(config)
-        prepare_and_verify_input_data(logger, config)
+        prepare_and_verify_input_data(logger, times_logger, config)
         update_progressbar(config.progressbar_file_path, 'Validate input files')
 
         run_main_pipeline(logger, times_logger, config)
