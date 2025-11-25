@@ -4,7 +4,7 @@ from pathlib import Path
 # ENV = 'wsl'
 ENV = 'yair_test'
 # ENV = 'yair_prod'
-# ENV = 'lsweb'
+# ENV = 'mgmt'
 # ENV = 'c-001'
 # ENV = 'windows'
 
@@ -19,11 +19,12 @@ if ENV == 'yair_test' or ENV == 'yair_prod':
     # SLURM_ACCOUNT = 'pupko-users_v2'
     # SLURM_PARTITION = 'pupko-pool'
     # SLURM_QOS = 'owner'
-elif ENV == 'lsweb':
-    CONDA_INSTALLATION_DIR = Path('/lsweb/pupko/microbializer/miniconda3')
-    CONDA_ENVIRONMENT_DIR = Path('/lsweb/pupko/microbializer/miniconda3/envs/microbializer')
-    SLURM_ACCOUNT = 'pupkoweb-users'
-    SLURM_PARTITION = 'pupkoweb'
+elif ENV == 'mgmt':
+    CONDA_INSTALLATION_DIR = Path('/microbializer/miniconda3')
+    CONDA_ENVIRONMENT_DIR = Path('/microbializer/miniconda3/envs/microbializer')
+    SLURM_ACCOUNT = 'pupko-users_v2'
+    SLURM_PARTITION = 'pupko-pool'
+    SLURM_QOS = 'owner'
 elif ENV == 'wsl':
     CONDA_INSTALLATION_DIR = Path('/home/yair/miniconda3')
     CONDA_ENVIRONMENT_DIR = Path('/home/yair/miniconda3/envs/microbializer')

@@ -1,7 +1,7 @@
 from pathlib import Path
 
 WEBSERVER_NAME = 'M1CR0B1AL1Z3R'
-WEBSERVER_PROJECT_ROOT_DIR = '/lsweb/pupko/microbializer'
+WEBSERVER_PROJECT_ROOT_DIR = '/microbializer'
 ADDITIONAL_OWNER_EMAILS = ['edodotan@mail.tau.ac.il']
 
 # Arguments keys to run the pipeline with
@@ -137,8 +137,9 @@ PATHS_TO_DOWNLOAD = {
 }
 
 # Microbializer processor Job variables
-MICROBIALIZER_PROCESSOR_JOB_QUEUE_NAME = 'pupkoweb'
-MICROBIALIZER_PROCESSOR_JOB_ACCOUNT_NAME = 'pupkoweb-users'
+MICROBIALIZER_PROCESSOR_JOB_QUEUE_NAME = 'pupko-pool'
+MICROBIALIZER_PROCESSOR_JOB_ACCOUNT_NAME = 'pupko-users_v2'
+MICROBIALIZER_PROCESSOR_JOB_QOS = 'owner'
 NUBMER_OF_CPUS_MICROBIALIZER_PROCESSOR_JOB = '1'
 MICROBIALIZER_MAIN_JOB_MEMORY = '8192'  # in MB
 MICROBIALIZER_MAIN_JOB_TIME_LIMIT_IN_HOURS = 168  # 7 days (the max time of pupkoweb)
@@ -162,13 +163,14 @@ export PATH=$CONDA_PREFIX/bin:$PATH
 
 echo "PATH: $PATH"
 
-python "{WEBSERVER_PROJECT_ROOT_DIR}/pipeline/main.py" --{ARGS_JSON_PATH_KEY} {{args_json_path}} --account_name {MICROBIALIZER_PROCESSOR_JOB_ACCOUNT_NAME} --queue_name {MICROBIALIZER_PROCESSOR_JOB_QUEUE_NAME} --clean_intermediate_outputs True
+python "{WEBSERVER_PROJECT_ROOT_DIR}/pipeline/main.py" --{ARGS_JSON_PATH_KEY} {{args_json_path}} --account_name {MICROBIALIZER_PROCESSOR_JOB_ACCOUNT_NAME} --queue_name {MICROBIALIZER_PROCESSOR_JOB_QUEUE_NAME} --clean_intermediate_outputs True --move_outputs_to_final_results_dir True
 '''
 
 MICROBIALIZER_JOB_HEADER_TEMPLATE = f'''
 #SBATCH --job-name=microbializer
 #SBATCH --account={MICROBIALIZER_PROCESSOR_JOB_ACCOUNT_NAME}
 #SBATCH --partition={MICROBIALIZER_PROCESSOR_JOB_QUEUE_NAME}
+#SBATCH --qos={MICROBIALIZER_PROCESSOR_JOB_QOS}
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task={NUBMER_OF_CPUS_MICROBIALIZER_PROCESSOR_JOB}
 #SBATCH --mem={MICROBIALIZER_MAIN_JOB_MEMORY}
