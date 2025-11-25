@@ -30,7 +30,7 @@ def prepare_and_verify_input_data(logger, times_logger, config: Config):
         remove_system_files(logger, primary_data_path)
 
         # copies input contigs_dir because we edit the files and want to keep the input directory as is
-        copy_dir_cmd = f'cp -a {primary_data_path}/ {config.data_path}/'
+        copy_dir_cmd = f'cp -a {primary_data_path}/. {config.data_path}/'
         logger.info(f'Running: {copy_dir_cmd}')
         subprocess.run(copy_dir_cmd, shell=True, check=True, capture_output=True, text=True)
         logger.info(f'Copied {primary_data_path} to {config.data_path}')
@@ -208,33 +208,30 @@ def verify_fasta_format(logger, times_logger, config):
     step_name = f'{step_number}_verify_fasta_format'
     script_path = consts.SRC_DIR / 'steps' / 'verify_fasta_format.py'
     errors_dir, verify_fasta_tmp_dir = prepare_directories(logger, config.steps_results_dir, config.tmp_dir, step_name)
-    done_file_path = config.done_files_dir / f'{step_name}.txt'
-    if not done_file_path.exists():
-        logger.info('Verify fasta formats...')
 
-        job_index_to_fasta_files = defaultdict(list)
+    logger.info('Verify fasta formats...')
 
-        for i, fasta_file in enumerate(config.data_path.iterdir()):
-            job_index = i % config.max_parallel_jobs
-            job_index_to_fasta_files[job_index].append(str(fasta_file))
+    job_index_to_fasta_files = defaultdict(list)
 
-        jobs_inputs_dir = verify_fasta_tmp_dir / consts.STEP_INPUTS_DIR_NAME
-        jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
+    for i, fasta_file in enumerate(config.data_path.iterdir()):
+        job_index = i % config.max_parallel_jobs
+        job_index_to_fasta_files[job_index].append(str(fasta_file))
 
-        for job_index, job_fasta_files in job_index_to_fasta_files.items():
-            job_input_path = jobs_inputs_dir / f'{job_index}.txt'
-            with open(job_input_path, 'w') as f:
-                f.write('\n'.join(job_fasta_files))
+    jobs_inputs_dir = verify_fasta_tmp_dir / consts.STEP_INPUTS_DIR_NAME
+    jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
 
-        script_params = [errors_dir, config.inputs_fasta_type]
-        submit_batch(logger, config, script_path, script_params, verify_fasta_tmp_dir, 'verify_fasta')
+    for job_index, job_fasta_files in job_index_to_fasta_files.items():
+        job_input_path = jobs_inputs_dir / f'{job_index}.txt'
+        with open(job_input_path, 'w') as f:
+            f.write('\n'.join(job_fasta_files))
 
-        wait_for_results(logger, times_logger, step_name, verify_fasta_tmp_dir, config.error_file_path)
+    script_params = [errors_dir, config.inputs_fasta_type]
+    submit_batch(logger, config, script_path, script_params, verify_fasta_tmp_dir, 'verify_fasta')
 
-        for error_file in errors_dir.iterdir():
-            if error_file.is_file() and error_file.suffix == '.txt':
-                with open(error_file, 'r') as ef:
-                    error_message = ef.read()
-                return error_message
+    wait_for_results(logger, times_logger, step_name, verify_fasta_tmp_dir, config.error_file_path)
 
-        write_done_file(logger, done_file_path)
+    for error_file in errors_dir.iterdir():
+        if error_file.is_file() and error_file.suffix == '.txt':
+            with open(error_file, 'r') as ef:
+                error_message = ef.read()
+            return error_message

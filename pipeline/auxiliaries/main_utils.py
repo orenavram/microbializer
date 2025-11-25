@@ -98,24 +98,6 @@ def send_email_in_pipeline_end(logger, config, state):
                    SharedConsts.EMAIL_CONSTS.CONTENT_PROCESS_CRASHED.format(process_id=config.run_number), email_addresses)
 
 
-def add_results_to_final_dir(logger, source_dir_path, final_output_dir, move=False):
-    dest = final_output_dir / consts.OUTPUTS_DIRECTORIES_MAP[source_dir_path.name]
-
-    try:
-        if move:
-            cmd = f'mv {source_dir_path} {dest}'
-        else:
-            cmd = f'cp -a {source_dir_path}/ {dest}/'
-
-        logger.info(f'Running: {cmd}')
-        subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
-    except Exception:
-        logger.exception(f'Failed to copy/move {source_dir_path} to {dest}')
-        raise
-
-    return dest
-
-
 def initialize_progressbar(config):
     if config.only_calc_ogs:
         steps = consts.ONLY_CALC_OGS_TABLE_STEPS_NAMES_FOR_PROGRESS_BAR
@@ -174,9 +156,22 @@ def define_intervals(number_of_genomes, genomes_batch_size):
 def zip_results(logger, config):
     if not config.do_not_copy_outputs_to_final_results_dir:
         for output_dir in consts.OUTPUTS_DIRECTORIES_MAP:
-            output_dir_path = config.steps_results_dir / output_dir
-            if output_dir_path.exists():
-                add_results_to_final_dir(logger, output_dir_path, config.final_output_dir, config.move_outputs_to_final_output_dir)
+            source_path = config.steps_results_dir / output_dir
+            if not source_path.exists():
+                continue
+            dest_path = config.final_output_dir / consts.OUTPUTS_DIRECTORIES_MAP[output_dir]
+
+            try:
+                if config.move_outputs_to_final_output_dir:
+                    cmd = f'mv {source_path} {dest_path}'
+                else:
+                    cmd = f'cp -a {source_path}/ {dest_path}/'
+
+                logger.info(f'Running: {cmd}')
+                subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
+            except Exception:
+                logger.exception(f'Failed to copy/move {source_path} to {dest_path}')
+                raise
 
     if not config.step_to_complete and not config.only_calc_ogs and not config.do_not_copy_outputs_to_final_results_dir:
         logger.info('Zipping results folder...')
