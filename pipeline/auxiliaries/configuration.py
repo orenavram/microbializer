@@ -42,8 +42,8 @@ class Config:
     account_name: str
     qos: str
     node_name: str
-    conda_installation_dir: str
-    conda_environment_dir: str
+    conda_installation_dir: Path
+    conda_environment_dir: Path
     max_parallel_jobs: int
     use_job_manager: bool
     use_job_array: bool

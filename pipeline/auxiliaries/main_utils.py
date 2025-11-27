@@ -157,13 +157,16 @@ def zip_results(logger, config):
     if not config.do_not_copy_outputs_to_final_results_dir:
         for output_dir in consts.OUTPUTS_DIRECTORIES_MAP:
             source_path = config.steps_results_dir / output_dir
-            if not source_path.exists():
+            if not source_path.exists() or not any(source_path.iterdir()):
                 continue
             dest_path = config.final_output_dir / consts.OUTPUTS_DIRECTORIES_MAP[output_dir]
 
             try:
                 if config.move_outputs_to_final_output_dir:
-                    cmd = f'mv {source_path} {dest_path}'
+                    if not dest_path.exists():
+                        cmd = f'mv {source_path} {dest_path}'
+                    else:
+                        cmd = f'mv {source_path}/* {dest_path}/'
                 else:
                     cmd = f'cp -a {source_path}/ {dest_path}/'
 
