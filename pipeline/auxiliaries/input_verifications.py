@@ -29,7 +29,7 @@ def prepare_and_verify_input_data(logger, times_logger, config: Config):
 
         remove_system_files(logger, primary_data_path)
 
-        # copies input contigs_dir because we edit the files and want to keep the input directory as is
+        # copies input because we edit the files and want to keep the input directory as is
         copy_dir_cmd = f'cp -a {primary_data_path}/. {config.data_path}/'
         logger.info(f'Running: {copy_dir_cmd}')
         subprocess.run(copy_dir_cmd, shell=True, check=True, capture_output=True, text=True)

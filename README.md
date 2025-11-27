@@ -9,10 +9,40 @@ M1CR0B1AL1Z3R (pronounced: microbializer) was developed to facilitate large-scal
 # Local Run
 Although the recommended way to use Microbializer is through the website, we also offer instructions for local installation on your linux machine:
 1. Clone the repository
-2. Install the microbializer conda environment: conda env create -f microbializer.yaml
-3. Activate the environment: conda activate microbializer
-4. Simple usage: python main.py --contigs_dir <path_to_genome_fasta_files>
+2. Install the microbializer conda environment: 
+```angular2html
+conda env create -f microbializer.yaml
+```
+3. Activate the environment: 
+```angular2html
+conda activate microbializer
+```
+4. Simple usage: 
+```angular2html
+python pipeline/main.py --input <path_to_genome_fasta_files> --cpus <number_of_cpus>
+```
 
+# Advanced Usage
+For a thorough explanation of the pipeline and the optional parameters, please refer to the website <a href="https://microbializer.tau.ac.il/faq">FAQ page</a>.<br/>
+The only required parameter is:
+```angular2html
+--input <path_to_genome_fasta_files> - Path to a directory/zip/tar.gz containing the input FASTA files.
+```
+The optional parameters are:
+```angular2html
+--cpus <number_of_cpus> - Number of CPUs to use. By default all available CPUs are used.
+--inputs_fasta_type <genomes/orfs> - Type of input FASTA files. Options are: 'genomes' (default) or 'orfs'. In the case of genomes, the first step in the pipeline is ORFs prediction using Prodigal. If the user already has ORFs and would like to use them as the starting point, they should choose ORFs in this parameter, and in that case ORFs prediction is skipped.
+--filter_out_plasmids <True/False> - Whether to filter out plasmid contigs/orfs from the input genomes. Default is False. If True, the filtering is done by a simple search for the word "plasmid" in the contig or ORF record name.
+--identity_cutoff <int>, --coverage_cutoff <int> - Minimum sequence identity & sequence coverage (protein-level) for homologs detection. These parameters are used in the homology search step, which is the first step in the orthogroup inference step. The homology search is performed using the MMSEQS2 program, which is a fast and sensitive homology search tool. The default values for these parameters are 40(%) sequence identity and 70(%) sequence coverage. These values can be adjusted to increase or decrease the stringency of the homology search.
+--core_minimal_percentage <int> - Minimum percent of strains required to consider an orthogroup as part of the core genome. The parameter dictates the inclusion or exclusion of orthogroups in the core proteome (and core genome). By default, this value is set to 100(%) and thus, only orthogroups that contain members of all analyzed genomes are included in the core proteome. However, when bacteria from different orders are analyzed, this strict definition can lead to a very small core proteome.
+In that case, the core threshold can be lowered. For example, when a 70% threshold is used, orthogroups shared by at least 70% of the analyzed genomes are included in the "core" proteome. In this case, the tree will be inferred using a larger dataset, albeit, with missing values.
+--outgroup <name_of_genome> - The outgroup genome is used to root the species tree. By default, no outgroup is used and the produced species tree is unrooted. Alternatively, the user can indicate one of the file names (without the file extension) in the uploaded dataset as an outgroup. In that case, The outgroup genome should be a genome that is phylogenetically distant from the ingroup genomes.
+--bootstrap <True/False> - Whether to perform bootstrap analysis for the species tree and display the bootstrap values on it. Default is False.
+--add_orphan_genes_to_ogs <True/False> - Default to False, which means that orphan genes (genes that do not belong to any orthogroup) are not included in the orthogroups table (in the result folder 05a_orthogroups). If True, orphan genes are included as orthogroups with single genes. Of note, orthogroups that contain multiple genes of a single genome - are always included in the orthogroups table, regardless of this parameter.
+```
+
+# Outputs
+Microbializer provides various outputs divided into sub-folders, as described in the <a href="https://microbializer.tau.ac.il/overview">Overview page</a>.
 
 # Citation 
 If you used M1CR0B1AL1Z3R please cite the following papers:
