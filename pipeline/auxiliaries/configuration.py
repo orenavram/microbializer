@@ -138,8 +138,8 @@ def get_configuration():
     parser.add_argument('--args_json_path', help='path to a json file that contains values for arguments which will '
                                                  'override the default values. Optional.', default='')
     parser.add_argument('--run_dir', help='path to a directory where the pipeline will be run. Should contain a zip of'
-                                          'the genomes. Mutually exclusive with --contigs_dir.', default='')
-    parser.add_argument('--contigs_dir',
+                                          'the genomes. Mutually exclusive with --input.', default='')
+    parser.add_argument('--input', '-i',
                         help='path to a folder with the genomic sequences. This folder may be zipped, as well the files'
                              ' in it. Mutually exclusive with --run_dir.', default='')
     parser.add_argument('--output_dir', help='relative path of directory where the output files will be written to',
@@ -206,7 +206,7 @@ def get_configuration():
                         default='first_gene')
     parser.add_argument('--always_run_full_orthogroups_inference', type=str_to_bool, default=False)
     parser.add_argument('--min_num_of_genomes_to_optimize_orthogroups_inference', type=int, default=150)
-    parser.add_argument('--max_parallel_jobs', type=int)
+    parser.add_argument('--cpus', type=int)
     parser.add_argument('--use_job_manager', type=str_to_bool, default=consts.USE_JOB_MANAGER)
     parser.add_argument('--use_job_array', type=str_to_bool, default=consts.USE_JOB_ARRAY)
     parser.add_argument('--kegg_optimization_mode', choices=['first_gene_of_og', 'consensus_of_og', 'all_genes_of_og'],
@@ -238,7 +238,7 @@ def get_configuration():
 
                     queue_name=args.queue_name, account_name=args.account_name, qos=args.qos, node_name=args.node_name,
                     conda_installation_dir=args.conda_installation_dir, conda_environment_dir=args.conda_environment_dir,
-                    max_parallel_jobs=args.max_parallel_jobs, use_job_manager=args.use_job_manager,
+                    max_parallel_jobs=args.cpus, use_job_manager=args.use_job_manager,
                     use_job_array=args.use_job_array,
 
                     email=args.email, job_name=args.job_name, run_number=run_number,
@@ -276,17 +276,17 @@ def get_configuration():
                                not args.do_not_copy_outputs_to_final_results_dir,
 
                     job_default_memory_gb=consts.JOB_DEFAULT_MEMORY_GB,
-                    mmseqs_big_dataset_cpus=min(consts.MMSEQS_BIG_DATASET_CPUS, args.max_parallel_jobs),
+                    mmseqs_big_dataset_cpus=min(consts.MMSEQS_BIG_DATASET_CPUS, args.cpus),
                     mmseqs_big_dataset_memory_gb=consts.MMSEQS_BIG_DATASET_MEMORY_GB,
                     mmseqs_time_limit=consts.MMSEQS_TIME_LIMIT,
-                    phylogeny_cpus=min(consts.PHYLOGENY_CPUS, args.max_parallel_jobs),
+                    phylogeny_cpus=min(consts.PHYLOGENY_CPUS, args.cpus),
                     phylogeny_memory_gb=consts.PHYLOGENY_MEMORY_GB,
                     phylogeny_time_limit=consts.PHYLOGENY_TIME_LIMIT,
-                    kegg_cpus=min(consts.KEGG_CPUS, args.max_parallel_jobs),
+                    kegg_cpus=min(consts.KEGG_CPUS, args.cpus),
                     kegg_memory_gb=consts.KEGG_MEMORY_GB,
-                    codon_bias_cpus=min(consts.CODON_BIAS_CPUS, args.max_parallel_jobs),
+                    codon_bias_cpus=min(consts.CODON_BIAS_CPUS, args.cpus),
                     codon_bias_memory=consts.CODON_BIAS_MEMORY_GB,
-                    ani_cpus=min(consts.ANI_CPUS, args.max_parallel_jobs),
+                    ani_cpus=min(consts.ANI_CPUS, args.cpus),
                     ani_memory_gb=consts.ANI_MEMORY_GB,
                     orthoxml_memory_gb=consts.ORTHOXML_MEMORY_GB,
                     orthogroups_visualizations_memory_gb=consts.ORTHOGROUPS_VISUALIZATIONS_MEMORY_GB,
@@ -315,11 +315,11 @@ def update_args_from_json(args):
 
 
 def validate_arguments(args):
-    if not args.max_parallel_jobs:
+    if not args.cpus:
         if args.use_job_manager:
-            args.max_parallel_jobs = consts.MAX_PARALLEL_JOBS
+            args.cpus = consts.MAX_PARALLEL_JOBS
         else:
-            args.max_parallel_jobs = os.cpu_count()
+            args.cpus = os.cpu_count()
 
     if args.outgroup == "No outgroup":
         args.outgroup = ''
@@ -338,8 +338,8 @@ def validate_arguments(args):
 
 
 def prepare_pipeline_framework(args):
-    if (args.run_dir and args.contigs_dir) or (not args.run_dir and not args.contigs_dir):
-        raise ValueError('Either run_dir or contigs_dir should be provided, but not both.')
+    if (args.run_dir and args.input) or (not args.run_dir and not args.input):
+        raise ValueError('Either run_dir or input should be provided, but not both.')
 
     if args.run_dir:
         run_dir = Path(args.run_dir)
@@ -349,12 +349,12 @@ def prepare_pipeline_framework(args):
             raw_data_path = run_dir / USER_FILE_NAME_TAR
         else:
             raise ValueError(f'No genomes zip or tar file found in {run_dir}')
-    else:  # args.contigs_dir was provided
-        raw_data_path = Path(args.contigs_dir)
+    else:  # args.input was provided
+        raw_data_path = Path(args.input)
         if raw_data_path.exists():
             run_dir = raw_data_path.parent
         else:
-            raise ValueError(f'contigs_dir argument {raw_data_path} does not exist!')
+            raise ValueError(f'input argument {raw_data_path} does not exist!')
 
     output_dir = run_dir / args.output_dir
     output_dir.mkdir(parents=True, exist_ok=True)
