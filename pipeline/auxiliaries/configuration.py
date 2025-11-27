@@ -198,7 +198,7 @@ def get_configuration():
     parser.add_argument('--use_parquet', type=str_to_bool, default=True,
                         help='When True, use parquet files when possible instead of csv')
     parser.add_argument('--do_not_copy_outputs_to_final_results_dir', type=str_to_bool, default=False)
-    parser.add_argument('--move_outputs_to_final_output_dir', type=str_to_bool, default=False)
+    parser.add_argument('--move_outputs_to_final_output_dir', type=str_to_bool, default=True)
     parser.add_argument('--clean_intermediate_outputs', type=str_to_bool, default=False)
     parser.add_argument('--genomes_batch_size', type=int, default=50, help='relevant if genomes_batch_size_calc_method = fixed_number')
     parser.add_argument('--genomes_batch_size_calc_method', choices=['fixed_number', 'sqrt', 'min_comparisons'], default='min_comparisons')

@@ -1,8 +1,8 @@
 from enum import Enum
 from pathlib import Path
 
-# ENV = 'wsl'
-ENV = 'yair_test'
+ENV = 'standalone'
+# ENV = 'yair_test'
 # ENV = 'yair_prod'
 # ENV = 'mgmt'
 # ENV = 'c-001'
@@ -25,9 +25,9 @@ elif ENV == 'mgmt':
     SLURM_ACCOUNT = 'pupko-users_v2'
     SLURM_PARTITION = 'pupko-pool'
     SLURM_QOS = 'owner'
-elif ENV == 'wsl':
-    CONDA_INSTALLATION_DIR = Path('/home/yair/miniconda3')
-    CONDA_ENVIRONMENT_DIR = Path('/home/yair/miniconda3/envs/microbializer')
+elif ENV == 'standalone':
+    CONDA_INSTALLATION_DIR = None
+    CONDA_ENVIRONMENT_DIR = None
     SLURM_ACCOUNT = None
     SLURM_PARTITION = None
 elif ENV == 'c-001':
@@ -44,7 +44,7 @@ elif ENV == 'windows':
 else:
     raise ValueError(f'Unknown environment: {ENV}')
 
-USE_JOB_MANAGER = False if ENV == 'wsl' else True
+USE_JOB_MANAGER = False if ENV == 'standalone' else True
 USE_JOB_ARRAY = True
 MAX_PARALLEL_JOBS = 50
 
