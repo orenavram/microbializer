@@ -319,7 +319,7 @@ def validate_arguments(args):
         if args.use_job_manager:
             args.cpus = consts.MAX_PARALLEL_JOBS
         else:
-            args.cpus = os.cpu_count()
+            args.cpus = 1
 
     if args.outgroup == "No outgroup":
         args.outgroup = ''

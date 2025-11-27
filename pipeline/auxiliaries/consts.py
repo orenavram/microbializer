@@ -30,6 +30,7 @@ elif ENV == 'standalone':
     CONDA_ENVIRONMENT_DIR = None
     SLURM_ACCOUNT = None
     SLURM_PARTITION = None
+    SLURM_QOS = None
 elif ENV == 'c-001':
     CONDA_INSTALLATION_DIR = Path('/home/ai_center/ai_users/yairshimony/miniconda')
     CONDA_ENVIRONMENT_DIR = Path('/home/ai_center/ai_users/yairshimony/miniconda/envs/microbializer')
