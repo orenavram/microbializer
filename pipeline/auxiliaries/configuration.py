@@ -139,7 +139,7 @@ def get_configuration():
                                                  'override the default values. Optional.', default='')
     parser.add_argument('--run_dir', help='path to a directory where the pipeline will be run. Should contain a zip of'
                                           'the genomes. Mutually exclusive with --input.', default='')
-    parser.add_argument('--input', '-i',
+    parser.add_argument('--input', '--contigs_dir', '-i',
                         help='path to a folder with the genomic sequences. This folder may be zipped, as well the files'
                              ' in it. Mutually exclusive with --run_dir.', default='')
     parser.add_argument('--output_dir', help='relative path of directory where the output files will be written to',
