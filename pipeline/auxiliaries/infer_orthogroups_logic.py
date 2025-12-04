@@ -131,8 +131,6 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
     else:
         logger.info(f'done file {done_file_path} already exists. Skipping step...')
 
-    putative_orthologs_table_df = pd.read_csv(putative_orthologs_table_path, dtype=str)
-
     # prepare_og_for_mcl.py
     step_number = f'{base_step_number}_{start_substep_number + 2}'
     logger.info(f'Step {step_number}: {"_" * 100}')
@@ -147,6 +145,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
 
         job_inputs_dir = mcl_inputs_tmp_dir / consts.STEP_INPUTS_DIR_NAME
         job_inputs_dir.mkdir(parents=True, exist_ok=True)
+        putative_orthologs_table_df = pd.read_csv(putative_orthologs_table_path, dtype=str)
         split_ogs_to_jobs_inputs_files_by_og_sizes(putative_orthologs_table_df, job_inputs_dir, config.max_parallel_jobs)
 
         script_params = [normalized_hits_output_dir, putative_orthologs_table_path, mcl_inputs_dir]
@@ -184,6 +183,7 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
 
         jobs_inputs_dir = mcl_tmp_dir / consts.STEP_INPUTS_DIR_NAME
         jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
+        putative_orthologs_table_df = pd.read_csv(putative_orthologs_table_path, dtype=str)
         split_ogs_to_jobs_inputs_files_by_og_sizes(putative_orthologs_table_df, jobs_inputs_dir, config.max_parallel_jobs)
 
         script_params = [mcl_inputs_dir, mcl_outputs_dir, verified_clusters_output_dir]

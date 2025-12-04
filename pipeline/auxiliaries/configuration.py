@@ -12,8 +12,7 @@ from .general_utils import str_to_bool, get_logger
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent.parent))
 
-from pipeline.flask.flask_interface_consts import WEBSERVER_NAME, ERROR_FILE_NAME, PROGRESSBAR_FILE_NAME, \
-    SEND_EMAIL_WHEN_JOB_FINISHED_FROM_PIPELINE, CLEAN_OLD_JOBS_DIRECTORIES_FROM_PIPELINE
+from pipeline.flask.flask_interface_consts import WEBSERVER_NAME, ERROR_FILE_NAME, PROGRESSBAR_FILE_NAME
 from pipeline.flask.SharedConsts import USER_FILE_NAME_ZIP, USER_FILE_NAME_TAR
 
 PIPELINE_STEPS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
@@ -76,7 +75,6 @@ class Config:
     kegg_optimization_mode: str
 
     # Debugging parameters
-    do_not_copy_outputs_to_final_results_dir: bool
     bypass_number_of_genomes_limit: bool
     step_to_complete: str
     qfo_benchmark: bool
@@ -89,6 +87,7 @@ class Config:
     move_outputs_to_final_output_dir: bool
     clean_intermediate_outputs: bool
     clean_old_job_directories: bool
+    zip_results: bool
 
     # cpus, memory, time
     job_default_memory_gb: int
@@ -197,8 +196,7 @@ def get_configuration():
                         help='Optimize the mmseqs run')
     parser.add_argument('--use_parquet', type=str_to_bool, default=True,
                         help='When True, use parquet files when possible instead of csv')
-    parser.add_argument('--do_not_copy_outputs_to_final_results_dir', type=str_to_bool, default=False)
-    parser.add_argument('--move_outputs_to_final_output_dir', type=str_to_bool, default=True)
+    parser.add_argument('--move_outputs_to_final_output_dir', type=str_to_bool, default=True, help='If False, the outputs are copied to final output dir')
     parser.add_argument('--clean_intermediate_outputs', type=str_to_bool, default=False)
     parser.add_argument('--genomes_batch_size', type=int, default=50, help='relevant if genomes_batch_size_calc_method = fixed_number')
     parser.add_argument('--genomes_batch_size_calc_method', choices=['fixed_number', 'sqrt', 'min_comparisons'], default='min_comparisons')
@@ -214,6 +212,9 @@ def get_configuration():
     parser.add_argument('--max_number_of_core_ogs_for_phylogeny', help='-1 to not limit', type=int, default=consts.MAX_NUMBER_OF_CORE_OGS_FOR_PHYLOGENY)
     parser.add_argument('-v', '--verbose', type=str_to_bool, default=False,
                         help='Increase output verbosity')
+    parser.add_argument('--send_email', type=str_to_bool, default=False)
+    parser.add_argument('--clean_old_job_directories', type=str_to_bool, default=False)
+    parser.add_argument('--zip_results', type=str_to_bool, default=True)
 
     args = parser.parse_args()
 
@@ -241,10 +242,7 @@ def get_configuration():
                     max_parallel_jobs=args.cpus, use_job_manager=args.use_job_manager,
                     use_job_array=args.use_job_array,
 
-                    email=args.email, job_name=args.job_name, run_number=run_number,
-                    send_email=consts.ENV == 'lsweb' and SEND_EMAIL_WHEN_JOB_FINISHED_FROM_PIPELINE and
-                               not args.step_to_complete and not args.only_calc_ogs and
-                               not args.do_not_copy_outputs_to_final_results_dir,
+                    email=args.email, job_name=args.job_name, run_number=run_number, send_email=args.send_email,
 
                     identity_cutoff=args.identity_cutoff, coverage_cutoff=args.coverage_cutoff,
                     e_value_cutoff=args.e_value_cutoff, sensitivity=args.sensitivity,
@@ -261,7 +259,6 @@ def get_configuration():
                     run_optimized_mmseqs=args.run_optimized_mmseqs,
                     kegg_optimization_mode=args.kegg_optimization_mode,
 
-                    do_not_copy_outputs_to_final_results_dir=args.do_not_copy_outputs_to_final_results_dir,
                     bypass_number_of_genomes_limit=args.bypass_number_of_genomes_limit,
                     step_to_complete=args.step_to_complete,
                     qfo_benchmark=args.qfo_benchmark, only_calc_ogs=args.only_calc_ogs,
@@ -271,9 +268,8 @@ def get_configuration():
 
                     move_outputs_to_final_output_dir=args.move_outputs_to_final_output_dir,
                     clean_intermediate_outputs=args.clean_intermediate_outputs,
-                    clean_old_job_directories=consts.ENV == 'lsweb' and CLEAN_OLD_JOBS_DIRECTORIES_FROM_PIPELINE and
-                               not args.step_to_complete and not args.only_calc_ogs and
-                               not args.do_not_copy_outputs_to_final_results_dir,
+                    clean_old_job_directories=args.clean_old_job_directories,
+                    zip_results=args.zip_results,
 
                     job_default_memory_gb=consts.JOB_DEFAULT_MEMORY_GB,
                     mmseqs_big_dataset_cpus=min(consts.MMSEQS_BIG_DATASET_CPUS, args.cpus),

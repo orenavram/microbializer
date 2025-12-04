@@ -711,15 +711,12 @@ def step_9_extract_core_genome_and_core_proteome(logger, times_logger, config, a
         aligned_core_proteome_reduced_file_path = aligned_core_proteome_file_path
         core_proteome_reduced_length_file_path = core_proteome_length_file_path
 
-    with open(core_proteome_reduced_length_file_path, 'r') as fp:
-        core_proteome_reduced_length = int(fp.read().strip())
-
     update_progressbar(config.progressbar_file_path, 'Infer core genome and proteome')
-    return aligned_core_proteome_reduced_file_path, core_proteome_reduced_length
+    return aligned_core_proteome_reduced_file_path, core_proteome_reduced_length_file_path
 
 
 def step_11_phylogeny(logger, times_logger, config, aligned_core_proteome_file_path, genomes_names,
-                      core_proteome_length):
+                      core_proteome_length_file_path):
     # 11_1.   ani.py
     step_number = '11_1'
     logger.info(f'Step {step_number}: {"_" * 100}')
@@ -755,6 +752,9 @@ def step_11_phylogeny(logger, times_logger, config, aligned_core_proteome_file_p
     phylogeny_done_file_path = config.done_files_dir / f'{phylogeny_step_name}.txt'
     if not phylogeny_done_file_path.exists():
         output_tree_path = phylogeny_path / 'final_species_tree.newick'
+
+        with open(core_proteome_length_file_path, 'r') as fp:
+            core_proteome_length = int(fp.read().strip())
 
         all_gap_seqs = find_all_gap_sequences(aligned_core_proteome_file_path)
 
@@ -973,7 +973,7 @@ def run_main_pipeline(logger, times_logger, config):
         logger.info("Step 8 completed.")
         return
 
-    aligned_core_proteome_reduced_file_path, core_proteome_reduced_length = step_9_extract_core_genome_and_core_proteome(
+    aligned_core_proteome_reduced_file_path, core_proteome_length_file_path = step_9_extract_core_genome_and_core_proteome(
         logger, times_logger, config, ogs_aa_alignments_path, ogs_dna_alignments_path)
 
     if config.step_to_complete == '9':
@@ -981,7 +981,7 @@ def run_main_pipeline(logger, times_logger, config):
         return
 
     step_11_phylogeny(logger, times_logger, config, aligned_core_proteome_reduced_file_path, genomes_names,
-                      core_proteome_reduced_length)
+                      core_proteome_length_file_path)
 
     if config.step_to_complete == '11':
         logger.info("Step 11 completed.")

@@ -1,4 +1,3 @@
-import shutil
 import subprocess
 from datetime import datetime, timedelta
 import sys
@@ -154,29 +153,28 @@ def define_intervals(number_of_genomes, genomes_batch_size):
 
 
 def zip_results(logger, config):
-    if not config.do_not_copy_outputs_to_final_results_dir:
-        for output_dir in consts.OUTPUTS_DIRECTORIES_MAP:
-            source_path = config.steps_results_dir / output_dir
-            if not source_path.exists() or not any(source_path.iterdir()):
-                continue
-            dest_path = config.final_output_dir / consts.OUTPUTS_DIRECTORIES_MAP[output_dir]
+    for output_dir in consts.OUTPUTS_DIRECTORIES_MAP:
+        source_path = config.steps_results_dir / output_dir
+        if not source_path.exists() or not any(source_path.iterdir()):
+            continue
+        dest_path = config.final_output_dir / consts.OUTPUTS_DIRECTORIES_MAP[output_dir]
 
-            try:
-                if config.move_outputs_to_final_output_dir:
-                    if not dest_path.exists():
-                        cmd = f'mv {source_path} {dest_path}'
-                    else:
-                        cmd = f'mv {source_path}/* {dest_path}/'
+        try:
+            if config.move_outputs_to_final_output_dir:
+                if not dest_path.exists():
+                    cmd = f'mv {source_path} {dest_path}'
                 else:
-                    cmd = f'cp -a {source_path}/ {dest_path}/'
+                    cmd = f'mv {source_path}/* {dest_path}/'
+            else:
+                cmd = f'cp -a {source_path}/ {dest_path}/'
 
-                logger.info(f'Running: {cmd}')
-                subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
-            except Exception:
-                logger.exception(f'Failed to copy/move {source_path} to {dest_path}')
-                raise
+            logger.info(f'Running: {cmd}')
+            subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
+        except Exception:
+            logger.exception(f'Failed to copy/move {source_path} to {dest_path}')
+            raise
 
-    if not config.step_to_complete and not config.only_calc_ogs and not config.do_not_copy_outputs_to_final_results_dir:
+    if config.zip_results:
         logger.info('Zipping results folder...')
         tar_command = f'tar -czf {config.final_output_dir}.tar.gz -C {config.final_output_dir} .'
         logger.info(f'Running command: {tar_command}')

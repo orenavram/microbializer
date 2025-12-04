@@ -37,11 +37,6 @@ ERROR_FILE_PATH = ALL_OUTPUTS_DIRECTORY / ERROR_FILE_NAME
 # Finished job file (the path is relative to the unique folder of the job)
 FINISHED_JOB_FILE_PATH = Path("outputs") / "done" / "pipeline_finished_successfully.txt"
 
-# Whether to send email when job finished from pipeline
-SEND_EMAIL_WHEN_JOB_FINISHED_FROM_PIPELINE = True
-# Whether to clean old jobs directories from pipeline
-CLEAN_OLD_JOBS_DIRECTORIES_FROM_PIPELINE = True
-
 USER_RESULTS_DIR = Path(WEBSERVER_PROJECT_ROOT_DIR) / 'user_results'
 CLEAN_JOBS_LOGS_DIR = Path(WEBSERVER_PROJECT_ROOT_DIR) / 'clean_jobs_logs'
 
@@ -163,7 +158,7 @@ export PATH=$CONDA_PREFIX/bin:$PATH
 
 echo "PATH: $PATH"
 
-python "{WEBSERVER_PROJECT_ROOT_DIR}/pipeline/main.py" --{ARGS_JSON_PATH_KEY} {{args_json_path}} --account_name {MICROBIALIZER_PROCESSOR_JOB_ACCOUNT_NAME} --queue_name {MICROBIALIZER_PROCESSOR_JOB_QUEUE_NAME} --clean_intermediate_outputs True
+python "{WEBSERVER_PROJECT_ROOT_DIR}/pipeline/main.py" --{ARGS_JSON_PATH_KEY} {{args_json_path}} --account_name {MICROBIALIZER_PROCESSOR_JOB_ACCOUNT_NAME} --queue_name {MICROBIALIZER_PROCESSOR_JOB_QUEUE_NAME} --clean_intermediate_outputs True --send_email True --clean_old_job_directories True
 '''
 
 MICROBIALIZER_JOB_HEADER_TEMPLATE = f'''
