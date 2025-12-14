@@ -182,3 +182,25 @@ def sort_orthogroups_df_and_rename_ogs(logger, orthogroups_file_path, orfs_coord
     orthogroups_df['OG_name'] = [f'OG_{i}' for i in range(len(orthogroups_df.index))]
     orthogroups_df.to_csv(sorted_orthogroups_file_path, index=False)
     logger.info(f'Wrote sorted orthogroups table according to coordinates to {sorted_orthogroups_file_path}')
+
+
+def sort_orthogroups_by_columns(df):
+    if len(df.columns) < 1000:
+        df = df.sort_values(by=list(df.columns[1:])).reset_index(drop=True)
+    else:
+        # This is a memory-efficient implementation of df.sort_values(by=list(df.columns[1:])), used to deal with very
+        # large dataframes.
+
+        # 1. Convert columns one by one to keep RAM usage low during conversion
+        #    We exclude the first column if you don't want to touch the ID/Index
+        for col in df.columns[1:]:
+            df[col] = df[col].astype('category')
+
+        # 2. Now perform the sort
+        #    Pandas will use the integer codes under the hood -> Super fast, Low RAM
+        df = df.sort_values(by=list(df.columns[1:])).reset_index(drop=True)
+
+    # Rename OGs
+    df['OG_name'] = [f'OG_{i}' for i in range(len(df.index))]
+
+    return df
