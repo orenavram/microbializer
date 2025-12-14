@@ -95,6 +95,8 @@ def get_job_time_from_log_file(log_file_content, pattern_for_runtime, pattern_fo
 
     if '-' in runtime_string:
         days_string, time_string = runtime_string.split('-')
+    elif 'day' in runtime_string:
+        days_string, time_string = runtime_string.split(' day, ')
     else:
         days_string = 0
         time_string = runtime_string

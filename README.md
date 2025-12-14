@@ -17,7 +17,13 @@ conda env create -f microbializer.yaml
 ```angular2html
 conda activate microbializer
 ```
-4. Simple usage: 
+4. Download the KEGG database (we constructed a custom KEGG database for Microbializer and host it on Google Drive):
+```angular2html
+cd pipeline/data/kegg
+gdown 1JFAKeDCjdsLbkhDOPB_pz_mNzOtqV6rP
+tar -xzvf prokaryote_database.tar.gz
+```
+5. Simple usage: 
 ```angular2html
 python pipeline/main.py --input <path_to_genome_fasta_files> --cpus <number_of_cpus>
 ```

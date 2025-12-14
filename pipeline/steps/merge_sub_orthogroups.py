@@ -16,7 +16,7 @@ def merge_sub_orthogroups(logger, pseudo_orthogroups_file_path, sub_orthogroups_
     for sub_orthogroups_file_path in sorted(sub_orthogroups_dir_path.iterdir()):
         batch_id = sub_orthogroups_file_path.stem.split('_')[-1]
 
-        sub_orthogroups_df = pd.read_csv(sub_orthogroups_file_path)
+        sub_orthogroups_df = pd.read_csv(sub_orthogroups_file_path, dtype=str)
         sub_orthogroups_df.drop(columns=['OG_name'], inplace=True)
         sub_orthogroups_df.set_index('representative_gene', inplace=True)
 

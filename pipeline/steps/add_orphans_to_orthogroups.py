@@ -10,7 +10,7 @@ from pipeline.auxiliaries.run_step_utils import add_default_step_args, run_step
 
 
 def finalize_table(logger, orthologs_table_path, finalized_table_path, orphan_genes_dir):
-    orthogroups_df = pd.read_csv(orthologs_table_path)
+    orthogroups_df = pd.read_csv(orthologs_table_path, dtype=str)
     logger.info(f'Read {orthologs_table_path} into memory. There are {len(orthogroups_df.index)} orthogroups.')
 
     logger.info(f'Starting to aggregate orphan genes from {orphan_genes_dir}')

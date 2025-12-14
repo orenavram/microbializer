@@ -196,7 +196,7 @@ def create_simplified_orthogroups_table_for_results_page(logger, orthogroups_df,
 
 
 def get_genome_numeric_representation(logger, orthogroups_table_path, ORFs_coordinates_dir_path, output_dir):
-    orthogroups_df = pd.read_csv(orthogroups_table_path, index_col=0)
+    orthogroups_df = pd.read_csv(orthogroups_table_path, dtype=str, index_col=0)
 
     genome_name_to_numeric_genome = {}
     for genome_name in orthogroups_df.columns:

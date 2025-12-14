@@ -27,3 +27,4 @@ dependencies:
   - pympler=1.1
   - umap-learn=0.5.6
   - numba=0.58.1
+  - gdown
