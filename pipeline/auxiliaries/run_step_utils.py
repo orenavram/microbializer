@@ -22,7 +22,7 @@ def validate_slurm_error_logs(logger, slurm_logs_dir, error_file_path):
 
         with open(slurm_log_file) as f:
             for line in f:
-                if line.startswith('slurmstepd: error: Detected 1 oom_kill event'):  # Catch memory errors
+                if 'error: Detected 1 oom_kill event' in line:  # Catch memory errors
                     fail(logger, f'file {slurm_log_file} shows a slurm error: {line}', error_file_path)
 
 

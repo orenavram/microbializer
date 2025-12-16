@@ -169,7 +169,7 @@ def sort_orthogroups_df_and_rename_ogs(logger, orthogroups_file_path, orfs_coord
     logger.info(f'Finished reading {orfs_coordinates_dir} into memory.')
 
     # Sort the genes in each cell of the orthogroups DataFrame
-    orthogroups_df = pd.read_csv(orthogroups_file_path, dtype=str)
+    orthogroups_df = pd.read_csv(orthogroups_file_path, dtype=str, engine='pyarrow', dtype_backend='pyarrow')
     for col in orthogroups_df.columns[1:]:
         orthogroups_df[col] = orthogroups_df[col].apply(lambda cell: sort_genes_in_cell(cell, genome_name_to_orfs_coordinates[col]))
 

@@ -43,7 +43,7 @@ def prepare_ogs_for_mcl(logger, normalized_hits_dir, putative_ogs_path, job_inpu
         return
 
     logger.info(f'Aggregating all genes from the specified {len(ogs_numbers)} putative OGs...')
-    putative_ogs_df = pd.read_csv(putative_ogs_path, dtype=str, index_col=0)
+    putative_ogs_df = pd.read_csv(putative_ogs_path, dtype=str, index_col=0, engine='pyarrow', dtype_backend='pyarrow')
     strain_to_gene_to_og = {}
     number_of_genes = 0
     for strain in putative_ogs_df.columns:

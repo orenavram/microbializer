@@ -49,7 +49,7 @@ def extract_orphan_proteins(logger, proteins_file_path, orthogroups_df, output_d
 
 
 def extract_orphan_proteins_from_all_files(logger, job_input_path, orthogroups_file, output_dir):
-    orthogroups_df = pd.read_csv(orthogroups_file, dtype=str)
+    orthogroups_df = pd.read_csv(orthogroups_file, dtype=str, engine='pyarrow', dtype_backend='pyarrow')
     orthogroups_df.drop(columns=['OG_name'], inplace=True)
 
     with open(job_input_path, 'r') as f:

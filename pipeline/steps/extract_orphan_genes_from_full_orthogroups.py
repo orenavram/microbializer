@@ -46,7 +46,7 @@ def extract_orphan_proteins(logger, strain_name, orphan_orthogroups, output_dir)
 
 def extract_orphan_proteins_of_all_strains(logger, job_input_path, orthogroups_file, output_dir):
     # Here we start from orthogroups_df that already contains orthogroups for all orphan genes.
-    orthogroups_df = pd.read_csv(orthogroups_file, dtype=str)
+    orthogroups_df = pd.read_csv(orthogroups_file, dtype=str, engine='pyarrow', dtype_backend='pyarrow')
     logger.info(f'Read orthogroups file from {orthogroups_file} into memory')
 
     orthogroups_df.drop(columns=['OG_name'], inplace=True)
