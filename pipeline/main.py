@@ -8,7 +8,6 @@ import json
 import subprocess
 from datetime import timedelta
 
-from Bio import SeqIO
 import pandas as pd
 from dataclasses import replace
 
@@ -22,7 +21,7 @@ from auxiliaries.main_utils import send_email_in_pipeline_end, submit_clean_fold
     calc_genomes_batch_size, initialize_progressbar, find_all_gap_sequences
 from auxiliaries.run_step_utils import wait_for_results, prepare_directories, submit_job, submit_batch
 from auxiliaries.logic_utils import (plot_genomes_histogram, combine_orphan_genes_stats,
-                                     split_ogs_to_jobs_inputs_files_by_og_sizes, sort_orthogroups_df_and_rename_ogs)
+                                     split_ogs_to_jobs_inputs_files_by_og_sizes)
 
 from auxiliaries.infer_orthogroups_logic import infer_orthogroups
 from flask.SharedConsts import State
