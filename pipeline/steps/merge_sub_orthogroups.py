@@ -14,17 +14,17 @@ from pipeline.auxiliaries.logic_utils import sort_orthogroups_by_columns
 def merge_sub_orthogroups(logger, pseudo_orthogroups_file_path, sub_orthogroups_dir_path, output_path):
     temp_output_path = output_path.with_suffix('.tmp.csv')
     if temp_output_path.exists():
-        df = pd.read_csv(temp_output_path, dtype=str, engine='pyarrow', dtype_backend='pyarrow')
+        df = pd.read_csv(temp_output_path, dtype=str)
         logger.info(f'Temporary merged sub-orthogroups file already exists at {temp_output_path}, so loaded it.')
     else:
-        pseudo_orthogroups_df = pd.read_csv(pseudo_orthogroups_file_path, dtype=str, engine='pyarrow', dtype_backend='pyarrow')
+        pseudo_orthogroups_df = pd.read_csv(pseudo_orthogroups_file_path, dtype=str)
         logger.info(f'Loaded pseudo-orthogroups file from {pseudo_orthogroups_file_path}')
 
         for sub_orthogroups_file_path in sorted(sub_orthogroups_dir_path.iterdir()):
             batch_id = sub_orthogroups_file_path.stem.split('_')[-1]
             logger.info(f'Merging orthogroups file from batch {batch_id} ({sub_orthogroups_file_path})...')
 
-            sub_orthogroups_df = pd.read_csv(sub_orthogroups_file_path, dtype=str, engine='pyarrow', dtype_backend='pyarrow')
+            sub_orthogroups_df = pd.read_csv(sub_orthogroups_file_path, dtype=str)
             sub_orthogroups_df.drop(columns=['OG_name'], inplace=True)
             sub_orthogroups_df.set_index('representative_gene', inplace=True)
 
@@ -55,7 +55,6 @@ def merge_sub_orthogroups(logger, pseudo_orthogroups_file_path, sub_orthogroups_
     sorted_cols = sorted(df.columns[1:])
     df = df[['OG_name'] + sorted_cols]
 
-    # df = sort_orthogroups_by_columns(df)
     df = df.sort_values(by=list(df.columns[1:]), ignore_index=True)
     df['OG_name'] = [f'OG_{i}' for i in range(len(df.index))]
 

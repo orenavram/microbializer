@@ -160,7 +160,7 @@ def extract_orfs(logger, all_orfs_path, all_proteins_path, orthogroups_file_path
             protein_to_sequence_dict[seq_record.id] = seq_record.seq
         logger.info(f'Loaded all ({len(protein_to_sequence_dict)}) protein sequences into memory')
 
-    orthogroups_df = pd.read_csv(orthogroups_file_path, dtype=str, engine='pyarrow', dtype_backend='pyarrow')
+    orthogroups_df = pd.read_csv(orthogroups_file_path, dtype=str)
     orthogroups_df = orthogroups_df[orthogroups_df['OG_name'].isin(ogs_numbers)]
 
     for i, row in orthogroups_df.iterrows():

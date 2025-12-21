@@ -147,7 +147,7 @@ def build_orthoxml_and_tsv_output(logger, all_clusters_df, output_dir, qfo_bench
 
 
 def create_orthoxml(logger, orthologs_table_path, output_dir, qfo_benchmark):
-    orthogroups_df = pd.read_csv(orthologs_table_path, dtype=str, engine='pyarrow', dtype_backend='pyarrow')
+    orthogroups_df = pd.read_csv(orthologs_table_path, dtype=str)
     build_orthoxml_and_tsv_output(logger, orthogroups_df, output_dir, qfo_benchmark)
 
 

@@ -16,7 +16,7 @@ def get_verified_clusters_set(verified_clusters_path):
 
 
 def finalize_table(logger, putative_orthologs_path, verified_clusters_path, finalized_table_path):
-    putative_orthologs_df = pd.read_csv(putative_orthologs_path, dtype=str, engine='pyarrow', dtype_backend='pyarrow')
+    putative_orthologs_df = pd.read_csv(putative_orthologs_path, dtype=str)
 
     # Keep only the verified clusters
     verified_clusters_set = get_verified_clusters_set(verified_clusters_path)

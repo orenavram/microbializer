@@ -262,18 +262,18 @@ def step_5_orthogroups_inference(logger, times_logger, config, genomes_names, tr
     step_number = f'{final_step_number}_{final_substep_number + 1}'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_sort_orthogroups_by_coordinates'
+    script_path = consts.SRC_DIR / 'steps' / 'sort_orthogroups.py'
     sorted_orthogroups_dir, sorted_orthogroups_tmp_dir = prepare_directories(
         logger, config.steps_results_dir, config.tmp_dir, step_name)
     sorted_orthogroups_file_path = sorted_orthogroups_dir / 'orthogroups.csv'
     done_file_path = config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
-        start_time = time.time()
+        final_orthogroups_file_path = final_orthogroups_dir_path / 'orthogroups.csv'
+        single_cmd_params = [final_orthogroups_file_path, orfs_coordinates_dir, sorted_orthogroups_file_path]
 
-        sort_orthogroups_df_and_rename_ogs(logger, final_orthogroups_dir_path / 'orthogroups.csv',
-                                           orfs_coordinates_dir, sorted_orthogroups_file_path)
-
-        step_time = timedelta(seconds=int(time.time() - start_time))
-        times_logger.info(f'Step {step_name} took {step_time}.')
+        submit_job(logger, config, script_path, single_cmd_params, sorted_orthogroups_tmp_dir,
+                          'sort_orthogroups', memory=get_required_memory_gb_to_load_csv(final_orthogroups_file_path))
+        wait_for_results(logger, times_logger, step_name, sorted_orthogroups_tmp_dir, config.error_file_path)
 
         write_done_file(logger, done_file_path)
     else:
@@ -482,7 +482,7 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
             logger.info(f'add_orphan_genes_to_ogs is True. Copied {merged_orthogroups_file_path} to '
                         f'{final_orthogroups_file_path} since it already contains orphans.')
         else:
-            orthogroups_df = pd.read_csv(merged_orthogroups_file_path, index_col='OG_name', dtype=str, engine='pyarrow', dtype_backend='pyarrow')
+            orthogroups_df = pd.read_csv(merged_orthogroups_file_path, index_col='OG_name', dtype=str)
             orthogroups_df = orthogroups_df[~(
                     (orthogroups_df.count(axis=1) == 1) &
                     ~(orthogroups_df.apply(lambda row: row.dropna().iloc[0].__contains__(';'), axis=1))
@@ -578,7 +578,7 @@ def step_8_build_orthologous_groups_fastas(logger, times_logger, config, all_orf
         orthogroups_induced_dna_msa_dir_path.mkdir(parents=True, exist_ok=True)
         orthogroups_aa_consensus_dir_path.mkdir(parents=True, exist_ok=True)
 
-        orthogroups_df = pd.read_csv(final_orthologs_table_file_path, dtype=str, engine='pyarrow', dtype_backend='pyarrow')
+        orthogroups_df = pd.read_csv(final_orthologs_table_file_path, dtype=str)
 
         jobs_inputs_dir = pipeline_step_tmp_dir / consts.STEP_INPUTS_DIR_NAME
         jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
@@ -893,17 +893,17 @@ def step_12_orthogroups_annotations(logger, times_logger, config, orfs_dir,
         logger.info('Adding annotations to orthogroups...')
         start_time = time.time()
 
-        final_orthologs_df = pd.read_csv(final_orthologs_table_file_path, dtype=str, engine='pyarrow', dtype_backend='pyarrow')
+        final_orthologs_df = pd.read_csv(final_orthologs_table_file_path, dtype=str)
 
         if kegg_table_path.exists():
-            kegg_table_df = pd.read_csv(kegg_table_path, engine='pyarrow', dtype_backend='pyarrow')[['OG_name', 'knum', 'knum_description']]
+            kegg_table_df = pd.read_csv(kegg_table_path)[['OG_name', 'knum', 'knum_description']]
             final_orthologs_df = pd.merge(kegg_table_df, final_orthologs_df, on='OG_name')
 
         if cai_table_path.exists():
-            cai_df = pd.read_csv(cai_table_path, engine='pyarrow', dtype_backend='pyarrow')[['OG_name', 'CAI_mean']]
+            cai_df = pd.read_csv(cai_table_path)[['OG_name', 'CAI_mean']]
             final_orthologs_df = pd.merge(cai_df, final_orthologs_df, on='OG_name')
 
-        orthogroups_sizes_df = pd.read_csv(orthogroups_visualizations_dir_path / 'orthogroups_sizes.csv', engine='pyarrow', dtype_backend='pyarrow')
+        orthogroups_sizes_df = pd.read_csv(orthogroups_visualizations_dir_path / 'orthogroups_sizes.csv')
         final_orthologs_df = pd.merge(orthogroups_sizes_df, final_orthologs_df, on='OG_name')
 
         final_orthologs_table_annotated_path = output_dir_path / 'orthogroups_annotated.csv'

@@ -157,7 +157,7 @@ def cluster_strains_by_orthogroups(logger, binary_df, output_dir):
 
 
 def count_and_plot_orthogroups_sizes(logger, final_orthogroups_file_path, output_dir):
-    final_orthologs_table_df = pd.read_csv(final_orthogroups_file_path, dtype=str, engine='pyarrow', dtype_backend='pyarrow')
+    final_orthologs_table_df = pd.read_csv(final_orthogroups_file_path, dtype=str)
     orthogroups_sizes_df = count_strains_and_genes_in_ogs(final_orthologs_table_df)
     orthogroups_sizes_df = orthogroups_sizes_df.rename(columns={'strains_count': 'OG size (number of genomes)',
                                                                 'genes_count': 'OG size (total number of genes)'})
@@ -196,7 +196,7 @@ def create_simplified_orthogroups_table_for_results_page(logger, orthogroups_df,
 
 
 def get_genome_numeric_representation(logger, orthogroups_table_path, ORFs_coordinates_dir_path, output_dir):
-    orthogroups_df = pd.read_csv(orthogroups_table_path, dtype=str, index_col=0, engine='pyarrow', dtype_backend='pyarrow')
+    orthogroups_df = pd.read_csv(orthogroups_table_path, dtype=str, index_col=0)
 
     genome_name_to_numeric_genome = {}
     for genome_name in orthogroups_df.columns:
@@ -224,7 +224,7 @@ def get_genome_numeric_representation(logger, orthogroups_table_path, ORFs_coord
 def create_orthogroups_visualizations(logger, orthologs_table_path, output_dir, tmp_dir, ORFs_coordinates_dir_path):
     count_and_plot_orthogroups_sizes(logger, orthologs_table_path, output_dir)
 
-    orthogroups_df = pd.read_csv(orthologs_table_path, dtype=str, engine='pyarrow', dtype_backend='pyarrow')
+    orthogroups_df = pd.read_csv(orthologs_table_path, dtype=str)
     create_simplified_orthogroups_table_for_results_page(logger, orthogroups_df, tmp_dir)
     create_phyletic_pattern(logger, orthogroups_df, output_dir)
 

@@ -113,7 +113,7 @@ def construct_table(logger, normalized_hits_dir, genome_names_file_path, putativ
     else:
         logger.info(f'Putative orthogroups table already exists at {putative_orthologs_path}')
 
-    orthogroups_df = pd.read_csv(putative_orthologs_path, dtype=str, engine='pyarrow', dtype_backend='pyarrow')
+    orthogroups_df = pd.read_csv(putative_orthologs_path, dtype=str)
     if len(orthogroups_df) == 0:
         raise ValueError('No putative ortholog groups were detected in your dataset. Please try to lower the '
                          'similarity parameters (see Advanced Options in the submission page) and re-submit your job.')

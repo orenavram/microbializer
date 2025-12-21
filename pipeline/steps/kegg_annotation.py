@@ -70,7 +70,7 @@ def create_gene_to_og_map(og_table_df):
 
 
 def add_kegg_annotations_to_og_table(og_table_path, hmmsearch_output_df, optimization_mode):
-    og_table_df = pd.read_csv(og_table_path, dtype=str, engine='pyarrow', dtype_backend='pyarrow')
+    og_table_df = pd.read_csv(og_table_path, dtype=str)
     gene_to_og_df = create_gene_to_og_map(og_table_df)
 
     if optimization_mode in ['first_gene_of_og', 'all_genes_of_og']:
