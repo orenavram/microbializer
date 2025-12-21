@@ -271,7 +271,7 @@ def step_5_orthogroups_inference(logger, times_logger, config, genomes_names, tr
         single_cmd_params = [final_orthogroups_file_path, orfs_coordinates_dir, sorted_orthogroups_file_path]
 
         submit_job(logger, config, script_path, single_cmd_params, sorted_orthogroups_tmp_dir,
-                          'sort_orthogroups', memory=get_required_memory_gb_to_load_csv(final_orthogroups_file_path))
+                          'sort_orthogroups', memory=config.sort_orthogroups_memory_gb)
         wait_for_results(logger, times_logger, step_name, sorted_orthogroups_tmp_dir, config.error_file_path)
 
         write_done_file(logger, done_file_path)
