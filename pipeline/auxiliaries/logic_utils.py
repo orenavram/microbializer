@@ -107,6 +107,7 @@ def combine_orphan_genes_stats(orphan_genes_dir, output_dir):
 
     combined_df = pd.concat(all_stat_dfs)
     combined_df.index.name = 'Genome'
+    combined_df.index = combined_df.index.astype(str)
     combined_df.sort_index(inplace=True)
     combined_df.to_csv(output_dir / 'orphans_genes_stats.csv')
 
@@ -176,8 +177,9 @@ def sort_orthogroups_df_and_rename_ogs(logger, orthogroups_file_path, orfs_coord
     # Sort the table OGs by the first genome's coordinates, then by the second genome's coordinates, and so on.
     orthogroups_df = orthogroups_df.sort_values(
         by=list(orthogroups_df.columns[1:]),
-        key=lambda col: col.map(lambda val: genome_name_to_orfs_coordinates[col.name][val.split(';')[0] if not pd.isna(val) else '']))\
-        .reset_index(drop=True)
+        key=lambda col: col.map(lambda val: genome_name_to_orfs_coordinates[col.name][val.split(';')[0] if not pd.isna(val) else '']),
+        ignore_index=True
+    )
 
     orthogroups_df['OG_name'] = [f'OG_{i}' for i in range(len(orthogroups_df.index))]
     orthogroups_df.to_csv(sorted_orthogroups_file_path, index=False)
@@ -185,8 +187,8 @@ def sort_orthogroups_df_and_rename_ogs(logger, orthogroups_file_path, orfs_coord
 
 
 def sort_orthogroups_by_columns(df):
-    if len(df.columns) < 1000:
-        df = df.sort_values(by=list(df.columns[1:])).reset_index(drop=True)
+    if len(df.columns) < 2000:
+        df = df.sort_values(by=list(df.columns[1:]), ignore_index=True)
     else:
         # This is a memory-efficient implementation of df.sort_values(by=list(df.columns[1:])), used to deal with very
         # large dataframes.
@@ -198,7 +200,7 @@ def sort_orthogroups_by_columns(df):
 
         # 2. Now perform the sort
         #    Pandas will use the integer codes under the hood -> Super fast, Low RAM
-        df = df.sort_values(by=list(df.columns[1:])).reset_index(drop=True)
+        df = df.sort_values(by=list(df.columns[1:]), ignore_index=True)
 
     # Rename OGs
     df['OG_name'] = [f'OG_{i}' for i in range(len(df.index))]

@@ -57,6 +57,8 @@ def merge_sub_orthogroups(logger, pseudo_orthogroups_file_path, sub_orthogroups_
 
     # df = sort_orthogroups_by_columns(df)
     df = df.sort_values(by=list(df.columns[1:]), ignore_index=True)
+    df['OG_name'] = [f'OG_{i}' for i in range(len(df.index))]
+
     df.to_csv(output_path, index=False)
     logger.info(f'Merged sub-orthogroups file (sorted) saved to {output_path}')
 
