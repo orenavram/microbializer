@@ -31,8 +31,11 @@ def sort_orthogroups_df_and_rename_ogs(logger, orthogroups_file_path, orfs_coord
 
     # Sort the genes in each cell of the orthogroups DataFrame
     orthogroups_df = pd.read_csv(orthogroups_file_path, dtype=str)
+    logger.info(f'Loaded orthogroups table from {orthogroups_file_path} into memory.')
+
     for col in orthogroups_df.columns[1:]:
         orthogroups_df[col] = orthogroups_df[col].apply(lambda cell: sort_genes_in_cell(cell, genome_name_to_orfs_coordinates[col]))
+    logger.info('Sorted genes in each cell of the orthogroups table according to coordinates.')
 
     # Sort the table OGs by the first genome's coordinates, then by the second genome's coordinates, and so on.
     orthogroups_df = orthogroups_df.sort_values(
@@ -40,6 +43,7 @@ def sort_orthogroups_df_and_rename_ogs(logger, orthogroups_file_path, orfs_coord
         key=lambda col: col.map(lambda val: genome_name_to_orfs_coordinates[col.name][val.split(';')[0] if not pd.isna(val) else '']),
         ignore_index=True
     )
+    logger.info('Sorted orthogroups table according to coordinates.')
 
     orthogroups_df['OG_name'] = [f'OG_{i}' for i in range(len(orthogroups_df.index))]
     orthogroups_df.to_csv(sorted_orthogroups_file_path, index=False)
