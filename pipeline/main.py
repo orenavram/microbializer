@@ -541,6 +541,25 @@ def step_7_orthologs_table_variations(logger, times_logger, config, final_orthog
 
 def step_8_build_orthologous_groups_fastas(logger, times_logger, config, all_orfs_fasta_path,
                                            all_proteins_fasta_path, final_orthologs_table_file_path):
+    # 08_0 splot_ogs_by_size.py
+    step_number = '08_0'
+    logger.info(f'Step {step_number}: {"_" * 100}')
+    step_name = f'{step_number}_split_ogs_by_size'
+    script_path = consts.SRC_DIR / 'steps' / 'split_ogs_by_size.py'
+    split_ogs_dir_path, split_ogs_tmp_dir = prepare_directories(logger, config.steps_results_dir,
+                                                                config.tmp_dir, step_name)
+    done_file_path = config.done_files_dir / f'{step_name}.txt'
+    if not done_file_path.exists():
+        logger.info('Splitting orthologs groups by size...')
+        script_params = [final_orthologs_table_file_path, split_ogs_dir_path, config.max_parallel_jobs]
+        memory = max(config.job_default_memory_gb, get_required_memory_gb_to_load_csv(final_orthologs_table_file_path))
+        submit_job(logger, config, script_path, script_params, split_ogs_tmp_dir, 'split_ogs_by_size', memory=memory)
+        wait_for_results(logger, times_logger, step_name, split_ogs_tmp_dir, config.error_file_path)
+        write_done_file(logger, done_file_path)
+    else:
+        logger.info(f'done file {done_file_path} already exists. Skipping step...')
+
+
     # 08_1.	extract_orfs.py
     # Input: (1) a row from the final orthologs table (2) a path for a directory where the genes files are at (3) a path for an output file.
     # Output: write the sequences of the orthologs group to the output file.
@@ -567,11 +586,10 @@ def step_8_build_orthologous_groups_fastas(logger, times_logger, config, all_orf
         orthogroups_induced_dna_msa_dir_path.mkdir(parents=True, exist_ok=True)
         orthogroups_aa_consensus_dir_path.mkdir(parents=True, exist_ok=True)
 
-        orthogroups_df = pd.read_csv(final_orthologs_table_file_path, dtype=str)
-
         jobs_inputs_dir = pipeline_step_tmp_dir / consts.STEP_INPUTS_DIR_NAME
         jobs_inputs_dir.mkdir(parents=True, exist_ok=True)
-        split_ogs_to_jobs_inputs_files_by_og_sizes(orthogroups_df, jobs_inputs_dir, config.max_parallel_jobs)
+        for file_path in split_ogs_dir_path.iterdir():
+            shutil.copy(file_path, jobs_inputs_dir / file_path.name)
 
         script_params = [all_orfs_fasta_path,
                          all_proteins_fasta_path,

@@ -18,13 +18,17 @@ from pipeline.auxiliaries.logic_utils import count_strains_and_genes_in_ogs
 
 
 def create_phyletic_pattern(logger, orthogroups_df, output_dir):
+    phyletic_patterns_path = output_dir / 'phyletic_pattern.fas'
+    if phyletic_patterns_path.exists():
+        logger.info(f'Phyletic pattern file already exists at {phyletic_patterns_path}, so skipping step.')
+        return
+
     phyletic_patterns_str = ''
     strain_names = list(orthogroups_df.columns[1:])
     for strain_name in strain_names:
         phyletic_pattern = ''.join(pd.notnull(orthogroups_df[strain_name]).astype(int).astype(str))
         phyletic_patterns_str += f'>{strain_name}\n{phyletic_pattern}\n'
 
-    phyletic_patterns_path = output_dir / 'phyletic_pattern.fas'
     with open(phyletic_patterns_path, 'w') as f:
         f.write(phyletic_patterns_str)
     logger.info(f'Created phyletic pattern at {phyletic_patterns_path}')
@@ -46,6 +50,12 @@ def plot_presence_absence_matrix(logger, binary_df, output_dir):
     try:
         n_genomes = binary_df.shape[0]
         n_orthogroups = binary_df.shape[1]
+
+        if n_genomes > 500:
+            logger.info("Too many strains to plot presence/absence map, skipping.")
+            open(map_png_path, 'w').close()
+            open(map_svg_path, 'w').close()
+            return
 
         if n_genomes < 3:
             logger.info("Not enough strains to run clustering. Will produce heatmap instead.")
@@ -75,8 +85,8 @@ def plot_presence_absence_matrix(logger, binary_df, output_dir):
         g.savefig(map_png_path, dpi=600, bbox_inches='tight')
         g.savefig(map_svg_path, dpi=600, bbox_inches='tight')
         plt.close()
-
         logger.info(f'Created presence/absence map at {map_png_path} and {map_svg_path}')
+
     except Exception as e:
         logger.exception(f"Error creating presence/absence map: {e}")
 
@@ -101,11 +111,13 @@ def cluster_strains_by_orthogroups(logger, binary_df, output_dir):
         # Step 1: UMAP dimensionality reduction (good with Hamming distance for binary data)
         reducer = umap.UMAP(n_neighbors=15, min_dist=0.1, metric='hamming', random_state=42, n_jobs=1)
         embedding = reducer.fit_transform(binary_df)
+        logger.info(f'UMAP dimensionality reduction of the binary orthogroups table completed.')
 
         # Step 2: HDBSCAN clustering (no need to specify number of clusters)
         min_cluster_size = max(5, int(n_strains * 0.01))  # Dynamically set min_cluster_size
         clusterer = HDBSCAN(min_cluster_size=min_cluster_size, metric='hamming')
         labels = clusterer.fit_predict(binary_df)
+        logger.info(f'HDBSCAN clustering of strains completed.')
 
         # 3. Save strain-cluster mapping to CSV
         strain_cluster_df = pd.DataFrame({
@@ -113,6 +125,7 @@ def cluster_strains_by_orthogroups(logger, binary_df, output_dir):
             'cluster': labels
         })
         strain_cluster_df.to_csv(strains_cluster_csv_path, index=False)
+        logger.info(f'Created strain-cluster mapping at {strains_cluster_csv_path}')
 
         # 4. Build color palette with unique color for -1
         unique_labels = np.unique(labels)
@@ -157,12 +170,19 @@ def cluster_strains_by_orthogroups(logger, binary_df, output_dir):
 
 
 def count_and_plot_orthogroups_sizes(logger, final_orthogroups_file_path, output_dir):
+    sizes_table_path = output_dir / "orthogroups_sizes.csv"
+    sizes_hist_png_path = output_dir / "orthogroups_sizes.png"
+    sizes_hist_svg_path = output_dir / "orthogroups_sizes.svg"
+    if sizes_table_path.exists() and sizes_hist_png_path.exists() and sizes_hist_svg_path.exists():
+        logger.info(f'Orthogroups sizes table and histogram already exist at {sizes_table_path} and {sizes_hist_png_path}, so skipping step.')
+        return
+
     final_orthologs_table_df = pd.read_csv(final_orthogroups_file_path, dtype=str)
     orthogroups_sizes_df = count_strains_and_genes_in_ogs(final_orthologs_table_df)
     orthogroups_sizes_df = orthogroups_sizes_df.rename(columns={'strains_count': 'OG size (number of genomes)',
                                                                 'genes_count': 'OG size (total number of genes)'})
-    orthogroups_sizes_df.to_csv(output_dir / 'orthogroups_sizes.csv', index=False)
-    logger.info(f'Created orthogroups sizes table at {output_dir / "orthogroups_sizes.csv"}')
+    orthogroups_sizes_df.to_csv(sizes_table_path, index=False)
+    logger.info(f'Created orthogroups sizes table at {sizes_table_path}')
 
     group_sizes = orthogroups_sizes_df.set_index('OG_name')['OG size (number of genomes)']
     sns.histplot(x=group_sizes, discrete=True)
@@ -172,13 +192,18 @@ def count_and_plot_orthogroups_sizes(logger, final_orthogroups_file_path, output
     plt.xlabel('OG size (number of genomes)', fontsize=20)
     plt.ylabel('Count of OGs of each OG size', fontsize=20)
     plt.tight_layout()
-    plt.savefig(output_dir / 'orthogroups_sizes.png', dpi=600)
-    plt.savefig(output_dir / 'orthogroups_sizes.svg', dpi=600)
-    plt.clf()
-    logger.info(f'Created orthogroups sizes histogram at {output_dir / "orthogroups_sizes.png"}')
+    plt.savefig(sizes_hist_png_path, dpi=600)
+    plt.savefig(sizes_hist_svg_path, dpi=600)
+    plt.close()
+    logger.info(f'Created orthogroups sizes histogram at {sizes_hist_png_path}')
 
 
 def create_simplified_orthogroups_table_for_results_page(logger, orthogroups_df, output_dir):
+    results_page_orthogroups_path = output_dir / 'orthogroups_results_page.csv'
+    if results_page_orthogroups_path.exists():
+        logger.info(f'Simplified orthogroups table for results page already exists at {results_page_orthogroups_path}, so skipping step.')
+        return
+
     orthogroups_df = orthogroups_df.set_index('OG_name')
 
     # Start with a new DataFrame with the same shape as the original, filled with 0.
@@ -190,12 +215,16 @@ def create_simplified_orthogroups_table_for_results_page(logger, orthogroups_df,
     converted_df[not_nan_mask] = 1
     converted_df[semicolon_mask] = 2
 
-    results_page_orthogroups_path = output_dir / 'orthogroups_results_page.csv'
     converted_df.to_csv(results_page_orthogroups_path)
     logger.info(f'Created simplified orthogroups table for results page at {results_page_orthogroups_path}')
 
 
 def get_genome_numeric_representation(logger, orthogroups_table_path, ORFs_coordinates_dir_path, output_dir):
+    output_path = output_dir / 'genomes_numeric_representation.txt'
+    if output_path.exists():
+        logger.info(f'Genomes numeric representation file already exists at {output_path}, so skipping step.')
+        return
+
     orthogroups_df = pd.read_csv(orthogroups_table_path, dtype=str, index_col=0)
 
     genome_name_to_numeric_genome = {}
@@ -213,7 +242,6 @@ def get_genome_numeric_representation(logger, orthogroups_table_path, ORFs_coord
         numeric_genome = [gene_id_to_og_number.get(orf_id, '-1') for orf_id in orf_ids]
         genome_name_to_numeric_genome[genome_name] = ','.join(numeric_genome)
 
-    output_path = output_dir / 'genomes_numeric_representation.txt'
     with open(output_path, 'w') as f:
         for genome_name, numeric_genome in genome_name_to_numeric_genome.items():
             f.write(f'>{genome_name}\n{numeric_genome}\n')
