@@ -8,11 +8,14 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR.parent.parent))
 
 from pipeline.auxiliaries.run_step_utils import add_default_step_args, run_step
-from pipeline.auxiliaries.logic_utils import sort_orthogroups_by_columns
 
 
 def merge_sub_orthogroups(logger, pseudo_orthogroups_file_path, sub_orthogroups_dir_path, output_path):
-    temp_output_path = output_path.with_suffix('.tmp.csv')
+    if output_path.exists():
+        logger.info(f'Merged sub-orthogroups file already exists at {output_path}, so skipping step.')
+        return
+
+    temp_output_path = output_path.with_suffix('.unsorted.csv')
     if temp_output_path.exists():
         df = pd.read_csv(temp_output_path, dtype=str)
         logger.info(f'Temporary merged sub-orthogroups file already exists at {temp_output_path}, so loaded it.')

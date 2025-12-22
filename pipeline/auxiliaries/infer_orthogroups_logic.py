@@ -281,8 +281,8 @@ def cluster_mmseqs_hits_to_orthogroups(logger, times_logger, config, orthologs_o
             params = [orthogroups_file_path, final_orthogroups_file_path,
                       f'--orphan_genes_dir {orphan_genes_internal_dir}']
 
-            submit_job(logger, config, script_path, params, pipeline_step_tmp_dir,
-                              'add_orphans_to_orthogroups')
+            submit_job(logger, config, script_path, params, pipeline_step_tmp_dir, 'add_orphans_to_orthogroups',
+                       memory=config.add_orphans_to_og_table_memory_gb)
             wait_for_results(logger, times_logger, step_name, pipeline_step_tmp_dir, config.error_file_path)
         else:
             shutil.copy(orthogroups_file_path, final_orthogroups_file_path)

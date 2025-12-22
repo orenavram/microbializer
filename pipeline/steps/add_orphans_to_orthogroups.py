@@ -31,7 +31,7 @@ def finalize_table(logger, orthologs_table_path, finalized_table_path, orphan_ge
     logger.info(f'Finished adding orphan genes as OGs. OG table now contains {len(orthogroups_df.index)} groups.')
 
     # Sort the rows by all columns except the first one (OG_name) to keep consistent output
-    orthogroups_df = orthogroups_df.sort_values(by=list(orthogroups_df.columns[1:])).reset_index(drop=True)
+    orthogroups_df = orthogroups_df.sort_values(by=list(orthogroups_df.columns[1:]), ignore_index=True)
     orthogroups_df['OG_name'] = [f'OG_{i}' for i in range(len(orthogroups_df.index))]
     orthogroups_df.to_csv(finalized_table_path, index=False)
     logger.info(f'Wrote finalized sorted orthogroups table to {finalized_table_path}')

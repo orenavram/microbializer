@@ -271,7 +271,7 @@ def step_5_orthogroups_inference(logger, times_logger, config, genomes_names, tr
         single_cmd_params = [final_orthogroups_file_path, orfs_coordinates_dir, sorted_orthogroups_file_path]
 
         submit_job(logger, config, script_path, single_cmd_params, sorted_orthogroups_tmp_dir,
-                          'sort_orthogroups', memory=config.sort_orthogroups_memory_gb)
+                   'sort_orthogroups', memory=config.sort_orthogroups_memory_gb)
         wait_for_results(logger, times_logger, step_name, sorted_orthogroups_tmp_dir, config.error_file_path)
 
         write_done_file(logger, done_file_path)
@@ -393,7 +393,8 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
 
     # 06. infer pseudo orthogroups
     config_for_pseudo_orthogroups_inference = replace(
-        config, genomes_names_path=pseudo_genomes_strains_names_path, add_orphan_genes_to_ogs=True)
+        config, genomes_names_path=pseudo_genomes_strains_names_path, add_orphan_genes_to_ogs=True,
+        add_orphans_to_og_table_memory_gb=consts.PSEUDO_TABLE_ADD_ORPHANS_TO_OG_TABLE_MEMORY_GB)
     pseudo_orthogroups_dir_path, _, final_substep_number = infer_orthogroups(
         logger, times_logger, config_for_pseudo_orthogroups_inference, '06', pseudo_genomes_dir_path,
         all_pseudo_genomes_path, skip_paralogs=True)
@@ -469,33 +470,22 @@ def step_5_6_approximate_orthogroups_inference(logger, times_logger, config, tra
     step_number = f'06_{final_substep_number + 3}'
     logger.info(f'Step {step_number}: {"_" * 100}')
     step_name = f'{step_number}_orthogroups_final'
+    script_path = consts.SRC_DIR / 'steps' / 'remove_orphans.py'
     final_orthogroups_dir, final_orthogroups_tmp_dir = prepare_directories(
         logger, config.steps_results_dir, config.tmp_dir, step_name)
     final_orthogroups_file_path = final_orthogroups_dir / 'orthogroups.csv'
     done_file_path = config.done_files_dir / f'{step_name}.txt'
     if not done_file_path.exists():
-        start_time = time.time()
-
         if config.add_orphan_genes_to_ogs:
             shutil.copy(merged_orthogroups_file_path, final_orthogroups_file_path)
             logger.info(f'add_orphan_genes_to_ogs is True. Copied {merged_orthogroups_file_path} to '
                         f'{final_orthogroups_file_path} since it already contains orphans.')
         else:
-            orthogroups_df = pd.read_csv(merged_orthogroups_file_path, index_col='OG_name', dtype=str)
-            orthogroups_df = orthogroups_df[~(
-                    (orthogroups_df.count(axis=1) == 1) &
-                    ~(orthogroups_df.apply(lambda row: row.dropna().iloc[0].__contains__(';'), axis=1))
-            )]
-            orthogroups_df.reset_index(drop=True, inplace=True)
-            orthogroups_df['OG_name'] = [f'OG_{i}' for i in range(len(orthogroups_df.index))]
-            orthogroups_df.set_index('OG_name', inplace=True)
-            orthogroups_df.to_csv(final_orthogroups_file_path)
-            logger.info(
-                f'add_orphan_genes_to_ogs is False. Removed single orphan genes from {merged_orthogroups_file_path} '
-                f'and saved to {final_orthogroups_file_path}')
-
-        step_time = timedelta(seconds=int(time.time() - start_time))
-        times_logger.info(f'Step {step_name} took {step_time}.')
+            script_params = [merged_orthogroups_file_path, final_orthogroups_file_path]
+            memory = max(config.job_default_memory_gb, get_required_memory_gb_to_load_csv(merged_orthogroups_file_path))
+            submit_job(logger, config, script_path, script_params, final_orthogroups_tmp_dir, 'remove_orphans',
+                       memory=memory)
+            wait_for_results(logger, times_logger, step_name, final_orthogroups_tmp_dir, config.error_file_path)
 
         write_done_file(logger, done_file_path)
     else:

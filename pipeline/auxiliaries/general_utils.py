@@ -79,6 +79,6 @@ def get_directory_size_in_gb(directory):
 
 def get_required_memory_gb_to_load_csv(csv_path: Path):
     csv_size_bytes = csv_path.stat().st_size
-    requited_memory_bytes = csv_size_bytes * 10
+    requited_memory_bytes = csv_size_bytes * 20
     requited_memory_gb = math.ceil(requited_memory_bytes / (1024 ** 3))
     return requited_memory_gb
