@@ -51,7 +51,7 @@ def plot_presence_absence_matrix(logger, binary_df, output_dir):
         n_genomes = binary_df.shape[0]
         n_orthogroups = binary_df.shape[1]
 
-        if n_genomes > 500:
+        if n_genomes > 200:
             logger.info("Too many strains to plot presence/absence map, skipping.")
             open(map_png_path, 'w').close()
             open(map_svg_path, 'w').close()
