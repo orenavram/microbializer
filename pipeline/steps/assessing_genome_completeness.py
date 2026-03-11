@@ -36,7 +36,7 @@ def compute_genome_completeness(logger, genomic_translated_f, out_dir):
                         score += 1
                     break
 
-    return (score / consts.BACTERIA_CORE_GENES_COUNT) * 100
+    return round((score / consts.BACTERIA_CORE_GENES_COUNT) * 100, 2)
 
 
 def main(logger, job_input_path, output_dir):
