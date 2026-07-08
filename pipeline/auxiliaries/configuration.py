@@ -104,6 +104,7 @@ class Config:
     ani_memory_gb: int
     orthoxml_memory_gb: int
     orthogroups_visualizations_memory_gb: int
+    ani_time_limit: str
     phylogeny_time_limit: str
     infer_orthogroups_time_limit: str
     merge_sub_orthogroups_memory_gb: int
@@ -280,6 +281,7 @@ def get_configuration():
                     phylogeny_cpus=min(consts.PHYLOGENY_CPUS, args.cpus),
                     phylogeny_memory_gb=consts.PHYLOGENY_MEMORY_GB,
                     phylogeny_time_limit=consts.PHYLOGENY_TIME_LIMIT,
+                    ani_time_limit=consts.ANI_TIME_LIMIT,
                     kegg_cpus=min(consts.KEGG_CPUS, args.cpus),
                     kegg_memory_gb=consts.KEGG_MEMORY_GB,
                     codon_bias_cpus=min(consts.CODON_BIAS_CPUS, args.cpus),

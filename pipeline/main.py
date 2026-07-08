@@ -744,7 +744,8 @@ def step_11_phylogeny(logger, times_logger, config, aligned_core_proteome_file_p
         single_cmd_params = [genomes_list_path, ani_output_dir]
 
         submit_job(logger, config, script_path, single_cmd_params, ani_tmp_dir,
-                          'ANI', num_of_cpus=config.ani_cpus, memory=config.ani_memory_gb)
+           'ANI', num_of_cpus=config.ani_cpus, memory=config.ani_memory_gb,
+                   time_in_hours=config.ani_time_limit)
 
     else:
         logger.info(f'done file {ani_done_file_path} already exists. Skipping step...')
