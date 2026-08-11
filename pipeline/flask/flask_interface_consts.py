@@ -2,7 +2,7 @@ from pathlib import Path
 
 WEBSERVER_NAME = 'M1CR0B1AL1Z3R'
 WEBSERVER_PROJECT_ROOT_DIR = '/microbializer'
-ADDITIONAL_OWNER_EMAILS = ['edodotan@mail.tau.ac.il']
+ADDITIONAL_OWNER_EMAILS = ['talp@tauex.tau.ac.il', 'josefspr@hotmail.com']
 
 # Arguments keys to run the pipeline with
 ARGS_JSON_PATH_KEY = "args_json_path"

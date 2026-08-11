@@ -80,7 +80,6 @@ def send_email_in_pipeline_end(logger, config, state):
         return
 
     email_addresses = [SharedConsts.OWNER_EMAIL]
-    email_addresses.extend(flask_interface_consts.ADDITIONAL_OWNER_EMAILS)
     if config.email:
         email_addresses.append(config.email)
     else:
