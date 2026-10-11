@@ -3,7 +3,7 @@
 # Usage: ./submit_weekly_report.sh
 #
 # Schedule example (crontab, every Monday at 08:00):
-#   0 8 * * 1 /microbializer/scripts/submit_weekly_report.sh
+#   0 8 * * 1 /bin/bash /microbializer/scripts/submit_weekly_report.sh
 
 set -euo pipefail
 

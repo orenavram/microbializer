@@ -147,7 +147,7 @@ def main():
 
         status = _classify_job(job_dir)
         if status is None:
-            logger.debug('Skipping still-running job: %s', job_dir.name)
+            logger.info('Skipping still-running job: %s', job_dir.name)
             continue
 
         jobs_by_status[status].append((job_dir.name, start_time))
