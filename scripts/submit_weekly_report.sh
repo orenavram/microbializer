@@ -2,7 +2,7 @@
 # Submit the weekly Microbializer report as a SLURM job.
 # Usage: ./submit_weekly_report.sh
 #
-# Schedule example (crontab, every Monday at 08:00):
+# Schedule weekly job (crontab, every Monday at 08:00. Scheduled in powerslurm-login.tau.ac.il, user microbi):
 #   0 8 * * 1 /bin/bash /microbializer/scripts/submit_weekly_report.sh
 
 set -euo pipefail
